@@ -1,0 +1,13 @@
+{
+  "entidade": "validade",
+  "ultimaAtualizacao": "2026-08-17T06:30:00Z",
+  "registrosDisponiveis": [
+    {
+      "data": "2026-08-17",
+      "caminho": "/banco-dados/historico/2026/08/17/validade.json",
+      "itensCriticos": 1,
+      "itensAlerta": 1
+    }
+  ],
+  "atalhoHoje": "/banco-dados/hoje/validade.json"
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Usuario, Empresa } from '../types';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { AcoesGeraisRepository } from '../db';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Lightbulb, Send, CheckCircle2, MessageSquare, Shield } from 'lucide-react';
@@ -31,7 +31,7 @@ export default function SugerirMelhoriaCard({ user, empresa, setor }: SugerirMel
 
   // Load supervisors and administrators of the company
   useEffect(() => {
-    if (!db || !empresaId) return;
+    if (!empresaId) return;
     const list = empresaData.usuarios.filter((u: any) => u.papel === 'admin' || u.papel === 'controle' || u.isControle === true);
     setGestores(list);
     if (list.length > 0 && !selectedGestorId) {
@@ -41,7 +41,6 @@ export default function SugerirMelhoriaCard({ user, empresa, setor }: SugerirMel
 
   // Load proposed improvements for this sector and company
   useEffect(() => {
-    if (!db) return;
     const docs = empresaData.acoes.filter((a: any) => (a.setor === setor || isFefoSetor) && a.tipo === 'supervisor');
     docs.sort((a, b) => {
       const dateA = a.criadoEm ? new Date(a.criadoEm).getTime() : 0;
@@ -74,7 +73,7 @@ export default function SugerirMelhoriaCard({ user, empresa, setor }: SugerirMel
       const destinoGestorNome = targetGestor ? targetGestor.nome : 'Supervisor Geral';
       const destinoGestorPapel = targetGestor ? (targetGestor.papel === 'admin' ? 'Administrador' : 'Supervisor') : 'Supervisor';
 
-      await addDoc(collection(db, 'acoes'), {
+      await AcoesGeraisRepository.create({
         empresaId,
         titulo: titulo.trim(),
         descricao: descricao.trim(),
@@ -91,7 +90,7 @@ export default function SugerirMelhoriaCard({ user, empresa, setor }: SugerirMel
         destinoGestorId,
         destinoGestorNome,
         destinoGestorPapel
-      });
+      } as any, empresaId);
 
       setTitulo('');
       setDescricao('');

@@ -550,25 +550,25 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
   return (
     <div className="space-y-6">
       {/* BANNER PRINCIPAL DO QUADRO DE GATILHOS WORKSTATION */}
-      <div className="bg-gradient-to-r from-[#031d3d] via-[#092b52] to-[#0f172a] border-2 border-amber-500/40 p-6 rounded-2xl text-white shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#031d3d] dark:via-[#092b52] dark:to-[#0f172a] border-2 border-amber-500/40 p-6 rounded-2xl text-slate-900 dark:text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <ShieldAlert className="w-48 h-48 text-amber-400" />
+          <ShieldAlert className="w-48 h-48 text-amber-500 dark:text-amber-400" />
         </div>
 
         <div className="relative z-10 space-y-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-500/20 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/20 border border-amber-500/40 rounded-2xl text-amber-400 shadow-inner">
+              <div className="p-3 bg-amber-500/20 border border-amber-500/40 rounded-2xl text-amber-500 dark:text-amber-400 shadow-inner">
                 <Zap className="w-8 h-8" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
                     WORKSTATION CCO
                   </span>
-                  <span className="text-[10px] text-slate-300 font-mono">Painel de Anomalias Diárias</span>
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">Painel de Anomalias Diárias</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
                   Quadro de Gatilhos & Desvios Operacionais
                 </h1>
               </div>
@@ -579,7 +579,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 <button
                   type="button"
                   onClick={onNavigateToAcoes}
-                  className="px-4 py-2.5 bg-[#0b1222] hover:bg-slate-800 text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-500/30 transition-all cursor-pointer flex items-center gap-2 shadow-lg"
+                  className="px-4 py-2.5 bg-white dark:bg-[#0b1222] hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-500/30 transition-all cursor-pointer flex items-center gap-2 shadow-md"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Planos de Ação DPO</span>
@@ -588,49 +588,49 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
             </div>
           </div>
 
-          <p className="text-xs text-slate-300 max-w-5xl leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-5xl leading-relaxed">
             Painel consolidado dos gatilhos operacionais medidos na plataforma: <strong>PNP, Repack, Despejo/Refugo, Estoque & Age Index, Política de Cobertura, Montagem, Aferimento, Pátio e Qualidade</strong>. Qualquer anomalia apurada dispara o limite do gatilho e exige plano imediato de contenção.
           </p>
 
           {/* KPIS RESUMO DOS GATILHOS */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="p-3 bg-[#081326] border border-slate-800 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Indicadores Medidos</span>
-                <span className="text-xl font-black font-mono text-white">{totalIndicadores}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Indicadores Medidos</span>
+                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{totalIndicadores}</span>
               </div>
-              <BarChart3 className="w-6 h-6 text-sky-400" />
+              <BarChart3 className="w-6 h-6 text-sky-500 dark:text-sky-400" />
             </div>
 
-            <div className="p-3 bg-[#081326] border border-emerald-500/30 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-emerald-500/30 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Operação Sob Controle</span>
-                <span className="text-xl font-black font-mono text-emerald-400">{gatilhosNormais}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Operação Sob Controle</span>
+                <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">{gatilhosNormais}</span>
               </div>
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <CheckCircle2 className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
             </div>
 
-            <div className="p-3 bg-[#081326] border border-rose-500/40 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-rose-500/40 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Gatilhos Disparados</span>
-                <span className="text-xl font-black font-mono text-rose-400">{gatilhosDisparados}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Gatilhos Disparados</span>
+                <span className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">{gatilhosDisparados}</span>
               </div>
-              <AlertTriangle className="w-6 h-6 text-rose-400 animate-pulse" />
+              <AlertTriangle className="w-6 h-6 text-rose-500 dark:text-rose-400 animate-pulse" />
             </div>
 
-            <div className="p-3 bg-[#081326] border border-amber-500/30 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-amber-500/30 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Desvios Registrados</span>
-                <span className="text-xl font-black font-mono text-amber-400">{desviosDiariosList.filter(d => d.statusAcao !== 'CONCLUIDO').length}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Desvios Registrados</span>
+                <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">{desviosDiariosList.filter(d => d.statusAcao !== 'CONCLUIDO').length}</span>
               </div>
-              <ShieldAlert className="w-6 h-6 text-amber-400" />
+              <ShieldAlert className="w-6 h-6 text-amber-500 dark:text-amber-400" />
             </div>
           </div>
         </div>
       </div>
 
       {/* PAINEL DE CONTROLES E FILTROS DE CATEGORIAS MEDIDAS */}
-      <div className="bg-[#111a30] border border-slate-800 p-4 rounded-2xl shadow-xl space-y-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xl space-y-4">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Busca por texto */}
           <div className="relative flex-1 min-w-[260px]">
@@ -640,17 +640,17 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por indicador (Repack, Despejo, Age Index, PNP, Quebras...)"
-              className="w-full pl-10 pr-4 py-2 bg-[#0b1222] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all"
             />
           </div>
 
           {/* Filtro por Status do Gatilho */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">Status:</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase shrink-0">Status:</span>
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="bg-[#0b1222] border border-slate-800 rounded-xl text-xs text-white px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
             >
               <option value="TODOS">Todos os Status ({totalIndicadores})</option>
               <option value="DISPARADO">🚨 Gatilho Disparado ({gatilhosDisparados})</option>
@@ -661,7 +661,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
         </div>
 
         {/* BARRINHA DE BOTÕES DE CATEGORIAS */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
           {categoriasList.map((cat) => {
             const IconComp = cat.icon;
             const isSelected = selectedCategoria === cat.key;
@@ -673,10 +673,10 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 border ${
                   isSelected
                     ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-500/20'
-                    : 'bg-[#0b1222] text-slate-300 hover:text-white border-slate-800 hover:border-slate-700'
+                    : 'bg-slate-50 dark:bg-[#0b1222] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
-                <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-slate-950' : 'text-amber-400'}`} />
+                <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'}`} />
                 <span>{cat.label}</span>
               </button>
             );
@@ -693,25 +693,25 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
           return (
             <div
               key={ind.id}
-              className={`p-4 bg-[#111a30] border-2 ${
+              className={`p-4 bg-white dark:bg-[#111a30] border-2 ${
                 isDisparado
-                  ? 'border-rose-500/80 shadow-rose-500/10 bg-rose-950/10'
+                  ? 'border-rose-500/80 shadow-rose-500/10 bg-rose-50/50 dark:bg-rose-950/10'
                   : isAlerta
-                  ? 'border-amber-500/80 shadow-amber-500/10'
-                  : 'border-slate-800'
-              } rounded-2xl shadow-xl flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-slate-700 transition-all`}
+                  ? 'border-amber-500/80 shadow-amber-500/10 bg-amber-50/50 dark:bg-amber-950/10'
+                  : 'border-slate-200 dark:border-slate-800'
+              } rounded-2xl shadow-xl flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] font-black font-mono uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    <span className="text-[9px] font-black font-mono uppercase text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                       {ind.codigo}
                     </span>
-                    <span className="text-[9px] font-extrabold uppercase text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-extrabold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                       {ind.categoria}
                     </span>
                   </div>
-                  <h3 className="text-sm font-black text-white uppercase mt-1 leading-snug">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase mt-1 leading-snug">
                     {ind.nome}
                   </h3>
                 </div>
@@ -719,10 +719,10 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 <span
                   className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase border shrink-0 flex items-center gap-1 ${
                     isDisparado
-                      ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
+                      ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40 animate-pulse'
                       : isAlerta
-                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
+                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                   }`}
                 >
                   {isDisparado && <AlertTriangle className="w-3 h-3" />}
@@ -738,56 +738,56 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 </span>
               </div>
 
-              <p className="text-[10px] text-slate-400 leading-snug line-clamp-2">
+              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-snug line-clamp-2">
                 {ind.descricaoIndicador}
               </p>
 
               {/* BLOCO DE VALORES: VALOR HOJE x LIMITE DE GATILHO */}
-              <div className="bg-[#0b1222] p-3 rounded-xl border border-slate-800/80 space-y-2">
+              <div className="bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2">
                 <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="border-r border-slate-800/80 pr-2">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase block">
+                  <div className="border-r border-slate-200 dark:border-slate-800/80 pr-2">
+                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
                       Apurado Hoje
                     </span>
                     <span
                       className={`text-base font-black font-mono mt-0.5 block ${
-                        isDisparado ? 'text-rose-400' : 'text-emerald-400'
+                        isDisparado ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                       }`}
                     >
                       {ind.valorHoje}{' '}
-                      <span className="text-[10px] font-normal text-slate-400">
+                      <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
                         {ind.unidade}
                       </span>
                     </span>
                   </div>
 
                   <div className="pl-2">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase block">
+                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
                       Limite Gatilho
                     </span>
-                    <span className="text-base font-black font-mono text-amber-400 mt-0.5 block">
+                    <span className="text-base font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5 block">
                       {ind.limiteGatilho}{' '}
-                      <span className="text-[10px] font-normal text-slate-400">
+                      <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
                         {ind.unidade}
                       </span>
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
-                  <span className="text-slate-400">Meta da Plataforma:</span>
-                  <span className="font-mono font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
+                  <span className="text-slate-600 dark:text-slate-400">Meta da Plataforma:</span>
+                  <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                     {ind.metaPlataforma}
                   </span>
                 </div>
               </div>
 
               {/* RODAPÉ DO CARD */}
-              <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[10px] text-slate-400">
-                <span className="truncate max-w-[150px] font-semibold text-slate-300">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400">
+                <span className="truncate max-w-[150px] font-semibold text-slate-700 dark:text-slate-300">
                   {ind.responsavelArea}
                 </span>
-                <span className="font-bold text-amber-400 flex items-center gap-1">
+                <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
                   {ind.desviosCount} desvio(s)
                 </span>
@@ -798,23 +798,23 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
       </div>
 
       {/* TABELA DE REGISTROS DE DESVIOS DIÁRIOS DOS GATILHOS */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-400" />
-            <h2 className="text-sm font-black text-white uppercase tracking-wider">
+            <ShieldAlert className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+            <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
               Histórico & Registro de Desvios Diários nos Gatilhos ({desviosDiariosList.length})
             </h2>
           </div>
 
-          <span className="text-[10px] font-mono text-slate-400 bg-[#0b1222] px-3 py-1 rounded-lg border border-slate-800">
+          <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-[#0b1222] px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
             Status dos Gatilhos Operacionais
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0b1222]">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#111a30] text-[10px] font-black uppercase text-slate-400 border-b border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0b1222]">
+          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead className="bg-slate-100 dark:bg-[#111a30] text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-3 text-center">Data / Turno</th>
                 <th className="p-3">Indicador Operacional</th>
@@ -826,52 +826,52 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 <th className="p-3 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-sans">
               {desviosDiariosList.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                  <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-slate-500">
                     Nenhum desvio registrado no quadro de gatilhos até o momento.
                   </td>
                 </tr>
               ) : (
                 desviosDiariosList.map((desv) => (
-                  <tr key={desv.id} className="hover:bg-slate-800/40 transition-all">
+                  <tr key={desv.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-all">
                     <td className="p-3 text-center">
-                      <span className="font-mono font-bold text-white block text-xs">
+                      <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs">
                         {desv.dataStr}
                       </span>
-                      <span className="text-[9px] text-amber-400 uppercase font-black">
+                      <span className="text-[9px] text-amber-600 dark:text-amber-400 uppercase font-black">
                         {desv.turno}
                       </span>
                     </td>
 
-                    <td className="p-3 font-bold text-white">
+                    <td className="p-3 font-bold text-slate-900 dark:text-white">
                       <div className="text-xs">{desv.indicadorNome}</div>
-                      <span className="text-[9px] text-slate-400 font-normal">
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-normal">
                         Cadastrado por: {desv.registradoPor}
                       </span>
                     </td>
 
-                    <td className="p-3 text-center font-mono font-black text-rose-400 text-sm">
+                    <td className="p-3 text-center font-mono font-black text-rose-600 dark:text-rose-400 text-sm">
                       {desv.valorApurado}{' '}
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
                         {desv.unidade}
                       </span>
                     </td>
 
-                    <td className="p-3 text-center font-mono font-bold text-amber-400">
+                    <td className="p-3 text-center font-mono font-bold text-amber-600 dark:text-amber-400">
                       {desv.limiteGatilho}{' '}
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
                         {desv.unidade}
                       </span>
                     </td>
 
                     <td className="p-3">
-                      <span className="text-slate-200 font-semibold block text-xs">
+                      <span className="text-slate-800 dark:text-slate-200 font-semibold block text-xs">
                         {desv.equipeResponsavel}
                       </span>
                       {desv.colaboradorEnvolvido && (
-                        <span className="text-[10px] text-indigo-300 font-mono block">
+                        <span className="text-[10px] text-indigo-600 dark:text-indigo-300 font-mono block">
                           Colab: {desv.colaboradorEnvolvido}
                         </span>
                       )}
@@ -879,13 +879,13 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
 
                     <td className="p-3 max-w-xs">
                       <p
-                        className="text-slate-300 text-xs leading-snug line-clamp-2"
+                        className="text-slate-700 dark:text-slate-300 text-xs leading-snug line-clamp-2"
                         title={desv.causaAnomalia}
                       >
                         {desv.causaAnomalia}
                       </p>
                       {desv.planoAcaoDesc && (
-                        <span className="text-[10px] text-emerald-400 font-mono block mt-0.5">
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono block mt-0.5">
                           Ação: {desv.planoAcaoDesc}
                         </span>
                       )}
@@ -902,10 +902,10 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                         }
                         className={`px-2 py-1 rounded text-[10px] font-black uppercase border cursor-pointer focus:outline-none ${
                           desv.statusAcao === 'CONCLUIDO'
-                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                             : desv.statusAcao === 'EM_ANALISE'
-                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                            : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                            : 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30'
                         }`}
                       >
                         <option value="PENDENTE">🔴 Pendente</option>
@@ -924,7 +924,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                               `Desvio no gatilho (${desv.indicadorNome}): ${desv.causaAnomalia}`
                             );
                         }}
-                        className="px-2.5 py-1 bg-[#032b5e] hover:bg-blue-600 text-white rounded text-[10px] font-bold uppercase transition-all border border-blue-500/30 cursor-pointer"
+                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-all border border-blue-500/30 cursor-pointer shadow-sm"
                       >
                         Ver no DPO
                       </button>
@@ -940,18 +940,18 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
       {/* MODAL DE REGISTRO MANUAL DE DESVIO NO GATILHO */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111a30] border-2 border-amber-500/50 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 relative">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-[#111a30] border-2 border-amber-500/50 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-white uppercase tracking-wider">
+                <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">
                   Registrar Desvio Operacional no Gatilho
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -959,13 +959,13 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
 
             <form onSubmit={handleCreateDesvio} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                   Indicador Operacional
                 </label>
                 <select
                   value={newDesvioIndicadorId}
                   onChange={(e) => setNewDesvioIndicadorId(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                 >
                   {indicadoresList.map((i) => (
                     <option key={i.id} value={i.id}>
@@ -977,13 +977,13 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                     Turno da Operação
                   </label>
                   <select
                     value={newDesvioTurno}
                     onChange={(e) => setNewDesvioTurno(e.target.value)}
-                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   >
                     <option value="Turno 1">Turno 1 (Manhã)</option>
                     <option value="Turno 2">Turno 2 (Tarde)</option>
@@ -992,7 +992,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                     Valor Apurado do Dia
                   </label>
                   <input
@@ -1001,14 +1001,14 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                     value={newDesvioValor}
                     onChange={(e) => setNewDesvioValor(e.target.value)}
                     placeholder="Ex: 4.80"
-                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                     Equipe Responsável
                   </label>
                   <input
@@ -1016,12 +1016,12 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                     value={newDesvioEquipe}
                     onChange={(e) => setNewDesvioEquipe(e.target.value)}
                     placeholder="Ex: Armazém - Repack / Estocagem"
-                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                     Colaborador Envolvido (Opcional)
                   </label>
                   <input
@@ -1029,27 +1029,27 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                     value={newDesvioColab}
                     onChange={(e) => setNewDesvioColab(e.target.value)}
                     placeholder="Nome ou matrícula..."
-                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
-                  Causa da Anomalia / Descrição do Desvio <span className="text-rose-400">*</span>
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  Causa da Anomalia / Descrição do Desvio <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={newDesvioCausa}
                   onChange={(e) => setNewDesvioCausa(e.target.value)}
                   placeholder="Descreva detalhadamente a causa da anomalia identificada..."
-                  className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-300 mb-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
                   Plano de Contenção / Ação Imediata (Opcional)
                 </label>
                 <input
@@ -1057,15 +1057,15 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                   value={newDesvioPlano}
                   onChange={(e) => setNewDesvioPlano(e.target.value)}
                   placeholder="Ex: Reorganizar escala de expedição e triagem no FEFO"
-                  className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase rounded-xl cursor-pointer"
                 >
                   Cancelar
                 </button>

@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Share+Tech+Mono&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --ink: #0f172a;          /* Dark theme background (no absolute black) */
   --surf: #1e293b;         /* Dark theme card surface */
@@ -23,21 +25,21 @@
 }
 
 body.light-theme {
-  --ink: #ffffff;          /* Light theme background */
+  --ink: #f0f6ff;          /* Light theme background */
   --surf: #ffffff;         /* Light theme card surface */
   --surf2: #f1f5f9;        /* Light theme secondary surface / inputs */
-  --edge: #e5e7eb;         /* Light theme border */
-  --edge2: #cbd5e1;        /* Light theme active/hover border */
+  --edge: #cbd5e1;         /* Light theme crisp border */
+  --edge2: #94a3b8;        /* Light theme active/hover border */
   --amber: #1e56f0;        /* Pau Brasil Blue */
   --amber2: #1848c8;       /* Primary Hover */
   --amber3: #123b9a;       /* Primary Dark */
-  --snow: #1f2937;         /* Light theme primary text */
-  --dim: #6b7280;          /* Light theme secondary text */
-  --muted: #e5e7eb;        /* Light theme dividers */
-  --green: #16a34a;        /* Success green */
-  --red: #dc2626;          /* Danger red */
-  --blue: #2563eb;         /* Info blue */
-  --yellow: #f59e0b;       /* Warning yellow */
+  --snow: #020617;         /* Deep high-contrast Slate-950 text */
+  --dim: #334155;          /* Crisp high-contrast Slate-700 secondary text */
+  --muted: #cbd5e1;        /* Light theme dividers */
+  --green: #059669;        /* High-contrast Success green */
+  --red: #dc2626;          /* High-contrast Danger red */
+  --blue: #1e56f0;         /* Info blue */
+  --yellow: #d97706;       /* High-contrast Warning yellow */
   --amber-glow: rgba(30, 86, 240, 0.08);
 }
 
@@ -47,7 +49,66 @@ body {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
-  font-size: 13px; /* Slightly reduced base font size for higher information density */
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body.light-theme {
+  background-color: #dbeafe;
+  background-image:
+    /* Top-left deep royal blue wave glow */
+    radial-gradient(ellipse 60% 55% at -5% -5%, rgba(29, 78, 216, 0.70) 0%, rgba(37, 99, 235, 0.45) 35%, transparent 75%),
+    /* Top-right deep cobalt blue curved petal */
+    radial-gradient(ellipse 55% 50% at 105% -5%, rgba(30, 58, 138, 0.65) 0%, rgba(37, 99, 235, 0.45) 35%, transparent 75%),
+    /* Bottom-right deep vivid royal navy layered wave */
+    radial-gradient(ellipse 65% 60% at 105% 105%, rgba(30, 58, 138, 0.90) 0%, rgba(29, 78, 216, 0.70) 30%, rgba(59, 130, 246, 0.40) 60%, transparent 85%),
+    /* Bottom-left rich azure blue wave */
+    radial-gradient(ellipse 55% 50% at -5% 105%, rgba(37, 99, 235, 0.60) 0%, rgba(96, 165, 250, 0.40) 40%, transparent 75%),
+    /* Rich corporate azure-tinted central gradient (more blue, more depth) */
+    radial-gradient(ellipse 90% 80% at 50% 50%, #e2eeff 0%, #cee3fe 45%, #b9d7fd 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* Organic curved translucent wave overlay matching corporate reference */
+body.light-theme::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080' fill='none'%3E%3C!-- Top-Left Waves --%3E%3Cpath d='M-100 -50 C 220 120, 320 40, 420 -100 Z' fill='%232563eb' fill-opacity='0.40'/%3E%3Cpath d='M-50 -80 C 180 220, 380 140, 480 -80 Z' stroke='rgba(255,255,255,0.85)' stroke-width='2.5' fill='none'/%3E%3C!-- Top-Right Waves --%3E%3Cpath d='M 1550 -100 C 1600 120, 1720 160, 2020 60 Z' fill='%231d4ed8' fill-opacity='0.50'/%3E%3Cpath d='M 1480 -100 C 1620 180, 1820 150, 2020 20 Z' stroke='rgba(255,255,255,0.8)' stroke-width='2.5' fill='none'/%3E%3C!-- Bottom-Right Multi-Layer Waves --%3E%3Cpath d='M 1300 1180 C 1450 820, 1650 780, 2020 850 Z' fill='%231e40af' fill-opacity='0.60'/%3E%3Cpath d='M 1200 1180 C 1420 720, 1750 720, 2020 980 Z' stroke='rgba(255,255,255,0.9)' stroke-width='2.5' fill='none'/%3E%3Cpath d='M 1380 1180 C 1580 820, 1800 780, 2020 800 Z' fill='%232563eb' fill-opacity='0.45'/%3E%3C!-- Bottom-Left Waves --%3E%3Cpath d='M -100 900 C 150 820, 250 950, 340 1180 Z' fill='%233b82f6' fill-opacity='0.38'/%3E%3Cpath d='M -100 820 C 120 780, 280 980, 380 1180 Z' stroke='rgba(255,255,255,0.75)' stroke-width='2.5' fill='none'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Specific luminous gradient for the Sidebar in Light Theme */
+.sidebar-theme-light {
+  background-color: #dbeafe;
+  background-image:
+    /* Top vibrant sky blue bloom */
+    radial-gradient(ellipse 130% 60% at 15% -10%, rgba(37, 99, 235, 0.55) 0%, rgba(96, 165, 250, 0.35) 45%, transparent 80%),
+    /* Bottom vivid royal blue wave */
+    radial-gradient(ellipse 140% 65% at 20% 110%, rgba(29, 78, 216, 0.55) 0%, rgba(59, 130, 246, 0.30) 50%, transparent 85%),
+    /* Vertical soft ambient blend */
+    linear-gradient(180deg, #d3e5fc 0%, #e2effd 35%, #d5e7fb 70%, #bfdbfe 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-theme-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 1000' fill='none'%3E%3C!-- Top wave --%3E%3Cpath d='M-40 -20 C 80 120, 160 40, 280 -40 Z' fill='%233b82f6' fill-opacity='0.45'/%3E%3Cpath d='M-20 -40 C 90 150, 190 80, 290 -20 Z' stroke='rgba(255,255,255,0.95)' stroke-width='2.5' fill='none'/%3E%3C!-- Bottom wave --%3E%3Cpath d='M -40 760 C 90 690, 180 820, 290 990 Z' fill='%231d4ed8' fill-opacity='0.38'/%3E%3Cpath d='M -20 700 C 100 660, 190 840, 290 930 Z' stroke='rgba(255,255,255,0.9)' stroke-width='2.5' fill='none'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  z-index: 1;
 }
 
 /* Fluid adaptive typography for supreme corporate aesthetics */
@@ -206,20 +267,58 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
 
 /* Background overrides mapped to semantic theme variables */
 .bg-\[\#07090d\],
-.bg-\[\#070a0e\] {
-  background-color: var(--ink) !important;
+.bg-\[\#070a0e\],
+.bg-\[\#080d1a\],
+.bg-\[\#090e1a\],
+.bg-\[\#090d12\],
+.bg-\[\#0a0f1d\] {
+  background-color: transparent !important;
 }
 
 .bg-\[\#0f1318\],
 .bg-\[\#11151c\],
+.bg-\[\#11161d\],
 .bg-\[\#111827\],
-.bg-\[\#161c24\] {
+.bg-\[\#161c24\],
+.bg-\[\#111a30\],
+.bg-\[\#0d1627\],
+.bg-\[\#0d1726\],
+.bg-\[\#121d33\],
+.bg-\[\#10192d\],
+.bg-\[\#0e1726\],
+.bg-\[\#141d2e\],
+.bg-\[\#131e32\],
+.bg-\[\#1c2436\],
+.bg-\[\#161224\] {
   background-color: var(--surf) !important;
 }
 
 .bg-\[\#151b23\],
-.bg-\[\#1a222f\] {
+.bg-\[\#1a222f\],
+.bg-\[\#1a222c\],
+.bg-\[\#18202a\],
+.bg-\[\#0d1218\],
+.bg-\[\#0d1117\],
+.bg-\[\#0b1222\],
+.bg-\[\#0c1424\],
+.bg-\[\#1a2333\] {
   background-color: var(--surf2) !important;
+}
+
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-950 {
+  background-color: var(--surf) !important;
+}
+
+body.light-theme .bg-slate-800 {
+  background-color: var(--surf2) !important;
+}
+
+body.light-theme .bg-slate-800\/80,
+body.light-theme .bg-slate-800\/60,
+body.light-theme .bg-slate-800\/40,
+body.light-theme .bg-slate-900\/60 {
+  background-color: rgba(226, 232, 240, 0.6) !important;
 }
 
 .bg-\[\#1f2937\] {
@@ -240,10 +339,15 @@ body:not(.light-theme) .bg-\[\#151b23\]\/50 {
 /* Border overrides */
 .border-\[\#1c2530\],
 .border-\[\#222d3a\],
-.border-\[\#243040\] {
+.border-\[\#243040\],
+.border-slate-800,
+.border-slate-700,
+.border-slate-900 {
   border-color: var(--edge) !important;
 }
 
+.border-slate-800\/60,
+.border-slate-700\/60,
 .border-\[\#222d3a\]\/30 {
   border-color: rgba(30, 86, 240, 0.1) !important;
 }
@@ -252,6 +356,12 @@ body:not(.light-theme) .bg-\[\#151b23\]\/50 {
 }
 .border-\[\#222d3a\]\/60 {
   border-color: rgba(30, 86, 240, 0.25) !important;
+}
+
+body.light-theme .divide-slate-800 > * + *,
+body.light-theme .divide-slate-800\/60 > * + *,
+body.light-theme .divide-slate-700 > * + * {
+  border-color: var(--edge) !important;
 }
 
 /* Text overrides */
@@ -280,12 +390,83 @@ body:not(.light-theme) .bg-\[\#151b23\]\/50 {
   color: var(--snow) !important;
 }
 
+body.light-theme .text-white {
+  color: #0f172a !important;
+}
+
+/* Sharp typography & enhanced contrast in light theme */
+body.light-theme {
+  color: #0f172a;
+}
+
+body.light-theme h1,
+body.light-theme h2,
+body.light-theme h3,
+body.light-theme h4,
+body.light-theme h5,
+body.light-theme h6 {
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+body.light-theme .text-gray-400,
+body.light-theme .text-slate-400,
+body.light-theme .text-gray-500,
+body.light-theme .text-slate-500 {
+  color: #475569 !important; /* High-contrast Slate-600 instead of faded gray */
+}
+
+body.light-theme .text-gray-600,
+body.light-theme .text-slate-600 {
+  color: #334155 !important; /* High-contrast Slate-700 */
+}
+
+body.light-theme .text-gray-700,
+body.light-theme .text-slate-700,
+body.light-theme .text-gray-800,
+body.light-theme .text-slate-800,
+body.light-theme .text-gray-900,
+body.light-theme .text-slate-900 {
+  color: #0f172a !important; /* Deep Slate-900 */
+}
+
+/* Recharts axes & labels in light mode */
+body.light-theme .recharts-cartesian-axis-tick text,
+body.light-theme .recharts-text,
+body.light-theme .recharts-legend-item-text {
+  fill: #334155 !important;
+  font-weight: 700 !important;
+}
+
+body.light-theme .recharts-cartesian-grid line {
+  stroke: #e2e8f0 !important;
+}
+
+/* Maintain text-white inside buttons, badges, and gradients */
+body.light-theme .bg-indigo-600 .text-white,
+body.light-theme .bg-blue-600 .text-white,
+body.light-theme .bg-emerald-600 .text-white,
+body.light-theme .bg-rose-600 .text-white,
+body.light-theme .bg-amber-600 .text-white,
+body.light-theme button.bg-indigo-600,
+body.light-theme button.bg-blue-600,
+body.light-theme button.bg-emerald-600,
+body.light-theme button.bg-rose-600,
+body.light-theme .text-white.btn-preserve-white,
+body.light-theme [class*="bg-gradient-to"] .text-white {
+  color: #ffffff !important;
+}
+
 /* Interactive elements & hover overrides */
 .hover\:text-\[\#e8eef5\]:hover {
   color: var(--snow) !important;
 }
-.hover\:bg-\[\#151b23\]:hover {
-  background-color: var(--surf) !important;
+.hover\:bg-\[\#151b23\]:hover,
+body.light-theme .hover\:bg-slate-800\/30:hover,
+body.light-theme .hover\:bg-slate-800\/40:hover,
+body.light-theme .hover\:bg-slate-900\/60:hover {
+  background-color: rgba(226, 232, 240, 0.45) !important;
 }
 .group:hover .group-hover\:text-\[\#e8eef5\] {
   color: var(--snow) !important;
@@ -337,14 +518,20 @@ body.light-theme textarea {
   color: var(--snow) !important;
   border-color: var(--edge) !important;
 }
-.shadow-md {
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+body.light-theme .shadow-sm {
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04) !important;
 }
-.shadow-lg {
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08) !important;
+body.light-theme .shadow-md {
+  box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
 }
-.shadow-2xl {
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15) !important;
+body.light-theme .shadow-lg {
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 23, 42, 0.04) !important;
+}
+body.light-theme .shadow-xl {
+  box-shadow: 0 20px 35px -6px rgba(15, 23, 42, 0.12), 0 6px 14px -3px rgba(15, 23, 42, 0.05) !important;
+}
+body.light-theme .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.16) !important;
 }
 
 /* Active tab button styles */

@@ -1,6 +1,12 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { initializeFirestore, memoryLocalCache, setLogLevel } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager, 
+  memoryLocalCache, 
+  setLogLevel 
+} from 'firebase/firestore';
 
 // Set Firestore log level to silent to suppress backend retry warnings in offline mode
 try {
@@ -97,12 +103,22 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Setup optimized cache strategy: persistent IndexedDB cache across tabs to eliminate repeated reads
+let hybridFirestoreCache;
+try {
+  hybridFirestoreCache = persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  });
+} catch (e) {
+  hybridFirestoreCache = memoryLocalCache();
+}
+
 const db = firebaseConfig.firestoreDatabaseId 
   ? initializeFirestore(app, {
-      localCache: memoryLocalCache()
+      localCache: hybridFirestoreCache
     }, firebaseConfig.firestoreDatabaseId)
   : initializeFirestore(app, {
-      localCache: memoryLocalCache()
+      localCache: hybridFirestoreCache
     });
 
 // Helper to determine if we are using custom config

@@ -59,12 +59,19 @@ export async function setMediaItem(key: string, value: string): Promise<boolean>
 
   try {
     const db = await getDB();
+    if (!db || !db.objectStoreNames.contains(STORE_NAME)) {
+      return false;
+    }
     return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.put(value, key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => resolve(false);
+      try {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.put(value, key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(false);
+      } catch (_) {
+        resolve(false);
+      }
     });
   } catch (e) {
     console.warn('IndexedDB setMediaItem failed:', e);
@@ -79,15 +86,21 @@ export async function getMediaItem(key: string): Promise<string | null> {
   // Try IndexedDB first
   try {
     const db = await getDB();
-    const valFromIDB = await new Promise<string | null>((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    });
+    if (db && db.objectStoreNames.contains(STORE_NAME)) {
+      const valFromIDB = await new Promise<string | null>((resolve) => {
+        try {
+          const tx = db.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch (_) {
+          resolve(null);
+        }
+      });
 
-    if (valFromIDB) return valFromIDB;
+      if (valFromIDB) return valFromIDB;
+    }
   } catch (_) {
     // fallback
   }
@@ -111,8 +124,10 @@ export async function removeMediaItem(key: string): Promise<void> {
 
   try {
     const db = await getDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    store.delete(key);
+    if (db && db.objectStoreNames.contains(STORE_NAME)) {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(key);
+    }
   } catch (_) {}
 }

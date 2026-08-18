@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { AcoesGeraisRepository, TarefasRepository } from '../db';
 import { Usuario, Empresa, Tarefa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
@@ -150,16 +150,16 @@ export default function PickingDashboard({ user, empresa, onBack, theme = 'dark'
 
   const empresaData = useEmpresaData();
 
-  // Synchronize colaboradores from Firestore
+  // Synchronize colaboradores from empresaData or cache
   useEffect(() => {
-    if (!db) {
+    if (empresaData.colaboradores && empresaData.colaboradores.length > 0) {
+      setColaboradores(empresaData.colaboradores);
+    } else {
       const savedColab = localStorage.getItem(`colaboradores_${empresaId}`);
       if (savedColab) {
-        setColaboradores(JSON.parse(savedColab));
+        try { setColaboradores(JSON.parse(savedColab)); } catch (e) {}
       }
-      return;
     }
-    setColaboradores(empresaData.colaboradores);
   }, [empresaData.colaboradores, empresaId]);
 
   const registeredEmpilhadores = useMemo(() => {
@@ -193,20 +193,18 @@ export default function PickingDashboard({ user, empresa, onBack, theme = 'dark'
     return actualTasks;
   }, [actualTasks]);
 
-  // Synchronize tasks from Firestore
+  // Synchronize tasks from empresaData or cache
   useEffect(() => {
-    if (!db) {
+    if (empresaData.tarefas && empresaData.tarefas.length > 0) {
+      const rows = [...empresaData.tarefas];
+      rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+      setActualTasks(rows);
+    } else {
       const savedTasks = localStorage.getItem(`tasks_${empresaId}`);
       if (savedTasks) {
-        setActualTasks(JSON.parse(savedTasks));
+        try { setActualTasks(JSON.parse(savedTasks)); } catch (e) {}
       }
-      setLoading(false);
-      return;
     }
-
-    const rows = [...empresaData.tarefas];
-    rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-    setActualTasks(rows);
     setLoading(false);
   }, [empresaData.tarefas, empresaId]);
 
@@ -709,13 +707,11 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
       console.error(e);
     }
 
-    // Save/Sync to Firestore
-    if (db) {
-      try {
-        await addDoc(collection(db, 'acoes'), newAcao);
-      } catch (err) {
-        console.error('Erro ao registrar alerta no Firestore:', err);
-      }
+    // Save/Sync to Repository
+    try {
+      await AcoesGeraisRepository.create(newAcao as any, empresa?.id || 'demo');
+    } catch (err) {
+      console.error('Erro ao registrar alerta no Repository:', err);
     }
 
     setAlertGeneratedNotice('Alerta do Pareto 70/30 registrado no Plano de Ações com sucesso!');
@@ -1291,15 +1287,10 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
     }
 
     try {
-      if (db) {
-        for (const tk of seedTasksList) {
-          await addDoc(collection(db, 'tarefas'), tk);
-        }
-      } else {
-        const currentLocal = [...actualTasks, ...seedTasksList.map((tk, idx) => ({ _docId: `seed-${Date.now()}-${idx}`, ...tk } as Tarefa))];
-        setActualTasks(currentLocal);
-        localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(currentLocal));
-      }
+      await TarefasRepository.batchUpsert(seedTasksList as any, empresaId);
+      const currentLocal = [...actualTasks, ...seedTasksList.map((tk, idx) => ({ _docId: `seed-${Date.now()}-${idx}`, ...tk } as Tarefa))];
+      setActualTasks(currentLocal);
+      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(currentLocal));
       alert('Banco de dados abastecido com 45+ solicitações reais de Picking para análise de SLA e produtividade!');
     } catch (e) {
       console.error(e);

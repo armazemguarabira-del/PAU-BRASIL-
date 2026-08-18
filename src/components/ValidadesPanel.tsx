@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { ValidadesRepository } from '../db';
 import { Usuario, Empresa, ValidadeRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
@@ -283,10 +283,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
   const empresaData = useEmpresaData();
 
-  // Sync with Firestore (scoped to company) - Filter out repack validades
+  // Sync with empresaData (scoped to company) - Filter out repack validades
   useEffect(() => {
-    let rows: ValidadeRow[] = [];
-    if (!db) {
+    let rows: ValidadeRow[] = empresaData.validades || [];
+    if (rows.length === 0) {
       const saved = localStorage.getItem(`validades_${empresaId}`);
       if (saved) {
         try {
@@ -295,8 +295,6 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           console.error(e);
         }
       }
-    } else {
-      rows = empresaData.validades || [];
     }
 
     // Exclude any repack validades so this panel ONLY shows conferente validades
@@ -320,9 +318,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
     }
 
     setValidadesList(conferenteRows);
-    if (!db) {
-      localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
-    }
+    localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
   }, [empresaData.validades, empresaId]);
 
   const getDaysRemaining = (expDate: string) => {
@@ -419,11 +415,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
       return;
     }
     try {
-      if (db) {
-        for (const item of validadesList) {
-          if (item._docId) {
-            try { await deleteDoc(doc(db, 'validades', item._docId)); } catch(e){}
-          }
+      for (const item of validadesList) {
+        const idToDel = item._docId || (item as any).id;
+        if (idToDel) {
+          try { await ValidadesRepository.delete(String(idToDel), empresaId); } catch(e){}
         }
       }
       setValidadesList([]);
@@ -473,8 +468,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
       if (editingRow) {
         // Edit Row Action update
-        if (db && editingRow._docId) {
-          await updateDoc(doc(db, 'validades', editingRow._docId), dataObj);
+        const idToUpdate = editingRow._docId || (editingRow as any).id;
+        if (idToUpdate) {
+          await ValidadesRepository.update(String(idToUpdate), dataObj, empresaId);
         }
         updatedListAfterSave = validadesList.map(item => item.id === editingRow.id ? { ...item, ...dataObj } : item);
         setValidadesList(updatedListAfterSave);
@@ -493,9 +489,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           const itemRua = String(item.bloco || '').trim().toLowerCase();
 
           if (itemCod === targetCod && itemLoc === targetLoc && itemRua === targetRua) {
-            // Delete old match from Firestore if connected
-            if (db && item._docId) {
-              try { await deleteDoc(doc(db, 'validades', item._docId)); } catch (e) {}
+            const idToDel = item._docId || (item as any).id;
+            if (idToDel) {
+              try { await ValidadesRepository.delete(String(idToDel), empresaId); } catch (e) {}
             }
           } else {
             filteredList.push(item);
@@ -509,12 +505,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           cadastradoEm: new Date().toISOString()
         };
 
-        if (db) {
-          const docRef = await addDoc(collection(db, 'validades'), newRow);
-          updatedListAfterSave = [...filteredList, { _docId: docRef.id, ...newRow }];
-        } else {
-          updatedListAfterSave = [...filteredList, { _docId: String(Date.now()), ...newRow }];
-        }
+        const created = await ValidadesRepository.create(newRow, empresaId);
+        updatedListAfterSave = [...filteredList, { _docId: created._docId || (created as any).id, ...newRow }];
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         toast('Produto salvo (registro anterior da mesma combinação foi sobrescrito)!');
@@ -618,26 +610,22 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
         for (const oldItem of validadesList) {
           const k = `${String(oldItem.codigo).trim().toLowerCase()}_${String(oldItem.localizacao || 'central').trim().toLowerCase()}_${String(oldItem.bloco || '').trim().toLowerCase()}`;
           if (importedKeys.has(k)) {
-            if (db && oldItem._docId) {
-              try { await deleteDoc(doc(db, 'validades', oldItem._docId)); } catch (err) {}
+            const idToDel = oldItem._docId || (oldItem as any).id;
+            if (idToDel) {
+              try { await ValidadesRepository.delete(String(idToDel), empresaId); } catch (err) {}
             }
           } else {
             remainingExisting.push(oldItem);
           }
         }
 
-        const addedRowsWithDocId: ValidadeRow[] = [];
-        if (db) {
-          for (const item of newImportedRows) {
-            const { _docId, ...rest } = item;
-            const docRef = await addDoc(collection(db, 'validades'), rest);
-            addedRowsWithDocId.push({ _docId: docRef.id, ...item });
-          }
-        } else {
-          addedRowsWithDocId.push(...newImportedRows);
-        }
+        const itemsToInsert = newImportedRows.map(item => {
+          const { _docId, ...rest } = item;
+          return rest;
+        });
+        await ValidadesRepository.batchUpsert(itemsToInsert as any, empresaId);
 
-        const updated = [...remainingExisting, ...addedRowsWithDocId];
+        const updated = [...remainingExisting, ...newImportedRows];
         setValidadesList(updated);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updated));
 
@@ -680,8 +668,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
   const handleDelete = async (r: ValidadeRow) => {
     try {
-      if (db && r._docId) {
-        await deleteDoc(doc(db, 'validades', r._docId));
+      const idToDel = r._docId || (r as any).id;
+      if (idToDel) {
+        await ValidadesRepository.delete(String(idToDel), empresaId);
       }
     } catch (e) {
       console.error(e);
@@ -696,14 +685,14 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
   const handleClearAll = async () => {
     if (!confirm('Excluir ABSOLUTAMENTE TODOS os registros de validade cadastrados?')) return;
     try {
-      if (db) {
-        for (const item of validadesList) {
-          if (item._docId) await deleteDoc(doc(db, 'validades', item._docId));
+      for (const item of validadesList) {
+        const idToDel = item._docId || (item as any).id;
+        if (idToDel) {
+          try { await ValidadesRepository.delete(String(idToDel), empresaId); } catch(e){}
         }
-      } else {
-        setValidadesList([]);
-        localStorage.setItem(`validades_${empresaId}`, JSON.stringify([]));
       }
+      setValidadesList([]);
+      localStorage.setItem(`validades_${empresaId}`, JSON.stringify([]));
       toast('Todos os registros excluídos!');
     } catch (e) {
       alert('Erro ao excluir registros: ' + e);
@@ -1326,14 +1315,12 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           user={user} 
           empresa={empresa} 
           onRefresh={() => {
-            if (!db) {
-              const saved = localStorage.getItem(`validades_${empresaId}`);
-              if (saved) {
-                try {
-                  const rows = JSON.parse(saved);
-                  setValidadesList(rows);
-                } catch (e) {}
-              }
+            const saved = localStorage.getItem(`validades_${empresaId}`);
+            if (saved) {
+              try {
+                const rows = JSON.parse(saved);
+                setValidadesList(rows);
+              } catch (e) {}
             }
           }}
         />

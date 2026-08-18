@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc, 
-  doc,
-  updateDoc
-} from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { RepackRepository, getRepository } from '../db';
 import { RepackRow, Usuario, Empresa, RepackActionPlan, RepackA3Board } from '../types';
+
+const repackActionPlansRepo = getRepository<RepackActionPlan>('repack_action_plans');
+const repackA3BoardsRepo = getRepository<RepackA3Board>('repack_a3_boards');
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { withTimestamps } from '../utils/firestoreUtils';
 import A3BoardComponent from './A3BoardComponent';
@@ -1307,7 +1304,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     };
 
     try {
-      await addDoc(collection(db, 'repack'), withTimestamps(newEntry));
+      await RepackRepository.create(withTimestamps(newEntry), empresa?.id || 'demo');
       setIsModalOpen(false);
       setFormInicio('');
       setFormFim('');
@@ -1336,9 +1333,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   const handleDeleteRow = async (id: string) => {
     if (!id) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'repack', id));
-      }
+      await RepackRepository.delete(id, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     } finally {
@@ -1365,7 +1360,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
       _criadoEm: today.toISOString()
     };
     try {
-      await addDoc(collection(db, 'repack_action_plans'), withTimestamps(newPlan));
+      await repackActionPlansRepo.create(withTimestamps(newPlan) as any, companyId);
       setApDesc('');
       setApResp('');
       setApPrazo('');
@@ -1376,7 +1371,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
 
   const handleChangeApStatus = async (id: string, next: 'Pendente' | 'Em Andamento' | 'Concluído') => {
     try {
-      await updateDoc(doc(db, 'repack_action_plans', id), withTimestamps({ status: next }, true));
+      await repackActionPlansRepo.update(id, withTimestamps({ status: next }, true) as any, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     }
@@ -1385,7 +1380,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   const handleDeleteAp = async (id: string) => {
     if (!window.confirm('Deletar plano de ação?')) return;
     try {
-      await deleteDoc(doc(db, 'repack_action_plans', id));
+      await repackActionPlansRepo.delete(id, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     }
@@ -1543,25 +1538,25 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
       
       if (activeBoard._docId === 'seed-board-1') {
         const { _docId, ...cleanPayload } = payload;
-        const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+        const created = await repackA3BoardsRepo.create({
           ...cleanPayload,
           _criadoEm: new Date().toISOString()
-        });
+        } as any, companyId);
         setActiveBoard({
           ...activeBoard,
-          _docId: docRef.id
+          _docId: created._docId || created.id
         });
       } else if (activeBoard._docId) {
         const { _docId, ...saveData } = activeBoard;
-        await updateDoc(doc(db, 'repack_a3_boards', _docId), saveData);
+        await repackA3BoardsRepo.update(_docId, saveData as any, companyId);
       } else {
-        const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+        const created = await repackA3BoardsRepo.create({
           ...payload,
           _criadoEm: new Date().toISOString()
-        });
+        } as any, companyId);
         setActiveBoard({
           ...activeBoard,
-          _docId: docRef.id
+          _docId: created._docId || created.id
         });
       }
       setBoardSaveStatus('success');
@@ -1583,15 +1578,15 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     const newBoard = getEmptyBoard(companyId, title);
     
     try {
-      const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+      const created = await repackA3BoardsRepo.create({
         ...newBoard,
         _criadoEm: new Date().toISOString()
-      });
-      const created = {
-        _docId: docRef.id,
+      } as any, companyId);
+      const newCreated = {
+        _docId: created._docId || created.id,
         ...newBoard
       } as RepackA3Board;
-      setActiveBoard(created);
+      setActiveBoard(newCreated);
     } catch (err) {
       console.error('Error creating A3 board:', err);
     }
@@ -1608,7 +1603,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     if (!confirmDelete) return;
     
     try {
-      await deleteDoc(doc(db, 'repack_a3_boards', activeBoard._docId!));
+      await repackA3BoardsRepo.delete(activeBoard._docId!, empresa?.id || 'demo');
       setActiveBoard(null);
     } catch (err) {
       console.error('Error deleting A3 board:', err);

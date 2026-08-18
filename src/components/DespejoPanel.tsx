@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { DespejoRepository } from '../db';
 import { Usuario, Empresa, DespejoRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import DespejoDashboard from './DespejoDashboard';
@@ -126,20 +126,20 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
   const empresaData = useEmpresaData();
 
-  // Sync with Firestore (scoped to company)
+  // Sync with empresaData (scoped to company)
   useEffect(() => {
-    if (!db || !empresa?.id) {
-      // Local sync fallback
-      const saved = localStorage.getItem(`despejo_rows_${empresa?.id || 'demo'}`);
-      if (saved) setDespejoRows(JSON.parse(saved));
-      return;
-    }
-
     const companyId = empresa?.id || 'demo';
-    const rows = [...empresaData.despejo];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setDespejoRows(rows);
-    localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
+    if (empresaData.despejo && empresaData.despejo.length > 0) {
+      const rows = [...empresaData.despejo];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setDespejoRows(rows);
+      localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
+    } else {
+      const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+      if (saved) {
+        try { setDespejoRows(JSON.parse(saved)); } catch (e) {}
+      }
+    }
   }, [empresaData.despejo, empresa?.id]);
 
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
     if (!inicio || !fim) return;
     if (quantidade === '' || isNaN(Number(quantidade)) || Number(quantidade) <= 0) {
-      alert('Por favor, informe uma quantidade válida de caixas despejadas.');
+      alert('Por favor, informe uma quantidade válida de unidades despejadas.');
       return;
     }
     setRegistering(true);
@@ -196,14 +196,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'despejo'), newRow);
-      } else {
-        // standalone fallback
-        const current = [...despejoRows, { _docId: String(Date.now()), ...newRow }];
-        setDespejoRows(current);
-        localStorage.setItem(`despejo_rows_${empresa?.id || 'demo'}`, JSON.stringify(current));
-      }
+      await DespejoRepository.create(newRow, empresa?.id || 'demo');
 
       if (statusMeta.includes('ACIMA')) {
         triggerAutoAcaoCorretiva({
@@ -212,8 +205,8 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
           indicador: `Produtividade Despejo (${embalagem})`,
           meta: activeMeta,
           resultadoObtido: tempo,
-          desvioEncontrado: `Não atingimento da meta no Despejo de ${embalagem}. Tempo realizado (${tempo}) excedeu a meta unitária (${activeMeta}). Qtd: ${quantidade} caixas.`,
-          comentarioOperador: `Operação de despejo acima da meta para ${quantidade} cx de ${embalagem}.`
+          desvioEncontrado: `Não atingimento da meta no Despejo de ${embalagem}. Tempo realizado (${tempo}) excedeu a meta unitária (${activeMeta}). Qtd: ${quantidade} unidades.`,
+          comentarioOperador: `Operação de despejo acima da meta para ${quantidade} un de ${embalagem}.`
         });
       }
 
@@ -236,9 +229,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'despejo', docId));
-      }
+      await DespejoRepository.delete(docId, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     } finally {
@@ -252,10 +243,10 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     <div className="flex flex-col gap-6">
       
       {/* Top Header bar with Metadata */}
-      <div className="flex items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full">
-        <span className="font-sans font-black text-sm tracking-widest text-[#ef4444] uppercase">🗑 DESPEJO TIMER — PRODUTIVIDADE</span>
-        <div className="text-xs text-[#6a7d92] tracking-wider font-semibold">
-          META UNIT.: <strong className="text-[#ef4444] font-mono">{activeMeta}</strong>
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs">
+        <span className="font-sans font-black text-sm tracking-widest text-rose-600 dark:text-[#ef4444] uppercase">🗑 DESPEJO TIMER — PRODUTIVIDADE</span>
+        <div className="text-xs text-slate-500 dark:text-[#6a7d92] tracking-wider font-semibold">
+          META UNIT.: <strong className="text-rose-600 dark:text-[#ef4444] font-mono">{activeMeta}</strong>
         </div>
       </div>
 
@@ -319,7 +310,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Líquido Despejado</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).reduce((sum, r) => sum + (r.quantidade || 0), 0)} cx
+                  {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).reduce((sum, r) => sum + (r.quantidade || 0), 0)} un
                 </span>
               </div>
             </div>
@@ -361,7 +352,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                       .map((r, idx) => (
                         <tr key={r._docId || idx} className="hover:bg-[#151b23]/30 transition-colors">
                           <td className="py-3 px-3 font-bold text-snow">{r.embalagem}</td>
-                          <td className="py-3 px-3 font-mono">{r.quantidade} cx</td>
+                          <td className="py-3 px-3 font-mono">{r.quantidade} un</td>
                           <td className="py-3 px-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
                           <td className="py-3 px-3 font-mono">{r.tempo || r.duracao || '—'}</td>
                           <td className="py-3 px-3">
@@ -432,7 +423,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-widest text-[#6a7d92] uppercase">Quantidade Despejada (SKUs) *</label>
+              <label className="text-[10px] font-bold tracking-widest text-[#6a7d92] uppercase">Quantidade Despejada (Unidades) *</label>
               <input 
                 type="number"
                 value={quantidade}
@@ -602,7 +593,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                         </span>
                       )}
                       <span className="text-[10px] text-[#6a7d92] font-semibold">
-                        📦 {totalBoxes} SKUs despejados
+                        📦 {totalBoxes} unidades despejadas
                       </span>
                     </div>
                     <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
@@ -614,7 +605,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                         <thead>
                           <tr className="bg-[#07090d] border-b border-[#222d3a]">
                             <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Embalagem</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">SKUs</th>
+                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">Unidades</th>
                             <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Início / Fim</th>
                             <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Duração Total</th>
                             <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">
@@ -634,7 +625,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                                     {r.embalagem}
                                     {r.operador && <span className="block text-[10px] text-[#6a7d92] font-mono">Op: {r.operador}</span>}
                                   </td>
-                                  <td className="p-3 text-center font-bold font-mono">{r.quantidade} cx</td>
+                                  <td className="p-3 text-center font-bold font-mono">{r.quantidade} un</td>
                                   <td className="p-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
                                   <td className="p-3 font-mono text-snow font-bold">{r.tempo}</td>
                                   <td className="p-3 font-mono">
@@ -651,7 +642,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-2 text-[9px] text-[#6a7d92]">
-                                        <span>⚡ {tempos.ritmoSkusPorHora} SKUs/h</span>
+                                        <span>⚡ {tempos.ritmoUnidadesPorHora ?? tempos.ritmoSkusPorHora} un/h</span>
                                         <span>•</span>
                                         <span>💧 {tempos.vazaoHlPorMinuto} HL/min</span>
                                         <span>•</span>

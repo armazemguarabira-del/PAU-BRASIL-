@@ -5,6 +5,16 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
+import {
+  ensureBancoDadosDirs,
+  syncEntity,
+  syncAllBancoDados,
+  getSyncStatus,
+  executarFechamentoDiario,
+  getHistoricoFechamentos,
+  materializarIndicadoresDashboard,
+  getIndicadoresMaterializados
+} from './src/server/bancoDadosSyncService';
 
 dotenv.config();
 
@@ -604,6 +614,127 @@ app.post('/api/firebase/clear', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ============================================================================
+// BANCO DE DADOS SYNC SERVICE ENDPOINTS (Firestore -> Sync Service -> /public/banco-dados/hoje/)
+// ============================================================================
+
+// 13. GET SYNC SERVICE STATUS
+app.get('/api/sync/banco-dados/status', (req, res) => {
+  try {
+    const status = getSyncStatus();
+    res.json({ success: true, ...status });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 14. SYNC ALL ENTITIES OR BULK PAYLOAD
+app.post('/api/sync/banco-dados', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const result = await syncAllBancoDados(payload);
+    res.json({ success: true, ...result, timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    console.error('[SyncService API] Error syncing banco de dados:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 15. SYNC SPECIFIC ENTITY TO /public/banco-dados/hoje/:entity.json
+app.post('/api/sync/banco-dados/hoje/:entity', async (req, res) => {
+  try {
+    const { entity } = req.params;
+    const allowedEntities = ['estoque', 'picking', 'pedidos', 'validade', 'temperatura', 'desvios', 'dashboard', 'quebras', 'despejo', 'repack'];
+    if (!allowedEntities.includes(entity)) {
+      return res.status(400).json({
+        success: false,
+        error: `Entidade inválida: ${entity}. Permitidas: ${allowedEntities.join(', ')}`
+      });
+    }
+
+    const data = req.body;
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ success: false, error: 'Corpo da requisição deve ser um objeto JSON' });
+    }
+
+    const ok = await syncEntity(entity, data);
+    if (!ok) {
+      return res.status(500).json({ success: false, error: `Falha ao gravar arquivo para entidade ${entity}` });
+    }
+
+    res.json({
+      success: true,
+      entity,
+      filePath: `/banco-dados/hoje/${entity}.json`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    console.error(`[SyncService API] Error syncing entity ${req.params.entity}:`, err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 16. EXECUTAR FECHAMENTO DIÁRIO (hoje/ -> historico/YYYY/MM/DD/ -> novo hoje/)
+app.post('/api/sync/fechamento-diario', async (req, res) => {
+  try {
+    const { dataFechamento, proximaData } = req.body || {};
+    const result = await executarFechamentoDiario(dataFechamento, proximaData);
+    res.json(result);
+  } catch (err: any) {
+    console.error('[SyncService API] Erro ao executar fechamento diário:', err);
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Erro inesperado ao executar fechamento diário'
+    });
+  }
+});
+
+// 17. LISTAR HISTÓRICO DE FECHAMENTOS DIÁRIOS
+app.get('/api/sync/fechamento-diario/historico', async (req, res) => {
+  try {
+    const historico = await getHistoricoFechamentos();
+    res.json({ success: true, historico });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 18. OBTER INDICADORES DE DASHBOARD MATERIALIZADOS (1 requisição rápida, sem escanear milhares de docs)
+app.get('/api/dashboard/materializado', async (req, res) => {
+  try {
+    const data = await getIndicadoresMaterializados();
+    res.json({
+      success: true,
+      data,
+      fonte: 'documento_agregado_materializado',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    console.error('[Dashboard API] Erro ao obter indicadores materializados:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 19. RECALCULAR / MATERIALIZAR INDICADORES SOB DEMANDA
+app.post('/api/dashboard/materializar', async (req, res) => {
+  try {
+    const { dataReferencia } = req.body || {};
+    const result = await materializarIndicadoresDashboard(dataReferencia);
+    res.json({
+      success: true,
+      result,
+      mensagem: 'Indicadores materializados com sucesso em disco e memória',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    console.error('[Dashboard API] Erro ao materializar indicadores:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Initialize directories on boot
+ensureBancoDadosDirs().catch(err => console.error('Erro ao inicializar diretórios do banco-dados:', err));
 
 // Configure Vite middleware as SPA router or serve static contents in production
 async function startServer() {

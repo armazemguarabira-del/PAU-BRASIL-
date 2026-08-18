@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { syncIncremental } from '../utils/syncIncremental';
+import { getHybridMetrics } from '../utils/hybridCacheService';
+import { exportJsonDbSnapshot, importJsonDbSnapshot, getJsonDbMetadata, JsonDbSnapshot } from '../utils/hybridJsonDatabase';
+import { triggerAutoSyncFromState } from '../services/bancoDadosSyncClient';
 import {
   RepackRow,
   DespejoRow,
@@ -59,6 +62,10 @@ interface ContextValue extends EmpresaDataState {
   empresaId: string | null | undefined;
   setViewUnitMode: (mode: 'R$' | 'HL') => void;
   subscribeCollection: (nome: string, chave: keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection' | 'viewUnitMode' | 'setViewUnitMode'>) => () => void;
+  getHybridStats: () => ReturnType<typeof getHybridMetrics>;
+  exportSnapshot: () => Promise<JsonDbSnapshot>;
+  importSnapshot: (snapshot: JsonDbSnapshot) => Promise<void>;
+  getJsonTablesMeta: () => ReturnType<typeof getJsonDbMetadata>;
 }
 
 const EmpresaDataContext = createContext<ContextValue>({
@@ -66,6 +73,10 @@ const EmpresaDataContext = createContext<ContextValue>({
   empresaId: null,
   setViewUnitMode: () => {},
   subscribeCollection: () => () => {},
+  getHybridStats: () => getHybridMetrics(),
+  exportSnapshot: async () => ({ empresaId: 'demo', version: 1, exportedAt: '', tables: {} }),
+  importSnapshot: async () => {},
+  getJsonTablesMeta: () => ({})
 });
 
 // Mapeamento Nome da Coleção Firestore -> Chave no State
@@ -161,6 +172,24 @@ export function EmpresaDataProvider({
     [empresaId]
   );
 
+  const exportSnapshot = useCallback(async () => {
+    return exportJsonDbSnapshot(empresaId || 'demo');
+  }, [empresaId]);
+
+  const importSnapshot = useCallback(async (snapshot: JsonDbSnapshot) => {
+    await importJsonDbSnapshot(snapshot);
+  }, []);
+
+  const getJsonTablesMeta = useCallback(() => {
+    return getJsonDbMetadata(empresaId || 'demo');
+  }, [empresaId]);
+
+  useEffect(() => {
+    if (state.loaded && empresaId) {
+      triggerAutoSyncFromState(state, empresaId);
+    }
+  }, [state, empresaId]);
+
   return (
     <EmpresaDataContext.Provider
       value={{
@@ -169,6 +198,10 @@ export function EmpresaDataProvider({
         viewUnitMode,
         setViewUnitMode,
         subscribeCollection: subscribeCollection as any,
+        getHybridStats: getHybridMetrics,
+        exportSnapshot,
+        importSnapshot,
+        getJsonTablesMeta,
       }}
     >
       {children}

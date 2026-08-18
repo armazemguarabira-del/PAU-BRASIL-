@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { QuebrasRepository } from '../db';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
@@ -11,6 +11,7 @@ import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/history
 import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { safeSetLocalStorage } from '../utils/safeLocalStorage';
+import { PaginationControls } from './common/PaginationControls';
 
 interface QuebrasPanelProps {
   user: Usuario;
@@ -147,6 +148,8 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   const [quebras, setQuebras] = useState<QuebraRow[]>([]);
   const [registering, setRegistering] = useState(false);
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSize, setHistoryPageSize] = useState(10);
 
   // Database Import State
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -172,8 +175,11 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     let dataISO = todayISO;
     let dataStr = rawDate || todayStr;
 
-    if (rawDate.includes('/')) {
-      const parts = rawDate.split('/');
+    // Trata datas com timestamp como "2026-01-01 11:59:15" ou "2026-01-01T11:59:15"
+    const dateOnly = rawDate.split(' ')[0].split('T')[0];
+
+    if (dateOnly.includes('/')) {
+      const parts = dateOnly.split('/');
       if (parts.length === 3) {
         const day = parts[0].padStart(2, '0');
         const month = parts[1].padStart(2, '0');
@@ -181,11 +187,11 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
         dataISO = `${year}-${month}-${day}`;
         dataStr = `${day}/${month}/${year}`;
       }
-    } else if (rawDate.includes('-')) {
-      const parts = rawDate.split('-');
+    } else if (dateOnly.includes('-')) {
+      const parts = dateOnly.split('-');
       if (parts.length === 3) {
         if (parts[0].length === 4) { // YYYY-MM-DD
-          dataISO = rawDate;
+          dataISO = dateOnly;
           dataStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
         } else { // DD-MM-YYYY
           dataISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -194,23 +200,24 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       }
     }
 
-    const codProduto = String(cleanRow.produto || cleanRow.codproduto || cleanRow['cod produto'] || cleanRow.codigo || cleanRow.sku || cleanRow.cod || '000').trim();
+    const codProduto = String(cleanRow.codproduto || cleanRow.produto || cleanRow['cod produto'] || cleanRow.codigo || cleanRow.sku || cleanRow.cod || '000').trim();
     const descricao = String(cleanRow.descricao || cleanRow.descricaoproduto || cleanRow['descricao produto'] || cleanRow.produto || cleanRow.item || 'PRODUTO IMPORTADO').trim();
-    const quantidade = Math.max(1, Number(cleanRow['quant und.'] || cleanRow['quant und'] || cleanRow.quantidade || cleanRow.qtd || cleanRow.unidades || 1));
+    const quantidade = Math.max(1, Number(cleanRow.quantidade || cleanRow['quant und.'] || cleanRow['quant und'] || cleanRow.qtd || cleanRow.unidades || 1));
     const area = String(cleanRow.area || cleanRow.origem || cleanRow.setor || 'ARMAZEM').trim().toUpperCase();
     const turno = String(cleanRow.turno || 'MANHÃ').trim();
-    const codQuebra = String(cleanRow.cod || cleanRow.codquebra || cleanRow['cod quebra'] || cleanRow.codigoquebra || cleanRow.codigodaquebra || '525').trim();
+    const codQuebra = String(cleanRow.codquebra || cleanRow.cod || cleanRow['cod quebra'] || cleanRow.codigoquebra || cleanRow.codigodaquebra || '525').trim();
     const motivo = String(cleanRow.motivo || cleanRow.causa || cleanRow['motivo quebra'] || 'QUEBRADA').trim();
-    const colaboradorQuebrou = String(cleanRow.responsavel || cleanRow.colaboradorquebrou || cleanRow['colaborador quebrou'] || cleanRow.colaborador || cleanRow.operador || '').trim();
-    const responsavel = String(cleanRow.responsavel || '').trim();
+    const colaboradorQuebrou = String(cleanRow.colaborador || cleanRow.responsavel || cleanRow.colaboradorquebrou || cleanRow['colaborador quebrou'] || cleanRow.operador || '').trim();
+    const responsavel = String(cleanRow.responsavel || cleanRow.colaborador || '').trim();
     const funcao = String(cleanRow.funcao || cleanRow['funcao'] || '').trim();
     const fiscal = String(cleanRow.fiscal || cleanRow['fiscal lancador'] || user.nome || 'Fiscal').trim();
-    const valorUnitario = Number(cleanRow['valor por unid'] || cleanRow.valorunitario || 0);
+    const valorUnitario = Number(cleanRow['valor da avaria'] || cleanRow['valor por unid'] || cleanRow.valorunitario || cleanRow.valoravaria || 0);
     const valorTotal = Number(cleanRow['valor tt'] || cleanRow.valortotal || cleanRow['valor total'] || cleanRow.valor || (valorUnitario * quantidade));
     const mes = String(cleanRow.mes || '').trim();
-    const rawFatorHl = cleanRow['fator hecto por unidade'] || cleanRow['fator hecto por unid'] || cleanRow['fatorhectoporunidade'] || cleanRow['fator hl'] || cleanRow.fatorhl || cleanRow['fator hecto'] || 0;
+    const rawFatorHl = cleanRow['hecto litro'] || cleanRow['hectolitro'] || cleanRow['fator hecto por unidade'] || cleanRow['fator hecto por unid'] || cleanRow['fatorhectoporunidade'] || cleanRow['fator hl'] || cleanRow.fatorhl || cleanRow['fator hecto'] || 0;
     const fatorHl = typeof rawFatorHl === 'string' ? Number(String(rawFatorHl).replace(',', '.')) : Number(rawFatorHl || 0);
-    const hlPerdido = Number(cleanRow['hl perdido'] || cleanRow.hlperdido || 0);
+    const rawHlPerdido = cleanRow['hecto perdido'] || cleanRow['hectoperdido'] || cleanRow['hl perdido'] || cleanRow.hlperdido || 0;
+    const hlPerdido = typeof rawHlPerdido === 'string' ? Number(String(rawHlPerdido).replace(',', '.')) : Number(rawHlPerdido || 0);
     const tipoMarca = String(cleanRow['tipo marca'] || cleanRow.tipomarca || '').trim();
     const embalagem = String(cleanRow.embalagem || '').trim();
     const wqi = String(cleanRow.wqi || '').trim();
@@ -337,22 +344,9 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     const newItems: QuebraRow[] = [];
 
     try {
-      for (const raw of rows) {
-        const rowData = parseQuebraRow(raw);
-
-        if (db) {
-          await addDoc(collection(db, 'quebras'), rowData);
-        } else {
-          newItems.push({ _docId: String(Date.now() + Math.random()), ...rowData });
-        }
-        importedCount++;
-      }
-
-      if (!db) {
-        const updated = [...quebras, ...newItems];
-        setQuebras(updated);
-        safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(updated));
-      }
+      const rowsData = rows.map(raw => parseQuebraRow(raw));
+      await QuebrasRepository.batchUpsert(rowsData, empresa?.id || 'demo');
+      importedCount = rowsData.length;
 
       setImportStatusMsg(`✅ Sucesso! ${importedCount} registros de quebras foram importados com êxito!`);
       alert(`🎉 Importação Concluída!\nForam cadastrados ${importedCount} registros de quebras no banco de dados.`);
@@ -486,19 +480,20 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
   }, [draftKey]);
 
-  // Sync with Firestore (scoped to company)
+  // Sync with empresaData (scoped to company)
   useEffect(() => {
-    if (!db || !empresa?.id) {
-      const saved = localStorage.getItem(`quebras_${empresa?.id || 'demo'}`);
-      if (saved) setQuebras(JSON.parse(saved));
-      return;
-    }
-
     const companyId = empresa?.id || 'demo';
-    const rows = [...empresaData.quebras];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-    setQuebras(rows);
-    safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(rows));
+    if (empresaData.quebras && empresaData.quebras.length > 0) {
+      const rows = [...empresaData.quebras];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setQuebras(rows);
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(rows));
+    } else {
+      const saved = localStorage.getItem(`quebras_${companyId}`);
+      if (saved) {
+        try { setQuebras(JSON.parse(saved)); } catch (e) {}
+      }
+    }
   }, [empresaData.quebras, empresa?.id]);
 
   const handleSelectProd = (p: { codigo: number, descricao: string }) => {
@@ -549,13 +544,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'quebras'), newRow);
-      } else {
-        const current = [...quebras, { _docId: String(Date.now()), ...newRow }];
-        setQuebras(current);
-        safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(current));
-      }
+      await QuebrasRepository.create(newRow, empresa?.id || 'demo');
 
       triggerAutoAcaoCorretiva({
         processo: 'Gestão de Quebras',
@@ -602,9 +591,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'quebras', docId));
-      }
+      await QuebrasRepository.delete(docId, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     } finally {
@@ -671,11 +658,12 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     };
 
     try {
-      if (db && editingRow._docId) {
-        await updateDoc(doc(db, 'quebras', editingRow._docId), updatedFields);
+      const idToUpdate = editingRow._docId || editingRow.id;
+      if (idToUpdate) {
+        await QuebrasRepository.update(idToUpdate, updatedFields, empresa?.id || 'demo');
       }
 
-      const nextQuebras = quebras.map(r => (r._docId === editingRow._docId ? { ...r, ...updatedFields } : r));
+      const nextQuebras = quebras.map(r => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
       setQuebras(nextQuebras);
       safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(nextQuebras));
 
@@ -696,8 +684,8 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   return (
     <div className="flex flex-col gap-6">
       
-      <div className="flex items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full">
-        <span className="font-sans font-black text-sm tracking-widest text-[#ef4444] uppercase">💥 CONTROLE DE QUEBRAS E AVARIAS</span>
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs">
+        <span className="font-sans font-black text-sm tracking-widest text-rose-600 dark:text-[#ef4444] uppercase">💥 CONTROLE DE QUEBRAS E AVARIAS</span>
       </div>
 
       <SopBannerViewer operation="quebras" operationName="Quebras e Avarias" theme="dark" />
@@ -848,10 +836,10 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                   Cole os dados em formato JSON ou CSV (com cabeçalho na 1ª linha)
                 </label>
                 <textarea
-                  rows={8}
+                  rows={9}
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  placeholder={`Data,Cód Produto,Descrição Produto,Quantidade,Área,Turno,Cód Quebra,Motivo,Colaborador Quebrou\n26/07/2026,101,SKOL 350ML,10,ARMAZEM,MANHÃ,525,QUEBRADA,PAULO SILVA`}
+                  placeholder={`[\n  {\n    "Data": "2026-01-01 11:59:15",\n    "Mês": "JANEIRO",\n    "CodProduto": 21020,\n    "Descricao": "BUDWEISER 350ML",\n    "Quantidade": 1,\n    "Area": "ARMAZEM",\n    "Turno": "Noite",\n    "CodQuebra": 524,\n    "Motivo": "FALTA NO PALETE",\n    "Colaborador": "RONILDO",\n    "Funcao": "EMPILHADOR",\n    "VALOR DA AVARIA": 2.6486,\n    "HECTO LITRO": 0.0035,\n    "HECTO PERDIDO ": 0.0035\n  }\n]`}
                   className="w-full bg-[#151b23] border border-[#222d3a] focus:border-[#ef4444] rounded-lg p-3 font-mono text-xs text-snow focus:outline-none"
                 />
               </div>
@@ -1162,95 +1150,123 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhuma quebra registrada.</div>;
             }
 
-            return (Object.entries(grouped) as [string, QuebraRow[]][]).map(([dateKey, rows]) => {
-              const isOpen = !!expandedDates[dateKey];
-              const totalUnits = rows.reduce((s, q) => s + (q.quantidade || 0), 0);
+            const entries = Object.entries(grouped) as [string, QuebraRow[]][];
+            const totalDates = entries.length;
+            const startIdx = (historyPage - 1) * historyPageSize;
+            const pagedEntries = entries.slice(startIdx, startIdx + historyPageSize);
 
-              let formattedDate = dateKey;
-              try {
-                const [y, m, d] = dateKey.split('-');
-                const dt = new Date(Number(y), Number(m) - 1, Number(d));
-                const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
-              } catch (e) {}
+            return (
+              <>
+                {pagedEntries.map(([dateKey, rows]) => {
+                  const isOpen = !!expandedDates[dateKey];
+                  const totalUnits = rows.reduce((s, q) => s + (q.quantidade || 0), 0);
 
-              return (
-                <div key={dateKey} className="g-card overflow-hidden">
-                  <div 
-                    onClick={() => toggleDateGroup(dateKey)}
-                    className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
-                  >
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-sans font-black text-sm text-[#ef4444] tracking-wide">📅 {formattedDate}</span>
-                      <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
-                        {rows.length} registros
-                      </span>
-                      <span className="text-[10px] text-[#6a7d92] font-semibold">
-                        ❌ {totalUnits} unidades avariadas
-                      </span>
+                  let formattedDate = dateKey;
+                  try {
+                    const [y, m, d] = dateKey.split('-');
+                    const dt = new Date(Number(y), Number(m) - 1, Number(d));
+                    const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                    formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
+                  } catch (e) {}
+
+                  return (
+                    <div key={dateKey} className="g-card overflow-hidden">
+                      <div 
+                        onClick={() => toggleDateGroup(dateKey)}
+                        className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
+                      >
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-sans font-black text-sm text-[#ef4444] tracking-wide">📅 {formattedDate}</span>
+                          <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
+                            {rows.length} registros
+                          </span>
+                          <span className="text-[10px] text-[#6a7d92] font-semibold">
+                            ❌ {totalUnits} unidades avariadas
+                          </span>
+                        </div>
+                        <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                      </div>
+
+                      {isOpen && (
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse font-sans text-xs min-w-[700px]">
+                            <thead>
+                              <tr className="bg-[#07090d] border-b border-[#222d3a]">
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Cód. SKU</th>
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Descrição do SKU</th>
+                                <th className="p-3 text-[#6a7d92] text-center uppercase tracking-wider">Unidades</th>
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Área</th>
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Turno</th>
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Código Padrão</th>
+                                <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Motivo</th>
+                                <th className="p-3 text-[#6a7d92] text-right uppercase tracking-wider">Ação</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#222d3a]/60">
+                              {rows.map((q, i) => (
+                                <tr key={q._docId || i} className="hover:bg-[#151b23]/10">
+                                  <td className="p-3 font-mono font-bold text-snow">{q.codProduto}</td>
+                                  <td className="p-3">{q.descricao}</td>
+                                  <td className="p-3 text-center text-red font-black text-sm">{q.quantidade}</td>
+                                  <td className="p-3 font-bold text-snow">{q.area}</td>
+                                  <td className="p-3 uppercase text-[10px] font-bold text-[#6a7d92]">{q.turno}</td>
+                                  <td className="p-3 font-mono font-bold text-[#f5a623]">{q.codQuebra}</td>
+                                  <td className="p-3 text-[#6a7d92]">
+                                    {q.motivo}
+                                    {q.colaboradorQuebrou && (
+                                      <span className="block text-[10px] text-red-400 font-black uppercase tracking-wider mt-0.5">
+                                        👤 Colab: {q.colaboradorQuebrou}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <button 
+                                        onClick={() => handleStartEdit(q)}
+                                        className="py-1 px-2 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
+                                        title="Editar informações do registro"
+                                      >
+                                        ✏️ Editar
+                                      </button>
+                                      <button 
+                                        onClick={() => handleDelete(q._docId)}
+                                        className="py-1 px-2 bg-red-500/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded text-[10px] font-bold cursor-pointer transition-all"
+                                        title="Excluir lançamento"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                  );
+                })}
+
+                {totalDates > historyPageSize && (
+                  <div className="pt-2">
+                    <PaginationControls
+                      currentPage={historyPage}
+                      pageSize={historyPageSize}
+                      hasMore={historyPage * historyPageSize < totalDates}
+                      hasPrev={historyPage > 1}
+                      totalCount={totalDates}
+                      onPrevPage={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                      onNextPage={() => setHistoryPage((p) => p + 1)}
+                      onPageSizeChange={(newSize) => {
+                        setHistoryPageSize(newSize);
+                        setHistoryPage(1);
+                      }}
+                      theme="dark"
+                    />
                   </div>
-
-                  {isOpen && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse font-sans text-xs min-w-[700px]">
-                        <thead>
-                          <tr className="bg-[#07090d] border-b border-[#222d3a]">
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Cód. SKU</th>
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Descrição do SKU</th>
-                            <th className="p-3 text-[#6a7d92] text-center uppercase tracking-wider">Unidades</th>
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Área</th>
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Turno</th>
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Código Padrão</th>
-                            <th className="p-3 text-[#6a7d92] text-left uppercase tracking-wider">Motivo</th>
-                            <th className="p-3 text-[#6a7d92] text-right uppercase tracking-wider">Ação</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#222d3a]/60">
-                          {rows.map((q, i) => (
-                            <tr key={q._docId || i} className="hover:bg-[#151b23]/10">
-                              <td className="p-3 font-mono font-bold text-snow">{q.codProduto}</td>
-                              <td className="p-3">{q.descricao}</td>
-                              <td className="p-3 text-center text-red font-black text-sm">{q.quantidade}</td>
-                              <td className="p-3 font-bold text-snow">{q.area}</td>
-                              <td className="p-3 uppercase text-[10px] font-bold text-[#6a7d92]">{q.turno}</td>
-                              <td className="p-3 font-mono font-bold text-[#f5a623]">{q.codQuebra}</td>
-                              <td className="p-3 text-[#6a7d92]">
-                                {q.motivo}
-                                {q.colaboradorQuebrou && (
-                                  <span className="block text-[10px] text-red-400 font-black uppercase tracking-wider mt-0.5">
-                                    👤 Colab: {q.colaboradorQuebrou}
-                                  </span>
-                                )}
-                              </td>
-                              <td className="p-3 text-right">
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <button 
-                                    onClick={() => handleStartEdit(q)}
-                                    className="py-1 px-2 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
-                                    title="Editar informações do registro"
-                                  >
-                                    ✏️ Editar
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDelete(q._docId)}
-                                    className="py-1 px-2 bg-red-500/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded text-[10px] font-bold cursor-pointer transition-all"
-                                    title="Excluir lançamento"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              );
-            });
+                )}
+              </>
+            );
           })()}
         </div>
       )}

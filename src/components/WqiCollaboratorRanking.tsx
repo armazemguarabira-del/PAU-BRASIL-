@@ -133,19 +133,19 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* HEADER PRINCIPAL WQI */}
-      <div className="bg-[#111a30] border border-cyan-500/30 rounded-2xl p-6 shadow-xl space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-cyan-500/30 rounded-2xl p-6 shadow-xs dark:shadow-xl space-y-6 text-slate-800 dark:text-slate-100 transition-colors">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20 flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-200 dark:border-cyan-500/20 flex items-center gap-1.5">
                 <Award className="w-3.5 h-3.5" /> QUALIDADE DPO • WQI INDIVIDUAL
               </span>
-              <span className="text-xs text-slate-400 font-mono">Pilar Qualidade & Segurança Operacional</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">Pilar Qualidade & Segurança Operacional</span>
             </div>
-            <h2 className="text-xl font-black uppercase text-white mt-1 tracking-wide flex items-center gap-2">
+            <h2 className="text-xl font-black uppercase text-slate-900 dark:text-white mt-1 tracking-wide flex items-center gap-2">
               Ranking WQI Nível Colaborador (Warehouse Quality Index)
             </h2>
-            <p className="text-xs text-slate-300 max-w-3xl mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl mt-1">
               Avaliação individual do Índice de Qualidade do Armazém com base no rigor de manuseio (0 avarias), 
               aderência aos Procedimentos Operacionais Padrão (POP), controle FEFO/Validades e auditorias de puxada.
             </p>
@@ -154,7 +154,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={handleExportCsv}
-              className="px-4 py-2.5 bg-[#0b1222] hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-md"
+              className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 dark:bg-[#0b1222] dark:hover:bg-slate-800 text-cyan-700 dark:text-cyan-300 border border-slate-200 dark:border-cyan-500/30 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             >
               <Download className="w-4 h-4" /> Exportar CSV
             </button>
@@ -163,40 +163,40 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
 
         {/* 4 KPI CARDS DE DESEMPENHO WQI */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-[#081226] border border-cyan-500/30 rounded-xl space-y-1">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">WQI Médio da Unidade</span>
+          <div className="p-4 bg-slate-50/80 dark:bg-[#081226] border border-slate-200 dark:border-cyan-500/30 rounded-xl space-y-1">
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">WQI Médio da Unidade</span>
             <div className="flex items-baseline gap-2">
-              <strong className="text-2xl font-mono font-black text-cyan-400 block">{mediaWqiGeral.toFixed(1)}%</strong>
-              <span className="text-[10px] font-mono text-emerald-400 font-bold">Meta: ≥ 95.0%</span>
+              <strong className="text-2xl font-mono font-black text-cyan-600 dark:text-cyan-400 block">{mediaWqiGeral.toFixed(1)}%</strong>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">Meta: ≥ 95.0%</span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">Índice Geral de Qualidade</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Índice Geral de Qualidade</span>
           </div>
 
-          <div className="p-4 bg-[#081226] border border-emerald-500/30 rounded-xl space-y-1">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Atingimento da Meta WQI</span>
+          <div className="p-4 bg-slate-50/80 dark:bg-[#081226] border border-slate-200 dark:border-emerald-500/30 rounded-xl space-y-1">
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Atingimento da Meta WQI</span>
             <div className="flex items-baseline gap-2">
-              <strong className="text-2xl font-mono font-black text-emerald-400 block">{pctAtingimento}%</strong>
-              <span className="text-[10px] font-mono text-emerald-300 font-bold">({totalAtingiramMeta}/{wqiList.length})</span>
+              <strong className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400 block">{pctAtingimento}%</strong>
+              <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-300 font-bold">({totalAtingiramMeta}/{wqiList.length})</span>
             </div>
-            <span className="text-[10px] text-emerald-300 font-mono">Colaboradores com WQI ≥ 95%</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-mono">Colaboradores com WQI ≥ 95%</span>
           </div>
 
-          <div className="p-4 bg-[#081226] border border-blue-500/30 rounded-xl space-y-1">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Conformidade POP & Checklists</span>
+          <div className="p-4 bg-slate-50/80 dark:bg-[#081226] border border-slate-200 dark:border-blue-500/30 rounded-xl space-y-1">
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Conformidade POP & Checklists</span>
             <div className="flex items-baseline gap-2">
-              <strong className="text-2xl font-mono font-black text-blue-400 block">98.1%</strong>
-              <span className="text-[10px] font-mono text-blue-300 font-bold">Meta: ≥ 95.0%</span>
+              <strong className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400 block">98.1%</strong>
+              <span className="text-[10px] font-mono text-blue-700 dark:text-blue-300 font-bold">Meta: ≥ 95.0%</span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">Execução de Procedimentos</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Execução de Procedimentos</span>
           </div>
 
-          <div className="p-4 bg-[#081226] border border-purple-500/30 rounded-xl space-y-1">
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Aderência FEFO & Validade</span>
+          <div className="p-4 bg-slate-50/80 dark:bg-[#081226] border border-slate-200 dark:border-purple-500/30 rounded-xl space-y-1">
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Aderência FEFO & Validade</span>
             <div className="flex items-baseline gap-2">
-              <strong className="text-2xl font-mono font-black text-purple-400 block">99.2%</strong>
-              <span className="text-[10px] font-mono text-purple-300 font-bold">Meta: ≥ 98.0%</span>
+              <strong className="text-2xl font-mono font-black text-purple-600 dark:text-purple-400 block">99.2%</strong>
+              <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 font-bold">Meta: ≥ 98.0%</span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">Zero Vencimentos no Estoque</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Zero Vencimentos no Estoque</span>
           </div>
         </div>
 
@@ -204,39 +204,39 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           {wqiList.slice(0, 3).map((item, idx) => {
             const medals = ['🥇 1º LUGAR WQI (OURO)', '🥈 2º LUGAR WQI (PRATA)', '🥉 3º LUGAR WQI (BRONZE)'];
-            const borders = ['border-cyan-400/80 bg-cyan-500/10', 'border-slate-300/80 bg-slate-400/10', 'border-amber-700/80 bg-amber-800/10'];
-            const textColors = ['text-cyan-400', 'text-slate-200', 'text-amber-500'];
+            const borders = ['border-cyan-500/40 bg-cyan-50/60 dark:bg-cyan-500/10', 'border-slate-300 dark:border-slate-400/30 bg-slate-50/60 dark:bg-slate-400/10', 'border-amber-400/40 bg-amber-50/60 dark:bg-amber-800/10'];
+            const textColors = ['text-cyan-700 dark:text-cyan-400', 'text-slate-700 dark:text-slate-200', 'text-amber-700 dark:text-amber-500'];
 
             return (
               <div key={item.matricula} className={`p-4 rounded-xl border-2 space-y-3 relative overflow-hidden ${borders[idx]}`}>
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                   <span className={`text-xs font-black uppercase tracking-wider ${textColors[idx]}`}>
                     {medals[idx]}
                   </span>
-                  <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                  <span className="text-[10px] font-mono font-bold bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
                     🎯 META ATINGIDA
                   </span>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-black text-white uppercase truncate">{item.nome}</h4>
-                  <span className="text-[10px] font-mono text-cyan-300 font-bold block">{item.cargo} • {item.matricula}</span>
+                  <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase truncate">{item.nome}</h4>
+                  <span className="text-[10px] font-mono text-cyan-700 dark:text-cyan-300 font-bold block">{item.cargo} • {item.matricula}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 p-2 bg-[#080d1a] rounded-lg text-xs font-mono">
+                <div className="grid grid-cols-2 gap-2 p-2 bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono">
                   <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase block">POP & Padrão:</span>
-                    <strong className="text-blue-400 font-black">{item.popConformidade}%</strong>
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">POP & Padrão:</span>
+                    <strong className="text-blue-600 dark:text-blue-400 font-black">{item.popConformidade}%</strong>
                   </div>
                   <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Avarias no Mês:</span>
-                    <strong className="text-emerald-400 font-black">{item.totalAvariasMes} avarias</strong>
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Avarias no Mês:</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-black">{item.totalAvariasMes} avarias</strong>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800/60 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold">Índice WQI Acumulado:</span>
-                  <strong className="text-base font-black text-cyan-300">{item.pontuacaoWqi}%</strong>
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800/60 font-mono">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Índice WQI Acumulado:</span>
+                  <strong className="text-base font-black text-cyan-600 dark:text-cyan-300">{item.pontuacaoWqi}%</strong>
                 </div>
               </div>
             );
@@ -244,7 +244,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
         </div>
 
         {/* FILTROS & BARRA DE BUSCA */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -253,20 +253,20 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
                 placeholder="Buscar por colaborador, matrícula ou função..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#081226] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-[#081226] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-cyan-500"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[#081226] p-1 rounded-xl border border-slate-800 w-full md:w-auto justify-end">
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#081226] p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full md:w-auto justify-end">
             {(['Todos', 'Ajudante', 'Empilhador', 'Operador'] as const).map(func => (
               <button
                 key={func}
                 onClick={() => setFuncaoFilter(func)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-none ${
                   funcaoFilter === func
-                    ? 'bg-cyan-500 text-slate-950 font-black shadow-md'
-                    : 'text-slate-400 hover:text-white bg-transparent'
+                    ? 'bg-cyan-500 text-slate-950 font-black shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-transparent'
                 }`}
               >
                 {func}
@@ -276,7 +276,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
         </div>
 
         {/* TABELA DE CLASSIFICAÇÃO WQI NÍVEL COLABORADOR */}
-        <div className="border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs dark:shadow-xl">
           <div className="p-3.5 bg-[#032b5e] text-white flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-cyan-300" /> Tabela de Desempenho WQI Individual ({filteredList.length} Colaboradores)
@@ -289,7 +289,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#081226] text-slate-300 font-black uppercase tracking-wider text-[10px]">
+                <tr className="bg-slate-100 dark:bg-[#081226] text-slate-600 dark:text-slate-300 font-black uppercase tracking-wider text-[10px] border-b border-slate-200 dark:border-slate-800">
                   <th className="p-3.5 w-14 text-center whitespace-nowrap">Pos.</th>
                   <th className="p-3.5 whitespace-nowrap">Colaborador</th>
                   <th className="p-3.5 whitespace-nowrap">Matrícula</th>
@@ -303,45 +303,45 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
                   <th className="p-3.5 text-center whitespace-nowrap">Ações DPO</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 bg-[#0b1222] text-slate-200 font-mono">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-200 font-mono">
                 {filteredList.map((item) => (
-                  <tr key={item.matricula} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="p-3.5 text-center font-black text-cyan-400 whitespace-nowrap text-xs">
+                  <tr key={item.matricula} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="p-3.5 text-center font-black text-cyan-600 dark:text-cyan-400 whitespace-nowrap text-xs">
                       {item.posicao === 1 ? '🥇 1º' : item.posicao === 2 ? '🥈 2º' : item.posicao === 3 ? '🥉 3º' : `#${item.posicao}`}
                     </td>
-                    <td className="p-3.5 font-bold text-white uppercase whitespace-nowrap">
+                    <td className="p-3.5 font-bold text-slate-900 dark:text-white uppercase whitespace-nowrap">
                       {item.nome}
                     </td>
-                    <td className="p-3.5 text-slate-400 text-[11px] whitespace-nowrap">
+                    <td className="p-3.5 text-slate-500 dark:text-slate-400 text-[11px] whitespace-nowrap">
                       {item.matricula}
                     </td>
-                    <td className="p-3.5 text-slate-300 text-[11px] whitespace-nowrap">
-                      <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded font-bold text-sky-300">
+                    <td className="p-3.5 text-slate-700 dark:text-slate-300 text-[11px] whitespace-nowrap">
+                      <span className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded font-bold text-sky-700 dark:text-sky-300">
                         {item.cargo}
                       </span>
                     </td>
-                    <td className="p-3.5 text-center text-blue-300 font-bold whitespace-nowrap">
+                    <td className="p-3.5 text-center text-blue-600 dark:text-blue-300 font-bold whitespace-nowrap">
                       {item.popConformidade}%
                     </td>
-                    <td className="p-3.5 text-center text-purple-300 font-bold whitespace-nowrap">
+                    <td className="p-3.5 text-center text-purple-600 dark:text-purple-300 font-bold whitespace-nowrap">
                       {item.fefoAderencia}%
                     </td>
                     <td className="p-3.5 text-center whitespace-nowrap">
-                      <span className={item.totalAvariasMes === 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-black'}>
+                      <span className={item.totalAvariasMes === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-black'}>
                         {item.totalAvariasMes} avaria(s)
                       </span>
                     </td>
-                    <td className="p-3.5 text-center font-black text-cyan-300 text-sm whitespace-nowrap">
+                    <td className="p-3.5 text-center font-black text-cyan-600 dark:text-cyan-300 text-sm whitespace-nowrap">
                       {item.pontuacaoWqi}%
                     </td>
                     <td className="p-3.5 text-center whitespace-nowrap">
-                      <div className="w-24 mx-auto bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700 mb-1">
+                      <div className="w-24 mx-auto bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700 mb-1">
                         <div
-                          className={`h-full ${item.pontuacaoWqi >= 95 ? 'bg-cyan-400' : 'bg-amber-400'}`}
+                          className={`h-full ${item.pontuacaoWqi >= 95 ? 'bg-cyan-500' : 'bg-amber-500'}`}
                           style={{ width: `${Math.min(100, item.pontuacaoWqi)}%` }}
                         />
                       </div>
-                      <span className="text-[9.5px] text-slate-400">Meta: ≥ 95.0%</span>
+                      <span className="text-[9.5px] text-slate-500 dark:text-slate-400">Meta: ≥ 95.0%</span>
                     </td>
                     <td className="p-3.5 text-center whitespace-nowrap">
                       <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${
@@ -365,7 +365,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
                             colaborador: item.nome,
                             setor: 'Qualidade'
                           })}
-                          className="px-2 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer"
+                          className="px-2 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-600/20 dark:hover:bg-red-600/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/40 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer"
                           title="Gerar Ação de Desvio para este colaborador"
                         >
                           <Flame className="w-3 h-3 inline mr-1" /> Desvio
@@ -380,7 +380,7 @@ export const WqiCollaboratorRanking: React.FC<WqiCollaboratorRankingProps> = ({
                             metaMelhoria: '100% de Conformidade WQI',
                             responsavel: item.nome
                           })}
-                          className="px-2 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer"
+                          className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-600/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/40 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer"
                           title="Gerar Ação de Melhoria TOR para este colaborador"
                         >
                           <Sparkles className="w-3 h-3 inline mr-1" /> Melhoria TOR

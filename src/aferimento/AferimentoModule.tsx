@@ -10,8 +10,7 @@ import MonitoramentoView from './components/MonitoramentoView';
 import PlatformManual from './components/PlatformManual';
 import AIAgentChat from './components/AIAgentChat';
 import { ClipboardCheck, ShieldCheck, BarChart3, AlertCircle, Bell, CheckCircle2 } from 'lucide-react';
-import { db } from '../firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { AferimentoRotaDbRepository } from '../db/repositories';
 import type { Usuario, Empresa } from '../types';
 
 interface AferimentoModuleProps {
@@ -22,14 +21,7 @@ interface AferimentoModuleProps {
   onExit: () => void;
 }
 
-// Firestore document that stores the entire "Aferição de Retorno de Rota" database for this empresa.
-// Kept as a single document (mirrors the original single database.json) to minimize rewrite risk.
-// NOTE: Firestore documents have a 1MB limit. If "audits" grows very large over time (thousands of
-// route audits with full item lists), consider migrating "audits"/"vales" to their own subcollections.
-function getAferimentoDocRef(empresaId: string) {
-  return doc(db, 'aferimento_rota_db', empresaId);
-}
-
+// Repository-backed single document for Aferição de Retorno de Rota per empresa.
 export default function AferimentoModule({ armazemUser, empresa, theme, onToggleTheme, onExit }: AferimentoModuleProps) {
   const empresaId = empresa?.id || 'demo';
   const lastWriteTime = useRef<number>(0);
@@ -120,14 +112,15 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
 
         if (Object.keys(payload).length > 0) {
           try {
-            await setDoc(getAferimentoDocRef(empresaId), {
+            await AferimentoRotaDbRepository.update(empresaId, {
               ...payload,
+              id: empresaId,
               empresaId,
               lastUpdatedBy: currentUser?.name || armazemUser?.nome || 'Sistema',
               lastUpdatedAt: new Date().toISOString(),
-            }, { merge: true });
+            }, empresaId);
           } catch (err) {
-            console.error('Falha ao sincronizar as alterações com o Firestore:', err);
+            console.error('Falha ao sincronizar as alterações com o repositório:', err);
             // Re-queue so the next write attempt retries these fields too
             pendingUpdatesRef.current = { ...payload, ...pendingUpdatesRef.current };
           }
@@ -190,12 +183,11 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
     }));
   };
 
-  // Load & subscribe in real-time to this empresa's Aferição de Retorno de Rota data in Firestore.
+  // Load & subscribe in real-time to this empresa's Aferição de Retorno de Rota data.
   useEffect(() => {
     setIsLoadingDb(true);
-    const ref = getAferimentoDocRef(empresaId);
 
-    const unsubscribe = onSnapshot(ref, async (snap) => {
+    const unsubscribe = AferimentoRotaDbRepository.subscribeDoc(empresaId, async (data: any) => {
       // Skip applying remote updates if there was a very recent local write, to avoid
       // the classic "my own write bounces back and reverts my optimistic UI" race condition.
       if (Date.now() - lastWriteTime.current < 1500) {
@@ -204,10 +196,11 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
         return;
       }
 
-      if (!snap.exists()) {
-        // First time this empresa uses the module: seed Firestore with sensible defaults.
+      if (!data) {
+        // First time this empresa uses the module: seed with sensible defaults.
         if (!hasLoadedOnce.current) {
           const seed = {
+            id: empresaId,
             users: DEFAULT_USERS,
             drivers: DEFAULT_DRIVERS,
             vehicles: DEFAULT_VEHICLES,
@@ -222,9 +215,9 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
             empresaId,
           };
           try {
-            await setDoc(ref, seed, { merge: true });
+            await AferimentoRotaDbRepository.update(empresaId, seed, empresaId);
           } catch (err) {
-            console.error('Erro ao inicializar base de Aferição de Retorno de Rota no Firestore:', err);
+            console.error('Erro ao inicializar base de Aferição de Retorno de Rota:', err);
           }
           setUsers(DEFAULT_USERS);
           setDrivers(DEFAULT_DRIVERS);
@@ -237,7 +230,6 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
         return;
       }
 
-      const data = snap.data() as any;
       if (data.users && data.users.length > 0) setUsers(data.users);
       if (data.drivers) setDrivers(data.drivers);
       if (data.vehicles) setVehicles(data.vehicles);
@@ -253,7 +245,7 @@ export default function AferimentoModule({ armazemUser, empresa, theme, onToggle
       hasLoadedOnce.current = true;
       setIsLoadingDb(false);
     }, (err) => {
-      console.error('Erro ao sincronizar com o Firestore (Aferição de Retorno de Rota):', err);
+      console.error('Erro ao sincronizar repositório (Aferição de Retorno de Rota):', err);
       setIsLoadingDb(false);
     });
 

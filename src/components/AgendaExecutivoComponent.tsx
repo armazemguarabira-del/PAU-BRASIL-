@@ -30,8 +30,9 @@ import {
   ShieldCheck,
   CheckSquare
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getRepository } from '../db';
+
+const agendaRepo = getRepository<CompromissoAgenda>('agenda_executiva_compromissos');
 
 export interface AnexoDocumento {
   id: string;
@@ -144,24 +145,18 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Sync with Firestore
+  // Sync with Repository / Hybrid Database Router
   useEffect(() => {
     const fetchAgendaFirestore = async () => {
-      if (!db) return;
       try {
-        const colRef = collection(db, 'agenda_executiva_compromissos');
-        const snap = await getDocs(colRef);
-        if (!snap.empty) {
-          const list: CompromissoAgenda[] = [];
-          snap.forEach(d => list.push({ id: d.id, ...d.data() } as CompromissoAgenda));
-          if (list.length > 0) {
-            list.sort((a, b) => `${a.dataISO} ${a.hora}`.localeCompare(`${b.dataISO} ${b.hora}`));
-            setCompromissos(list);
-            localStorage.setItem('agenda_executiva_compromissos_list', JSON.stringify(list));
-          }
+        const list = await agendaRepo.getAll('demo');
+        if (list && list.length > 0) {
+          list.sort((a, b) => `${a.dataISO} ${a.hora}`.localeCompare(`${b.dataISO} ${b.hora}`));
+          setCompromissos(list);
+          localStorage.setItem('agenda_executiva_compromissos_list', JSON.stringify(list));
         }
       } catch (err) {
-        console.warn('Firestore load fallback for Agenda Executiva:', err);
+        console.warn('Repository load fallback for Agenda Executiva:', err);
       }
     };
 
@@ -172,17 +167,15 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
     setCompromissos(newList);
     localStorage.setItem('agenda_executiva_compromissos_list', JSON.stringify(newList));
 
-    if (db) {
-      try {
-        if (itemToSave) {
-          await setDoc(doc(db, 'agenda_executiva_compromissos', itemToSave.id), itemToSave);
-        }
-        if (itemToDeleteId) {
-          await deleteDoc(doc(db, 'agenda_executiva_compromissos', itemToDeleteId));
-        }
-      } catch (e) {
-        console.warn('Firestore sync error for Agenda:', e);
+    try {
+      if (itemToSave) {
+        await agendaRepo.create(itemToSave, 'demo', itemToSave.id);
       }
+      if (itemToDeleteId) {
+        await agendaRepo.delete(itemToDeleteId, 'demo');
+      }
+    } catch (e) {
+      console.warn('Repository sync error for Agenda:', e);
     }
   };
 
@@ -463,22 +456,22 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
       />
 
       {/* 🚀 CABEÇALHO DA AGENDA EXECUTIVA — COMPROMISSOS CORPORATIVOS */}
-      <div className="bg-[#111a30] border border-blue-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#111a30] dark:via-[#111a30] dark:to-[#0f172a] border border-slate-200 dark:border-blue-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-400 shrink-0">
+          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-600 dark:text-blue-400 shrink-0">
             <CalendarIcon className="w-8 h-8" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
                 AGENDA EXECUTIVA DEDICADA
               </span>
-              <span className="text-[10px] text-slate-300 font-mono">Compromissos Corporativos</span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">Compromissos Corporativos</span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
               Agenda de Compromissos, Reuniões & Anexos
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Gestão exclusiva dos compromissos cadastrados por você com suporte a anexos de documentos (PDF, Word, Excel, Imagens) para lembretes e pautas de reunião.
             </p>
           </div>
@@ -495,58 +488,58 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
 
       {/* CARDS KPIS DE COMPROMISSOS CORPORATIVOS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Compromissos Hoje</span>
-            <strong className="text-2xl font-mono font-black text-blue-400">{countToday}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Compromissos Hoje</span>
+            <strong className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400">{countToday}</strong>
           </div>
-          <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-400">
+          <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Na Semana Vigente</span>
-            <strong className="text-2xl font-mono font-black text-purple-400">{countWeek}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Na Semana Vigente</span>
+            <strong className="text-2xl font-mono font-black text-purple-600 dark:text-purple-400">{countWeek}</strong>
           </div>
-          <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-400">
+          <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-600 dark:text-purple-400">
             <CalendarIcon className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Com Documento Anexo</span>
-            <strong className="text-2xl font-mono font-black text-emerald-400">{countComAnexos}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Com Documento Anexo</span>
+            <strong className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400">{countComAnexos}</strong>
           </div>
-          <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+          <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
             <Paperclip className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Em Aberto / Pendentes</span>
-            <strong className="text-2xl font-mono font-black text-amber-400">{countPendente}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Em Aberto / Pendentes</span>
+            <strong className="text-2xl font-mono font-black text-amber-600 dark:text-amber-400">{countPendente}</strong>
           </div>
-          <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-400">
+          <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
             <AlertCircle className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* PAINEL DE CONTROLE DE NAVEGAÇÃO, FILTROS E TOGGLE "SÓ MEUS COMPROMISSOS" */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 space-y-4">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           
           {/* BOTÕES DE PERÍODO (DIA / SEMANA / MÊS / TODOS) */}
-          <div className="flex items-center gap-1.5 bg-[#0b1222] p-1.5 rounded-xl border border-slate-800 overflow-x-auto">
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto">
             <button
               type="button"
               onClick={() => setPeriodoFiltro('dia')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                periodoFiltro === 'dia' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                periodoFiltro === 'dia' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Compromissos do Dia
@@ -556,7 +549,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               type="button"
               onClick={() => setPeriodoFiltro('semana')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                periodoFiltro === 'semana' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                periodoFiltro === 'semana' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Da Semana
@@ -566,7 +559,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               type="button"
               onClick={() => setPeriodoFiltro('mes')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                periodoFiltro === 'mes' ? 'bg-sky-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                periodoFiltro === 'mes' ? 'bg-sky-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Do Mês
@@ -576,7 +569,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               type="button"
               onClick={() => setPeriodoFiltro('todos')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                periodoFiltro === 'todos' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                periodoFiltro === 'todos' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Todos
@@ -584,16 +577,16 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
           </div>
 
           {/* TOGGLE: SOMENTE MEUS COMPROMISSOS CADASTRADOS */}
-          <div className="flex items-center gap-3 bg-[#0b1222] px-3 py-2 rounded-xl border border-slate-800">
-            <User className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="text-xs font-bold text-slate-300">Somente Cadastrados por Mim:</span>
+          <div className="flex items-center gap-3 bg-slate-100 dark:bg-[#0b1222] px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+            <User className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Somente Cadastrados por Mim:</span>
             <button
               type="button"
               onClick={() => setApenasMeusCompromissos(!apenasMeusCompromissos)}
               className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition-all cursor-pointer ${
                 apenasMeusCompromissos
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-slate-800 text-slate-400 hover:text-white'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {apenasMeusCompromissos ? 'Ativo (Eu)' : 'Exibir Todos'}
@@ -602,17 +595,17 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
 
           {/* NAVEGAÇÃO POR DATA ESPECÍFICA */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase text-slate-400">Data Base:</span>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Data Base:</span>
             <input
               type="date"
               value={selectedDateISO}
               onChange={(e) => setSelectedDateISO(e.target.value)}
-              className="bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-white outline-none focus:border-blue-500"
+              className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
             />
             <button
               type="button"
               onClick={() => setSelectedDateISO(todayISO)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold uppercase text-slate-300 rounded-xl cursor-pointer"
+              className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold uppercase text-slate-700 dark:text-slate-300 rounded-xl cursor-pointer"
             >
               Hoje
             </button>
@@ -626,7 +619,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
             <select
               value={categoriaFiltro}
               onChange={(e) => setCategoriaFiltro(e.target.value)}
-              className="w-full sm:w-48 bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-blue-500"
+              className="w-full sm:w-48 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
             >
               <option value="todas">Todas Categorias</option>
               <option value="Reunião">Reuniões</option>
@@ -645,20 +638,20 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               placeholder="Buscar por título, pauta, responsável..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#0b1222] border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white outline-none focus:border-blue-500"
+              className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-blue-500"
             />
           </div>
         </div>
       </div>
 
       {/* LISTA DE COMPROMISSOS */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-blue-400" /> 
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" /> 
             Compromissos ({periodoFiltro.toUpperCase()} - {userFilteredCompromissos.length} item/ns)
           </h3>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
             {periodoFiltro === 'dia' ? `Data: ${selectedDateISO.split('-').reverse().join('/')}` : 
              periodoFiltro === 'semana' ? `Semana: ${mondayISO.split('-').reverse().join('/')} até ${sundayISO.split('-').reverse().join('/')}` : 
              `Período Selecionado`}
@@ -674,37 +667,37 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               return (
                 <div 
                   key={c.id} 
-                  className={`border rounded-2xl p-4 space-y-3 transition-all relative flex flex-col justify-between ${
+                  className={`border rounded-2xl p-4 space-y-3 transition-all relative flex flex-col justify-between shadow-sm ${
                     isConcluido 
-                      ? 'bg-[#080e1b] border-slate-800 opacity-75' 
+                      ? 'bg-slate-50 dark:bg-[#080e1b] border-slate-200 dark:border-slate-800 opacity-90 dark:opacity-75' 
                       : c.prioridade === 'Alta'
-                        ? 'bg-[#121c35] border-rose-500/40 hover:border-rose-500'
-                        : 'bg-[#0e172a] border-slate-700/80 hover:border-blue-500/50'
+                        ? 'bg-rose-50/50 dark:bg-[#121c35] border-rose-200 dark:border-rose-500/40 hover:border-rose-400 dark:hover:border-rose-500'
+                        : 'bg-slate-50/70 dark:bg-[#0e172a] border-slate-200 dark:border-slate-700/80 hover:border-blue-400 dark:hover:border-blue-500/50'
                   }`}
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-[11px] font-mono font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          <span className="text-[11px] font-mono font-black text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                             ⏰ {c.hora}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-300">
+                          <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300">
                             {c.dataFormatted}
                           </span>
                           <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
                             c.prioridade === 'Alta' ? 'bg-rose-600 text-white' :
                             c.prioridade === 'Média' ? 'bg-amber-500 text-slate-950 font-black' :
-                            'bg-slate-700 text-slate-300'
+                            'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                           }`}>
                             {c.prioridade}
                           </span>
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30">
                             {c.categoria}
                           </span>
                         </div>
 
-                        <h4 className={`text-sm font-black uppercase mt-1.5 ${isConcluido ? 'line-through text-slate-400' : 'text-white'}`}>
+                        <h4 className={`text-sm font-black uppercase mt-1.5 ${isConcluido ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
                           {c.titulo}
                         </h4>
                       </div>
@@ -712,8 +705,8 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                       <button
                         type="button"
                         onClick={() => handleToggleStatus(c)}
-                        className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 ${
-                          isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-emerald-600'
+                        className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 shadow-sm ${
+                          isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-white hover:bg-emerald-600'
                         }`}
                         title={isConcluido ? 'Marcar como Pendente' : 'Marcar como Concluído'}
                       >
@@ -722,16 +715,16 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                     </div>
 
                     {c.observacoes && (
-                      <p className="text-xs text-slate-300 bg-[#080d1a] p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
+                      <p className="text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-[#080d1a] p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80 leading-relaxed">
                         "{c.observacoes}"
                       </p>
                     )}
 
                     {/* 📎 BLOCO DE DOCUMENTOS E ANEXOS VINCULADOS AO COMPROMISSO */}
-                    <div className="bg-[#080e1a] p-3 rounded-xl border border-slate-800/90 space-y-2">
+                    <div className="bg-slate-100/70 dark:bg-[#080e1a] p-3 rounded-xl border border-slate-200 dark:border-slate-800/90 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                          <Paperclip className="w-3.5 h-3.5 text-blue-400" /> Documentos Anexos ({c.anexos?.length || 0})
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                          <Paperclip className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Documentos Anexos ({c.anexos?.length || 0})
                         </span>
 
                         <button
@@ -740,7 +733,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                             setActiveCardIdForUpload(c.id);
                             if (cardFileInputRef.current) cardFileInputRef.current.click();
                           }}
-                          className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20"
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20"
                         >
                           <Upload className="w-3 h-3" /> Anexar Arquivo
                         </button>
@@ -749,18 +742,18 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                       {temAnexos ? (
                         <div className="space-y-1.5 pt-1">
                           {c.anexos!.map(anexo => (
-                            <div key={anexo.id} className="flex items-center justify-between bg-[#111a30] p-2 rounded-lg border border-slate-800 text-xs">
+                            <div key={anexo.id} className="flex items-center justify-between bg-white dark:bg-[#111a30] p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
                               <div className="flex items-center gap-2 truncate pr-2">
                                 {getFileIcon(anexo.tipo || anexo.nome)}
-                                <span className="text-slate-200 truncate font-mono text-[11px]">{anexo.nome}</span>
-                                <span className="text-[9px] text-slate-400 font-mono">({anexo.tamanhoFormatted})</span>
+                                <span className="text-slate-800 dark:text-slate-200 truncate font-mono text-[11px]">{anexo.nome}</span>
+                                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-mono">({anexo.tamanhoFormatted})</span>
                               </div>
 
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadAnexo(anexo)}
-                                  className="p-1 text-slate-400 hover:text-emerald-400 cursor-pointer"
+                                  className="p-1 text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 cursor-pointer"
                                   title="Baixar / Visualizar"
                                 >
                                   <Download className="w-3.5 h-3.5" />
@@ -768,7 +761,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveAnexoCard(c, anexo.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                                  className="p-1 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer"
                                   title="Excluir anexo"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -778,16 +771,16 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                           ))}
                         </div>
                       ) : (
-                        <p className="text-[11px] text-slate-400 italic">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
                           Nenhum documento anexado ainda. Clique em "+ Anexar Arquivo" (suporta PDF, Excel, Word, Imagens).
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/60 mt-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/60 mt-2">
                     <div className="flex items-center gap-1.5">
-                      <UserCheck className="w-3.5 h-3.5 text-blue-400" />
+                      <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       <span>{c.responsavel} ({c.setorOuTime})</span>
                     </div>
 
@@ -795,7 +788,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                       <button
                         type="button"
                         onClick={() => handleEditCompromisso(c)}
-                        className="p-1 text-slate-400 hover:text-blue-400 cursor-pointer"
+                        className="p-1 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 cursor-pointer"
                         title="Editar"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -803,7 +796,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
                       <button
                         type="button"
                         onClick={() => handleDeleteCompromisso(c.id)}
-                        className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                        className="p-1 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer"
                         title="Excluir"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -815,9 +808,9 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
             })}
           </div>
         ) : (
-          <div className="p-8 text-center space-y-2 bg-[#0b1222] border border-slate-800 rounded-xl">
-            <CalendarIcon className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-400">
+          <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl">
+            <CalendarIcon className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Nenhum compromisso agendado para o período ou filtro selecionado. Clique em "+ Novo Compromisso" para registrar seu compromisso.
             </p>
           </div>
@@ -827,17 +820,17 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
       {/* MODAL NOVO / EDITAR COMPROMISSO */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleSaveForm} className="bg-[#111a30] border-2 border-blue-500/50 rounded-2xl p-6 w-full max-w-xl space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleSaveForm} className="bg-white dark:bg-[#111a30] border-2 border-blue-500/50 rounded-2xl p-6 w-full max-w-xl space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-black uppercase text-white flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4 text-blue-400" />
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 {editingId ? 'Editar Compromisso Executivo' : 'Novo Compromisso Corporativo'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -845,47 +838,47 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Data *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Data *</label>
                 <input
                   type="date"
                   value={dataISO}
                   onChange={(e) => setDataISO(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Horário *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Horário *</label>
                 <input
                   type="time"
                   value={hora}
                   onChange={(e) => setHora(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-blue-500"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Título do Compromisso / Reunião *</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Título do Compromisso / Reunião *</label>
               <input
                 type="text"
                 placeholder="Ex: Alinhamento Estratégico de Metas e Produção"
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs font-bold text-white outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Categoria</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Categoria</label>
                 <select
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
                 >
                   <option value="Reunião">Reunião</option>
                   <option value="Auditoria DPO">Auditoria DPO</option>
@@ -897,11 +890,11 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Prioridade</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Prioridade</label>
                 <select
                   value={prioridade}
                   onChange={(e) => setPrioridade(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
                 >
                   <option value="Alta">Alta</option>
                   <option value="Média">Média</option>
@@ -910,11 +903,11 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Status</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Status</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
                 >
                   <option value="Pendente">Pendente</option>
                   <option value="Em Andamento">Em Andamento</option>
@@ -926,48 +919,48 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Responsável Principal</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Responsável Principal</label>
                 <input
                   type="text"
                   value={responsavel}
                   onChange={(e) => setResponsavel(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Setor / Time Envolvido</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Setor / Time Envolvido</label>
                 <input
                   type="text"
                   value={setorOuTime}
                   onChange={(e) => setSetorOuTime(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Observações / Pauta da Reunião</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Observações / Pauta da Reunião</label>
               <textarea
                 rows={3}
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
                 placeholder="Detalhes do compromisso, ordem do dia, pauta de discussão..."
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500 resize-none"
               />
             </div>
 
             {/* UPLOAD DE DOCUMENTOS NO MODAL */}
-            <div className="space-y-2 border-t border-slate-800 pt-3">
+            <div className="space-y-2 border-t border-slate-200 dark:border-slate-800 pt-3">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase text-slate-300 flex items-center gap-1.5">
-                  <Paperclip className="w-3.5 h-3.5 text-blue-400" /> Upload de Documentos (PDF, Word, Excel, Imagens)
+                <label className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Paperclip className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Upload de Documentos (PDF, Word, Excel, Imagens)
                 </label>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20 cursor-pointer flex items-center gap-1"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20 cursor-pointer flex items-center gap-1"
                 >
                   <Upload className="w-3.5 h-3.5" /> Selecionar Arquivo(s)
                 </button>
@@ -983,19 +976,19 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               />
 
               {modalAnexos.length > 0 ? (
-                <div className="space-y-1.5 max-h-36 overflow-y-auto bg-[#0b1222] p-2 rounded-xl border border-slate-800">
+                <div className="space-y-1.5 max-h-36 overflow-y-auto bg-slate-50 dark:bg-[#0b1222] p-2 rounded-xl border border-slate-200 dark:border-slate-800">
                   {modalAnexos.map((anexo) => (
-                    <div key={anexo.id} className="flex items-center justify-between bg-[#111a30] p-2 rounded-lg border border-slate-800 text-xs">
+                    <div key={anexo.id} className="flex items-center justify-between bg-white dark:bg-[#111a30] p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
                       <div className="flex items-center gap-2 truncate pr-2">
                         {getFileIcon(anexo.tipo || anexo.nome)}
-                        <span className="text-slate-200 truncate font-mono text-xs">{anexo.nome}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">({anexo.tamanhoFormatted})</span>
+                        <span className="text-slate-800 dark:text-slate-200 truncate font-mono text-xs">{anexo.nome}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">({anexo.tamanhoFormatted})</span>
                       </div>
 
                       <button
                         type="button"
                         onClick={() => setModalAnexos(prev => prev.filter(a => a.id !== anexo.id))}
-                        className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                        className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
                         title="Remover anexo"
                       >
                         <X className="w-4 h-4" />
@@ -1006,10 +999,10 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               ) : (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-4 border-2 border-dashed border-slate-700/80 hover:border-blue-500/50 rounded-xl text-center cursor-pointer bg-[#0b1222]/50 space-y-1 transition-all"
+                  className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700/80 hover:border-blue-500/50 rounded-xl text-center cursor-pointer bg-slate-50 dark:bg-[#0b1222]/50 space-y-1 transition-all"
                 >
-                  <Upload className="w-5 h-5 text-slate-500 mx-auto" />
-                  <p className="text-xs text-slate-400 font-bold">Clique para enviar arquivos para esta reunião</p>
+                  <Upload className="w-5 h-5 text-slate-400 dark:text-slate-500 mx-auto" />
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Clique para enviar arquivos para esta reunião</p>
                   <span className="text-[10px] text-slate-500 block">PDF, Word (.docx), Excel (.xlsx), Imagens (.png/.jpg)</span>
                 </div>
               )}
@@ -1019,7 +1012,7 @@ export const AgendaExecutivoComponent: React.FC<AgendaExecutivoComponentProps> =
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
               >
                 Cancelar
               </button>

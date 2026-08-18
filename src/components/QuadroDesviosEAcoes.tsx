@@ -50,9 +50,10 @@ import {
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { useEmpresaData } from '../context/EmpresaDataContext';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { AcoesGeraisRepository, getRepository } from '../db';
 import { openModalAcaoDesvio, openModalAcaoMelhoria } from '../utils/actionsEvents';
+
+const acoesReagendamentosRepo = getRepository<any>('acoes_reagendamentos');
 
 interface QuadroDesviosEAcoesProps {
   user: Usuario;
@@ -610,21 +611,19 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
     saveAcoes(updated);
 
-    // Save update to Firestore if present
-    if (db) {
-      try {
-        await addDoc(collection(db, 'acoes_reagendamentos'), {
-          empresaId,
-          acaoId: actionToJustify.id,
-          colaborador: userName,
-          prazoAnterior: oldPrazo,
-          novoPrazo: novoPrazoDate,
-          justificativa: justificativaText.trim(),
-          dataHora: now.toISOString()
-        });
-      } catch (e) {
-        console.error("Erro ao salvar reagendamento no Firestore:", e);
-      }
+    // Save update to Repository
+    try {
+      await acoesReagendamentosRepo.create({
+        empresaId,
+        acaoId: actionToJustify.id,
+        colaborador: userName,
+        prazoAnterior: oldPrazo,
+        novoPrazo: novoPrazoDate,
+        justificativa: justificativaText.trim(),
+        dataHora: now.toISOString()
+      }, empresaId);
+    } catch (e) {
+      console.error("Erro ao salvar reagendamento no Repository:", e);
     }
 
     window.dispatchEvent(new Event('local_data_changed'));
@@ -731,23 +730,21 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
     const currentAcoes = getAcoesAll();
     saveAcoes([newAcao, ...currentAcoes]);
 
-    if (db) {
-      try {
-        await addDoc(collection(db, 'acoes'), {
-          empresaId,
-          titulo: newAcao.indicador,
-          descricao: newAcao.desvioEncontrado,
-          responsavel: newAcao.colaboradorResponsavel,
-          dataLimite: newAcao.prazo,
-          status: 'Pendente',
-          prioridade: newAcao.prioridade,
-          setor: newAcao.setor,
-          origem: 'Quadro de Desvios e Ações',
-          criadoEm: now.toISOString()
-        });
-      } catch (e) {
-        console.error("Erro ao salvar ação no Firestore:", e);
-      }
+    try {
+      await AcoesGeraisRepository.create({
+        empresaId,
+        titulo: newAcao.indicador,
+        descricao: newAcao.desvioEncontrado,
+        responsavel: newAcao.colaboradorResponsavel,
+        dataLimite: newAcao.prazo,
+        status: 'Pendente',
+        prioridade: newAcao.prioridade,
+        setor: newAcao.setor,
+        origem: 'Quadro de Desvios e Ações',
+        criadoEm: now.toISOString()
+      } as any, empresaId);
+    } catch (e) {
+      console.error("Erro ao salvar ação no Repository:", e);
     }
 
     if (selectedDemand) {
@@ -900,8 +897,9 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       )}
 
       {/* 🚨 ALERTA POPUP/BANNER: AÇÃO GERADA PARA VOCÊ (OPERAÇÃO / WORKSTATION) */}
+      {/* BANNER DE ALERTA DE NOVA AÇÃO ATRIBUÍDA AO COLABORADOR LOGADO */}
       {pendingUserAlertAction && (
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-950/80 via-[#111a30] to-indigo-950/80 border border-amber-500/60 rounded-2xl shadow-xl space-y-3 relative overflow-hidden">
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-50 via-blue-50 to-indigo-50 dark:from-amber-950/80 dark:via-[#111a30] dark:to-indigo-950/80 border border-amber-500/60 rounded-2xl shadow-xl space-y-3 relative overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/30 pb-2">
             <div className="flex items-center gap-2.5">
               <span className="relative p-2 bg-amber-500 text-slate-950 font-black rounded-xl shadow-md shrink-0">
@@ -909,29 +907,29 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
               </span>
               <div>
-                <span className="text-[10px] font-black uppercase text-amber-400 font-mono block">
+                <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 font-mono block">
                   ALERTA WORKSTATION OPERACIONAL
                 </span>
-                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                   Nova Ação Corretiva Gerada para Você!
                 </h3>
               </div>
             </div>
 
-            <span className="text-xs font-mono font-bold text-amber-300 bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/40 whitespace-nowrap">
+            <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/40 whitespace-nowrap">
               Prazo Estipulado: {pendingUserAlertAction.prazo}
             </span>
           </div>
 
-          <div className="p-3 bg-[#080d1a] rounded-xl border border-slate-800/80 text-xs space-y-1">
+          <div className="p-3 bg-white/80 dark:bg-[#080d1a] rounded-xl border border-amber-200 dark:border-slate-800/80 text-xs space-y-1">
             <div className="flex justify-between items-center flex-wrap gap-2">
-              <span className="text-[10px] font-bold uppercase text-indigo-400">{pendingUserAlertAction.processo} • Setor: {pendingUserAlertAction.setor}</span>
-              <span className="text-[10px] text-slate-400">Atribuído por: {pendingUserAlertAction.responsavelTratativa}</span>
+              <span className="text-[10px] font-bold uppercase text-indigo-600 dark:text-indigo-400">{pendingUserAlertAction.processo} • Setor: {pendingUserAlertAction.setor}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Atribuído por: {pendingUserAlertAction.responsavelTratativa}</span>
             </div>
-            <strong className="text-sm font-black text-white block">{pendingUserAlertAction.desvioEncontrado || pendingUserAlertAction.indicador}</strong>
+            <strong className="text-sm font-black text-slate-900 dark:text-white block">{pendingUserAlertAction.desvioEncontrado || pendingUserAlertAction.indicador}</strong>
             {pendingUserAlertAction.contramedida && (
-              <p className="text-slate-300 text-xs pt-1">
-                <strong className="text-emerald-400">Contramedida a Executar:</strong> {pendingUserAlertAction.contramedida}
+              <p className="text-slate-600 dark:text-slate-300 text-xs pt-1">
+                <strong className="text-emerald-600 dark:text-emerald-400">Contramedida a Executar:</strong> {pendingUserAlertAction.contramedida}
               </p>
             )}
           </div>
@@ -940,9 +938,9 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
             <button
               type="button"
               onClick={() => handleIniciarDepois(pendingUserAlertAction.id)}
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer border border-slate-700 uppercase tracking-wider flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer border border-slate-300 dark:border-slate-700 uppercase tracking-wider flex items-center gap-1.5 shadow-xs"
             >
-              <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+              <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <span>Iniciar Depois</span>
             </button>
 
@@ -959,31 +957,31 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       )}
 
       {/* 🚀 HEADER DA GUIA DESVIOS E AÇÕES (WORKSTATION OPERACIONAL) */}
-      <div className="space-y-4 border-b border-slate-800/80 pb-4">
+      <div className="space-y-4 border-b border-blue-200/80 dark:border-slate-800/80 pb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-400 shrink-0" /> Workstation Operacional
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1.5 shadow-2xs">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" /> Workstation Operacional
               </span>
-              <span className="text-[10px] font-black uppercase tracking-widest text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-teal-400 shrink-0" /> Meta de Atingimento: 90.0%
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-700 dark:text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 flex items-center gap-1.5 shadow-2xs">
+                <Target className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" /> Meta de Atingimento: 90.0%
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight">
-              <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 tracking-tight">
+              <AlertTriangle className="w-6 h-6 text-rose-500 dark:text-rose-400 shrink-0" />
               <span>Desvios e Ações Operacionais</span>
             </h1>
           </div>
 
-          <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed font-medium">
             Painel direcionado às ações do colaborador e à governança geral de desvios com meta de atingimento de 90% dentro do prazo, alertas e reagendamentos.
           </p>
         </div>
 
         {/* TOOLBAR DE ABAS E AÇÕES - FULL WIDTH LINHA PRÓPRIA (SEM ESTOURE) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-[#111a30] p-1.5 rounded-2xl border border-slate-800/80">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white/90 dark:bg-[#111a30] p-1.5 rounded-2xl border border-blue-200/80 dark:border-slate-800/80 shadow-xs">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
@@ -991,10 +989,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'minhas_acoes'
                   ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
               }`}
             >
-              <User className={`w-4 h-4 shrink-0 ${activeTab === 'minhas_acoes' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <User className={`w-4 h-4 shrink-0 ${activeTab === 'minhas_acoes' ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'}`} />
               <span>Minhas Ações ({minhasAcoes.length})</span>
             </button>
 
@@ -1004,10 +1002,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'governanca'
                   ? 'bg-teal-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
               }`}
             >
-              <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'governanca' ? 'text-white' : 'text-teal-400'}`} />
+              <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'governanca' ? 'text-white' : 'text-teal-600 dark:text-teal-400'}`} />
               <span>Governança & Filtros 90%</span>
             </button>
 
@@ -1017,23 +1015,23 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'desvios'
                   ? 'bg-rose-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
               }`}
             >
-              <AlertTriangle className={`w-4 h-4 shrink-0 ${activeTab === 'desvios' ? 'text-white' : 'text-rose-400'}`} />
+              <AlertTriangle className={`w-4 h-4 shrink-0 ${activeTab === 'desvios' ? 'text-white' : 'text-rose-500 dark:text-rose-400'}`} />
               <span>Desvios de Meta ({totalDesviosIdentificados})</span>
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-blue-100 dark:border-slate-800">
             {/* Ação de Desvio */}
             <button
               type="button"
               onClick={() => openModalAcaoDesvio()}
-              className="px-3 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-xs whitespace-nowrap"
+              className="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-xs whitespace-nowrap"
               title="Registrar Ação de Desvio ou Estouro de Gatilho DPO"
             >
-              <Flame className="w-3.5 h-3.5 text-red-400 animate-pulse shrink-0" />
+              <Flame className="w-3.5 h-3.5 text-red-500 dark:text-red-400 animate-pulse shrink-0" />
               <span>+ Ação de Desvio</span>
             </button>
 
@@ -1041,30 +1039,30 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
             <button
               type="button"
               onClick={() => openModalAcaoMelhoria()}
-              className="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-xs whitespace-nowrap"
+              className="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-xs whitespace-nowrap"
               title="Registrar Ação de Melhoria TOR e Reuniões DPO"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>+ Ação de Melhoria TOR</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsImportModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-600 hover:bg-indigo-500 text-white shadow-md transition-all cursor-pointer flex items-center gap-1.5 border border-indigo-400/30 whitespace-nowrap"
+              className="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[#1e56f0] hover:bg-[#1848c8] text-white shadow-md transition-all cursor-pointer flex items-center gap-1.5 border border-blue-400/30 whitespace-nowrap"
               title="Importar planilha de ações retroativas ou cadastrar manualmente"
             >
-              <FileSpreadsheet className="w-4 h-4 text-indigo-200 shrink-0" />
+              <FileSpreadsheet className="w-4 h-4 text-white shrink-0" />
               <span>Importar Planilha</span>
             </button>
 
             <button
               type="button"
               onClick={handleClearAllAcoes}
-              className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/40 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+              className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/60 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
               title="Zerar todas as ações da plataforma"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <RotateCcw className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
               <span>Zerar Ações</span>
             </button>
           </div>
@@ -1076,86 +1074,86 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${activeTab === 'minhas_acoes' ? 'lg:grid-cols-4' : 'lg:grid-cols-5'} gap-3`}>
           
           {/* KPI CARD 1: TOTAL DE DESVIOS IDENTIFICADOS */}
-          <div className="p-4 bg-[#111a30] border border-rose-500/30 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-sm">
-            <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 block">Desvios Identificados</span>
+          <div className="p-4 bg-white/95 dark:bg-[#111a30] border border-rose-300 dark:border-rose-500/30 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-xs dark:shadow-md">
+            <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 block">Desvios Identificados</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-rose-400 font-mono">{totalDesviosIdentificados}</span>
-              <span className="text-[10px] text-slate-400">fora da meta</span>
+              <span className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">{totalDesviosIdentificados}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">fora da meta</span>
             </div>
-            <p className="text-[10px] text-slate-400">Indicadores & Processos</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">Indicadores & Processos</p>
           </div>
 
           {/* KPI CARD 2: TOTAL AÇÕES GERADAS */}
-          <div className="p-4 bg-[#111a30] border border-slate-800 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-sm">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Ações Atribuídas</span>
+          <div className="p-4 bg-white/95 dark:bg-[#111a30] border border-blue-200/80 dark:border-slate-800 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-xs dark:shadow-md">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Ações Atribuídas</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-white font-mono">{estatisticasGovernança.totalGeradas}</span>
-              <span className="text-[10px] text-slate-400">no plano geral</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">{estatisticasGovernança.totalGeradas}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">no plano geral</span>
             </div>
-            <p className="text-[10px] text-slate-400">Tratativas ativas</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">Tratativas ativas</p>
           </div>
 
           {/* KPI CARD 3: AÇÕES FECHADAS */}
-          <div className="p-4 bg-[#111a30] border border-emerald-500/30 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-sm">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">Ações Fechadas</span>
+          <div className="p-4 bg-white/95 dark:bg-[#111a30] border border-emerald-300 dark:border-emerald-500/30 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-xs dark:shadow-md">
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Ações Fechadas</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-emerald-400 font-mono">{estatisticasGovernança.totalAcoesFechadasGlobal}</span>
-              <span className="text-[10px] text-emerald-300">concluídas</span>
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{estatisticasGovernança.totalAcoesFechadasGlobal}</span>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">concluídas</span>
             </div>
-            <p className="text-[10px] text-slate-400">Resoluções efetuadas</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">Resoluções efetuadas</p>
           </div>
 
           {/* KPI CARD 4: % AÇÕES FECHADAS ÷ TOTAL DE AÇÕES (EXIBIDO NA GOVERNANÇA) */}
           {activeTab !== 'minhas_acoes' && (
-            <div className="p-4 bg-gradient-to-br from-[#0c1a30] to-[#122342] border border-indigo-500/40 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 block">
+            <div className="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-[#0c1a30] dark:to-[#122342] border border-indigo-200 dark:border-indigo-500/40 rounded-2xl space-y-1.5 flex flex-col justify-between h-full shadow-xs dark:shadow-md">
+              <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 block">
                 % Ações Fechadas
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-indigo-300 font-mono">
+                <span className="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono">
                   {estatisticasGovernança.percentualFechadasVsDesvios.toFixed(1)}%
                 </span>
-                <span className="text-[10px] text-slate-300">
+                <span className="text-[10px] text-slate-600 dark:text-slate-300">
                   ({estatisticasGovernança.concluidasTotal} ÷ {estatisticasGovernança.totalGeradas})
                 </span>
               </div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
                 <div 
-                  className="h-full bg-indigo-400 rounded-full transition-all duration-500" 
+                  className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(estatisticasGovernança.percentualFechadasVsDesvios, 100)}%` }}
                 />
               </div>
-              <p className="text-[9px] text-indigo-200 font-medium pt-0.5">Fechadas ÷ Total de Ações</p>
+              <p className="text-[9px] text-indigo-700 dark:text-indigo-200 font-medium pt-0.5">Fechadas ÷ Total de Ações</p>
             </div>
           )}
 
           {/* KPI CARD 5: % ATINGIMENTO NO PRAZO (META 90%) */}
-          <div className={`p-4 rounded-2xl space-y-1.5 flex flex-col justify-between h-full border shadow-sm relative overflow-hidden ${
+          <div className={`p-4 rounded-2xl space-y-1.5 flex flex-col justify-between h-full border shadow-xs dark:shadow-md relative overflow-hidden ${
             estatisticasGovernança.metaAtingida
-              ? 'bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 border-emerald-500/50'
-              : 'bg-gradient-to-br from-rose-950 via-slate-900 to-amber-950 border-rose-500/50'
+              ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:via-slate-900 dark:to-teal-950 border-emerald-300 dark:border-emerald-500/50'
+              : 'bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950 dark:via-slate-900 dark:to-amber-950 border-rose-300 dark:border-rose-500/50'
           }`}>
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 block">
+              <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300 block">
                 No Prazo (Meta 90%)
               </span>
-              <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+              <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-800 dark:text-teal-300 border border-teal-500/30">
                 90%
               </span>
             </div>
 
             <div className="flex items-baseline gap-1.5">
               <span className={`text-2xl font-black font-mono ${
-                estatisticasGovernança.metaAtingida ? 'text-emerald-400' : 'text-rose-400'
+                estatisticasGovernança.metaAtingida ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
               }`}>
                 {estatisticasGovernança.percentualAtingimentoNoPrazo.toFixed(1)}%
               </span>
-              <span className="text-[10px] text-slate-300">
+              <span className="text-[10px] text-slate-600 dark:text-slate-300">
                 ({estatisticasGovernança.concluidasNoPrazo}/{estatisticasGovernança.totalGeradas})
               </span>
             </div>
 
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div 
                 className={`h-full transition-all duration-500 rounded-full ${
                   estatisticasGovernança.metaAtingida ? 'bg-emerald-500' : 'bg-rose-500'
@@ -1165,7 +1163,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
             </div>
 
             <span className={`text-[9px] font-black block pt-0.5 uppercase ${
-              estatisticasGovernança.metaAtingida ? 'text-emerald-300' : 'text-rose-300'
+              estatisticasGovernança.metaAtingida ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'
             }`}>
               {estatisticasGovernança.metaAtingida 
                 ? '🎯 Meta Atingida (≥ 90%)' 
@@ -1176,15 +1174,15 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
         </div>
 
         {/* BANNER DE SINCRONIZAÇÃO DAS AÇÕES COM A GUIA GERAL DE AÇÕES DA PLATAFORMA */}
-        <div className="p-3 bg-gradient-to-r from-indigo-950/80 via-[#0e172e] to-teal-950/80 border border-indigo-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="p-3 bg-gradient-to-r from-indigo-50 via-blue-50 to-teal-50 dark:from-indigo-950/80 dark:via-[#0e172e] dark:to-teal-950/80 border border-indigo-200 dark:border-indigo-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl border border-indigo-500/30">
+            <div className="p-2 bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 rounded-xl border border-indigo-500/30">
               <ExternalLink className="w-4 h-4" />
             </div>
             <div>
-              <strong className="text-white font-black block">Sincronização Integrada de Ações</strong>
-              <p className="text-[11px] text-slate-300">
-                Todas as ações geradas em <strong className="text-amber-400">Desvios e Ações</strong> também são consolidadas em tempo real na <strong className="text-indigo-300">Guia Geral de Ações (Plano de Ação)</strong> da plataforma.
+              <strong className="text-slate-900 dark:text-white font-black block">Sincronização Integrada de Ações</strong>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                Todas as ações geradas em <strong className="text-amber-700 dark:text-amber-400">Desvios e Ações</strong> também são consolidadas em tempo real na <strong className="text-indigo-700 dark:text-indigo-300">Guia Geral de Ações (Plano de Ação)</strong> da plataforma.
               </p>
             </div>
           </div>
@@ -1223,7 +1221,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
-              <span className="text-xs font-mono font-bold text-amber-300 bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30">
+              <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30">
                 {colabCounts.pendentes} Pendente(s) / {colabCounts.total} Total
               </span>
 
@@ -1231,17 +1229,17 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               <button
                 type="button"
                 onClick={() => setIsActionsCollapsed(prev => !prev)}
-                className="px-3 py-1 rounded-xl border bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border-slate-700 shadow-xs"
+                className="px-3 py-1 rounded-xl border bg-white dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border-slate-300 dark:border-slate-700 shadow-xs"
                 title={isActionsCollapsed ? "Mostrar Seção de Ações" : "Ocultar Seção de Ações"}
               >
                 {isActionsCollapsed ? (
                   <>
-                    <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    <Eye className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                     <span>Mostrar Ações</span>
                   </>
                 ) : (
                   <>
-                    <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                    <EyeOff className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     <span>Ocultar</span>
                   </>
                 )}
@@ -1251,9 +1249,9 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
           {/* SE ESTIVER OCULTADO PELO USUÁRIO */}
           {isActionsCollapsed ? (
-            <div className="p-3.5 bg-[#111a30] border border-slate-800 rounded-2xl flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-slate-300">
-                <EyeOff className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="p-3.5 bg-white/90 dark:bg-[#111a30] border border-blue-200/80 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                <EyeOff className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                 <span>Seção de Ações Corretivas Ocultada ({colabCounts.pendentes} pendente(s))</span>
               </div>
               <button
@@ -1267,8 +1265,8 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
           ) : (
             <>
               {/* FILTROS RÁPIDOS DE STATUS COM ÍCONES ESPECÍFICOS */}
-              <div className="flex flex-wrap items-center gap-2 bg-[#0d1627] p-1.5 rounded-2xl border border-slate-800/80 max-w-full">
-                <span className="text-[10px] font-black uppercase text-slate-400 px-2 hidden sm:inline">Visualizar:</span>
+              <div className="flex flex-wrap items-center gap-2 bg-slate-100/90 dark:bg-[#0d1627] p-1.5 rounded-2xl border border-blue-200/80 dark:border-slate-800/80 max-w-full">
+                <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 px-2 hidden sm:inline">Visualizar:</span>
                 
                 {/* 1. PENDENTES (DEFAULT) */}
                 <button
@@ -1276,12 +1274,12 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   onClick={() => setColabStatusFilter('pendente')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border ${
                     colabStatusFilter === 'pendente'
-                      ? 'bg-amber-500/25 text-amber-300 border-amber-500/60 shadow-xs'
-                      : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800/50'
+                      ? 'bg-amber-500/25 text-amber-800 dark:text-amber-300 border-amber-500/60 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
                   }`}
                   title="Exibir apenas ações pendentes"
                 >
-                  <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                   <span>Pendentes ({colabCounts.pendentes})</span>
                 </button>
 
@@ -1291,12 +1289,12 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   onClick={() => setColabStatusFilter('andamento')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border ${
                     colabStatusFilter === 'andamento'
-                      ? 'bg-sky-500/25 text-sky-300 border-sky-500/60 shadow-xs'
-                      : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800/50'
+                      ? 'bg-sky-500/25 text-sky-800 dark:text-sky-300 border-sky-500/60 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
                   }`}
                   title="Exibir apenas ações em andamento"
                 >
-                  <Zap className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <Zap className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                   <span>Em Andamento ({colabCounts.andamento})</span>
                 </button>
 
@@ -1306,12 +1304,12 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   onClick={() => setColabStatusFilter('concluido')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border ${
                     colabStatusFilter === 'concluido'
-                      ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/60 shadow-xs'
-                      : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800/50'
+                      ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/60 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
                   }`}
                   title="Exibir apenas ações concluídas"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Concluídas ({colabCounts.concluidas})</span>
                 </button>
 
@@ -1321,21 +1319,21 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   onClick={() => setColabStatusFilter('todos')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border ${
                     colabStatusFilter === 'todos'
-                      ? 'bg-slate-800 text-white border-slate-600 shadow-xs'
-                      : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800/50'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-600 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/50'
                   }`}
                   title="Exibir todas as ações"
                 >
-                  <ListCheck className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <ListCheck className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300 shrink-0" />
                   <span>Todas ({colabCounts.total})</span>
                 </button>
               </div>
 
               {minhasAcoesExibicao.length === 0 ? (
-                <div className="p-8 text-center bg-[#111a30] rounded-2xl border border-slate-800 space-y-2">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                  <strong className="text-sm text-white block font-black">Nenhuma Ação nesta Categoria</strong>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                <div className="p-8 text-center bg-white/90 dark:bg-[#111a30] rounded-2xl border border-blue-200/80 dark:border-slate-800 space-y-2 shadow-xs">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500 dark:text-emerald-400 mx-auto" />
+                  <strong className="text-sm text-slate-900 dark:text-white block font-black">Nenhuma Ação nesta Categoria</strong>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                     Não há ações salvas no status "{colabStatusFilter.toUpperCase()}" para o seu perfil.
                   </p>
                 </div>
@@ -1347,41 +1345,41 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                     return (
                       <div 
                         key={acao.id}
-                        className={`p-4 sm:p-5 bg-[#111a30] border rounded-2xl space-y-4 flex flex-col justify-between transition-all shadow-md max-w-full overflow-hidden ${
+                        className={`p-4 sm:p-5 bg-white/95 dark:bg-[#111a30] border rounded-2xl space-y-4 flex flex-col justify-between transition-all shadow-xs dark:shadow-md max-w-full overflow-hidden ${
                           isOverdue 
-                            ? 'border-rose-500/60 bg-[#161224]' 
+                            ? 'border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#161224]' 
                             : acao.status === 'Concluído' 
-                            ? 'border-emerald-500/40 bg-[#0d1726]' 
+                            ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-[#0d1726]' 
                             : acao.status === 'Em Andamento'
-                            ? 'border-sky-500/40'
-                            : 'border-amber-500/40'
+                            ? 'border-sky-300 dark:border-sky-500/40'
+                            : 'border-amber-300 dark:border-amber-500/40'
                         }`}
                       >
                         <div className="space-y-3 min-w-0">
                           
                           {/* HEADER CARD */}
-                          <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2 flex-wrap sm:flex-nowrap">
-                            <span className="text-[10px] font-mono font-bold text-amber-300 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 truncate">
+                          <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 flex-wrap sm:flex-nowrap">
+                            <span className="text-[10px] font-mono font-bold text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 truncate">
                               {acao.processo}
                             </span>
 
                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shrink-0 ${
                               acao.status === 'Concluído'
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
                                 : isOverdue
                                 ? 'bg-rose-600 text-white animate-pulse'
                                 : acao.status === 'Em Andamento'
-                                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                ? 'bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/30'
+                                : 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
                             }`}>
                               {acao.status === 'Concluído' ? (
-                                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                               ) : isOverdue ? (
                                 <AlertTriangle className="w-3 h-3 text-white shrink-0" />
                               ) : acao.status === 'Em Andamento' ? (
-                                <Zap className="w-3 h-3 text-sky-400 shrink-0" />
+                                <Zap className="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" />
                               ) : (
-                                <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                                <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                               )}
                               <span>{isOverdue ? 'ATRASADO / VENCIDO' : acao.status}</span>
                             </span>
@@ -1389,41 +1387,41 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
                       {/* DETALHES DA AÇÃO */}
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold block">Indicador: {acao.indicador}</span>
-                        <strong className="text-sm text-white block mt-0.5 font-black">{acao.desvioEncontrado || acao.indicador}</strong>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block">Indicador: {acao.indicador}</span>
+                        <strong className="text-sm text-slate-900 dark:text-white block mt-0.5 font-black">{acao.desvioEncontrado || acao.indicador}</strong>
                         
                         <div className="flex items-center gap-3 mt-1.5 text-xs font-mono">
-                          <span className="text-slate-400">Prazo Estipulado: <strong className={isOverdue ? 'text-rose-400' : 'text-emerald-400'}>{acao.prazo}</strong></span>
+                          <span className="text-slate-600 dark:text-slate-400">Prazo Estipulado: <strong className={isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}>{acao.prazo}</strong></span>
                           {acao.prazoOriginal && acao.prazoOriginal !== acao.prazo && (
-                            <span className="text-amber-400">Orig: {acao.prazoOriginal}</span>
+                            <span className="text-amber-600 dark:text-amber-400 font-bold">Orig: {acao.prazoOriginal}</span>
                           )}
                         </div>
                       </div>
 
                       {/* CONTRAMEDIDA */}
                       {acao.contramedida && (
-                        <div className="p-3 bg-[#0b1222] rounded-xl border border-slate-800 text-xs text-slate-200 space-y-1">
-                          <span className="text-[9px] text-emerald-400 font-black uppercase block">Contramedida Estipulada:</span>
+                        <div className="p-3 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 space-y-1">
+                          <span className="text-[9px] text-emerald-700 dark:text-emerald-400 font-black uppercase block">Contramedida Estipulada:</span>
                           <p className="text-xs">{acao.contramedida}</p>
                         </div>
                       )}
 
                       {/* JUSTIFICATIVA DE ATRASO REGISTRADA */}
                       {acao.justificativaAtraso && (
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-1 text-xs text-amber-200">
-                          <span className="text-[9px] text-amber-400 font-black uppercase block flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-amber-400" /> Justificativa de Atraso Registrada:
+                        <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-xl space-y-1 text-xs text-amber-900 dark:text-amber-200">
+                          <span className="text-[9px] text-amber-700 dark:text-amber-400 font-black uppercase block flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Justificativa de Atraso Registrada:
                           </span>
                           <p className="text-xs italic">"{acao.justificativaAtraso}"</p>
                         </div>
                       )}
 
                       {/* AUDITORIA: QUEM ABRIU E QUEM FECHOU A AÇÃO */}
-                      <div className="p-2.5 bg-[#080d1a] rounded-xl border border-slate-800 text-[11px] space-y-1">
+                      <div className="p-2.5 bg-slate-50 dark:bg-[#080d1a] rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] space-y-1">
                         <div className="flex flex-wrap items-center justify-between gap-1">
-                          <span className="text-slate-400">
-                            🔓 <strong className="text-slate-300">Aberto por:</strong>{' '}
-                            <strong className="text-indigo-300">{acao.abertoPor || acao.responsavelTratativa || 'Supervisor DPO'}</strong>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            🔓 <strong className="text-slate-700 dark:text-slate-300">Aberto por:</strong>{' '}
+                            <strong className="text-indigo-600 dark:text-indigo-300">{acao.abertoPor || acao.responsavelTratativa || 'Supervisor DPO'}</strong>
                           </span>
                           {acao.dataAbertura && (
                             <span className="text-[10px] text-slate-500 font-mono">{acao.dataAbertura}</span>
@@ -1431,30 +1429,30 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                         </div>
 
                         {acao.status === 'Concluído' ? (
-                          <div className="flex flex-wrap items-center justify-between gap-1 border-t border-slate-800/80 pt-1 mt-1">
-                            <span className="text-slate-400">
-                              🏁 <strong className="text-slate-300">Fechado por:</strong>{' '}
-                              <strong className="text-emerald-300">{acao.fechadoPor || acao.colaboradorResponsavel || userName}</strong>
+                          <div className="flex flex-wrap items-center justify-between gap-1 border-t border-slate-200 dark:border-slate-800/80 pt-1 mt-1">
+                            <span className="text-slate-500 dark:text-slate-400">
+                              🏁 <strong className="text-slate-700 dark:text-slate-300">Fechado por:</strong>{' '}
+                              <strong className="text-emerald-700 dark:text-emerald-300">{acao.fechadoPor || acao.colaboradorResponsavel || userName}</strong>
                             </span>
                             {acao.dataFechamento && (
-                              <span className="text-[10px] text-emerald-400 font-mono">{acao.dataFechamento}</span>
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">{acao.dataFechamento}</span>
                             )}
                           </div>
                         ) : (
-                          <div className="border-t border-slate-800/80 pt-1 mt-1 text-[10px] text-amber-400/90 font-medium">
-                            ⏳ <strong className="text-amber-300">Status:</strong> Aberta (Aguardando Conclusão)
+                          <div className="border-t border-slate-200 dark:border-slate-800/80 pt-1 mt-1 text-[10px] text-amber-700 dark:text-amber-400/90 font-medium">
+                            ⏳ <strong className="text-amber-800 dark:text-amber-300">Status:</strong> Aberta (Aguardando Conclusão)
                           </div>
                         )}
                       </div>
 
                       {/* ALERTA DE PRAZO PASSADO */}
                       {isOverdue && (
-                        <div className="p-3 bg-rose-500/15 border border-rose-500/40 rounded-xl space-y-2 text-xs text-rose-200">
+                        <div className="p-3 bg-rose-50 dark:bg-rose-500/15 border border-rose-300 dark:border-rose-500/40 rounded-xl space-y-2 text-xs text-rose-900 dark:text-rose-200">
                           <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-                            <strong className="text-xs text-white">Prazo estipulado foi ultrapassado!</strong>
+                            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                            <strong className="text-xs text-rose-900 dark:text-white">Prazo estipulado foi ultrapassado!</strong>
                           </div>
-                          <p className="text-[11px] text-slate-300">
+                          <p className="text-[11px] text-slate-600 dark:text-slate-300">
                             Para dar andamento nesta ação, você precisa registrar a justificativa do atraso e reagendar o novo prazo.
                           </p>
                           <button
@@ -1471,7 +1469,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                     </div>
 
                     {/* BARRA DE AÇÕES INFERIOR */}
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                       <span className="text-[9px] font-mono text-slate-500">Responsável: {acao.responsavelTratativa}</span>
 
                       <div className="flex items-center gap-2">
@@ -1490,7 +1488,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                           onClick={() => handleToggleStatusAcao(acao.id, acao.status)}
                           className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                             acao.status === 'Concluído'
-                              ? 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700'
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
                           }`}
                         >
@@ -1516,10 +1514,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
         <div className="space-y-6">
           
           {/* BARRA DE FILTROS AVANÇADOS (POR COLABORADOR, OPERAÇÃO E STATUS) */}
-          <div className="p-4 bg-[#111a30] border border-slate-800 rounded-2xl space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Filter className="w-4 h-4 text-teal-400" />
-              <strong className="text-xs uppercase font-black text-white tracking-wider">
+          <div className="p-4 bg-white/95 dark:bg-[#111a30] border border-blue-200/80 dark:border-slate-800 rounded-2xl space-y-4 shadow-xs">
+            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <Filter className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <strong className="text-xs uppercase font-black text-slate-900 dark:text-white tracking-wider">
                 Filtros de Governança & Stratificação de Performance
               </strong>
             </div>
@@ -1528,13 +1526,13 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               
               {/* FILTRO 1: POR COLABORADOR */}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Filtrar Por Colaborador:
                 </label>
                 <select
                   value={filterColaborador}
                   onChange={e => setFilterColaborador(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-teal-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500"
                 >
                   <option value="todos">Todos os Colaboradores</option>
                   {listaColaboradoresUnicos.map((colab, idx) => (
@@ -1545,13 +1543,13 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
               {/* FILTRO 2: POR OPERAÇÃO / PROCESSO */}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Filtrar Por Operação:
                 </label>
                 <select
                   value={filterOperacao}
                   onChange={e => setFilterOperacao(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-teal-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500"
                 >
                   <option value="todos">Todas as Operações</option>
                   {MODULES_LIST.map(m => (
@@ -1562,13 +1560,13 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
               {/* FILTRO 3: POR STATUS */}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Filtrar Por Status da Ação:
                 </label>
                 <select
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-teal-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500"
                 >
                   <option value="todos">Todos os Status</option>
                   <option value="Pendente">Pendente</option>
@@ -1585,16 +1583,16 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
           {/* TABELA / CARDS DAS AÇÕES FILTRADAS */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <ListCheck className="w-4 h-4 text-teal-400" /> Ações Resultantes do Filtro ({acoesGovernançaFiltradas.length})
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <ListCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Ações Resultantes do Filtro ({acoesGovernançaFiltradas.length})
               </h3>
             </div>
 
             {acoesGovernançaFiltradas.length === 0 ? (
-              <div className="p-8 text-center bg-[#111a30] rounded-2xl border border-slate-800 space-y-2">
-                <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
-                <strong className="text-sm text-white block font-black">Nenhuma ação encontrada para os filtros selecionados</strong>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <div className="p-8 text-center bg-white/90 dark:bg-[#111a30] rounded-2xl border border-blue-200/80 dark:border-slate-800 space-y-2 shadow-xs">
+                <AlertCircle className="w-10 h-10 text-amber-500 dark:text-amber-400 mx-auto" />
+                <strong className="text-sm text-slate-900 dark:text-white block font-black">Nenhuma ação encontrada para os filtros selecionados</strong>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                   Tente alterar os filtros de Colaborador, Operação ou Status acima.
                 </p>
               </div>
@@ -1606,72 +1604,72 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   return (
                     <div 
                       key={acao.id}
-                      className={`p-4 bg-[#111a30] border rounded-2xl space-y-3 flex flex-col justify-between transition-all shadow-md ${
+                      className={`p-4 bg-white/95 dark:bg-[#111a30] border rounded-2xl space-y-3 flex flex-col justify-between transition-all shadow-xs dark:shadow-md ${
                         acao.status === 'Concluído'
-                          ? 'border-emerald-500/40 bg-[#0d1726]'
+                          ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-[#0d1726]'
                           : isOverdue
-                          ? 'border-rose-500/50 bg-[#161224]'
-                          : 'border-slate-800'
+                          ? 'border-rose-400 dark:border-rose-500/50 bg-rose-50/40 dark:bg-[#161224]'
+                          : 'border-slate-200 dark:border-slate-800'
                       }`}
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                          <span className="text-[10px] font-mono text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-500/20 border border-teal-500/30">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="text-[10px] font-mono text-teal-800 dark:text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-500/15 dark:bg-teal-500/20 border border-teal-500/30">
                             {acao.processo}
                           </span>
 
                           <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
                             acao.status === 'Concluído'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
                               : isOverdue
                               ? 'bg-rose-600 text-white'
-                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
                           }`}>
                             {isOverdue ? 'Atrasado' : acao.status}
                           </span>
                         </div>
 
                         <div>
-                          <strong className="text-xs text-white block font-black">{acao.desvioEncontrado || acao.indicador}</strong>
-                          <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-300">
-                            <span>Colaborador: <strong className="text-white">{acao.colaboradorResponsavel}</strong></span>
-                            <span className="font-mono text-slate-400">Prazo: {acao.prazo}</span>
+                          <strong className="text-xs text-slate-900 dark:text-white block font-black">{acao.desvioEncontrado || acao.indicador}</strong>
+                          <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                            <span>Colaborador: <strong className="text-slate-900 dark:text-white">{acao.colaboradorResponsavel}</strong></span>
+                            <span className="font-mono text-slate-500 dark:text-slate-400">Prazo: {acao.prazo}</span>
                           </div>
                         </div>
 
                         {acao.contramedida && (
-                          <div className="p-2.5 bg-[#0b1222] rounded-xl border border-slate-800 text-xs text-slate-200">
-                            <span className="text-[9px] text-teal-400 font-black uppercase block">Contramedida:</span>
+                          <div className="p-2.5 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200">
+                            <span className="text-[9px] text-teal-700 dark:text-teal-400 font-black uppercase block">Contramedida:</span>
                             <p className="text-xs mt-0.5">{acao.contramedida}</p>
                           </div>
                         )}
 
                         {acao.justificativaAtraso && (
-                          <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10px] text-amber-200">
+                          <div className="p-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-xl text-[10px] text-amber-900 dark:text-amber-200">
                             <strong>Justificativa de Reagendamento:</strong> "{acao.justificativaAtraso}"
                           </div>
                         )}
 
                         {/* AUDITORIA: QUEM ABRIU E QUEM FECHOU */}
-                        <div className="p-2 bg-[#080d1a] rounded-xl border border-slate-800 text-[10px] space-y-0.5">
-                          <div className="flex items-center justify-between text-slate-400">
-                            <span>🔓 Aberto por: <strong className="text-indigo-300">{acao.abertoPor || acao.responsavelTratativa || 'Supervisor DPO'}</strong></span>
+                        <div className="p-2 bg-slate-50 dark:bg-[#080d1a] rounded-xl border border-slate-200 dark:border-slate-800 text-[10px] space-y-0.5">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                            <span>🔓 Aberto por: <strong className="text-indigo-600 dark:text-indigo-300">{acao.abertoPor || acao.responsavelTratativa || 'Supervisor DPO'}</strong></span>
                             <span className="font-mono text-slate-500">{acao.dataAbertura || acao.data}</span>
                           </div>
                           {acao.status === 'Concluído' ? (
-                            <div className="flex items-center justify-between text-slate-400 border-t border-slate-800/80 pt-0.5 mt-0.5">
-                              <span>🏁 Fechado por: <strong className="text-emerald-300">{acao.fechadoPor || acao.colaboradorResponsavel || userName}</strong></span>
-                              <span className="font-mono text-emerald-400">{acao.dataFechamento || acao.dataISO}</span>
+                            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/80 pt-0.5 mt-0.5">
+                              <span>🏁 Fechado por: <strong className="text-emerald-700 dark:text-emerald-300">{acao.fechadoPor || acao.colaboradorResponsavel || userName}</strong></span>
+                              <span className="font-mono text-emerald-600 dark:text-emerald-400">{acao.dataFechamento || acao.dataISO}</span>
                             </div>
                           ) : (
-                            <div className="text-[9px] text-amber-400/80 border-t border-slate-800/80 pt-0.5 mt-0.5">
+                            <div className="text-[9px] text-amber-700 dark:text-amber-400/80 border-t border-slate-200 dark:border-slate-800/80 pt-0.5 mt-0.5">
                               ⏳ Status: Aberta e Em Trâmite
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                         <span className="text-[9px] font-mono text-slate-500">ID: {acao.id}</span>
 
                         <div className="flex items-center gap-2">
@@ -1690,7 +1688,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                             onClick={() => handleToggleStatusAcao(acao.id, acao.status)}
                             className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                               acao.status === 'Concluído'
-                                ? 'bg-slate-800 text-slate-300 hover:text-white'
+                                ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                 : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
                             }`}
                           >
@@ -1714,10 +1712,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       {/* ==================================================================== */}
       {activeTab === 'desvios' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#111a30] p-4 rounded-2xl border border-slate-800">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white/95 dark:bg-[#111a30] p-4 rounded-2xl border border-blue-200/80 dark:border-slate-800 shadow-xs">
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-rose-400" />
-              <span className="text-xs font-black uppercase text-slate-300 tracking-wider">Estratificar Por Categoria / Processo:</span>
+              <Filter className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+              <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Estratificar Por Categoria / Processo:</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -1728,7 +1726,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer ${
                     processFilter === cat
                       ? 'bg-rose-600 text-white shadow-md'
-                      : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800'
+                      : 'bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   {cat === 'todos' ? 'Todas as Categorias' : cat}
@@ -1739,8 +1737,8 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
 
           {/* TABELA ESTRATIFICADA DOS 8 INDICADORES OFICIAIS DA PLATAFORMA */}
           <div className="space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-rose-400" /> Indicadores Operacionais Fora da Meta (Estratificados)
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-rose-500 dark:text-rose-400" /> Indicadores Operacionais Fora da Meta (Estratificados)
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1752,11 +1750,11 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   return (
                     <div 
                       key={dev.id} 
-                      className="p-4 bg-[#111a30] border border-rose-500/30 rounded-2xl space-y-3 flex flex-col justify-between hover:border-rose-500/50 transition-all shadow-md"
+                      className="p-4 bg-white/95 dark:bg-[#111a30] border border-rose-300 dark:border-rose-500/30 rounded-2xl space-y-3 flex flex-col justify-between hover:border-rose-500/50 transition-all shadow-xs dark:shadow-md"
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
                             {dev.processo}
                           </span>
 
@@ -1764,32 +1762,32 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                             dev.severidade === 'Crítica'
                               ? 'bg-rose-600 text-white'
                               : dev.severidade === 'Alta'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                              ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
+                              : 'bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/30'
                           }`}>
                             Severidade {dev.severidade}
                           </span>
                         </div>
 
                         <div>
-                          <strong className="text-sm font-black text-white block">{dev.indicador}</strong>
+                          <strong className="text-sm font-black text-slate-900 dark:text-white block">{dev.indicador}</strong>
                           <div className="flex items-center gap-3 mt-1 text-xs">
-                            <span className="text-slate-400 font-mono">Meta: <strong className="text-emerald-400">{dev.meta}</strong></span>
-                            <span className="text-slate-400 font-mono">Atual: <strong className="text-rose-400">{dev.resultadoAtual}</strong></span>
+                            <span className="text-slate-600 dark:text-slate-400 font-mono">Meta: <strong className="text-emerald-600 dark:text-emerald-400">{dev.meta}</strong></span>
+                            <span className="text-slate-600 dark:text-slate-400 font-mono">Atual: <strong className="text-rose-600 dark:text-rose-400">{dev.resultadoAtual}</strong></span>
                           </div>
-                          <span className="text-xs font-mono font-black text-rose-300 block mt-1">
+                          <span className="text-xs font-mono font-black text-rose-600 dark:text-rose-300 block mt-1">
                             Desvio APURADO: {dev.desvioCalculado}
                           </span>
                         </div>
 
-                        <div className="p-3 bg-[#0b1222] rounded-xl border border-slate-800/80 space-y-1">
-                          <span className="text-[9px] text-slate-400 font-black uppercase block">Causa Provável / Diagnóstico:</span>
-                          <p className="text-xs text-slate-200">{dev.causaProvavel}</p>
+                        <div className="p-3 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-1">
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase block">Causa Provável / Diagnóstico:</span>
+                          <p className="text-xs text-slate-700 dark:text-slate-200">{dev.causaProvavel}</p>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-slate-400 font-mono">
+                      <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                           {hasActionAssigned ? '✅ Ação Atribuída' : '⚠️ Sem Tratativa'}
                         </span>
 
@@ -1814,10 +1812,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       {/* MODAL DE REAGENDAMENTO E JUSTIFICATIVA DE ATRASO */}
       {/* ==================================================================== */}
       {showJustifyModal && actionToJustify && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#111a30] border-2 border-rose-500/50 rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-black uppercase text-rose-400 flex items-center gap-2">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#111a30] border-2 border-rose-500/50 rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-rose-600 dark:text-rose-400 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" /> Justificativa de Atraso & Reagendamento
               </h3>
               <button
@@ -1825,24 +1823,24 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   setShowJustifyModal(false);
                   setActionToJustify(null);
                 }}
-                className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 bg-[#0b1222] rounded-xl border border-slate-800 space-y-1 text-xs">
-              <span className="text-[10px] text-rose-400 font-black uppercase block">Ação com Prazo Vencido:</span>
-              <strong className="text-white block">{actionToJustify.desvioEncontrado || actionToJustify.indicador}</strong>
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
-                <span>Prazo Expirado: <strong className="text-rose-400">{actionToJustify.prazo}</strong></span>
-                <span>Responsável: <strong>{actionToJustify.colaboradorResponsavel}</strong></span>
+            <div className="p-3 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-200 dark:border-slate-800 space-y-1 text-xs">
+              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-black uppercase block">Ação com Prazo Vencido:</span>
+              <strong className="text-slate-900 dark:text-white block">{actionToJustify.desvioEncontrado || actionToJustify.indicador}</strong>
+              <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 pt-1 font-mono">
+                <span>Prazo Expirado: <strong className="text-rose-600 dark:text-rose-400">{actionToJustify.prazo}</strong></span>
+                <span>Responsável: <strong className="text-slate-800 dark:text-slate-200">{actionToJustify.colaboradorResponsavel}</strong></span>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-300 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 block mb-1">
                   Motivo / Justificativa do Atraso (Obrigatório):
                 </label>
                 <textarea
@@ -1850,31 +1848,31 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   placeholder="Descreva o motivo pelo qual o prazo estipulado não foi cumprido (ex: atraso na entrega de insumo, gargalo no pátio, etc)..."
                   value={justificativaText}
                   onChange={e => setJustificativaText(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-3 text-xs text-white outline-none focus:border-rose-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white outline-none focus:border-rose-400"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-300 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 block mb-1">
                   Novo Prazo Reagendado:
                 </label>
                 <input
                   type="date"
                   value={novoPrazoDate}
                   onChange={e => setNovoPrazoDate(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-rose-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-rose-400"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setShowJustifyModal(false);
                   setActionToJustify(null);
                 }}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1895,10 +1893,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       {/* MODAL DE GERAR AÇÃO CORRETIVA */}
       {/* ==================================================================== */}
       {showGerarAcaoModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-[#111a30] border border-amber-500/40 rounded-3xl p-6 max-w-xl w-full space-y-4 shadow-2xl animate-scale-in">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-black uppercase text-amber-400 flex items-center gap-2">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#111a30] border border-amber-500/40 rounded-3xl p-6 max-w-xl w-full space-y-4 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-amber-600 dark:text-amber-400 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" /> Análise de Desvio & Atribuição de Ação Corretiva
               </h3>
               <button
@@ -1907,40 +1905,40 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   setSelectedDemand(null);
                   setSelectedDeviation(null);
                 }}
-                className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 bg-[#0b1222] rounded-xl border border-slate-800 space-y-1 text-xs">
-              <span className="text-[10px] text-amber-400 font-black uppercase block">Desvio Selecionado:</span>
-              <strong className="text-white block">
+            <div className="p-3 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-200 dark:border-slate-800 space-y-1 text-xs">
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black uppercase block">Desvio Selecionado:</span>
+              <strong className="text-slate-900 dark:text-white block">
                 {selectedDeviation?.indicador || selectedDemand?.indicador || actionTitle}
               </strong>
-              <p className="text-slate-300 text-[11px] mt-1">
+              <p className="text-slate-600 dark:text-slate-300 text-[11px] mt-1">
                 <strong>Meta x Atual:</strong> {selectedDeviation?.meta || selectedDemand?.meta} vs {selectedDeviation?.resultadoAtual || selectedDemand?.resultadoObtido} ({selectedDeviation?.desvioCalculado || selectedDemand?.desvioEncontrado})
               </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400">Título / Título da Ação Corretiva:</label>
+                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Título / Título da Ação Corretiva:</label>
                 <input
                   type="text"
                   value={actionTitle}
                   onChange={e => setActionTitle(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1 focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1 focus:border-amber-400"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400">Colaborador Atribuído:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Colaborador Atribuído:</label>
                   <select
                     value={actionColab}
                     onChange={e => setActionColab(e.target.value)}
-                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1"
                   >
                     <option value={userName}>{userName}</option>
                     {LISTA_COLABORADORES_OFICIAIS.map((c, idx) => (
@@ -1950,23 +1948,23 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400">Supervisor Responsável:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Supervisor Responsável:</label>
                   <input
                     type="text"
                     value={actionSup}
                     onChange={e => setActionSup(e.target.value)}
-                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400">Processo:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Processo:</label>
                   <select
                     value={actionProcess}
                     onChange={e => setActionProcess(e.target.value as any)}
-                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none mt-1"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none mt-1"
                   >
                     {MODULES_LIST.map(m => (
                       <option key={m} value={m}>{m}</option>
@@ -1975,11 +1973,11 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400">Causa Raiz:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Causa Raiz:</label>
                   <select
                     value={actionCausaRaiz}
                     onChange={e => setActionCausaRaiz(e.target.value as any)}
-                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none mt-1"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none mt-1"
                   >
                     <option value="Método">Método</option>
                     <option value="Mão de Obra">Mão de Obra</option>
@@ -1989,28 +1987,28 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400">Prazo de Conclusão:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Prazo de Conclusão:</label>
                   <input
                     type="date"
                     value={actionPrazo}
                     onChange={e => setActionPrazo(e.target.value)}
-                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none mt-1"
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none mt-1"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400">Contramedida Estipulada / Instruções:</label>
+                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Contramedida Estipulada / Instruções:</label>
                 <textarea
                   rows={3}
                   value={actionContramedida}
                   onChange={e => setActionContramedida(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1 focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1 focus:border-amber-400"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -2018,7 +2016,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                   setSelectedDemand(null);
                   setSelectedDeviation(null);
                 }}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 Cancelar
               </button>

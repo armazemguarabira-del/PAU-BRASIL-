@@ -495,7 +495,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 text-slate-100 p-2 sm:p-4 md:p-6 bg-[#090d12] min-h-screen">
+    <div className="w-full flex flex-col gap-6 text-slate-900 dark:text-slate-100 p-2 sm:p-4 md:p-6 bg-transparent min-h-screen">
       
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
@@ -806,7 +806,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 1: REPACK */}
       {activeTab === 'repack' && (
-        <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
           <RepackPanel 
             user={user} 
             empresa={empresa} 
@@ -819,7 +819,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 2: DESPEJO */}
       {activeTab === 'despejo' && (
-        <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
           <DespejoPanel 
             user={user} 
             empresa={empresa} 
@@ -832,7 +832,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 3: QUEBRAS */}
       {activeTab === 'quebras' && (
-        <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
           <QuebrasPanel 
             user={user} 
             empresa={empresa} 
@@ -845,19 +845,19 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 4: RETORNO DE ROTA */}
       {activeTab === 'retorno_rota' && (
-        <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-6 shadow-xl flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#222d3a] pb-4">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <Truck className="w-6 h-6 text-emerald-400" />
-                <h3 className="text-lg font-black uppercase tracking-wider text-white">
+                <Truck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-lg font-black uppercase tracking-wider text-slate-900 dark:text-white">
                   Retorno de Rota — Operação Ajudante
                 </h3>
-                <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+                <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
                   Link Oficial Anexado
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 O Ajudante inicia a jornada, clica no link e é redirecionado diretamente para a plataforma de Retorno de Rota.
               </p>
             </div>
@@ -865,8 +865,8 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             <div className="flex items-center gap-2">
               <span className={`text-xs font-mono font-bold px-3 py-1.5 rounded-lg border ${
                 shiftStarted 
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30' 
+                  : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30'
               }`}>
                 {shiftStarted ? `✓ Jornada Iniciada às ${shiftStartTime}` : '⚠️ Jornada Não Iniciada'}
               </span>
@@ -874,28 +874,28 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           </div>
 
           {/* LINK ACCESSIBLE CARD */}
-          <div className="bg-[#151b23] border border-emerald-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+          <div className="bg-slate-50 dark:bg-[#151b23] border border-emerald-300 dark:border-emerald-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs relative overflow-hidden">
             <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none">
-              <Truck className="w-64 h-64 text-emerald-400" />
+              <Truck className="w-64 h-64 text-emerald-600 dark:text-emerald-400" />
             </div>
 
             <div className="flex items-start gap-4 z-10">
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 shrink-0">
+              <div className="p-4 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/30 rounded-2xl text-emerald-700 dark:text-emerald-400 shrink-0">
                 <ExternalLink className="w-8 h-8" />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
+                <span className="text-xs font-mono font-bold text-blue-700 dark:text-amber-400 uppercase tracking-widest">
                   SISTEMA OFICIAL DE RETORNO DE ROTA
                 </span>
-                <h4 className="text-xl font-black text-white">
+                <h4 className="text-xl font-black text-slate-900 dark:text-white">
                   PLATAFORMA RETORNO DE ROTA DOS VEÍCULOS
                 </h4>
-                <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
                   Acesse o sistema externo definitivo para registro de chegada, conferência de vasilhames e checklists de prestação de contas de rotas.
                 </p>
-                <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-300 bg-[#0d1117] px-3.5 py-2 rounded-xl border border-[#222d3a] w-fit">
-                  <span className="text-emerald-400 font-bold">URL:</span>
-                  <span className="text-emerald-300 underline">https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/</span>
+                <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-[#0d1117] px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#222d3a] w-fit shadow-xs">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">URL:</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 underline font-medium">https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/</span>
                 </div>
               </div>
             </div>
@@ -904,7 +904,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
               href="https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/"
               target="_blank"
               rel="noopener noreferrer"
-              className="z-10 py-4 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-xl shadow-emerald-950/50 flex items-center gap-3 shrink-0 border border-emerald-300 hover:scale-105"
+              className="z-10 py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-md flex items-center gap-3 shrink-0 hover:scale-105"
             >
               <span>ACESSAR PLATAFORMA DE RETORNO DE ROTA</span>
               <ExternalLink className="w-5 h-5" />
@@ -912,13 +912,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           </div>
 
           {!shiftStarted && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-300">
+            <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
               <span>
                 💡 <strong>Dica Operacional:</strong> Lembre-se de clicar em <strong>INICIAR JORNADA</strong> no topo da página ao começar seu turno para sincronizar seus apontamentos.
               </span>
               <button
                 onClick={handleStartShift}
-                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg cursor-pointer shrink-0 ml-2"
+                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg cursor-pointer shrink-0 ml-2 shadow-xs"
               >
                 Iniciar Jornada
               </button>
@@ -932,14 +932,14 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
         <div className="flex flex-col gap-6">
           <Collaborator5SPerformanceCard user={user} userNombre={user.nome} />
 
-          <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-[#222d3a] pb-4">
+          <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-4">
               <div>
-                <h3 className="text-lg font-black uppercase tracking-wider text-white flex items-center gap-2">
-                  <SquareCheck className="w-6 h-6 text-amber-400" />
+                <h3 className="text-lg font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                  <SquareCheck className="w-6 h-6 text-blue-600 dark:text-amber-400" />
                   Realização do Checklist 5S — Operação Ajudante
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Execute a auditoria diária de 5S no seu posto de trabalho para manter a excelência operacional.
                 </p>
               </div>
@@ -960,20 +960,20 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
         </div>
       )}
 
-      {/* TAB CONTENT 4: HISTÓRICO UNIFICADO */}
+      {/* TAB CONTENT 6: HISTÓRICO UNIFICADO */}
       {activeTab === 'historico' && (
-        <div className="bg-[#11151c] border border-[#222d3a] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-[#222d3a] pb-4">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <History className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                <History className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
                 HISTÓRICO DE JORNADAS DA OPERAÇÃO AJUDANTE
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Registros de início, fim, duração e checklists de 5S / 5 Porquês por colaborador.
               </p>
             </div>
-            <span className="text-xs font-mono font-bold text-slate-400">
+            <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
               {shiftHistory.length} sessões registradas
             </span>
           </div>
@@ -981,7 +981,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#222d3a] text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                <tr className="border-b border-slate-200 dark:border-[#222d3a] text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider bg-slate-50 dark:bg-transparent">
                   <th className="p-3">Data</th>
                   <th className="p-3">Início</th>
                   <th className="p-3">Intervalo (Almoço)</th>
@@ -993,38 +993,38 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                   <th className="p-3 text-right">Ação / Correção</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1c2530] text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-[#1c2530] text-xs">
                 {shiftHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-slate-500 italic">
+                    <td colSpan={9} className="p-8 text-center text-slate-400 dark:text-slate-500 italic">
                       Nenhum histórico de jornada registrado ainda.
                     </td>
                   </tr>
                 ) : (
                   shiftHistory.map(rec => (
-                    <tr key={rec.id} className="hover:bg-[#151b23] transition-all">
-                      <td className="p-3 font-mono font-bold text-amber-400">{rec.dataStr}</td>
-                      <td className="p-3 font-mono text-slate-300">{rec.horaInicio}</td>
-                      <td className="p-3 font-mono text-amber-300/90 font-bold">
+                    <tr key={rec.id} className="hover:bg-slate-50 dark:hover:bg-[#151b23] transition-all">
+                      <td className="p-3 font-mono font-bold text-blue-700 dark:text-amber-400">{rec.dataStr}</td>
+                      <td className="p-3 font-mono text-slate-700 dark:text-slate-300">{rec.horaInicio}</td>
+                      <td className="p-3 font-mono text-amber-700 dark:text-amber-300/90 font-bold">
                         {rec.intervaloInicio ? `${rec.intervaloInicio} - ${rec.intervaloFim || 'Em andamento'}` : '12:00 - 13:00'}
                       </td>
-                      <td className="p-3 font-mono text-slate-300">{rec.horaFim}</td>
-                      <td className="p-3 font-mono font-bold text-white">{rec.duracaoTotal}</td>
-                      <td className="p-3 font-bold">{rec.statusMetaRepack}</td>
-                      <td className="p-3 font-bold">{rec.statusMetaDespejo}</td>
+                      <td className="p-3 font-mono text-slate-700 dark:text-slate-300">{rec.horaFim}</td>
+                      <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">{rec.duracaoTotal}</td>
+                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200">{rec.statusMetaRepack}</td>
+                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200">{rec.statusMetaDespejo}</td>
                       <td className="p-3">
                         {rec.fiveSSubmitted ? (
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 rounded-full">
                             ✓ Realizado
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-500">Pendente</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">Pendente</span>
                         )}
                       </td>
                       <td className="p-3 text-right">
                         <button
                           onClick={() => handleOpenEditRecord(rec)}
-                          className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ml-auto cursor-pointer"
+                          className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-500/40 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ml-auto cursor-pointer shadow-xs"
                           title="Corrigir marcação de ponto ou horários de intervalo"
                         >
                           <Edit2 className="w-3 h-3" />
@@ -1046,16 +1046,16 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       )}
 
       {/* SEÇÃO DE SUGESTÕES DE MELHORIA DA OPERAÇÃO (Cria Ações Sugestivas para o ADM) */}
-      <div className="bg-[#11151c] border border-amber-500/30 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-          <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+      <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-amber-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div className="p-2.5 bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-500/30">
             <Lightbulb className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase text-white tracking-wider flex items-center gap-2">
+            <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white tracking-wider flex items-center gap-2">
               Sugestões de Melhoria da Operação
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Envie sugestões de melhoria da rotina. Elas serão registradas como <strong>Ações Sugestivas</strong> no painel do Administrativo.
             </p>
           </div>
@@ -1064,11 +1064,11 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
         <form onSubmit={handleSendSugestao} className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">Processo / Setor:</label>
+              <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">Processo / Setor:</label>
               <select
                 value={sugestaoProcesso}
                 onChange={e => setSugestaoProcesso(e.target.value)}
-                className="w-full bg-[#151b23] border border-[#222d3a] rounded-xl p-2.5 text-xs text-white outline-none focus:border-amber-500 font-bold"
+                className="w-full bg-slate-50 dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-amber-500 font-bold"
               >
                 <option value="Repack">Repack</option>
                 <option value="Despejo">Despejo</option>
@@ -1081,26 +1081,26 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">Título da Sugestão / Oportunidade:</label>
+              <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">Título da Sugestão / Oportunidade:</label>
               <input
                 type="text"
                 value={sugestaoTitulo}
                 onChange={e => setSugestaoTitulo(e.target.value)}
                 placeholder="Ex: Reorganização de pallets no setor de despejo..."
-                className="w-full bg-[#151b23] border border-[#222d3a] rounded-xl p-2.5 text-xs text-white outline-none focus:border-amber-500"
+                className="w-full bg-slate-50 dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-amber-500 font-medium"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">Detalhamento da Sugestão:</label>
+            <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">Detalhamento da Sugestão:</label>
             <textarea
               rows={3}
               value={sugestaoDescricao}
               onChange={e => setSugestaoDescricao(e.target.value)}
               placeholder="Descreva detalhadamente o que pode ser melhorado e o impacto positivo para a equipe..."
-              className="w-full bg-[#151b23] border border-[#222d3a] rounded-xl p-2.5 text-xs text-white outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-amber-500 font-medium"
               required
             />
           </div>
@@ -1108,7 +1108,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           <div className="flex justify-end">
             <button
               type="submit"
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-lg flex items-center gap-2 transition-all"
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-sm flex items-center gap-2 transition-all"
             >
               <Send className="w-4 h-4" />
               <span>Enviar Sugestão ao Administrativo</span>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ValidadeRow, Usuario, Empresa } from '../types';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { ValidadesRepository, DespejoRepository, getRepository } from '../db';
+
+const escoamentoLogsRepo = getRepository<any>('escoamento_logs');
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import { useEmpresaData } from '../context/EmpresaDataContext';
@@ -317,26 +319,23 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     const updatedLogs = [log, ...dailyLogs];
     saveDailyLogs(updatedLogs);
 
-    // Save to Firestore if connected
-    if (db && isCustomFirebaseConnected()) {
-      try {
-        await addDoc(collection(db, 'escoamento_logs'), {
-          empresaId: empresa?.id || 'demo',
-          ...log
-        });
+    // Save to Repository
+    try {
+      await escoamentoLogsRepo.create({
+        empresaId: empresa?.id || 'demo',
+        ...log
+      }, empresa?.id || 'demo');
 
-        // Update item in Firestore if _docId exists
-        if (selectedItem._docId) {
-          const itemRef = doc(db, 'validades', selectedItem._docId);
-          await updateDoc(itemRef, {
-            caixa: inputQtd,
-            quantidade: inputQtd,
-            _atualizadoEm: new Date().toISOString()
-          });
-        }
-      } catch (err) {
-        console.error('Erro ao atualizar no Firestore:', err);
+      // Update item in ValidadesRepository if _docId exists
+      if (selectedItem._docId) {
+        await ValidadesRepository.update(selectedItem._docId, {
+          caixa: inputQtd,
+          quantidade: inputQtd,
+          _atualizadoEm: new Date().toISOString()
+        } as any, empresa?.id || 'demo');
       }
+    } catch (err) {
+      console.error('Erro ao atualizar no repositório:', err);
     }
 
     setIsSaving(false);
@@ -389,20 +388,18 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
       console.error('Erro ao atualizar validades:', e);
     }
 
-    if (db && isCustomFirebaseConnected()) {
-      try {
-        await addDoc(collection(db, 'escoamento_logs'), { empresaId: companyId, ...log });
-        if (item._docId) {
-          await updateDoc(doc(db, 'validades', item._docId), {
-            caixa: 0,
-            quantidade: 0,
-            palhete: 0,
-            _atualizadoEm: nowIso
-          });
-        }
-      } catch (err) {
-        console.error('Erro no Firestore:', err);
+    try {
+      await escoamentoLogsRepo.create({ empresaId: companyId, ...log }, companyId);
+      if (item._docId) {
+        await ValidadesRepository.update(item._docId, {
+          caixa: 0,
+          quantidade: 0,
+          palhete: 0,
+          _atualizadoEm: nowIso
+        } as any, companyId);
       }
+    } catch (err) {
+      console.error('Erro ao atualizar repositório:', err);
     }
 
     window.dispatchEvent(new Event('local_data_changed'));
@@ -454,17 +451,15 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     };
     saveDailyLogs([log, ...dailyLogs]);
 
-    if (db && isCustomFirebaseConnected()) {
-      try {
-        if (item._docId) {
-          await updateDoc(doc(db, 'validades', item._docId), {
-            localizacao: 'pnc',
-            dataTransferenciaPnc: nowIso,
-            _atualizadoEm: nowIso
-          });
-        }
-      } catch (e) {}
-    }
+    try {
+      if (item._docId) {
+        await ValidadesRepository.update(item._docId, {
+          localizacao: 'pnc',
+          dataTransferenciaPnc: nowIso,
+          _atualizadoEm: nowIso
+        } as any, companyId);
+      }
+    } catch (e) {}
 
     window.dispatchEvent(new Event('local_data_changed'));
     window.dispatchEvent(new Event('storage'));
@@ -528,19 +523,17 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     };
     saveDailyLogs([log, ...dailyLogs]);
 
-    if (db && isCustomFirebaseConnected()) {
-      try {
-        await addDoc(collection(db, 'despejo'), { empresaId: companyId, ...despejoDoc });
-        if (item._docId) {
-          await updateDoc(doc(db, 'validades', item._docId), {
-            caixa: 0,
-            quantidade: 0,
-            localizacao: 'despejo',
-            _atualizadoEm: nowIso
-          });
-        }
-      } catch (e) {}
-    }
+    try {
+      await DespejoRepository.create({ empresaId: companyId, ...despejoDoc } as any, companyId);
+      if (item._docId) {
+        await ValidadesRepository.update(item._docId, {
+          caixa: 0,
+          quantidade: 0,
+          localizacao: 'despejo',
+          _atualizadoEm: nowIso
+        } as any, companyId);
+      }
+    } catch (e) {}
 
     window.dispatchEvent(new Event('local_data_changed'));
     window.dispatchEvent(new Event('storage'));
@@ -584,18 +577,16 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     };
     saveDailyLogs([log, ...dailyLogs]);
 
-    if (db && isCustomFirebaseConnected()) {
-      try {
-        if (item._docId) {
-          await updateDoc(doc(db, 'validades', item._docId), {
-            caixa: 0,
-            quantidade: 0,
-            localizacao: 'devolvido_fabrica',
-            _atualizadoEm: nowIso
-          });
-        }
-      } catch (e) {}
-    }
+    try {
+      if (item._docId) {
+        await ValidadesRepository.update(item._docId, {
+          caixa: 0,
+          quantidade: 0,
+          localizacao: 'devolvido_fabrica',
+          _atualizadoEm: nowIso
+        } as any, companyId);
+      }
+    } catch (e) {}
 
     window.dispatchEvent(new Event('local_data_changed'));
     window.dispatchEvent(new Event('storage'));

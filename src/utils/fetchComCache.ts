@@ -1,4 +1,5 @@
 import { Query, DocumentData, getDocsFromCache, getDocsFromServer, getDocs, QuerySnapshot } from 'firebase/firestore';
+import { recordActualFirestoreReads } from './hybridCacheService';
 
 /**
  * Busca os documentos de uma query priorizando o cache local do aparelho
@@ -23,7 +24,9 @@ export async function fetchComCache<T = DocumentData>(
     // Cache ainda não tem nada para essa query específica — segue pro servidor
   }
   try {
-    return await getDocsFromServer(q);
+    const serverSnap = await getDocsFromServer(q);
+    recordActualFirestoreReads(serverSnap.docs.length);
+    return serverSnap;
   } catch (e) {
     console.warn('Servidor do Firestore inacessível ou offline. Usando fallback de consulta local.', e);
     return getDocs(q);

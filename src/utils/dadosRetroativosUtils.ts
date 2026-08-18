@@ -6,16 +6,21 @@ export type RetroactiveModule =
   | 'tmr_carretas'
   | 'picking'
   | 'despejo_repack'
+  | 'repack'
+  | 'despejo'
   | 'quebras'
+  | 'wlp_faturado'
   | 'temperatura';
 
 export const RETROACTIVE_MODULES_LIST: { id: RetroactiveModule; label: string; iconName: string; desc: string }[] = [
+  { id: 'wlp_faturado', label: 'Volume Faturado & Absenteísmo (JSON)', iconName: 'BarChart3', desc: 'Volume Faturado Diário (HL), Jornadas de Ponto e Monitoramento de Absenteísmo' },
+  { id: 'quebras', label: 'Quebras & Avarias', iconName: 'AlertCircle', desc: 'Lançamentos de Avarias e Quebras de Estoque' },
+  { id: 'despejo', label: 'Despejo', iconName: 'Droplet', desc: 'Lançamentos de Despejo de Produtos e Hectolitros Perdidos' },
+  { id: 'repack', label: 'Repack', iconName: 'Box', desc: 'Lançamentos de Reembalagem e Aferição de Metas de Repack' },
   { id: 'validades', label: 'Validades & FEFO (Ano)', iconName: 'Calendar', desc: 'SKU, Descrição, Lote, Validade, Qtd HL/CX e Localização' },
   { id: 'efc_efd', label: 'EFC & EFD (Empilhador)', iconName: 'Truck', desc: 'Placa, Empilhador, Hora Início e Hora Fim' },
   { id: 'tmr_carretas', label: 'TMR Carretas (Empilhador)', iconName: 'Clock', desc: 'Placa Carreta, Empilhador, Hora Início e Hora Fim' },
   { id: 'picking', label: 'Picking & Separação', iconName: 'Layers', desc: 'Código do Produto, Empilhador, Hora Início e Hora Fim' },
-  { id: 'despejo_repack', label: 'Despejo & Repack (Ajudante)', iconName: 'UserCheck', desc: 'Registro de Ajudante: Processo/SKU, Qtd, Valor, Hora Início, Hora Fim, Obs' },
-  { id: 'quebras', label: 'Quebras & Avarias', iconName: 'AlertCircle', desc: 'Lançamentos de Avarias e Quebras de Estoque' },
   { id: 'temperatura', label: 'Temperatura Armazém', iconName: 'FileSpreadsheet', desc: 'Registros de Leituras de Temperatura Termômetros' }
 ];
 

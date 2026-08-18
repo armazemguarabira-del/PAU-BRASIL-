@@ -27,9 +27,6 @@ import {
   Sparkles,
   CheckCircle
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 
 export interface Audit5SRecord {
@@ -728,36 +725,36 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs animate-fadeIn">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-5 sm:p-6 shadow-2xl text-white space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-slate-950/85 backdrop-blur-xs animate-fadeIn">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-5 sm:p-6 shadow-2xl text-slate-900 dark:text-white space-y-5">
         
         {/* CABEÇALHO */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400">
+            <div className="p-2.5 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-600 dark:text-amber-400">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-black uppercase text-white tracking-wider flex items-center gap-2">
+              <h3 className="text-base font-black uppercase text-slate-900 dark:text-white tracking-wider flex items-center gap-2">
                 Importação & Exportação de Auditorias 5S
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Importe planilhas Excel (.xlsx/.xls) ou arquivos JSON/CSV com área, data, avaliador e as 10 perguntas do 5S.
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* BOTÃO EM DESTAQUE: BAIXAR MODELO DE EXEMPLO EM EXCEL */}
-        <div className="p-4 bg-gradient-to-r from-emerald-950/60 to-slate-900 border-2 border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+        <div className="p-4 bg-gradient-to-r from-emerald-50 dark:from-emerald-950/60 to-slate-50 dark:to-slate-900 border-2 border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
           <div className="space-y-1">
-            <div className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-400" /> Planilha Modelo Oficial (Excel .xlsx)
+            <div className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> Planilha Modelo Oficial (Excel .xlsx)
             </div>
-            <p className="text-[11px] text-slate-300">
+            <p className="text-[11px] text-slate-600 dark:text-slate-300">
               Baixe o modelo pré-formatado contendo as 14 áreas oficiais do armazém, quem aplicou, responsáveis e as 10 perguntas do 5S prontas para preenchimento.
             </p>
           </div>
@@ -771,18 +768,18 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
         </div>
 
         {/* ÁREA DE UPLOAD DE ARQUIVOS */}
-        <div className="p-5 bg-[#0b1222] border-2 border-dashed border-sky-500/40 rounded-xl flex flex-col items-center justify-center text-center space-y-2.5">
-          <div className="p-3 bg-sky-500/10 rounded-full text-sky-400">
+        <div className="p-5 bg-slate-50 dark:bg-[#0b1222] border-2 border-dashed border-sky-500/40 rounded-xl flex flex-col items-center justify-center text-center space-y-2.5">
+          <div className="p-3 bg-sky-500/10 rounded-full text-sky-600 dark:text-sky-400">
             <UploadCloud className="w-8 h-8" />
           </div>
-          <span className="text-sm font-black uppercase text-white tracking-wider">
+          <span className="text-sm font-black uppercase text-slate-900 dark:text-white tracking-wider">
             Importar Auditorias do Mês (Excel, JSON ou CSV)
           </span>
-          <span className="text-xs text-slate-400 max-w-md">
+          <span className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
             Selecione o arquivo preenchido (.xlsx, .xls, .json ou .csv). O sistema calculará as notas, dispersão e atualizará o ranking e gráficos automaticamente.
           </span>
           
-          <label className="mt-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer transition-all shadow-lg flex items-center gap-2">
+          <label className="mt-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer transition-all shadow-xs flex items-center gap-2">
             <Upload className="w-4 h-4" /> Selecionar Arquivo do Computador
             <input 
               type="file" 
@@ -791,27 +788,27 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
               className="hidden" 
             />
           </label>
-          <span className="text-[10px] text-slate-500 font-mono">Formatos suportados: .xlsx, .xls, .json, .csv</span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Formatos suportados: .xlsx, .xls, .json, .csv</span>
         </div>
 
         {/* STATUS DA IMPORTAÇÃO */}
         {importStatus && (
-          <div className="p-3.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-mono font-bold text-center text-amber-200">
+          <div className="p-3.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-center text-amber-800 dark:text-amber-200">
             {importStatus}
           </div>
         )}
 
         {/* PRÉVIA DOS DADOS IMPORTADOS */}
         {previewAudits.length > 0 && (
-          <div className="p-4 bg-[#0b1222] border border-emerald-500/40 rounded-xl space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-emerald-400 uppercase tracking-wider">
+          <div className="p-4 bg-slate-50 dark:bg-[#0b1222] border border-emerald-500/40 rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               <span>Prévia dos Registros Importados ({previewAudits.length})</span>
-              <span className="text-[10px] text-slate-400 font-mono">Atualizados no Dashboard</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Atualizados no Dashboard</span>
             </div>
             <div className="max-h-40 overflow-y-auto overflow-x-auto">
               <table className="w-full text-left text-[11px] font-mono">
                 <thead>
-                  <tr className="text-slate-400 border-b border-slate-800 text-[10px] uppercase">
+                  <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase">
                     <th className="p-1.5">Data</th>
                     <th className="p-1.5">Área</th>
                     <th className="p-1.5">Quem Aplicou</th>
@@ -820,14 +817,14 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
                     <th className="p-1.5 text-center">Nota</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                   {previewAudits.slice(0, 10).map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/30">
+                    <tr key={idx} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/30">
                       <td className="p-1.5 whitespace-nowrap">{item.dataFormatted}</td>
-                      <td className="p-1.5 font-bold text-amber-300">{item.setor}</td>
-                      <td className="p-1.5 text-slate-400">{item.liderAuditor || 'Líder'}</td>
-                      <td className="p-1.5 text-slate-300">{item.operador}</td>
-                      <td className="p-1.5 text-center font-bold text-emerald-400">{item.pontos}/10</td>
+                      <td className="p-1.5 font-bold text-amber-600 dark:text-amber-300">{item.setor}</td>
+                      <td className="p-1.5 text-slate-500 dark:text-slate-400">{item.liderAuditor || 'Líder'}</td>
+                      <td className="p-1.5 text-slate-700 dark:text-slate-300">{item.operador}</td>
+                      <td className="p-1.5 text-center font-bold text-emerald-600 dark:text-emerald-400">{item.pontos}/10</td>
                       <td className="p-1.5 text-center font-bold">{item.notaPercentual}%</td>
                     </tr>
                   ))}
@@ -835,7 +832,7 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
               </table>
             </div>
             {previewAudits.length > 10 && (
-              <div className="text-[10px] text-slate-400 text-center italic">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 text-center italic">
                 ... e mais {previewAudits.length - 10} registros salvos com sucesso.
               </div>
             )}
@@ -844,54 +841,54 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
 
         {/* EXPORTAR BASE ATUAL COMPLETA */}
         <div className="space-y-2">
-          <div className="text-xs font-black uppercase text-slate-300 tracking-wider">
+          <div className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">
             Exportar Base de Dados Armazenada
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <button
               onClick={() => exportAuditsToExcel()}
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-emerald-300 transition-all cursor-pointer shadow-sm"
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 transition-all cursor-pointer shadow-xs"
             >
-              <Download className="w-4 h-4 text-emerald-400" /> Base Atual (Excel)
+              <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Base Atual (Excel)
             </button>
 
             <button
               onClick={handleExportJSON}
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-amber-300 transition-all cursor-pointer shadow-sm"
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-300 transition-all cursor-pointer shadow-xs"
             >
-              <Download className="w-4 h-4 text-amber-400" /> Base Atual (JSON)
+              <Download className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Base Atual (JSON)
             </button>
 
             <button
               onClick={handleExportCSV}
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-sky-300 transition-all cursor-pointer shadow-sm"
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-sky-700 dark:text-sky-300 transition-all cursor-pointer shadow-xs"
             >
-              <Download className="w-4 h-4 text-sky-400" /> Planilha (CSV)
+              <Download className="w-4 h-4 text-sky-600 dark:text-sky-400" /> Planilha (CSV)
             </button>
           </div>
         </div>
 
         {/* SINCRONIZAÇÃO DA BASE DO ANO */}
-        <div className="p-4 bg-amber-950/30 border border-amber-500/30 rounded-xl space-y-2">
-          <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase">
-            <RefreshCw className="w-4 h-4 text-amber-400" /> Carregar Histórico Padrão (Jan a Ago 2026)
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-500/30 rounded-xl space-y-2">
+          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase">
+            <RefreshCw className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Carregar Histórico Padrão (Jan a Ago 2026)
           </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed">
+          <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
             Preencha a fábrica com auditorias históricas realistas de Janeiro a Agosto com todas as 14 áreas oficiais.
           </p>
           <button
             onClick={handleSeedFullYear}
             disabled={isProcessing}
-            className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer disabled:opacity-50"
+            className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             {isProcessing ? 'Processando...' : '⚡ Sincronizar Base Histórica 2026'}
           </button>
         </div>
 
-        <div className="flex justify-end pt-2 border-t border-slate-800">
+        <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold uppercase rounded-xl cursor-pointer"
+            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase rounded-xl cursor-pointer transition-colors"
           >
             Fechar
           </button>
@@ -971,50 +968,50 @@ export const Collaborator5SPerformanceCard: React.FC<Collaborator5SPerformanceCa
     : 100;
 
   return (
-    <div className="bg-[#0b1222] border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl text-white space-y-4">
+    <div className="bg-white dark:bg-[#0b1222] border border-slate-200 dark:border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-2xl text-slate-900 dark:text-white space-y-4">
       {/* CABEÇALHO DO DESEMPENHO MENSAL (Estilo Imagem do Usuário) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2.5">
-          <Target className="w-6 h-6 text-amber-400 shrink-0" />
+          <Target className="w-6 h-6 text-amber-500 dark:text-amber-400 shrink-0" />
           <div>
-            <h3 className="text-sm sm:text-base font-black uppercase text-amber-400 tracking-wider flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-2">
               Desempenho Mensal do Colaborador (Meta vs Real 5S)
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Acompanhamento do atingimento mensal das auditorias 5S da sua operação.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">
-            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">
+            <Calendar className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-amber-300 font-bold focus:outline-none cursor-pointer"
+              className="bg-transparent text-amber-700 dark:text-amber-300 font-bold focus:outline-none cursor-pointer"
             >
-              <option value="01" className="bg-slate-900 text-white">01 - Janeiro</option>
-              <option value="02" className="bg-slate-900 text-white">02 - Fevereiro</option>
-              <option value="03" className="bg-slate-900 text-white">03 - Março</option>
-              <option value="04" className="bg-slate-900 text-white">04 - Abril</option>
-              <option value="05" className="bg-slate-900 text-white">05 - Maio</option>
-              <option value="06" className="bg-slate-900 text-white">06 - Junho</option>
-              <option value="07" className="bg-slate-900 text-white">07 - Julho</option>
-              <option value="08" className="bg-slate-900 text-white">08 - Agosto</option>
-              <option value="09" className="bg-slate-900 text-white">09 - Setembro</option>
-              <option value="10" className="bg-slate-900 text-white">10 - Outubro</option>
-              <option value="11" className="bg-slate-900 text-white">11 - Novembro</option>
-              <option value="12" className="bg-slate-900 text-white">12 - Dezembro</option>
+              <option value="01" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">01 - Janeiro</option>
+              <option value="02" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">02 - Fevereiro</option>
+              <option value="03" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">03 - Março</option>
+              <option value="04" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">04 - Abril</option>
+              <option value="05" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">05 - Maio</option>
+              <option value="06" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">06 - Junho</option>
+              <option value="07" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">07 - Julho</option>
+              <option value="08" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">08 - Agosto</option>
+              <option value="09" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">09 - Setembro</option>
+              <option value="10" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">10 - Outubro</option>
+              <option value="11" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">11 - Novembro</option>
+              <option value="12" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">12 - Dezembro</option>
             </select>
-            <span className="text-slate-500">/</span>
-            <span className="text-white font-mono">{selectedYear}</span>
+            <span className="text-slate-400 dark:text-slate-500">/</span>
+            <span className="text-slate-900 dark:text-white font-mono">{selectedYear}</span>
           </div>
 
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
+            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
             <Database className="w-3.5 h-3.5" /> Base / Importar
           </button>
@@ -1024,14 +1021,14 @@ export const Collaborator5SPerformanceCard: React.FC<Collaborator5SPerformanceCa
       {/* QUADRO DE RESUMO DE METAS DO COLABORADOR */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* COLABORADOR E ÁREAS */}
-        <div className="p-3 bg-[#131d38] border border-slate-800 rounded-xl space-y-1 lg:col-span-2">
-          <div className="text-[10px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1">
-            <User className="w-3.5 h-3.5 text-amber-400" /> COLABORADOR & ÁREAS VINCULADAS
+        <div className="p-3 bg-slate-50 dark:bg-[#131d38] border border-slate-200 dark:border-slate-800 rounded-xl space-y-1 lg:col-span-2">
+          <div className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1">
+            <User className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> COLABORADOR & ÁREAS VINCULADAS
           </div>
-          <div className="text-xs font-black text-white truncate">{operatorName}</div>
+          <div className="text-xs font-black text-slate-900 dark:text-white truncate">{operatorName}</div>
           <div className="flex flex-wrap gap-1 pt-1">
             {assignedAreas.map(a => (
-              <span key={a} className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+              <span key={a} className="bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-black uppercase">
                 {a}
               </span>
             ))}
@@ -1039,29 +1036,29 @@ export const Collaborator5SPerformanceCard: React.FC<Collaborator5SPerformanceCa
         </div>
 
         {/* META QTD */}
-        <div className="p-3 bg-[#131d38] border border-slate-800 rounded-xl space-y-1">
-          <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider">META QTD (MÊS)</div>
-          <div className="text-lg font-black font-mono text-white">{metaQtdTotal} <span className="text-[10px] font-normal text-slate-400">checklists</span></div>
-          <div className="text-[10px] text-slate-400 font-mono">22 dias × {numAreas} área(s)</div>
+        <div className="p-3 bg-slate-50 dark:bg-[#131d38] border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+          <div className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">META QTD (MÊS)</div>
+          <div className="text-lg font-black font-mono text-slate-900 dark:text-white">{metaQtdTotal} <span className="text-[10px] font-normal text-slate-400">checklists</span></div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">22 dias × {numAreas} área(s)</div>
         </div>
 
         {/* REAL QTD */}
-        <div className="p-3 bg-[#131d38] border border-slate-800 rounded-xl space-y-1">
-          <div className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">REAL QTD (MÊS)</div>
-          <div className="text-lg font-black font-mono text-emerald-400">{realQtdTotal} <span className="text-[10px] font-normal text-slate-400">realizados</span></div>
-          <div className="text-[10px] text-emerald-400 font-bold">Atualização em Tempo Real</div>
+        <div className="p-3 bg-slate-50 dark:bg-[#131d38] border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+          <div className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">REAL QTD (MÊS)</div>
+          <div className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">{realQtdTotal} <span className="text-[10px] font-normal text-slate-400">realizados</span></div>
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Atualização em Tempo Real</div>
         </div>
 
         {/* % ATINGIMENTO & CONFORMIDADE */}
-        <div className="p-3 bg-[#131d38] border border-slate-800 rounded-xl space-y-1">
-          <div className="text-[10px] font-black uppercase text-amber-400 tracking-wider">% FREQUÊNCIA</div>
+        <div className="p-3 bg-slate-50 dark:bg-[#131d38] border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+          <div className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">% FREQUÊNCIA</div>
           <div className="flex items-center justify-between">
-            <span className={`text-lg font-black font-mono ${pctAtingimento >= 80 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            <span className={`text-lg font-black font-mono ${pctAtingimento >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {pctAtingimento}%
             </span>
-            <span className="text-[10px] font-mono text-sky-400 font-bold">Conf: {avgQualidade}%</span>
+            <span className="text-[10px] font-mono text-sky-600 dark:text-sky-400 font-bold">Conf: {avgQualidade}%</span>
           </div>
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 ${pctAtingimento >= 80 ? 'bg-emerald-500' : 'bg-amber-500'}`}
               style={{ width: `${pctAtingimento}%` }}
@@ -1072,8 +1069,8 @@ export const Collaborator5SPerformanceCard: React.FC<Collaborator5SPerformanceCa
 
       {/* DETALHAMENTO DE CADA ÁREA DA RESPONSABILIDADE */}
       <div className="space-y-2 pt-1">
-        <div className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-1.5">
-          <Building2 className="w-4 h-4 text-amber-400" /> Status de Atingimento por Área ({assignedAreas.length})
+        <div className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+          <Building2 className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Status de Atingimento por Área ({assignedAreas.length})
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -1086,31 +1083,31 @@ export const Collaborator5SPerformanceCard: React.FC<Collaborator5SPerformanceCa
             return (
               <div
                 key={areaName}
-                className="p-3 bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl space-y-2 transition-all"
+                className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 rounded-xl space-y-2 transition-all shadow-2xs"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-300 truncate">{areaName}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${areaPct >= 80 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                  <span className="text-xs font-black text-amber-700 dark:text-amber-300 truncate">{areaName}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${areaPct >= 80 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>
                     {areaPct >= 100 ? '✅ 100%' : `${areaPct}%`}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] font-mono text-slate-300">
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-300">
                   <span>Meta: {areaMeta}</span>
-                  <span className="font-bold text-emerald-400">Real: {areaReal}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">Real: {areaReal}</span>
                 </div>
 
-                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-amber-400 h-full" style={{ width: `${areaPct}%` }} />
+                <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-amber-500 dark:bg-amber-400 h-full" style={{ width: `${areaPct}%` }} />
                 </div>
 
                 {onSelectSector && (
                   <button
                     type="button"
                     onClick={() => onSelectSector(areaName)}
-                    className="w-full py-1 mt-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1"
+                    className="w-full py-1 mt-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1"
                   >
-                    <CheckCircle2 className="w-3 h-3 text-amber-400" /> Preencher 5S
+                    <CheckCircle2 className="w-3 h-3 text-amber-500 dark:text-amber-400" /> Preencher 5S
                   </button>
                 )}
               </div>

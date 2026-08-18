@@ -26,11 +26,11 @@ import {
   FileText,
   BarChart2,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Loader2
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
+import { DiarioBordoRepository } from '../db';
 
 export interface RegistroDiarioBordo {
   id: string;
@@ -237,6 +237,12 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
   // Modal / Form state
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Non-blocking Deletion Confirmation State
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; titulo: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   // Form Fields
   const [targetColaboradorMatricula, setTargetColaboradorMatricula] = useState<string>(userMatricula);
@@ -252,23 +258,18 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
   const [horaLembrete, setHoraLembrete] = useState<string>('16:00');
   const [status, setStatus] = useState<RegistroDiarioBordo['status']>('Pendente');
 
-  // Sincronização com o Firestore
+  // Sincronização com o Repository / Hybrid Database Router
   useEffect(() => {
     const fetchDiarioFirestore = async () => {
-      if (!db) return;
       try {
-        const colRef = collection(db, 'diario_bordo_colaboradores');
-        const snap = await getDocs(colRef);
-
-        if (!snap.empty) {
-          const list: RegistroDiarioBordo[] = [];
-          snap.forEach(d => list.push({ id: d.id, ...d.data() } as RegistroDiarioBordo));
+        const list = await DiarioBordoRepository.getAll(empresaId);
+        if (list && list.length > 0) {
           list.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
           setRegistros(list);
           localStorage.setItem(`diario_bordo_master_list_${empresaId}`, JSON.stringify(list));
         }
       } catch (err) {
-        console.warn('Diario Bordo Firestore fetch error:', err);
+        console.warn('Diario Bordo Repository fetch error:', err);
       }
     };
 
@@ -279,23 +280,22 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
     setRegistros(newList);
     localStorage.setItem(`diario_bordo_master_list_${empresaId}`, JSON.stringify(newList));
 
-    if (db) {
-      try {
-        if (itemToSave) {
-          await setDoc(doc(db, 'diario_bordo_colaboradores', itemToSave.id), itemToSave);
-        }
-        if (deleteId) {
-          await deleteDoc(doc(db, 'diario_bordo_colaboradores', deleteId));
-        }
-      } catch (err) {
-        console.warn('Diario Bordo Firestore write error:', err);
+    try {
+      if (itemToSave) {
+        await DiarioBordoRepository.create(itemToSave, empresaId, itemToSave.id);
       }
+      if (deleteId) {
+        await DiarioBordoRepository.delete(deleteId, empresaId);
+      }
+    } catch (err) {
+      console.warn('Diario Bordo Repository write error:', err);
     }
   };
 
   // Abrir modal para Nova Demanda do Dia / Registro
   const handleOpenModal = (colabMatriculaPreset?: string) => {
     setEditingId(null);
+    setFormError(null);
     setTargetColaboradorMatricula(colabMatriculaPreset || (colaboradorSelecionadoMatricula !== 'todos' ? colaboradorSelecionadoMatricula : userMatricula));
     setDataISO(new Date().toISOString().split('T')[0]);
     setHora('08:00');
@@ -314,6 +314,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
   // Abrir modal para Editar
   const handleEditRecord = (r: RegistroDiarioBordo) => {
     setEditingId(r.id);
+    setFormError(null);
     // Tenta encontrar matrícula do responsável pelo nome
     const targetColab = listaColaboradoresParaFiltro.find(c => c.nome.toLowerCase() === r.usuarioNome.toLowerCase() || c.matricula === r.usuarioMatricula);
     setTargetColaboradorMatricula(targetColab?.matricula || r.usuarioMatricula || userMatricula);
@@ -331,12 +332,23 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
     setShowModal(true);
   };
 
-  // Excluir Demanda / Registro
-  const handleDeleteRecord = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta demanda do Diário de Bordo?')) {
+  // Solicitar Exclusão Não-Bloqueante
+  const handleRequestDelete = (r: RegistroDiarioBordo) => {
+    setDeleteTarget({ id: r.id, titulo: r.titulo });
+  };
+
+  // Confirmar Exclusão
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const id = deleteTarget.id;
       const updated = registros.filter(r => r.id !== id);
-      saveDiarioStorageAndFirestore(updated, undefined, id);
+      await saveDiarioStorageAndFirestore(updated, undefined, id);
       showToast('Demanda excluída com sucesso!');
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -355,59 +367,70 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
     showToast(`Status da demanda atualizado para "${nextStatus}"!`);
   };
 
-  // Salvar formulário
-  const handleSaveForm = (e: React.FormEvent) => {
+  // Salvar formulário com proteção contra duplo clique
+  const handleSaveForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titulo.trim()) {
-      alert('Por favor, informe o título da demanda do dia.');
+      setFormError('Por favor, informe o título da demanda do dia.');
       return;
     }
+    if (isSaving) return;
 
-    const parts = dataISO.split('-');
-    const dataFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    setIsSaving(true);
+    setFormError(null);
 
-    // Encontra informações do colaborador alvo selecionado no formulário
-    const colabAlvo = listaColaboradoresParaFiltro.find(c => c.matricula === targetColaboradorMatricula) || {
-      nome: userNome,
-      cargo: userCargo,
-      matricula: userMatricula
-    };
+    try {
+      const parts = dataISO.split('-');
+      const dataFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
-    const idToUse = editingId || `diario-${Date.now()}`;
-    const newRecord: RegistroDiarioBordo = {
-      id: idToUse,
-      usuarioEmail: colabAlvo.matricula === userMatricula ? userEmail : `${colabAlvo.matricula.toLowerCase()}@ambev.com.br`,
-      usuarioNome: colabAlvo.nome,
-      usuarioCargo: colabAlvo.cargo,
-      usuarioMatricula: colabAlvo.matricula,
-      dataISO,
-      dataFormatted,
-      hora: hora || '08:00',
-      tipo,
-      prioridade,
-      titulo: titulo.trim(),
-      descricao: descricao.trim(),
-      setorOuProcesso: setorOuProcesso.trim() || 'Operação',
-      temLembrete,
-      dataLembreteISO: temLembrete ? dataLembreteISO : undefined,
-      horaLembrete: temLembrete ? horaLembrete : undefined,
-      status,
-      criadoPor: userNome,
-      criadoEm: new Date().toISOString()
-    };
+      // Encontra informações do colaborador alvo selecionado no formulário
+      const colabAlvo = listaColaboradoresParaFiltro.find(c => c.matricula === targetColaboradorMatricula) || {
+        nome: userNome,
+        cargo: userCargo,
+        matricula: userMatricula
+      };
 
-    let updatedList: RegistroDiarioBordo[];
-    if (editingId) {
-      updatedList = registros.map(item => item.id === editingId ? newRecord : item);
-    } else {
-      updatedList = [newRecord, ...registros];
+      const idToUse = editingId || `diario-${Date.now()}`;
+      const newRecord: RegistroDiarioBordo = {
+        id: idToUse,
+        usuarioEmail: colabAlvo.matricula === userMatricula ? userEmail : `${colabAlvo.matricula.toLowerCase()}@ambev.com.br`,
+        usuarioNome: colabAlvo.nome,
+        usuarioCargo: colabAlvo.cargo,
+        usuarioMatricula: colabAlvo.matricula,
+        dataISO,
+        dataFormatted,
+        hora: hora || '08:00',
+        tipo,
+        prioridade,
+        titulo: titulo.trim(),
+        descricao: descricao.trim(),
+        setorOuProcesso: setorOuProcesso.trim() || 'Operação',
+        temLembrete,
+        dataLembreteISO: temLembrete ? dataLembreteISO : undefined,
+        horaLembrete: temLembrete ? horaLembrete : undefined,
+        status,
+        criadoPor: userNome,
+        criadoEm: new Date().toISOString()
+      };
+
+      let updatedList: RegistroDiarioBordo[];
+      if (editingId) {
+        updatedList = registros.map(item => item.id === editingId ? newRecord : item);
+      } else {
+        updatedList = [newRecord, ...registros];
+      }
+
+      updatedList.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
+      await saveDiarioStorageAndFirestore(updatedList, newRecord);
+
+      setShowModal(false);
+      showToast(editingId ? 'Demanda atualizada com sucesso!' : `Nova demanda registrada para ${colabAlvo.nome}!`);
+    } catch (err) {
+      console.error('Erro ao salvar demanda:', err);
+      showToast('Erro ao salvar demanda. Tente novamente.');
+    } finally {
+      setIsSaving(false);
     }
-
-    updatedList.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
-    saveDiarioStorageAndFirestore(updatedList, newRecord);
-
-    setShowModal(false);
-    showToast(editingId ? 'Demanda atualizada com sucesso!' : `Nova demanda registrada para ${colabAlvo.nome}!`);
   };
 
   // Filtragem dos registros conforme o modo de visão e seletores
@@ -493,24 +516,24 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
       )}
 
       {/* 🚀 CABEÇALHO PRINCIPAL DO DIÁRIO DE BORDO */}
-      <div className="bg-[#111a30] border border-amber-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#111a30] dark:via-[#111a30] dark:to-[#0f172a] border border-slate-200 dark:border-amber-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 shrink-0">
+          <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
             <BookOpen className="w-8 h-8" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
                 ETAPA 4 — DIÁRIO DE BORDO
               </span>
-              <span className="text-[10px] text-slate-300 font-mono">
+              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">
                 {visaoModo === 'individual' ? `Diário Pessoal (${userNome})` : 'Visão Administrativa Consolidada'}
               </span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight flex items-center gap-2">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight flex items-center gap-2">
               Diário de Bordo de Demandas do Dia & Acompanhamento
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Cadastre, edite e acompanhe as demandas do dia para cada colaborador operacional (Ajudantes, Operadores de Empilhadeira e Conferentes). Visão administrativa integrada com seletor por colaborador.
             </p>
           </div>
@@ -528,11 +551,11 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
       </div>
 
       {/* PAINEL DE ALTERNÂNCIA DE VISÃO: MINHAS DEMANDAS (OPERACIONAL) VS VISÃO ADMINISTRATIVA (TODOS OS COLABORADORES) */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 space-y-4 shadow-lg">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-4 shadow-lg">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           
           {/* MODO DE VISÃO */}
-          <div className="flex items-center gap-1.5 bg-[#0b1222] p-1.5 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => {
@@ -540,7 +563,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                 setColaboradorSelecionadoMatricula('todos');
               }}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
-                visaoModo === 'individual' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                visaoModo === 'individual' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <User className="w-4 h-4" /> Meu Diário (Operacional)
@@ -550,7 +573,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
               type="button"
               onClick={() => setVisaoModo('administrativa')}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
-                visaoModo === 'administrativa' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                visaoModo === 'administrativa' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Users className="w-4 h-4" /> Visão Administrativa (Todos)
@@ -560,33 +583,33 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
           {/* SELETOR DE COLABORADOR NA VISÃO ADMINISTRATIVA */}
           {visaoModo === 'administrativa' && (
             <div className="flex flex-col gap-2 w-full md:w-auto">
-              <div className="flex items-center gap-3 bg-[#0b1222] p-2 rounded-xl border border-blue-500/30 w-full">
-                <UserCheck className="w-4 h-4 text-blue-400 shrink-0" />
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#0b1222] p-2 rounded-xl border border-blue-300 dark:border-blue-500/30 w-full">
+                <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <div className="flex-1">
-                  <span className="text-[9px] font-black uppercase text-blue-400 block">Seletor de Colaborador:</span>
+                  <span className="text-[9px] font-black uppercase text-blue-600 dark:text-blue-400 block">Seletor de Colaborador:</span>
                   <select
                     value={colaboradorSelecionadoMatricula}
                     onChange={(e) => setColaboradorSelecionadoMatricula(e.target.value)}
-                    className="bg-transparent text-xs font-black text-white outline-none cursor-pointer w-full"
+                    className="bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none cursor-pointer w-full"
                   >
-                    <option value="todos" className="bg-[#111a30] text-white">📋 Todos os Colaboradores (Consolidado)</option>
-                    <optgroup label="Ajudantes de Armazém" className="bg-[#111a30] text-amber-400">
+                    <option value="todos" className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">📋 Todos os Colaboradores (Consolidado)</option>
+                    <optgroup label="Ajudantes de Armazém" className="bg-white dark:bg-[#111a30] text-amber-600 dark:text-amber-400">
                       {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Ajudante').map(c => (
-                        <option key={c.matricula} value={c.matricula} className="bg-[#111a30] text-white">
+                        <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="Operadores de Empilhadeira" className="bg-[#111a30] text-purple-400">
+                    <optgroup label="Operadores de Empilhadeira" className="bg-white dark:bg-[#111a30] text-purple-600 dark:text-purple-400">
                       {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Empilhador').map(c => (
-                        <option key={c.matricula} value={c.matricula} className="bg-[#111a30] text-white">
+                        <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="Operadores & Conferentes" className="bg-[#111a30] text-emerald-400">
+                    <optgroup label="Operadores & Conferentes" className="bg-white dark:bg-[#111a30] text-emerald-600 dark:text-emerald-400">
                       {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Operador').map(c => (
-                        <option key={c.matricula} value={c.matricula} className="bg-[#111a30] text-white">
+                        <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
                       ))}
@@ -611,8 +634,8 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
         {/* ATALHOS RÁPIDOS DOS COLABORADORES NA VISÃO ADMINISTRATIVA */}
         {visaoModo === 'administrativa' && (
-          <div className="pt-1 space-y-1.5 border-t border-slate-800/60">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+          <div className="pt-1 space-y-1.5 border-t border-slate-200 dark:border-slate-800/60">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
               Atalhos de Acesso Direto aos Diários de Bordo dos Colaboradores:
             </span>
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
@@ -622,7 +645,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                 className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 border ${
                   colaboradorSelecionadoMatricula === 'todos' 
                     ? 'bg-blue-600 text-white border-blue-400 shadow-md' 
-                    : 'bg-[#0b1222] text-slate-300 border-slate-800 hover:border-slate-700'
+                    : 'bg-slate-100 dark:bg-[#0b1222] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 📋 Todos ({registros.length})
@@ -643,12 +666,12 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                     className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
                       isSelected 
                         ? 'bg-amber-500 text-slate-950 font-black border-amber-300 shadow-md' 
-                        : 'bg-[#0b1222] text-slate-300 border-slate-800 hover:border-amber-500/40'
+                        : 'bg-slate-100 dark:bg-[#0b1222] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-amber-500/40'
                     }`}
                   >
-                    <User className="w-3 h-3 text-amber-400" />
+                    <User className="w-3 h-3 text-amber-500 dark:text-amber-400" />
                     <span>{colab.nome.split(' ')[0]} ({colab.matricula})</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-slate-800 text-[9px] font-mono text-amber-300">
+                    <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-[9px] font-mono text-amber-700 dark:text-amber-300">
                       {countColab}
                     </span>
                   </button>
@@ -661,11 +684,11 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
         {/* CONTROLES DE FILTROS ADICIONAIS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Grupo de Função</label>
+            <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Grupo de Função</label>
             <select
               value={funcaoFiltro}
               onChange={(e) => setFuncaoFiltro(e.target.value)}
-              className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+              className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
             >
               <option value="todos">Todas as Funções</option>
               <option value="Ajudante">Ajudantes de Armazém</option>
@@ -675,11 +698,11 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Tipo de Registro</label>
+            <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Tipo de Registro</label>
             <select
               value={tipoFiltro}
               onChange={(e) => setTipoFiltro(e.target.value)}
-              className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+              className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
             >
               <option value="todos">Todos os Tipos</option>
               <option value="Demanda do Dia">Demandas do Dia</option>
@@ -692,11 +715,11 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Status da Demanda</label>
+            <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Status da Demanda</label>
             <select
               value={statusFiltro}
               onChange={(e) => setStatusFiltro(e.target.value)}
-              className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+              className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
             >
               <option value="todos">Todos os Status</option>
               <option value="Pendente">Pendente</option>
@@ -706,7 +729,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Pesquisar Demanda</label>
+            <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Pesquisar Demanda</label>
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
@@ -714,7 +737,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                 placeholder="Buscar por título, colaborador..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white outline-none focus:border-amber-400"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-400"
               />
             </div>
           </div>
@@ -723,42 +746,42 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
       {/* METRICAS DE ACOMPANHAMENTO DAS DEMANDAS DO DIA */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Total de Demandas</span>
-            <strong className="text-2xl font-mono font-black text-amber-400">{totalDemandasExibidas}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Total de Demandas</span>
+            <strong className="text-2xl font-mono font-black text-amber-600 dark:text-amber-400">{totalDemandasExibidas}</strong>
           </div>
-          <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-400">
+          <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
             <ClipboardCheck className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Demandas Concluídas</span>
-            <strong className="text-2xl font-mono font-black text-emerald-400">{countConcluidas}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Demandas Concluídas</span>
+            <strong className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400">{countConcluidas}</strong>
           </div>
-          <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+          <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Em Andamento / Pendentes</span>
-            <strong className="text-2xl font-mono font-black text-sky-400">{countEmAndamento + countPendentes}</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Em Andamento / Pendentes</span>
+            <strong className="text-2xl font-mono font-black text-sky-600 dark:text-sky-400">{countEmAndamento + countPendentes}</strong>
           </div>
-          <div className="p-2.5 bg-sky-500/10 rounded-xl text-sky-400">
+          <div className="p-2.5 bg-sky-500/10 rounded-xl text-sky-600 dark:text-sky-400">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block">Taxa de Conclusão</span>
-            <strong className="text-2xl font-mono font-black text-purple-400">{taxaConclusaoPct}%</strong>
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Taxa de Conclusão</span>
+            <strong className="text-2xl font-mono font-black text-purple-600 dark:text-purple-400">{taxaConclusaoPct}%</strong>
           </div>
-          <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-400">
+          <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-600 dark:text-purple-400">
             <BarChart2 className="w-5 h-5" />
           </div>
         </div>
@@ -766,30 +789,30 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
       {/* ALERTAS / LEMBRETES ATIVOS */}
       {activeReminders.length > 0 && (
-        <div className="bg-amber-950/80 border-2 border-amber-500 rounded-2xl p-4 space-y-3 shadow-2xl">
+        <div className="bg-amber-50 dark:bg-amber-950/80 border-2 border-amber-500 rounded-2xl p-4 space-y-3 shadow-2xl">
           <div className="flex items-center justify-between border-b border-amber-500/40 pb-2">
             <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-amber-300 animate-bounce" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-white">
+              <Bell className="w-5 h-5 text-amber-600 dark:text-amber-300 animate-bounce" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
                 🔔 Lembretes de Demandas Ativos ({activeReminders.length})
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-amber-200">Alertas de Pauta e Prazo do Dia</span>
+            <span className="text-[10px] font-mono text-amber-700 dark:text-amber-200">Alertas de Pauta e Prazo do Dia</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {activeReminders.map(rem => (
-              <div key={rem.id} className="p-3 bg-[#0b1222] border border-amber-500/50 rounded-xl flex items-center justify-between gap-3">
+              <div key={rem.id} className="p-3 bg-white dark:bg-[#0b1222] border border-amber-500/50 rounded-xl flex items-center justify-between gap-3 shadow-sm">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-black text-amber-400">
+                    <span className="text-[10px] font-mono font-black text-amber-700 dark:text-amber-400">
                       ⏰ {rem.horaLembrete || rem.hora} ({rem.dataLembreteISO?.split('-').reverse().join('/')})
                     </span>
-                    <span className="text-[9px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded uppercase font-bold">
+                    <span className="text-[9px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded uppercase font-bold">
                       {rem.usuarioNome}
                     </span>
                   </div>
-                  <strong className="text-xs text-white uppercase block">{rem.titulo}</strong>
+                  <strong className="text-xs text-slate-900 dark:text-white uppercase block">{rem.titulo}</strong>
                 </div>
 
                 <button
@@ -806,15 +829,15 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
       )}
 
       {/* LISTA DE DEMANDAS DO DIÁRIO DE BORDO */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-amber-400" />
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             {visaoModo === 'individual' ? `Minhas Demandas (${registrosFiltrados.length})` : 
              colaboradorSelecionadoMatricula !== 'todos' ? `Demandas de ${listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula)?.nome} (${registrosFiltrados.length})` :
              `Demandas de Todos os Colaboradores (${registrosFiltrados.length})`}
           </h3>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
             {new Date().toLocaleDateString('pt-BR')}
           </span>
         </div>
@@ -828,12 +851,12 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
               return (
                 <div 
                   key={r.id} 
-                  className={`p-4 rounded-2xl border transition-all space-y-3 relative ${
+                  className={`p-4 rounded-2xl border transition-all space-y-3 relative shadow-sm ${
                     isConcluido 
-                      ? 'bg-[#080d1a] border-slate-800 opacity-80' 
+                      ? 'bg-slate-50 dark:bg-[#080d1a] border-slate-200 dark:border-slate-800 opacity-90 dark:opacity-80' 
                       : isEmAndamento 
-                        ? 'bg-[#0d1b2a] border-blue-500/40' 
-                        : 'bg-[#0e172a] border-slate-700 hover:border-amber-500/50'
+                        ? 'bg-blue-50/60 dark:bg-[#0d1b2a] border-blue-200 dark:border-blue-500/40' 
+                        : 'bg-slate-50/70 dark:bg-[#0e172a] border-slate-200 dark:border-slate-700 hover:border-amber-500/50'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -855,22 +878,22 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
                           r.prioridade === 'Alta' ? 'bg-rose-600 text-white' :
-                          r.prioridade === 'Média' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                          'bg-slate-700 text-slate-300'
+                          r.prioridade === 'Média' ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                          'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                         }`}>
                           Prioridade {r.prioridade || 'Média'}
                         </span>
 
-                        <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                        <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                           {r.dataFormatted} às {r.hora}
                         </span>
 
-                        <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                        <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
                           {r.tipo}
                         </span>
                       </div>
 
-                      <h4 className={`text-sm font-black uppercase ${isConcluido ? 'line-through text-slate-400' : 'text-white'}`}>
+                      <h4 className={`text-sm font-black uppercase ${isConcluido ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
                         {r.titulo}
                       </h4>
                     </div>
@@ -879,8 +902,8 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCycleStatus(r)}
-                      className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold ${
-                        isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-emerald-600 hover:text-white'
+                      className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold shadow-sm ${
+                        isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'
                       }`}
                       title="Mudar status (Pendente -> Em Andamento -> Concluído)"
                     >
@@ -890,19 +913,19 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                   </div>
 
                   {r.descricao && (
-                    <p className="text-xs text-slate-300 bg-[#080d1a] p-3 rounded-xl border border-slate-800 leading-relaxed">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-[#080d1a] p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed">
                       "{r.descricao}"
                     </p>
                   )}
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80 gap-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/80 gap-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-bold text-amber-400 flex items-center gap-1">
+                      <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                         <User className="w-3.5 h-3.5" /> {r.usuarioNome} ({r.usuarioCargo || 'Operacional'})
                       </span>
-                      <span className="text-slate-400 font-mono">Setor: {r.setorOuProcesso}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-mono">Setor: {r.setorOuProcesso}</span>
                       {r.criadoPor && (
-                        <span className="text-[10px] text-slate-500 italic">Criado por: {r.criadoPor}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">Criado por: {r.criadoPor}</span>
                       )}
                     </div>
 
@@ -910,15 +933,15 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                       <button
                         type="button"
                         onClick={() => handleEditRecord(r)}
-                        className="p-1.5 text-slate-400 hover:text-amber-400 cursor-pointer bg-slate-800/60 rounded-lg"
+                        className="p-1.5 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg"
                         title="Editar Demanda"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteRecord(r.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-400 cursor-pointer bg-slate-800/60 rounded-lg"
+                        onClick={() => handleRequestDelete(r)}
+                        className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg transition-colors"
                         title="Excluir Demanda"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -930,9 +953,9 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
             })}
           </div>
         ) : (
-          <div className="p-8 text-center space-y-2 bg-[#0b1222] border border-slate-800 rounded-xl">
-            <BookOpen className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-400">
+          <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl">
+            <BookOpen className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Nenhuma demanda cadastrada para este filtro ou colaborador. Clique em "+ Nova Demanda do Dia" para registrar.
             </p>
           </div>
@@ -941,30 +964,37 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
       {/* MODAL FORMULARIO NOVO / EDITAR REGISTRO NO DIÁRIO DE BORDO */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleSaveForm} className="bg-[#111a30] border-2 border-amber-500/50 rounded-2xl p-6 w-full max-w-xl space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <form onSubmit={handleSaveForm} className="bg-white dark:bg-[#111a30] border-2 border-amber-500/50 rounded-2xl p-6 w-full max-w-xl space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-black uppercase text-white flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                 {editingId ? 'Editar Demanda do Diário' : 'Nova Demanda do Dia'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {formError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/40 rounded-xl flex items-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-bold">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>{formError}</span>
+              </div>
+            )}
+
             {/* SELEÇÃO DO COLABORADOR DESTINADO */}
             <div>
-              <label className="block text-[10px] font-black uppercase text-amber-400 mb-1">Colaborador Destinado / Responsável *</label>
+              <label className="block text-[10px] font-black uppercase text-amber-700 dark:text-amber-400 mb-1">Colaborador Destinado / Responsável *</label>
               <select
                 value={targetColaboradorMatricula}
                 onChange={(e) => setTargetColaboradorMatricula(e.target.value)}
-                className="w-full bg-[#0b1222] border border-amber-500/40 rounded-xl p-2.5 text-xs font-bold text-white outline-none focus:border-amber-400"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-amber-500/40 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
                 required
               >
                 {listaColaboradoresParaFiltro.map(c => (
@@ -977,33 +1007,33 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Data *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Data *</label>
                 <input
                   type="date"
                   value={dataISO}
                   onChange={(e) => setDataISO(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-amber-400"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Horário Previsto *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Horário Previsto *</label>
                 <input
                   type="time"
                   value={hora}
                   onChange={(e) => setHora(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-amber-400"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Tipo de Demanda</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Tipo de Demanda</label>
                 <select
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
                 >
                   <option value="Demanda do Dia">Demanda do Dia</option>
                   <option value="Atividade Diária">Atividade Diária</option>
@@ -1016,24 +1046,27 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Título da Demanda / Atividade *</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Título da Demanda / Atividade *</label>
               <input
                 type="text"
                 placeholder="Ex: Conferência de Estoque e Organização de Lotes no Picking"
                 value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs font-bold text-white outline-none focus:border-amber-400"
+                onChange={(e) => {
+                  setTitulo(e.target.value);
+                  if (formError) setFormError(null);
+                }}
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Prioridade</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Prioridade</label>
                 <select
                   value={prioridade}
                   onChange={(e) => setPrioridade(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
                 >
                   <option value="Alta">Alta</option>
                   <option value="Média">Média</option>
@@ -1042,23 +1075,23 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Setor / Processo</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Setor / Processo</label>
                 <input
                   type="text"
                   value={setorOuProcesso}
                   onChange={(e) => setSetorOuProcesso(e.target.value)}
                   placeholder="Ex: Repack, Picking, EFC/EFD"
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-amber-400"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Status Inicial</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Status Inicial</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
                 >
                   <option value="Pendente">Pendente</option>
                   <option value="Em Andamento">Em Andamento</option>
@@ -1068,7 +1101,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
             </div>
 
             {/* CONFIGURAÇÃO DE LEMBRETE */}
-            <div className="p-3 bg-[#0b1222] border border-slate-800 rounded-xl space-y-2">
+            <div className="p-3 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1076,7 +1109,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                   onChange={(e) => setTemLembrete(e.target.checked)}
                   className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
                 />
-                <span className="text-xs font-black uppercase text-amber-400 flex items-center gap-1.5">
+                <span className="text-xs font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <Bell className="w-4 h-4" /> Configurar Lembrete Automático para Esta Demanda
                 </span>
               </label>
@@ -1084,21 +1117,21 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
               {temLembrete && (
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Data do Lembrete</label>
+                    <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Data do Lembrete</label>
                     <input
                       type="date"
                       value={dataLembreteISO}
                       onChange={(e) => setDataLembreteISO(e.target.value)}
-                      className="w-full bg-[#111a30] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-amber-400"
+                      className="w-full bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-amber-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Hora do Lembrete</label>
+                    <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Hora do Lembrete</label>
                     <input
                       type="time"
                       value={horaLembrete}
                       onChange={(e) => setHoraLembrete(e.target.value)}
-                      className="w-full bg-[#111a30] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-amber-400"
+                      className="w-full bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-amber-400"
                     />
                   </div>
                 </div>
@@ -1106,32 +1139,76 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Descrição / Instruções da Demanda</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Descrição / Instruções da Demanda</label>
               <textarea
                 rows={3}
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Detalhes das tarefas a serem executadas, metas de caixas/hora, procedimentos de segurança..."
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-amber-400 resize-none"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-amber-400 resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs uppercase shadow-lg cursor-pointer"
+                disabled={isSaving}
+                className="px-6 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black rounded-xl text-xs uppercase shadow-lg cursor-pointer flex items-center gap-2 transition-all"
               >
-                Salvar Demanda
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isSaving ? 'Salvando...' : 'Salvar Demanda'}
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO NÃO-BLOQUEANTE DE EXCLUSÃO */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#111a30] border-2 border-rose-500/50 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+              <div className="p-2.5 bg-rose-100 dark:bg-rose-500/20 rounded-xl">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black uppercase text-slate-900 dark:text-white">Excluir Demanda</h4>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">Esta ação não pode ser desfeita</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              Tem certeza de que deseja remover a demanda <strong className="text-slate-900 dark:text-white">"{deleteTarget.titulo}"</strong> do Diário de Bordo?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs uppercase shadow-lg cursor-pointer flex items-center gap-2"
+              >
+                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

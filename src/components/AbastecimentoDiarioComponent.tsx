@@ -45,8 +45,9 @@ import { BaseSkuData, ABASTECIMENTO_PRODUCTS_DATA } from '../data/abastecimentoD
 import { PRODUCTS } from '../planosData';
 import { Tarefa } from '../types';
 import * as XLSX from 'xlsx';
-import { db } from '../firebase';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { getRepository } from '../db';
+
+const abastecimentoAnaliseRepo = getRepository<any>('analises_abastecimento_diario');
 
 interface AbastecimentoDiarioComponentProps {
   user: any;
@@ -108,19 +109,15 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     setTimeout(() => setToast(null), 4000);
   };
 
-  // 1. Load saved analysis for the selected date from Firestore
+  // 1. Load saved analysis for the selected date
   const loadAnalysisForDate = async (dateStr: string) => {
     if (!empresa?.id) return;
     setSaving(true);
     try {
-      const q = query(
-        collection(db, 'analises_abastecimento_diario'),
-        where('empresaId', '==', empresa.id),
-        where('dataAnalise', '==', dateStr)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const docData = querySnapshot.docs[0].data();
+      const allRows = await abastecimentoAnaliseRepo.getAll(empresa.id);
+      const matching = allRows.filter((r: any) => r.dataAnalise === dateStr);
+      if (matching.length > 0) {
+        const docData = matching[0];
         const productDetails = docData.productDetails || [];
         
         const loadedData: Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }> = {};
@@ -146,7 +143,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         setCustomProductData(loadedData);
         setIsHistoricalLoaded(true);
         setLoadedHistoryMeta({
-          id: querySnapshot.docs[0].id,
+          id: docData._docId || docData.id,
           savedBy: docData.usuarioEmail || docData.usuarioNome || 'Sistema',
           savedAt: docData.createdAt || ''
         });
@@ -178,19 +175,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     if (!empresa?.id) return;
     setLoadingHistory(true);
     try {
-      const q = query(
-        collection(db, 'analises_abastecimento_diario'),
-        where('empresaId', '==', empresa.id)
-      );
-      const querySnapshot = await getDocs(q);
-      const list: any[] = [];
-      querySnapshot.forEach(docSnap => {
-        list.push({
-          id: docSnap.id,
-          ...docSnap.data()
-        });
-      });
-      list.sort((a, b) => b.dataAnalise.localeCompare(a.dataAnalise));
+      const list = await abastecimentoAnaliseRepo.getAll(empresa.id);
+      list.sort((a: any, b: any) => (b.dataAnalise || '').localeCompare(a.dataAnalise || ''));
       setSavedAnalyses(list);
     } catch (error) {
       console.error("Erro ao buscar histórico:", error);
@@ -614,12 +600,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     }
     setSaving(true);
     try {
-      const q = query(
-        collection(db, 'analises_abastecimento_diario'),
-        where('empresaId', '==', empresa.id),
-        where('dataAnalise', '==', selectedAnalysisDate)
-      );
-      const querySnapshot = await getDocs(q);
+      const allRows = await abastecimentoAnaliseRepo.getAll(empresa.id);
+      const matching = allRows.filter((r: any) => r.dataAnalise === selectedAnalysisDate);
       
       const analysisDoc = {
         empresaId: empresa.id,
@@ -646,16 +628,14 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         }))
       };
 
-      if (!querySnapshot.empty) {
-        // Overwrite previous document
-        const batch = writeBatch(db);
-        querySnapshot.docs.forEach(d => {
-          batch.delete(d.ref);
-        });
-        await batch.commit();
+      for (const d of matching) {
+        const idToDelete = d._docId || d.id;
+        if (idToDelete) {
+          await abastecimentoAnaliseRepo.delete(idToDelete, empresa.id);
+        }
       }
       
-      await addDoc(collection(db, 'analises_abastecimento_diario'), analysisDoc);
+      await abastecimentoAnaliseRepo.create(analysisDoc, empresa.id);
       showToast(`Análise de abastecimento para o dia ${selectedAnalysisDate} salva com sucesso!`, "success");
       
       // Sync history lists
@@ -676,7 +656,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
   // Delete saved document
   const handleDeleteAnalysis = async (id: string, dateStr: string) => {
     try {
-      await deleteDoc(doc(db, 'analises_abastecimento_diario', id));
+      await abastecimentoAnaliseRepo.delete(id, empresa?.id);
       showToast(`Análise salva do dia ${dateStr} excluída com sucesso.`, "success");
       await fetchHistory();
       if (selectedAnalysisDate === dateStr) {

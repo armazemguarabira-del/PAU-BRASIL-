@@ -38,6 +38,10 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
 }) => {
   const isRepack = tipo === 'repack';
   const setorNome = isRepack ? 'Repack' : 'Despejo';
+  const unitShort = isRepack ? 'cx' : 'reg';
+  const unitHora = isRepack ? 'cx/h' : 'reg/h';
+  const unitPlural = isRepack ? 'caixas' : 'registros';
+  const unitSingular = isRepack ? 'caixa' : 'registro';
 
   // Active Simulation Tab: 'caixas_hora' | 'caixas_qtd' | 'tempo' | 'percentual'
   const [simMode, setSimMode] = useState<'caixas_hora' | 'tempo' | 'caixas_qtd' | 'percentual'>('caixas_hora');
@@ -188,7 +192,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             Simulador de Meta & Agilidade de Operador - {setorNome}
           </h3>
           <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-            Simule o aumento de caixas ou redução de tempo por embalagem vs a meta oficial de {metaCxHora} cx/h
+            Simule o aumento de {unitPlural} ou redução de tempo por operação vs a meta oficial de {metaCxHora} {unitHora}
           </p>
         </div>
 
@@ -215,18 +219,18 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               <span className="text-xl font-black font-mono text-[#032b5e] dark:text-white">
                 {agilidadeAtualCxHora.toFixed(1)}
               </span>
-              <span className="text-xs font-bold text-slate-400">CX/h</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">{unitHora}</span>
               <span className="text-[10px] text-blue-500 font-mono font-bold ml-1">
                 ({agilidadeAtualHlHora.toFixed(2)} HL/h)
               </span>
             </div>
             <span className="text-[9px] text-slate-500 font-bold uppercase block mt-0.5">
-              Base: {totalCaixasUnidades} cx em {Math.round(tempoTotalMinutos)} min
+              Base: {totalCaixasUnidades} {unitShort} em {Math.round(tempoTotalMinutos)} min
             </span>
           </div>
         </div>
 
-        {/* CARD 2: TEMPO MÉDIO ATUAL P/ EMBALAGEM */}
+        {/* CARD 2: TEMPO MÉDIO ATUAL P/ EMBALAGEM / REGISTRO */}
         <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3">
           <div className="p-2.5 bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-xl shrink-0">
             <Clock className="w-5 h-5" />
@@ -239,10 +243,10 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               <span className="text-xl font-black font-mono text-purple-700 dark:text-purple-300">
                 {tempoMedioMinUnit.toFixed(2)}
               </span>
-              <span className="text-xs font-bold text-slate-400">min /cx</span>
+              <span className="text-xs font-bold text-slate-400">min /{unitShort}</span>
             </div>
             <span className="text-[9px] text-slate-500 font-bold uppercase block mt-0.5">
-              Média por caixa / vasilhame
+              Média por {unitSingular}
             </span>
           </div>
         </div>
@@ -260,13 +264,13 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               <span className="text-xl font-black font-mono text-amber-900 dark:text-amber-200">
                 {metaCxHora.toFixed(1)}
               </span>
-              <span className="text-xs font-bold text-amber-700 dark:text-amber-400">CX/h</span>
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">{unitHora}</span>
               <span className="text-[10px] text-amber-600 font-mono font-bold ml-1">
                 ({metaAgilidadeHlHora.toFixed(2)} HL/h)
               </span>
             </div>
             <span className="text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase block mt-0.5">
-              Alvo: {metaTempoMedioMinUnit.toFixed(2)} min/cx
+              Alvo: {metaTempoMedioMinUnit.toFixed(2)} min/{unitShort}
             </span>
           </div>
         </div>
@@ -296,14 +300,14 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               }`}>
                 {simResults.simulatedCxHora.toFixed(1)}
               </span>
-              <span className="text-xs font-bold text-slate-400">CX/h</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">{unitHora}</span>
             </div>
             <span className={`text-[9px] font-bold block mt-0.5 ${
               simResults.bateuMeta ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             }`}>
               {simResults.diferencaMetaCxH >= 0 
-                ? `+${simResults.diferencaMetaCxH.toFixed(1)} cx/h acima da meta` 
-                : `${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} cx/h abaixo`}
+                ? `+${simResults.diferencaMetaCxH.toFixed(1)} ${unitHora} acima da meta` 
+                : `${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} ${unitHora} abaixo`}
             </span>
           </div>
         </div>
@@ -321,7 +325,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               Parâmetros de Simulação Interativa
             </span>
             <p className="text-[10px] text-slate-500 font-medium mt-0.5">
-              Digite o ritmo de caixas/hora ou tempo por embalagem para testar o atingimento da meta:
+              Digite o ritmo de {unitHora} ou tempo por {unitSingular} para testar o atingimento da meta:
             </p>
           </div>
 
@@ -336,7 +340,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               }`}
             >
               <Zap className="w-3.5 h-3.5" />
-              1. Digitar Ritmo (CX/h)
+              1. Digitar Ritmo ({unitHora.toUpperCase()})
             </button>
             <button
               type="button"
@@ -348,7 +352,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
-              2. Digitar Tempo (min/cx)
+              2. Digitar Tempo (min/{unitShort})
             </button>
             <button
               type="button"
@@ -360,7 +364,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               }`}
             >
               <Box className="w-3.5 h-3.5" />
-              3. Acréscimo (+Caixas)
+              3. Acréscimo (+{unitPlural.charAt(0).toUpperCase() + unitPlural.slice(1)})
             </button>
             <button
               type="button"
@@ -377,17 +381,17 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
           </div>
         </div>
 
-        {/* MODO 1: SIMULAÇÃO DIRETA POR CAIXAS POR HORA (CX/H) */}
+        {/* MODO 1: SIMULAÇÃO DIRETA POR RITMO (CX/H OU REG/H) */}
         {simMode === 'caixas_hora' && (
           <div className="space-y-3 bg-amber-500/5 dark:bg-amber-500/10 p-3.5 rounded-xl border border-amber-500/20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div>
                 <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-amber-500" />
-                  Digite o Ritmo Desejado em Caixas por Hora (CX/h):
+                  Digite o Ritmo Desejado em {unitPlural.charAt(0).toUpperCase() + unitPlural.slice(1)} por Hora ({unitHora.toUpperCase()}):
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  Hoje a meta oficial é de <strong className="text-amber-500 font-mono">{metaCxHora} cx/h</strong>. Teste valores como 15, 20 ou 25 cx/h.
+                  Hoje a meta oficial é de <strong className="text-amber-500 font-mono">{metaCxHora} {unitHora}</strong>. Teste valores como 15, 20 ou 25 {unitHora}.
                 </span>
               </div>
 
@@ -404,7 +408,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                     className="w-16 sm:w-20 text-center font-mono font-black text-lg text-amber-600 dark:text-amber-400 outline-none bg-transparent"
                     placeholder="20"
                   />
-                  <span className="text-xs font-black text-slate-500 font-mono">CX/H</span>
+                  <span className="text-xs font-black text-slate-500 font-mono uppercase">{unitHora}</span>
                 </div>
               </div>
             </div>
@@ -413,12 +417,12 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Atalhos:</span>
               {[
-                { label: `${metaCxHora.toFixed(0)} cx/h (Padrão)`, val: metaCxHora },
-                { label: '15 cx/h', val: 15 },
-                { label: `${agilidadeAtualCxHora.toFixed(1)} cx/h (Média Real)`, val: Math.round(agilidadeAtualCxHora) },
-                { label: '20 cx/h', val: 20 },
-                { label: '25 cx/h', val: 25 },
-                { label: '30 cx/h', val: 30 }
+                { label: `${metaCxHora.toFixed(0)} ${unitHora} (Padrão)`, val: metaCxHora },
+                { label: `15 ${unitHora}`, val: 15 },
+                { label: `${agilidadeAtualCxHora.toFixed(1)} ${unitHora} (Média Real)`, val: Math.round(agilidadeAtualCxHora) },
+                { label: `20 ${unitHora}`, val: 20 },
+                { label: `25 ${unitHora}`, val: 25 },
+                { label: `30 ${unitHora}`, val: 30 }
               ].map((btn, idx) => (
                 <button
                   key={idx}
@@ -447,31 +451,31 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                 className="flex-1 accent-amber-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
               />
               <span className="font-mono font-black text-amber-600 dark:text-amber-400 text-sm w-24 text-right">
-                {simTargetCxHora.toFixed(1)} cx/h
+                {simTargetCxHora.toFixed(1)} {unitHora}
               </span>
             </div>
 
             <div className="text-[11px] text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-lg border border-amber-500/20 flex items-center justify-between">
               <span>
-                💡 A um ritmo de <strong>{simTargetCxHora.toFixed(1)} cx/h</strong>, o tempo necessário por embalagem é de <strong className="text-purple-600 dark:text-purple-400 font-mono">{(60 / simTargetCxHora).toFixed(2)} min</strong> ({Math.floor(3600 / simTargetCxHora / 60)}m {Math.round((3600 / simTargetCxHora) % 60)}s).
+                💡 A um ritmo de <strong>{simTargetCxHora.toFixed(1)} {unitHora}</strong>, o tempo necessário por {unitSingular} é de <strong className="text-purple-600 dark:text-purple-400 font-mono">{(60 / simTargetCxHora).toFixed(2)} min</strong> ({Math.floor(3600 / simTargetCxHora / 60)}m {Math.round((3600 / simTargetCxHora) % 60)}s).
               </span>
               <span className={`font-mono font-black px-2 py-0.5 rounded text-[10px] ${
                 simResults.bateuMeta ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
               }`}>
-                {simResults.bateuMeta ? `SUPERANDO META EM +${simResults.diferencaMetaCxH.toFixed(1)} CX/H` : `FALTAM ${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} CX/H`}
+                {simResults.bateuMeta ? `SUPERANDO META EM +${simResults.diferencaMetaCxH.toFixed(1)} ${unitHora.toUpperCase()}` : `FALTAM ${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} ${unitHora.toUpperCase()}`}
               </span>
             </div>
           </div>
         )}
 
-        {/* MODO 2: SIMULAÇÃO DIRETA POR TEMPO DE EMBALAGEM */}
+        {/* MODO 2: SIMULAÇÃO DIRETA POR TEMPO DE OPERAÇÃO */}
         {simMode === 'tempo' && (
           <div className="space-y-3 bg-purple-500/5 dark:bg-purple-500/10 p-3.5 rounded-xl border border-purple-500/20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div>
                 <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  Digite o Tempo Médio Alvo por Embalagem (Minutos : Segundos):
+                  Digite o Tempo Médio Alvo por {unitSingular.charAt(0).toUpperCase() + unitSingular.slice(1)} (Minutos : Segundos):
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
                   A média real atual é <strong className="text-purple-600 dark:text-purple-400 font-mono">{tempoMedioMinUnit.toFixed(2)} min</strong> ({Math.floor(tempoMedioMinUnit)}m {Math.round((tempoMedioMinUnit % 1) * 60)}s). Diminua o tempo para testar o ganho.
@@ -515,9 +519,9 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                 { label: '05:30 (Lata 350)', min: 5, sec: 30 },
                 { label: '04:30 (Lata 269)', min: 4, sec: 30 },
                 { label: `${Math.floor(tempoMedioMinUnit)}:${Math.round((tempoMedioMinUnit % 1) * 60).toString().padStart(2, '0')} (Média Atual)`, min: Math.floor(tempoMedioMinUnit), sec: Math.round((tempoMedioMinUnit % 1) * 60) },
-                { label: '03:00 (20 cx/h)', min: 3, sec: 0 },
-                { label: '02:30 (24 cx/h)', min: 2, sec: 30 },
-                { label: '02:00 (30 cx/h)', min: 2, sec: 0 }
+                { label: `03:00 (20 ${unitHora})`, min: 3, sec: 0 },
+                { label: `02:30 (24 ${unitHora})`, min: 2, sec: 30 },
+                { label: `02:00 (30 ${unitHora})`, min: 2, sec: 0 }
               ].map((btn, idx) => (
                 <button
                   key={idx}
@@ -553,13 +557,13 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                 className="flex-1 accent-purple-600 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
               />
               <span className="font-mono font-black text-purple-600 dark:text-purple-400 text-sm w-28 text-right">
-                {simTempoMin.toString().padStart(2, '0')}:{simTempoSec.toString().padStart(2, '0')} min/cx
+                {simTempoMin.toString().padStart(2, '0')}:{simTempoSec.toString().padStart(2, '0')} min/{unitShort}
               </span>
             </div>
 
             <div className="text-[11px] text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-lg border border-purple-500/20 flex items-center justify-between">
               <span>
-                💡 Com esse tempo médio de <strong>{simTempoMin}m {simTempoSec}s por caixa</strong>, o ritmo gerado é de <strong className="text-amber-600 dark:text-amber-400 font-mono">{simResults.simulatedCxHora.toFixed(1)} cx/h</strong>.
+                💡 Com esse tempo médio de <strong>{simTempoMin}m {simTempoSec}s por {unitSingular}</strong>, o ritmo gerado é de <strong className="text-amber-600 dark:text-amber-400 font-mono">{simResults.simulatedCxHora.toFixed(1)} {unitHora}</strong>.
               </span>
               <span className={`font-mono font-black px-2 py-0.5 rounded text-[10px] ${
                 simResults.bateuMeta ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
@@ -570,17 +574,17 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
           </div>
         )}
 
-        {/* MODO 3: SIMULAÇÃO POR ACRÉSCIMO DE CAIXAS */}
+        {/* MODO 3: SIMULAÇÃO POR ACRÉSCIMO DE QUANTIDADES */}
         {simMode === 'caixas_qtd' && (
           <div className="space-y-3 bg-blue-500/5 dark:bg-blue-500/10 p-3.5 rounded-xl border border-blue-500/20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <Box className="w-4 h-4 text-blue-500" />
-                  Acréscimo de Caixas Produzidas no Período (+Qtd):
+                  Acréscimo de {unitPlural.charAt(0).toUpperCase() + unitPlural.slice(1)} Processados no Período (+Qtd):
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  Simule o efeito de reembalar caixas adicionais na mesma carga horária.
+                  Simule o efeito de realizar {unitPlural} adicionais na mesma carga horária.
                 </span>
               </div>
 
@@ -595,7 +599,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                     onChange={(e) => setExtraBoxes(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-16 sm:w-20 text-center font-mono font-black text-lg text-blue-600 dark:text-blue-400 outline-none bg-transparent"
                   />
-                  <span className="text-xs font-black text-slate-500 font-mono">+CX</span>
+                  <span className="text-xs font-black text-slate-500 font-mono uppercase">+{unitShort}</span>
                 </div>
               </div>
             </div>
@@ -613,7 +617,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                       : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400'
                   }`}
                 >
-                  +{val} cx
+                  +{val} {unitShort}
                 </button>
               ))}
             </div>
@@ -629,7 +633,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                 className="flex-1 accent-blue-600 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
               />
               <span className="font-mono font-black text-blue-600 dark:text-blue-400 text-sm w-24 text-right">
-                +{extraBoxes} caixas
+                +{extraBoxes} {unitPlural}
               </span>
             </div>
           </div>
@@ -645,7 +649,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
                   Ganho Geral de Eficiência / Agilidade (+%):
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  Aplica um multiplicador percentual de aceleração sobre o processo de repack.
+                  Aplica um multiplicador percentual de aceleração sobre o processo do setor {setorNome}.
                 </span>
               </div>
 
@@ -709,7 +713,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="font-mono font-black text-amber-600 dark:text-amber-400 text-base">
-                {simResults.simulatedCxHora.toFixed(1)} CX/h
+                {simResults.simulatedCxHora.toFixed(1)} {unitHora.toUpperCase()}
               </span>
               <span className="text-[10px] font-bold text-slate-400">
                 ({simResults.simulatedHlHora.toFixed(2)} HL/h)
@@ -719,14 +723,14 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
 
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">
-              Tempo Otimizado p/ Caixa
+              Tempo Otimizado p/ {unitSingular.charAt(0).toUpperCase() + unitSingular.slice(1)}
             </span>
             <span className="font-mono font-black text-purple-600 dark:text-purple-400 text-base block mt-0.5">
               {simResults.simulatedTempoMinUnit.toFixed(2)} min
             </span>
             <span className="text-[9px] text-slate-400 block font-medium">
               {simResults.tempoEconomizadoPorCaixaMin > 0 
-                ? `${(simResults.tempoEconomizadoPorCaixaMin * 60).toFixed(0)}s economizados/cx`
+                ? `${(simResults.tempoEconomizadoPorCaixaMin * 60).toFixed(0)}s economizados/${unitShort}`
                 : 'Ritmo atual de base'}
             </span>
           </div>
@@ -756,7 +760,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               </span>
             </div>
             <span className="text-[9px] text-slate-400 block font-medium">
-              Total: {simResults.projecaoCaixasMes.toLocaleString('pt-BR')} caixas estimadas
+              Total: {simResults.projecaoCaixasMes.toLocaleString('pt-BR')} {unitPlural} estimadas
             </span>
           </div>
 
@@ -784,8 +788,8 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               </span>
               <p className="text-[11px] opacity-90">
                 {simResults.bateuMeta 
-                  ? `Com esta simulação, o ritmo de ${simResults.simulatedCxHora.toFixed(1)} cx/h supera o padrão mínimo de ${metaCxHora} cx/h com folga de +${simResults.diferencaMetaCxH.toFixed(1)} cx/h.`
-                  : `Com o ritmo simulado de ${simResults.simulatedCxHora.toFixed(1)} cx/h, ainda faltam ${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} cx/h para atingir a meta oficial de ${metaCxHora} cx/h.`}
+                  ? `Com esta simulação, o ritmo de ${simResults.simulatedCxHora.toFixed(1)} ${unitHora} supera o padrão mínimo de ${metaCxHora} ${unitHora} com folga de +${simResults.diferencaMetaCxH.toFixed(1)} ${unitHora}.`
+                  : `Com o ritmo simulado de ${simResults.simulatedCxHora.toFixed(1)} ${unitHora}, ainda faltam ${Math.abs(simResults.diferencaMetaCxH).toFixed(1)} ${unitHora} para atingir a meta oficial de ${metaCxHora} ${unitHora}.`}
               </p>
             </div>
           </div>

@@ -64,12 +64,14 @@ import { OperationalNotificationBell } from './components/OperationalNotificatio
 import { EmpresaDataProvider, useEmpresaData } from './context/EmpresaDataContext';
 import { safeSetLocalStorage, safeGetLocalStorage } from './utils/safeLocalStorage';
 
-import { auth, db, isCustomFirebaseConnected } from './firebase';
+import { auth, isCustomFirebaseConnected } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getRepository, AcessosRepository, AcoesGeraisRepository } from './db';
+const usuariosRepo = getRepository<any>('usuarios');
+const empresasRepo = getRepository<any>('empresas');
 import { Usuario, Empresa } from './types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun, Moon, Zap, PanelLeftOpen, PanelLeftClose, ArrowLeft, ArrowRight, LayoutGrid, LogOut, Flame, Sparkles, AlertOctagon } from 'lucide-react';
+import { Sun, Moon, Zap, PanelLeftOpen, PanelLeftClose, ArrowLeft, ArrowRight, LayoutGrid, LogOut, Flame, Sparkles, AlertOctagon, Menu } from 'lucide-react';
 
 function HeaderClock({ theme }: { theme: 'light' | 'dark' }) {
   const [timeStr, setTimeStr] = useState('');
@@ -213,11 +215,12 @@ export default function App() {
     } catch (e) {
       // ignore
     }
-    return 'dark';
+    return 'light';
   });
   const [activeActions, setActiveActions] = useState<any[]>([]);
   const [isDpoAgentOpen, setIsDpoAgentOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Estados dos Modais de Ações: Desvios (Ocorrências/Gatilhos) e Melhoria (TOR)
   const [isDesvioModalOpen, setIsDesvioModalOpen] = useState(false);
@@ -226,7 +229,7 @@ export default function App() {
   const [isMelhoriaModalOpen, setIsMelhoriaModalOpen] = useState(false);
   const [melhoriaModalData, setMelhoriaModalData] = useState<any>(null);
 
-  // Listeners globais para abertura dos modais de qualquer ponto do sistema
+  // Listeners globais para abertura dos modais de qualquer ponto do sistema e navegação
   useEffect(() => {
     const handleOpenDesvio = (e: any) => {
       setDesvioModalData(e.detail || null);
@@ -236,15 +239,22 @@ export default function App() {
       setMelhoriaModalData(e.detail || null);
       setIsMelhoriaModalOpen(true);
     };
+    const handleGlobalNavigate = (e: any) => {
+      if (e.detail) {
+        navigateToPanel(e.detail);
+      }
+    };
 
     window.addEventListener('abrir-modal-acao-desvio', handleOpenDesvio);
     window.addEventListener('abrir-modal-acao-melhoria', handleOpenMelhoria);
+    window.addEventListener('app_navigate', handleGlobalNavigate);
 
     return () => {
       window.removeEventListener('abrir-modal-acao-desvio', handleOpenDesvio);
       window.removeEventListener('abrir-modal-acao-melhoria', handleOpenMelhoria);
+      window.removeEventListener('app_navigate', handleGlobalNavigate);
     };
-  }, []);
+  }, [historyIndex, activePanel]);
 
   // Sync user, empresa, and activePanel to localStorage for session persistence
   useEffect(() => {
@@ -285,46 +295,45 @@ export default function App() {
 
   // Listen to pending action plans for the current logged in collaborator
   useEffect(() => {
-    if (!user || !db) {
+    if (!user) {
       setActiveActions([]);
       return;
     }
     const companyId = user.empresaId || 'demo';
     
-    // Notificações ativas por usuário: limitado a no máximo 10 alertas pendentes simultâneos para evitar sobrecarga visual de popups na tela
-    import('firebase/firestore').then(({ limit }) => {
-      const q = query(
-        collection(db, 'acoes'),
-        where('empresaId', '==', companyId),
-        where('colaboradorId', '==', user.uid),
-        where('status', '==', 'pendente'),
-        where('tipo', '==', 'colaborador'),
-        limit(10)
-      );
-
-      const unsub = onSnapshot(q, (snapshot) => {
-        const docs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setActiveActions(docs);
-      }, (err: any) => {
-        // Fallback to local actions when permission is denied or Firestore is restricted
-        if (err?.code === 'permission-denied' || err?.message?.includes('Missing or insufficient permissions')) {
-          try {
-            const localAcoes = JSON.parse(safeGetLocalStorage(`local_acoes_${companyId}`, '[]') || '[]');
-            const userAcoes = localAcoes.filter((a: any) => a.colaboradorId === user.uid && a.status === 'pendente');
-            setActiveActions(userAcoes);
-          } catch (e) {
-            setActiveActions([]);
-          }
-        } else {
-          console.warn("Aviso ao escutar ações ativas (modo local):", err?.message || err);
+    // Notificações ativas por usuário: limitado a no máximo 10 alertas pendentes simultâneos
+    const unsub = AcoesGeraisRepository.subscribe(
+      companyId,
+      (items) => {
+        const userAcoes = items
+          .filter((a: any) => 
+            a.colaboradorId === user.uid && 
+            a.status === 'pendente' && 
+            a.tipo === 'colaborador'
+          )
+          .slice(0, 10);
+        setActiveActions(userAcoes);
+      },
+      (err: any) => {
+        try {
+          const localAcoes = JSON.parse(safeGetLocalStorage(`local_acoes_${companyId}`, '[]') || '[]');
+          const userAcoes = localAcoes
+            .filter((a: any) => 
+              a.colaboradorId === user.uid && 
+              a.status === 'pendente' && 
+              a.tipo === 'colaborador'
+            )
+            .slice(0, 10);
+          setActiveActions(userAcoes);
+        } catch (e) {
+          setActiveActions([]);
         }
-      });
+      }
+    );
 
-      return () => unsub();
-    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
   }, [user?.uid, user?.empresaId]);
 
   const isBlockedByActionPlan = () => {
@@ -373,22 +382,11 @@ export default function App() {
           ativo: true
         };
 
-        if (db) {
-          try {
-            const { collection, addDoc } = await import('firebase/firestore');
-            const docRef = await addDoc(collection(db, 'acessos'), newSession);
-            currentSessionId = docRef.id;
-            sessionStorage.setItem(sessionKey, docRef.id);
-          } catch (e: any) {
-            // Permission or offline fallback
-            currentSessionId = 'local_' + Date.now();
-            sessionStorage.setItem(sessionKey, currentSessionId);
-            const localSessions = JSON.parse(safeGetLocalStorage(`local_acessos_${empresaId}`, '[]') || '[]');
-            localSessions.unshift({ id: currentSessionId, ...newSession });
-            safeSetLocalStorage(`local_acessos_${empresaId}`, JSON.stringify(localSessions.slice(0, 50)));
-          }
-        } else {
-          // No DB, handle locally
+        try {
+          const created = await AcessosRepository.create(newSession, empresaId);
+          currentSessionId = created._docId || created.id;
+          sessionStorage.setItem(sessionKey, currentSessionId);
+        } catch (e: any) {
           currentSessionId = 'local_' + Date.now();
           sessionStorage.setItem(sessionKey, currentSessionId);
           const localSessions = JSON.parse(safeGetLocalStorage(`local_acessos_${empresaId}`, '[]') || '[]');
@@ -396,18 +394,14 @@ export default function App() {
           safeSetLocalStorage(`local_acessos_${empresaId}`, JSON.stringify(localSessions.slice(0, 50)));
         }
       } else {
-        // Update existing session without performing a getDoc read
-        if (db && !currentSessionId.startsWith('local_')) {
+        if (currentSessionId && !currentSessionId.startsWith('local_')) {
           try {
-            const { doc, updateDoc, arrayUnion } = await import('firebase/firestore');
-            const docRef = doc(db, 'acessos', currentSessionId);
-            await updateDoc(docRef, {
+            await AcessosRepository.update(currentSessionId, {
               ultimoAcesso: nowStr,
-              abasAcessadas: arrayUnion(activePanel),
-              atividades: arrayUnion(activityItem)
-            });
+              abasAcessadas: [activePanel],
+              atividades: [activityItem]
+            }, empresaId);
           } catch (e: any) {
-            // If failed due to permission or doc deleted, switch to local session so it doesn't fail repeatedly
             currentSessionId = 'local_' + Date.now();
             sessionStorage.setItem(sessionKey, currentSessionId);
             const localSessions = JSON.parse(safeGetLocalStorage(`local_acessos_${empresaId}`, '[]') || '[]');
@@ -417,25 +411,8 @@ export default function App() {
               if (!sess.abasAcessadas.includes(activePanel)) sess.abasAcessadas.push(activePanel);
               if (sess.atividades[sess.atividades.length - 1]?.aba !== activePanel) sess.atividades.push(activityItem);
               sess.ultimoAcesso = nowStr;
-            } else {
-              localSessions.unshift({
-                id: currentSessionId,
-                empresaId,
-                userId: user.uid,
-                nome: user.nome,
-                email: user.email,
-                papel: user.papel || 'operador',
-                loginEm: nowStr,
-                loginData: friendlyDate,
-                loginHora: friendlyTime,
-                logoutEm: null,
-                ultimoAcesso: nowStr,
-                abasAcessadas: [activePanel],
-                atividades: [activityItem],
-                ativo: true
-              });
+              safeSetLocalStorage(`local_acessos_${empresaId}`, JSON.stringify(localSessions.slice(0, 50)));
             }
-            safeSetLocalStorage(`local_acessos_${empresaId}`, JSON.stringify(localSessions.slice(0, 50)));
           }
         } else {
           // Local fallback update
@@ -490,10 +467,9 @@ export default function App() {
       setLoading(true);
       if (fbUser) {
         try {
-          // Fetch user metadata from firestore
-          const uDoc = await getDoc(doc(db, 'usuarios', fbUser.uid));
-          if (uDoc.exists()) {
-            const uData = uDoc.data() as Omit<Usuario, 'uid'>;
+          // Fetch user metadata from repository
+          const uData = await usuariosRepo.getById(fbUser.uid);
+          if (uData) {
             const completeUser: Usuario = { uid: fbUser.uid, ...uData };
             const isNixon = completeUser.email.toLowerCase().trim() === 'nixon.a.a100.nh@gmail.com';
             if (isNixon) {
@@ -512,15 +488,15 @@ export default function App() {
 
             // Fetch company metadata
             if (uData.empresaId) {
-              const eDoc = await getDoc(doc(db, 'empresas', uData.empresaId));
-              if (eDoc.exists()) {
-                const eData = { id: uData.empresaId, ...eDoc.data() } as Empresa;
+              const eData = await empresasRepo.getById(uData.empresaId);
+              if (eData) {
+                const companyObj = { id: uData.empresaId, ...eData } as Empresa;
                 const userRolesList = (completeUser.papel || '').split(',').map((s: string) => s.trim());
                 if (completeUser.isControle || userRolesList.includes('admin') || userRolesList.includes('controle')) {
-                  eData.modulos = ['repack', 'validades', 'quebras', 'despejo', 'empilhador', 'refugo'];
-                  eData.plano = 'completo';
+                  companyObj.modulos = ['repack', 'validades', 'quebras', 'despejo', 'empilhador', 'refugo'];
+                  companyObj.plano = 'completo';
                 }
-                setEmpresa(eData);
+                setEmpresa(companyObj);
               }
             }
             setActivePanel(prev => (prev === 'landing' || !prev ? 'visao-geral' : prev));
@@ -597,13 +573,12 @@ export default function App() {
       const sessionDocId = sessionStorage.getItem(sessionKey);
       if (sessionDocId) {
         const nowStr = new Date().toISOString();
-        if (db && !sessionDocId.startsWith('local_')) {
+        if (sessionDocId && !sessionDocId.startsWith('local_')) {
           try {
-            const { updateDoc, doc } = await import('firebase/firestore');
-            await updateDoc(doc(db, 'acessos', sessionDocId), {
+            await AcessosRepository.update(sessionDocId, {
               logoutEm: nowStr,
               ativo: false
-            });
+            }, user.empresaId || 'demo');
           } catch (e) {
             // Local fallback on session logout
           }
@@ -694,11 +669,11 @@ export default function App() {
                   <button
                     onClick={async () => {
                       try {
-                        const { doc, updateDoc } = await import('firebase/firestore');
-                        await updateDoc(doc(db, 'acoes', action.id), {
+                        await AcoesGeraisRepository.update(action.id, {
                           status: 'concluido',
                           resolvidaEm: new Date().toISOString()
-                        });
+                        }, user.empresaId || 'demo');
+                        setActiveActions(prev => prev.filter(a => a.id !== action.id));
                       } catch (err) {
                         console.error(err);
                       }
@@ -837,7 +812,8 @@ export default function App() {
       case 'simulacao-acoes':
         return <SimulacaoAcoesPanel user={user} />;
       case 'dados-retroativos':
-        return <DadosRetroativosPanel user={user} />;
+      case 'importacao-dados-retroativos':
+        return <DadosRetroativosPanel user={user} initialTab="importacao" onNavigate={navigateToPanel} />;
       case 'simulador-ressuprimento':
         return <SimuladorRessuprimentoPanel user={user} />;
       case 'ranking-produtividade':
@@ -954,6 +930,14 @@ export default function App() {
           title: 'Cadastros Unificados',
           subtitle: 'Base mestre de produtos, colaboradores e permissões.',
           color: 'from-emerald-500/10 to-transparent'
+        };
+      case 'dados-retroativos':
+      case 'importacao-dados-retroativos':
+        return {
+          breadcrumbs: ['Cadastros & Governança', 'Importação Retroativa'],
+          title: 'Importação de Dados Retroativos (JSON)',
+          subtitle: 'Carga em lote, conferência e gravação de quebras, avarias e apontamentos históricos.',
+          color: 'from-amber-500/10 to-transparent'
         };
       case 'cat-dados-acoes':
         return {
@@ -1241,7 +1225,7 @@ export default function App() {
   // Active view layout branches: DIRECT LOGIN SCREEN (No intermediate landing page)
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0b0e14] via-[#0e131d] to-[#07090d] text-[#1f2937] overflow-x-hidden flex items-center justify-center p-4">
+      <div className="min-h-screen bg-transparent text-[#1f2937] overflow-x-hidden flex items-center justify-center p-4">
         <div className="w-full max-w-lg">
           <LoginAuth 
             onAuthSuccess={handleAuthSuccess} 
@@ -1257,8 +1241,8 @@ export default function App() {
 
   return (
     <EmpresaDataProvider empresaId={empresa?.id || user?.empresaId || null}>
-      <div className={`min-h-screen flex flex-col md:flex-row font-sans overflow-x-hidden ${
-        theme === 'dark' ? 'bg-[#07090d] text-[#e8eef5]' : 'bg-white text-slate-800'
+      <div className={`min-h-screen md:h-screen md:max-h-screen md:overflow-hidden flex flex-col md:flex-row font-sans ${
+        theme === 'dark' ? 'bg-[#07090d] text-[#e8eef5]' : 'bg-transparent text-slate-800'
       }`}>
         
         {/* Sidebar navigation - ONLY for Admin users */}
@@ -1274,21 +1258,39 @@ export default function App() {
             onToggleTheme={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
           />
         )}
 
         {/* Main workspace arena with smooth tab switching */}
-        <div className={`flex-1 flex flex-col min-h-screen max-h-screen overflow-y-auto overflow-x-hidden w-full max-w-full ${
-          theme === 'dark' ? 'bg-[#07090d]' : 'bg-white'
+        <div className={`flex-1 flex flex-col h-full md:h-screen overflow-y-auto overflow-x-hidden w-full max-w-full relative ${
+          theme === 'dark' ? 'bg-[#07090d]' : 'bg-transparent'
         }`}>
           
           {/* Workspace Top Header (Glassmorphic & Premium) */}
-          <header className={`sticky top-0 z-30 backdrop-blur-md px-3 md:px-5 py-2 min-h-[52px] flex items-center justify-between gap-2 border-b ${
+          <header className={`sticky top-0 z-30 backdrop-blur-md px-2.5 sm:px-4 md:px-5 py-2 min-h-[52px] flex items-center justify-between gap-1.5 sm:gap-2 border-b transition-all shrink-0 ${
             theme === 'dark' 
-              ? 'bg-[#07090d]/90 border-[#1c2530]' 
-              : 'bg-white/95 border-slate-200 shadow-xs'
+              ? 'bg-[#0b101b]/95 border-[#1c2530]' 
+              : 'bg-white/95 md:bg-white/80 border-blue-100/80 shadow-[0_2px_12px_rgba(30,86,240,0.03)]'
           }`}>
-            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+              {/* Mobile Drawer Toggle Button for Admin */}
+              {getUserRoleType(user) === 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className={`p-2 rounded-xl border flex md:hidden items-center justify-center font-black text-xs transition-all cursor-pointer shadow-xs flex-shrink-0 ${
+                    theme === 'dark'
+                      ? 'bg-[#11151c] border-[#222d3a] text-blue-400 hover:bg-[#18202d]'
+                      : 'bg-white border-slate-200 text-[#1e56f0] hover:bg-blue-50'
+                  }`}
+                  title="Abrir Menu de Navegação"
+                >
+                  <Menu className="w-4 h-4 text-[#1e56f0]" />
+                </button>
+              )}
+
               {/* Workstation Icon Button for Mobile & Quick Access */}
               <button
                 type="button"
@@ -1296,30 +1298,29 @@ export default function App() {
                   setDashInitialTab(undefined);
                   navigateToPanel('visao-geral');
                 }}
-                className={`p-1.5 px-2.5 rounded-xl border flex items-center gap-1.5 font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs flex-shrink-0 hover:scale-[1.02] ${
+                className={`p-2 rounded-xl border flex items-center justify-center font-black text-xs transition-all cursor-pointer shadow-xs flex-shrink-0 hover:scale-[1.02] ${
                   theme === 'dark'
-                    ? 'bg-[#11151c] border-[#222d3a] text-amber-400 hover:border-amber-500/50 hover:bg-[#18202d]'
-                    : 'bg-amber-50/80 border-amber-200 text-amber-900 hover:bg-amber-100'
+                    ? 'bg-[#11151c] border-[#222d3a] text-blue-400 hover:border-blue-500/50 hover:bg-[#18202d]'
+                    : 'bg-blue-50/80 border-blue-200 text-[#1e56f0] hover:bg-blue-100'
                 }`}
                 title="Workstation / Painel Principal da Operação"
               >
-                <LayoutGrid className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <span className="font-extrabold font-mono text-[11px] uppercase hidden xs:inline">Workstation</span>
+                <LayoutGrid className="w-4 h-4 text-[#1e56f0] flex-shrink-0" />
               </button>
 
-              {/* Back & Forward History Navigation Buttons - Visible for Admin guide switching */}
+              {/* Back & Forward History Navigation Buttons */}
               {getUserRoleType(user) === 'admin' && (
-                <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleGoBack}
                     disabled={!canGoBack}
-                    className={`p-1.5 rounded-lg border transition-all flex items-center justify-center ${
+                    className={`p-2 rounded-xl border transition-all flex items-center justify-center ${
                       canGoBack
                         ? theme === 'dark'
-                          ? 'bg-[#151b23] border-[#222d3a] text-amber-400 hover:text-amber-300 hover:bg-slate-800 hover:border-amber-500/40 cursor-pointer shadow-xs'
-                          : 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200 shadow-xs cursor-pointer'
-                        : 'opacity-30 cursor-not-allowed bg-transparent border-slate-700/30 text-slate-500'
+                          ? 'bg-[#151b23] border-[#222d3a] text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer'
+                        : 'opacity-30 cursor-not-allowed bg-transparent border-slate-200/40 text-slate-400'
                     }`}
                     title={canGoBack ? "Mudar de guia / Retornar tela anterior" : "Sem histórico anterior"}
                   >
@@ -1329,12 +1330,12 @@ export default function App() {
                     type="button"
                     onClick={handleGoForward}
                     disabled={!canGoForward}
-                    className={`p-1.5 rounded-lg border transition-all flex items-center justify-center ${
+                    className={`p-2 rounded-xl border transition-all flex items-center justify-center ${
                       canGoForward
                         ? theme === 'dark'
-                          ? 'bg-[#151b23] border-[#222d3a] text-amber-400 hover:text-amber-300 hover:bg-slate-800 hover:border-amber-500/40 cursor-pointer shadow-xs'
-                          : 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200 shadow-xs cursor-pointer'
-                        : 'opacity-30 cursor-not-allowed bg-transparent border-slate-700/30 text-slate-500'
+                          ? 'bg-[#151b23] border-[#222d3a] text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer'
+                        : 'opacity-30 cursor-not-allowed bg-transparent border-slate-200/40 text-slate-400'
                     }`}
                     title={canGoForward ? "Avançar guia / Próxima tela" : "Sem histórico posterior"}
                   >
@@ -1348,26 +1349,26 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setIsSidebarCollapsed(prev => !prev)}
-                  className={`hidden md:flex items-center justify-center p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  className={`hidden md:flex items-center justify-center p-2 rounded-xl border transition-all cursor-pointer ${
                     theme === 'dark'
                       ? 'bg-[#151b23] border-[#222d3a] text-slate-300 hover:text-white hover:border-slate-600'
-                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200'
+                      : 'bg-white border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 shadow-xs'
                   }`}
                   title={isSidebarCollapsed ? "Mostrar Menu Lateral" : "Ocultar Menu Lateral"}
                 >
-                  {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4 text-amber-400" /> : <PanelLeftClose className="w-4 h-4 text-slate-400" />}
+                  {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#1e56f0]" /> : <PanelLeftClose className="w-4 h-4 text-slate-400" />}
                 </button>
               )}
 
               {/* Workstation Location / Page Title & Breadcrumbs */}
-              <div className="flex items-center gap-2 min-w-0 flex-shrink truncate">
+              <div className="flex items-center gap-2 min-w-0 flex-shrink truncate ml-1">
                 <h1 className={`font-sans font-black text-xs md:text-[13px] tracking-tight uppercase truncate ${
-                  theme === 'dark' ? 'text-white' : 'text-slate-800'
+                  theme === 'dark' ? 'text-white' : 'text-slate-900'
                 }`}>
                   {headerInfo.title}
                 </h1>
-                <div className={`hidden lg:block w-[1px] h-3 ${theme === 'dark' ? 'bg-[#1c2530]' : 'bg-slate-200'}`} />
-                <div className="hidden lg:flex items-center gap-1.5 text-[8.5px] uppercase font-black tracking-widest text-[#6a7d92] truncate">
+                <div className={`hidden lg:block w-[1px] h-3.5 ${theme === 'dark' ? 'bg-[#1c2530]' : 'bg-slate-200'}`} />
+                <div className="hidden lg:flex items-center gap-1.5 text-[9px] uppercase font-black tracking-widest text-[#6a7d92] truncate">
                   <span>{headerInfo.breadcrumbs[0]}</span>
                   {headerInfo.breadcrumbs[1] && (
                     <>
@@ -1387,7 +1388,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => navigateToPanel('visao-geral')}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider shadow-md hover:scale-[1.03] active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 border border-blue-400/40 flex-shrink-0"
+                  className="bg-[#1e56f0] hover:bg-[#1848c8] text-white px-3 py-1.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider shadow-md shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 border border-blue-400/40 flex-shrink-0"
                   title="Retornar para o Painel Workstation (Centro de Controle)"
                 >
                   <LayoutGrid className="w-3.5 h-3.5 text-sky-200 flex-shrink-0" />
@@ -1398,24 +1399,24 @@ export default function App() {
               {/* 2. OPERATIONAL NOTIFICATION BELL (SINO) */}
               <OperationalNotificationBell user={user} onNavigate={navigateToPanel} />
 
-              {/* 3. YELLOW "IR PARA OPERAÇÃO" BUTTON */}
+              {/* 3. BLUE "IR PARA OPERAÇÃO" BUTTON */}
               {user && (
                 <button
                   type="button"
                   onClick={() => {
                     const isSuperOrAdmin = user.isControle || user.papel === 'admin' || user.papel === 'controle' || getUserRoleType(user) === 'admin';
                     if (isSuperOrAdmin) {
-                      setDashInitialTab('diario_bordo');
+                      setDashInitialTab('operacao');
                       navigateToPanel('visao-geral');
                     } else {
                       const targetOp = getUserOperationPanel(user);
                       navigateToPanel(targetOp);
                     }
                   }}
-                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider shadow-md hover:scale-[1.03] active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 border border-amber-300 flex-shrink-0"
+                  className="bg-[#1e56f0] hover:bg-[#1848c8] text-white px-3.5 py-2 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider shadow-md shadow-blue-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 border border-blue-400/30 flex-shrink-0"
                   title="Ir diretamente para a tela da operação vinculada ao seu perfil"
                 >
-                  <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950 flex-shrink-0" />
+                  <Zap className="w-3.5 h-3.5 fill-white text-white flex-shrink-0" />
                   <span className="hidden sm:inline whitespace-nowrap font-black">Ir para Operação</span>
                 </button>
               )}
@@ -1424,15 +1425,15 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-                className={`px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 ${
+                className={`px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 ${
                   theme === 'dark'
                     ? 'bg-[#151b23] border-[#222d3a] text-amber-400 hover:text-amber-300 hover:border-amber-400/40 shadow-xs'
-                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-[#1e56f0] hover:bg-slate-200/80 shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-700 hover:text-[#1e56f0] hover:bg-slate-50 shadow-xs'
                 }`}
                 title={theme === 'dark' ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'}
               >
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" /> : <Moon className="w-3.5 h-3.5 text-slate-700 flex-shrink-0" />}
-                <span className="text-[9.5px] font-extrabold uppercase tracking-wider hidden md:inline">
+                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">
                   {theme === 'dark' ? 'Claro' : 'Escuro'}
                 </span>
               </button>
@@ -1441,14 +1442,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className={`px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 ${
+                className={`px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 ${
                   theme === 'dark'
                     ? 'bg-rose-950/40 border-rose-800/50 text-rose-400 hover:bg-rose-900/60 hover:border-rose-600 shadow-xs'
-                    : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 shadow-xs'
+                    : 'bg-white border-red-200 text-red-600 hover:bg-red-50 shadow-xs'
                 }`}
                 title="Sair da Conta / Encerrar Sessão"
               >
-                <LogOut className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+                <LogOut className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
                 <span className="text-[10px] font-black uppercase tracking-wider">
                   Sair
                 </span>

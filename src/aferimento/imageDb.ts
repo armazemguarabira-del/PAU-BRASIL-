@@ -51,7 +51,14 @@ export class ImageDB {
         };
 
         request.onsuccess = (event) => {
-          resolve((event.target as IDBOpenDBRequest).result);
+          const db = (event.target as IDBOpenDBRequest).result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            console.warn(`Object store "${STORE_NAME}" not found. Falling back to in-memory store.`);
+            ImageDB.isInMemoryFallback = true;
+            resolve(null);
+            return;
+          }
+          resolve(db);
         };
 
         request.onerror = (event) => {

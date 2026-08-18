@@ -344,25 +344,25 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header do Modal */}
-        <div className="bg-gradient-to-r from-red-950/80 via-slate-900 to-amber-950/60 p-4 sm:p-5 border-b border-red-800/40 flex items-center justify-between flex-shrink-0">
+        <div className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-slate-50 dark:from-red-950/80 dark:via-slate-900 dark:to-amber-950/60 p-4 sm:p-5 border-b border-red-500/20 dark:border-red-800/40 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-red-600/20 border border-red-500/40 text-red-400">
+            <div className="p-2.5 rounded-xl bg-red-100 dark:bg-red-600/20 border border-red-200 dark:border-red-500/40 text-red-600 dark:text-red-400">
               <Flame className="w-6 h-6 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-[10px] font-black uppercase tracking-wider text-red-400">
+                <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 border border-red-200 dark:border-red-500/40 text-[10px] font-black uppercase tracking-wider text-red-700 dark:text-red-400">
                   DPO • Gestão de Ocorrências & Gatilhos
                 </span>
-                <span className="hidden sm:inline-block text-xs text-slate-400 font-mono">
+                <span className="hidden sm:inline-block text-xs text-slate-500 dark:text-slate-400 font-mono">
                   Tratativa Imediata D0 / 5 Porquês / 5W2H
                 </span>
               </div>
-              <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-tight mt-0.5">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
                 Plano de Ação por Desvios & Estouro de Gatilho
               </h2>
             </div>
@@ -370,7 +370,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
           <button 
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
             title="Fechar Modal"
           >
             <X className="w-5 h-5" />
@@ -378,15 +378,15 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
         </div>
 
         {/* Abas de Navegação */}
-        <div className="bg-slate-950/70 px-4 pt-2 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2 flex-shrink-0">
+        <div className="bg-slate-50 dark:bg-slate-950/70 px-4 pt-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setActiveTab('novo')}
               className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-t-xl transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
                 activeTab === 'novo'
-                  ? 'border-red-500 text-red-400 bg-red-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-red-500 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -397,8 +397,8 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
               onClick={() => setActiveTab('historico')}
               className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-t-xl transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
                 activeTab === 'historico'
-                  ? 'border-amber-500 text-amber-400 bg-amber-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               <AlertOctagon className="w-3.5 h-3.5" />
@@ -411,10 +411,10 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="p-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all cursor-pointer"
+                className="p-1.5 px-3 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs"
                 title="Exportar Planilha CSV"
               >
-                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <Download className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 <span className="hidden sm:inline">Exportar CSV</span>
               </button>
             </div>
@@ -423,155 +423,155 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
 
         {/* Notificação de Sucesso */}
         {saveSuccessMsg && (
-          <div className="bg-emerald-950/80 border-b border-emerald-500/40 text-emerald-300 p-2.5 px-4 text-xs font-bold flex items-center justify-between animate-in slide-in-from-top-2">
+          <div className="bg-emerald-50 dark:bg-emerald-950/80 border-b border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 p-2.5 px-4 text-xs font-bold flex items-center justify-between animate-in slide-in-from-top-2">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>{saveSuccessMsg}</span>
             </div>
           </div>
         )}
 
         {/* Conteúdo com Scroll */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6 bg-white dark:bg-[#111a30]">
           {activeTab === 'novo' ? (
             <form onSubmit={handleSalvarDesvio} className="space-y-6">
               
               {/* BLOCO 1: IDENTIFICAÇÃO DO DESVIO & GATILHO */}
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-red-900/30 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-red-400 font-black text-xs uppercase tracking-wider">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-red-200 dark:border-red-900/30 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-black text-xs uppercase tracking-wider">
                     <ShieldAlert className="w-4 h-4" />
                     <span>1. Identificação do Desvio & Gatilho Operacional</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">Etapa D0/D1</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Etapa D0/D1</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Processo / Módulo</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Processo / Módulo</label>
                     <select
                       value={processo}
                       onChange={(e) => setProcesso(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                     >
                       {PROCESSOS_DPO.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Setor / Local</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Setor / Local</label>
                     <input
                       type="text"
                       value={setor}
                       onChange={(e) => setSetor(e.target.value)}
                       placeholder="Ex: Armazém Central - Rua 04"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Tipo de Gatilho Violado</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Tipo de Gatilho Violado</label>
                     <select
                       value={tipoGatilho}
                       onChange={(e) => setTipoGatilho(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                     >
                       {GATILHOS_PREDEFINIDOS.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Severidade / Prioridade</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Severidade / Prioridade</label>
                     <select
                       value={severidade}
                       onChange={(e) => setSeveridade(e.target.value as any)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none font-bold"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none font-bold"
                     >
-                      <option value="Crítica (P1)" className="text-red-400 font-bold">Crítica (P1) • Parada / Risco</option>
-                      <option value="Alta (P2)" className="text-amber-400 font-bold">Alta (P2) • Meta Ameaçada</option>
-                      <option value="Média (P3)" className="text-blue-400 font-bold">Média (P3) • Desvio Controlável</option>
+                      <option value="Crítica (P1)" className="text-red-500 font-bold">Crítica (P1) • Parada / Risco</option>
+                      <option value="Alta (P2)" className="text-amber-500 font-bold">Alta (P2) • Meta Ameaçada</option>
+                      <option value="Média (P3)" className="text-blue-500 font-bold">Média (P3) • Desvio Controlável</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Indicador Afetado</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Indicador Afetado</label>
                     <input
                       type="text"
                       value={indicador}
                       onChange={(e) => setIndicador(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Meta Oficial do Indicador</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Meta Oficial do Indicador</label>
                     <input
                       type="text"
                       value={meta}
                       onChange={(e) => setMeta(e.target.value)}
                       placeholder="Ex: < 0.08%"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Resultado Real Atingido</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Resultado Real Atingido</label>
                     <input
                       type="text"
                       value={resultadoObtido}
                       onChange={(e) => setResultadoObtido(e.target.value)}
                       placeholder="Ex: 0.22% (Estouro de teto)"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-amber-300 font-mono font-bold focus:border-red-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-amber-600 dark:text-amber-300 font-mono font-bold focus:border-red-500 focus:outline-none"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">
-                    Descrição Detalhada do Desvio / Ocorrência <span className="text-red-400">*</span>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    Descrição Detalhada do Desvio / Ocorrência <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={2}
                     value={desvioEncontrado}
                     onChange={(e) => setDesvioEncontrado(e.target.value)}
                     placeholder="Descreva exatamente o que aconteceu, o momento, pessoas envolvidas e impacto na operação..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-red-500 focus:outline-none leading-relaxed"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none leading-relaxed"
                     required
                   />
                 </div>
               </div>
 
               {/* BLOCO 2: CONTENÇÃO IMEDIATA (D0) */}
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-amber-900/30 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-amber-400 font-black text-xs uppercase tracking-wider">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-amber-200 dark:border-amber-900/30 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-wider">
                     <Zap className="w-4 h-4" />
                     <span>2. Contenção Imediata (Estancar o Problema)</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">Resposta Rápida</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Resposta Rápida</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Ação de Contenção Realizada na Hora</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Ação de Contenção Realizada na Hora</label>
                     <input
                       type="text"
                       value={contencaoImediata}
                       onChange={(e) => setContencaoImediata(e.target.value)}
                       placeholder="Ex: Isolamento da rua, segregação do lote, parada de máquina, limpeza imediata..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Responsável pela Contenção</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Responsável pela Contenção</label>
                     <select
                       value={responsavelContencao}
                       onChange={(e) => setResponsavelContencao(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                     >
                       <option value="">Selecione da lista ou deixe padrão...</option>
                       {LISTA_COLABORADORES_OFICIAIS.map(c => (
@@ -583,29 +583,29 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
               </div>
 
               {/* BLOCO 3: ANÁLISE DE CAUSA RAIZ (5 PORQUÊS & 4M) */}
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-blue-900/30 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2 flex-wrap gap-2">
-                  <div className="flex items-center gap-2 text-blue-400 font-black text-xs uppercase tracking-wider">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-blue-200 dark:border-blue-900/30 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 flex-wrap gap-2">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-wider">
                     <Sparkles className="w-4 h-4" />
                     <span>3. Análise de Causa Raiz DPO (5 Porquês + 4M)</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleAutoSuggest5P}
-                    className="px-3 py-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-600/30 dark:hover:bg-blue-600/50 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/40 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-300" />
                     <span>Sugerir 5 Porquês DPO</span>
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Classificação Causa Raiz (4M/6M)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Classificação Causa Raiz (4M/6M)</label>
                     <select
                       value={causaRaiz4M}
                       onChange={(e) => setCausaRaiz4M(e.target.value as any)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none"
                     >
                       <option value="Método">Método (Procedimento, POP, Instrução de Trabalho)</option>
                       <option value="Mão de Obra">Mão de Obra (Treinamento, Habilidade, Atenção)</option>
@@ -617,11 +617,11 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Turno da Ocorrência</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Turno da Ocorrência</label>
                     <select
                       value={turno}
                       onChange={(e) => setTurno(e.target.value as any)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none"
                     >
                       <option value="MANHÃ">Turno da Manhã (06h às 14h)</option>
                       <option value="TARDE">Turno da Tarde (14h às 22h)</option>
@@ -634,91 +634,91 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                 {/* 5 Porquês Inputs */}
                 <div className="space-y-2 pt-1">
                   <div>
-                    <label className="text-[10.5px] font-bold text-slate-400 uppercase">1º Por quê? (Sintoma Imediato)</label>
+                    <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 uppercase">1º Por quê? (Sintoma Imediato)</label>
                     <input
                       type="text"
                       value={pq1}
                       onChange={(e) => setPq1(e.target.value)}
                       placeholder="Por que ocorreu o primeiro sintoma?"
-                      className="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10.5px] font-bold text-slate-400 uppercase">2º Por quê?</label>
+                    <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 uppercase">2º Por quê?</label>
                     <input
                       type="text"
                       value={pq2}
                       onChange={(e) => setPq2(e.target.value)}
                       placeholder="Por que o fato acima aconteceu?"
-                      className="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10.5px] font-bold text-slate-400 uppercase">3º Por quê?</label>
+                    <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 uppercase">3º Por quê?</label>
                     <input
                       type="text"
                       value={pq3}
                       onChange={(e) => setPq3(e.target.value)}
                       placeholder="Por que?"
-                      className="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10.5px] font-bold text-slate-400 uppercase">4º Por quê?</label>
+                    <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 uppercase">4º Por quê?</label>
                     <input
                       type="text"
                       value={pq4}
                       onChange={(e) => setPq4(e.target.value)}
                       placeholder="Por que?"
-                      className="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10.5px] font-bold text-emerald-400 uppercase font-mono">5º Por quê? (Causa Raiz Fundamental)</label>
+                    <label className="text-[10.5px] font-bold text-emerald-700 dark:text-emerald-400 uppercase font-mono">5º Por quê? (Causa Raiz Fundamental)</label>
                     <input
                       type="text"
                       value={pq5}
                       onChange={(e) => setPq5(e.target.value)}
                       placeholder="Causa raiz fundamental a ser eliminada..."
-                      className="w-full bg-slate-900 border border-emerald-500/50 rounded-lg p-2 text-xs text-emerald-300 font-semibold focus:border-emerald-400 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-emerald-400 dark:border-emerald-500/50 rounded-lg p-2 text-xs text-emerald-800 dark:text-emerald-300 font-semibold focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* BLOCO 4: CONTRAMEDIDA DEFINITIVA (5W2H) */}
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-emerald-900/30 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-wider">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/30 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black text-xs uppercase tracking-wider">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>4. Plano de Ação Corretiva (Contramedida 5W2H)</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">Eliminação Definitiva</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Eliminação Definitiva</span>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">
-                    O que será feito? (Contramedida Definitiva) <span className="text-red-400">*</span>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    O que será feito? (Contramedida Definitiva) <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={2}
                     value={oQueFazer}
                     onChange={(e) => setOQueFazer(e.target.value)}
                     placeholder="Descreva a ação definitiva que impedirá a reincidência deste desvio..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">
-                      Quem é o Responsável? <span className="text-red-400">*</span>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Quem é o Responsável? <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={responsavelTratativa}
                       onChange={(e) => setResponsavelTratativa(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                       required
                     >
                       <option value="">Selecione o responsável oficial...</option>
@@ -729,46 +729,46 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Prazo Limite (Quando)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Prazo Limite (Quando)</label>
                     <input
                       type="date"
                       value={prazo}
                       onChange={(e) => setPrazo(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Onde será aplicado?</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Onde será aplicado?</label>
                     <input
                       type="text"
                       value={ondeLocal}
                       onChange={(e) => setOndeLocal(e.target.value)}
                       placeholder="Ex: Todas as linhas de picking"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">Como será executado / Padronizado?</label>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Como será executado / Padronizado?</label>
                   <input
                     type="text"
                     value={comoExecutar}
                     onChange={(e) => setComoExecutar(e.target.value)}
                     placeholder="Ex: Treinamento de 15 minutos em DPO Diálogo de Qualidade + Atualização do POP de Armazenagem..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Botões de Ação do Formulário */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -786,15 +786,15 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
             <div className="space-y-4">
               
               {/* Filtros e Busca */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div className="sm:col-span-2 relative">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar por desvio, processo, responsável ou gatilho..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -802,7 +802,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   <select
                     value={filterProcesso}
                     onChange={(e) => setFilterProcesso(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-amber-500"
                   >
                     <option value="todos">Todos os Processos</option>
                     {PROCESSOS_DPO.map(p => <option key={p} value={p}>{p}</option>)}
@@ -813,7 +813,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-amber-500"
                   >
                     <option value="todos">Todos os Status</option>
                     <option value="Pendente">Pendente</option>
@@ -826,9 +826,9 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
 
               {/* Lista de Ações de Desvio */}
               {loading ? (
-                <div className="text-center py-12 text-slate-400 text-xs">Carregando plano de desvios...</div>
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs">Carregando plano de desvios...</div>
               ) : filteredList.length === 0 ? (
-                <div className="text-center py-12 bg-slate-950/40 rounded-xl border border-slate-800 text-slate-400 text-xs">
+                <div className="text-center py-12 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs">
                   Nenhuma ação de desvio encontrada com os filtros selecionados.
                 </div>
               ) : (
@@ -841,12 +841,12 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                     return (
                       <div 
                         key={item.id} 
-                        className={`bg-slate-950/70 border rounded-xl p-4 transition-all ${
+                        className={`bg-white dark:bg-slate-950/70 border rounded-xl p-4 transition-all shadow-2xs ${
                           item.status === 'Validado / Eficaz' 
-                            ? 'border-emerald-800/40' 
+                            ? 'border-emerald-300 dark:border-emerald-800/40' 
                             : isP1 
-                              ? 'border-red-800/50 bg-red-950/10' 
-                              : 'border-slate-800'
+                              ? 'border-red-300 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/10' 
+                              : 'border-slate-200 dark:border-slate-800'
                         }`}
                       >
                         {/* Linha Principal */}
@@ -854,42 +854,42 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                           <div className="flex items-start gap-3 min-w-0 flex-1">
                             <div className={`p-2 rounded-lg mt-0.5 flex-shrink-0 ${
                               isP1 
-                                ? 'bg-red-500/20 text-red-400 border border-red-500/40' 
+                                ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-500/40' 
                                 : isP2 
-                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' 
-                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                                  ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/40' 
+                                  : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40'
                             }`}>
                               <Flame className="w-4 h-4" />
                             </div>
 
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-black uppercase text-slate-300 border border-slate-700">
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                   {item.processo}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                  isP1 ? 'bg-red-950 text-red-400 border border-red-800' :
-                                  isP2 ? 'bg-amber-950 text-amber-400 border border-amber-800' :
-                                  'bg-blue-950 text-blue-400 border border-blue-800'
+                                  isP1 ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400 border border-red-200 dark:border-red-800' :
+                                  isP2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 border border-amber-200 dark:border-amber-800' :
+                                  'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
                                 }`}>
                                   {item.severidade}
                                 </span>
-                                <span className="text-[11px] text-amber-400 font-bold">
+                                <span className="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
                                   Gatilho: {item.tipoGatilho}
                                 </span>
-                                <span className="text-[10px] text-slate-500 font-mono ml-auto">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono ml-auto">
                                   {item.data} • {item.hora} ({item.turno})
                                 </span>
                               </div>
 
-                              <h4 className="text-xs sm:text-sm font-bold text-white mt-1.5 leading-snug">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1.5 leading-snug">
                                 {item.desvioEncontrado}
                               </h4>
 
-                              <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-2 flex-wrap">
+                              <div className="flex items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 mt-2 flex-wrap">
                                 <span><strong>Meta:</strong> {item.meta}</span>
                                 <span>•</span>
-                                <span><strong>Resultado:</strong> <span className="text-amber-300 font-mono">{item.resultadoObtido}</span></span>
+                                <span><strong>Resultado:</strong> <span className="text-amber-600 dark:text-amber-300 font-mono">{item.resultadoObtido}</span></span>
                                 <span>•</span>
                                 <span><strong>Responsável:</strong> {item.responsavelTratativa}</span>
                                 <span>•</span>
@@ -904,10 +904,10 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                               value={item.status}
                               onChange={(e) => handleUpdateStatus(item, e.target.value as any)}
                               className={`p-1.5 px-2.5 rounded-lg text-xs font-bold border cursor-pointer ${
-                                item.status === 'Validado / Eficaz' ? 'bg-emerald-900/60 border-emerald-600 text-emerald-300' :
-                                item.status === 'Concluído' ? 'bg-blue-900/60 border-blue-600 text-blue-300' :
-                                item.status === 'Em Andamento' ? 'bg-amber-900/60 border-amber-600 text-amber-300' :
-                                'bg-slate-800 border-slate-700 text-slate-300'
+                                item.status === 'Validado / Eficaz' ? 'bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-900/60 dark:border-emerald-600 dark:text-emerald-300' :
+                                item.status === 'Concluído' ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900/60 dark:border-blue-600 dark:text-blue-300' :
+                                item.status === 'Em Andamento' ? 'bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/60 dark:border-amber-600 dark:text-amber-300' :
+                                'bg-slate-100 border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                               }`}
                             >
                               <option value="Pendente">Pendente</option>
@@ -919,7 +919,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                             <button
                               type="button"
                               onClick={() => setExpandedId(isExp ? null : item.id)}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                               title={isExp ? "Ocultar Detalhes" : "Ver 5 Porquês e Contramedidas"}
                             >
                               {isExp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -928,7 +928,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                             <button
                               type="button"
                               onClick={() => handleDelete(item.id)}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-rose-950/60 dark:text-slate-400 dark:hover:text-rose-400 transition-all cursor-pointer"
                               title="Excluir Registro"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -938,52 +938,52 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
 
                         {/* Área Expandida com Detalhes DPO */}
                         {isExp && (
-                          <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-3 bg-slate-900/50 p-3.5 rounded-xl text-xs">
+                          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800/80 space-y-3 bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-xl text-xs">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div className="bg-slate-950/80 p-3 rounded-lg border border-amber-900/30">
-                                <div className="text-[10.5px] font-black uppercase text-amber-400 mb-1 flex items-center gap-1.5">
+                              <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
+                                <div className="text-[10.5px] font-black uppercase text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-1.5">
                                   <Zap className="w-3.5 h-3.5" />
                                   <span>Contenção Imediata (D0)</span>
                                 </div>
-                                <p className="text-slate-200 leading-relaxed">{item.contencaoImediata}</p>
-                                <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+                                <p className="text-slate-800 dark:text-slate-200 leading-relaxed">{item.contencaoImediata}</p>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 block">
                                   Executado por: {item.responsavelContencao}
                                 </span>
                               </div>
 
-                              <div className="bg-slate-950/80 p-3 rounded-lg border border-emerald-900/30">
-                                <div className="text-[10.5px] font-black uppercase text-emerald-400 mb-1 flex items-center gap-1.5">
+                              <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-emerald-200 dark:border-emerald-900/30">
+                                <div className="text-[10.5px] font-black uppercase text-emerald-700 dark:text-emerald-400 mb-1 flex items-center gap-1.5">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   <span>Contramedida Definitiva (5W2H)</span>
                                 </div>
-                                <p className="text-slate-200 font-bold leading-relaxed">{item.oQueFazer}</p>
-                                <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+                                <p className="text-slate-800 dark:text-slate-200 font-bold leading-relaxed">{item.oQueFazer}</p>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 block">
                                   Como: {item.comoExecutar} • Onde: {item.ondeLocal}
                                 </span>
                               </div>
                             </div>
 
                             {/* 5 Porquês */}
-                            <div className="bg-slate-950/80 p-3 rounded-lg border border-blue-900/30">
-                              <div className="text-[10.5px] font-black uppercase text-blue-400 mb-2 flex items-center justify-between">
+                            <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-blue-200 dark:border-blue-900/30">
+                              <div className="text-[10.5px] font-black uppercase text-blue-700 dark:text-blue-400 mb-2 flex items-center justify-between">
                                 <span>Árvore de Causa Raiz DPO (4M: {item.causaRaiz4M})</span>
                               </div>
-                              <ul className="space-y-1.5 text-[11px] text-slate-300 font-mono">
-                                {item.cincoPorques?.pq1 && <li><strong className="text-blue-400">1º:</strong> {item.cincoPorques.pq1}</li>}
-                                {item.cincoPorques?.pq2 && <li><strong className="text-blue-400">2º:</strong> {item.cincoPorques.pq2}</li>}
-                                {item.cincoPorques?.pq3 && <li><strong className="text-blue-400">3º:</strong> {item.cincoPorques.pq3}</li>}
-                                {item.cincoPorques?.pq4 && <li><strong className="text-blue-400">4º:</strong> {item.cincoPorques.pq4}</li>}
-                                {item.cincoPorques?.pq5 && <li className="text-emerald-300 font-bold"><strong className="text-emerald-400">5º (Raiz):</strong> {item.cincoPorques.pq5}</li>}
+                              <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300 font-mono">
+                                {item.cincoPorques?.pq1 && <li><strong className="text-blue-600 dark:text-blue-400">1º:</strong> {item.cincoPorques.pq1}</li>}
+                                {item.cincoPorques?.pq2 && <li><strong className="text-blue-600 dark:text-blue-400">2º:</strong> {item.cincoPorques.pq2}</li>}
+                                {item.cincoPorques?.pq3 && <li><strong className="text-blue-600 dark:text-blue-400">3º:</strong> {item.cincoPorques.pq3}</li>}
+                                {item.cincoPorques?.pq4 && <li><strong className="text-blue-600 dark:text-blue-400">4º:</strong> {item.cincoPorques.pq4}</li>}
+                                {item.cincoPorques?.pq5 && <li className="text-emerald-700 dark:text-emerald-300 font-bold"><strong className="text-emerald-600 dark:text-emerald-400">5º (Raiz):</strong> {item.cincoPorques.pq5}</li>}
                               </ul>
                             </div>
 
                             {item.observacoesValidacao && (
-                              <div className="p-2 rounded bg-emerald-950/50 border border-emerald-600/40 text-emerald-300 text-[11px]">
+                              <div className="p-2 rounded bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-600/40 text-emerald-800 dark:text-emerald-300 text-[11px]">
                                 {item.observacoesValidacao}
                               </div>
                             )}
 
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-mono pt-1">
                               <span>Registrado por: {item.abertoPor}</span>
                               <span>ID: {item.id}</span>
                             </div>

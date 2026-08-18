@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { 
+  RepackRepository, 
+  ColaboradoresRepository, 
+  AcoesGeraisRepository, 
+  getRepository 
+} from '../db';
 import { Usuario, Empresa, RepackRow } from '../types';
+
+const dpoAuditsRepo = getRepository<any>('dpo_audits');
+const acoesRepo = AcoesGeraisRepository;
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -498,49 +506,54 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
 
   // 1. Sync Repack collection
   useEffect(() => {
-    if (!db) {
+    if (empresaData.repack && empresaData.repack.length > 0) {
+      const rows = [...empresaData.repack];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setRepackRows(rows);
+      localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(rows));
+    } else {
       const saved = localStorage.getItem(`repack_rows_${empresaId}`);
-      if (saved) setRepackRows(JSON.parse(saved));
-      return;
+      if (saved) {
+        try { setRepackRows(JSON.parse(saved)); } catch (e) {}
+      }
     }
-
-    const rows = [...empresaData.repack];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setRepackRows(rows);
-    localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.repack, empresaId]);
 
   // 2. Sync DPO Audits collection
   useEffect(() => {
-    if (!db) {
+    if (empresaData.dpoAudits && empresaData.dpoAudits.length > 0) {
+      const rows = [...empresaData.dpoAudits];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setAuditRows(rows);
+      localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(rows));
+    } else {
       const saved = localStorage.getItem(`dpo_audits_${empresaId}`);
-      if (saved) setAuditRows(JSON.parse(saved));
-      return;
+      if (saved) {
+        try { setAuditRows(JSON.parse(saved)); } catch (e) {}
+      }
     }
-
-    const rows = [...empresaData.dpoAudits];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-    setAuditRows(rows);
-    localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.dpoAudits, empresaId]);
 
   // 3. Sync Colaboradores collection
   useEffect(() => {
-    if (!db) {
+    if (empresaData.colaboradores && empresaData.colaboradores.length > 0) {
+      const rows = [...empresaData.colaboradores];
+      rows.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+      setColaboradores(rows);
+      localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(rows));
+    } else {
       const saved = localStorage.getItem(`colaboradores_${empresaId}`);
-      if (saved) setColaboradores(JSON.parse(saved));
-      return;
+      if (saved) {
+        try { setColaboradores(JSON.parse(saved)); } catch (e) {}
+      }
     }
-
-    const rows = [...empresaData.colaboradores];
-    rows.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
-    setColaboradores(rows);
-    localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.colaboradores, empresaId]);
 
   // 4. Sync Ações (collection: acoes)
   useEffect(() => {
-    if (!db) {
+    const list = [...(empresaData.acoes || [])];
+    list.sort((a: any, b: any) => new Date(b.criadoEm || 0).getTime() - new Date(a.criadoEm || 0).getTime());
+    if (list.length === 0) {
       const saved = localStorage.getItem(`acoes_rows_${empresaId}`);
       if (saved) {
         try {
@@ -549,23 +562,13 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
             setAcoesList(parsed);
           } else {
             setAcoesList(DEFAULT_ACOES);
-            localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(DEFAULT_ACOES));
           }
         } catch {
           setAcoesList(DEFAULT_ACOES);
         }
       } else {
         setAcoesList(DEFAULT_ACOES);
-        localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(DEFAULT_ACOES));
       }
-      return;
-    }
-
-    const list = [...empresaData.acoes];
-    list.sort((a: any, b: any) => new Date(b.criadoEm || 0).getTime() - new Date(a.criadoEm || 0).getTime());
-    if (list.length === 0) {
-      setAcoesList(DEFAULT_ACOES);
-      localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(DEFAULT_ACOES));
     } else {
       setAcoesList(list);
       localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(list));
@@ -596,14 +599,12 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'acoes'), newDoc);
-      } else {
-        const current = JSON.parse(localStorage.getItem(`acoes_rows_${empresaId}`) || '[]');
-        const updated = [{ id: 'local_' + Date.now(), ...newDoc }, ...current];
-        localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
-        setAcoesList(updated);
-      }
+      const created = await acoesRepo.create(newDoc as any, empresaId);
+      const current = JSON.parse(localStorage.getItem(`acoes_rows_${empresaId}`) || '[]');
+      const updated = [{ id: created.id || created._docId, ...newDoc }, ...current];
+      localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
+      setAcoesList(updated);
+
       setShowAcaoModal(false);
       setAcaoModalTitle('');
       setAcaoModalDesc('');
@@ -620,13 +621,12 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
 
   const handleUpdateAcaoStatus = async (id: string, newStatus: string) => {
     try {
-      if (db && !id.startsWith('local_')) {
-        await updateDoc(doc(db, 'acoes', id), { status: newStatus });
-      } else {
-        const updated = acoesList.map(a => a.id === id ? { ...a, status: newStatus } : a);
-        setAcoesList(updated);
-        localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
+      if (!id.startsWith('local_')) {
+        await acoesRepo.update(id, { status: newStatus }, empresaId);
       }
+      const updated = acoesList.map(a => a.id === id ? { ...a, status: newStatus } : a);
+      setAcoesList(updated);
+      localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
     } catch (err) {
       console.error("Erro ao atualizar status da ação:", err);
     }
@@ -634,13 +634,12 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
 
   const handleDeleteAcao = async (id: string) => {
     try {
-      if (db && !id.startsWith('local_')) {
-        await deleteDoc(doc(db, 'acoes', id));
-      } else {
-        const updated = acoesList.filter(a => a.id !== id);
-        setAcoesList(updated);
-        localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
+      if (!id.startsWith('local_')) {
+        await acoesRepo.delete(id, empresaId);
       }
+      const updated = acoesList.filter(a => a.id !== id);
+      setAcoesList(updated);
+      localStorage.setItem(`acoes_rows_${empresaId}`, JSON.stringify(updated));
     } catch (err) {
       console.error("Erro ao deletar ação:", err);
     }
@@ -713,13 +712,7 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'repack'), newRow);
-      } else {
-        const current = [{ _docId: String(Date.now()), ...newRow }, ...repackRows];
-        setRepackRows(current);
-        localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(current));
-      }
+      await RepackRepository.create(newRow, empresaId);
 
       setQuantidade(1);
       setInicio('');
@@ -768,13 +761,7 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'dpo_audits'), newAudit);
-      } else {
-        const current = [{ _docId: String(Date.now()), ...newAudit }, ...auditRows];
-        setAuditRows(current);
-        localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(current));
-      }
+      await dpoAuditsRepo.create(newAudit as any, empresaId);
 
       // Reset fields
       setOperadorAuditado('');
@@ -833,13 +820,10 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
 
     try {
       if (editingColabId) {
-        if (db) {
-          await updateDoc(doc(db, 'colaboradores', editingColabId), colabData);
-        } else {
-          const updatedList = colaboradores.map(c => c._docId === editingColabId ? { ...c, ...colabData } : c);
-          setColaboradores(updatedList);
-          localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(updatedList));
-        }
+        await ColaboradoresRepository.update(editingColabId, colabData as any, empresaId);
+        const updatedList = colaboradores.map(c => c._docId === editingColabId ? { ...c, ...colabData } : c);
+        setColaboradores(updatedList);
+        localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(updatedList));
         setColabMsg({ type: 'ok', text: '✅ Colaborador atualizado com sucesso!' });
         setEditingColabId(null);
       } else {
@@ -847,13 +831,10 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
           ...colabData,
           createdAt: new Date().toISOString()
         };
-        if (db) {
-          await addDoc(collection(db, 'colaboradores'), newColab);
-        } else {
-          const current = [{ _docId: String(Date.now()), ...newColab }, ...colaboradores];
-          setColaboradores(current);
-          localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(current));
-        }
+        const created = await ColaboradoresRepository.create(newColab as any, empresaId);
+        const current = [{ _docId: created._docId || created.id, ...newColab }, ...colaboradores];
+        setColaboradores(current);
+        localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(current));
         setColabMsg({ type: 'ok', text: '✅ Colaborador cadastrado com sucesso!' });
       }
 
@@ -916,13 +897,10 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'colaboradores'), colabData);
-      } else {
-        const current = [{ _docId: String(Date.now()), ...colabData }, ...colaboradores];
-        setColaboradores(current);
-        localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(current));
-      }
+      const created = await ColaboradoresRepository.create(colabData as any, empresaId);
+      const current = [{ _docId: created._docId || created.id, ...colabData }, ...colaboradores];
+      setColaboradores(current);
+      localStorage.setItem(`colaboradores_${empresaId}`, JSON.stringify(current));
       setPaMsg({ type: 'ok', text: '✅ Primeiro acesso pré-autorizado com sucesso!' });
       
       setPaMatricula('');
@@ -954,11 +932,11 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
     if (!confirm(`Tem certeza que deseja excluir este colaborador?`)) return;
 
     try {
-      if (db && targetId && !targetId.startsWith('local_')) {
+      if (targetId && !targetId.startsWith('local_')) {
         try {
-          await deleteDoc(doc(db, 'colaboradores', targetId));
+          await ColaboradoresRepository.delete(targetId, empresaId);
         } catch (e) {
-          console.warn('Firestore delete:', e);
+          console.warn('Delete colaborador error:', e);
         }
       }
       setColaboradores(prev => prev.filter(c => c._docId !== targetId && c.id !== targetId && c.matricula !== matricula));
@@ -980,15 +958,10 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
   const handleDeleteRepack = async (docId?: string) => {
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'repack', docId));
-        // Optimistically update the UI list immediately
-        setRepackRows(prev => prev.filter(r => r._docId !== docId && r.id !== docId));
-      } else {
-        const remaining = repackRows.filter(r => r._docId !== docId && r.id !== docId);
-        setRepackRows(remaining);
-        localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(remaining));
-      }
+      await RepackRepository.delete(docId, empresaId);
+      setRepackRows(prev => prev.filter(r => r._docId !== docId && r.id !== docId));
+      const remaining = repackRows.filter(r => r._docId !== docId && r.id !== docId);
+      localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(remaining));
     } catch (e: any) {
       console.error('Erro ao excluir repack:', e);
     }
@@ -997,15 +970,10 @@ export default function ControlePanel({ user, empresa, initialSection }: Control
   const handleDeleteAudit = async (docId?: string) => {
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'dpo_audits', docId));
-        // Optimistically update the UI list immediately
-        setAuditRows(prev => prev.filter(a => a._docId !== docId && a.id !== docId));
-      } else {
-        const remaining = auditRows.filter(a => a._docId !== docId && a.id !== docId);
-        setAuditRows(remaining);
-        localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(remaining));
-      }
+      await dpoAuditsRepo.delete(docId, empresaId);
+      setAuditRows(prev => prev.filter(a => a._docId !== docId && a.id !== docId));
+      const remaining = auditRows.filter(a => a._docId !== docId && a.id !== docId);
+      localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(remaining));
     } catch (e: any) {
       console.error('Erro ao excluir auditoria:', e);
     }

@@ -21,7 +21,14 @@ import {
   Filter,
   RefreshCw,
   HelpCircle,
-  FileText
+  FileText,
+  FileCode,
+  Database,
+  Check,
+  TrendingDown,
+  Sparkles,
+  Droplet,
+  BarChart3
 } from 'lucide-react';
 import { 
   RetroactiveRecord, 
@@ -35,13 +42,28 @@ import {
 } from '../utils/dadosRetroativosUtils';
 import { Usuario } from '../types';
 import TemperaturaImportExportBar from './TemperaturaImportExportBar';
+import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
+import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
+import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
+import RetroactiveWlpFaturadoJsonImport from './RetroactiveWlpFaturadoJsonImport';
+import RetroactiveEfcEfdJsonImport from './RetroactiveEfcEfdJsonImport';
 
 interface DadosRetroativosPanelProps {
   user: Usuario;
+  initialTab?: 'importacao' | 'registros';
+  initialModule?: RetroactiveModule;
+  onNavigate?: (panel: string) => void;
 }
 
-export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelProps) {
+export default function DadosRetroativosPanel({ 
+  user,
+  initialTab = 'importacao',
+  initialModule = 'quebras',
+  onNavigate
+}: DadosRetroativosPanelProps) {
   const [records, setRecords] = useState<RetroactiveRecord[]>([]);
+  const [activeMainTab, setActiveMainTab] = useState<'importacao' | 'registros'>(initialTab);
+  const [importModuleTab, setImportModuleTab] = useState<RetroactiveModule>(initialModule);
   const [selectedModule, setSelectedModule] = useState<RetroactiveModule | 'todos'>('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<string | null>(null);
@@ -545,98 +567,345 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
       {/* TEMPERATURE EXCEL BAR */}
       <TemperaturaImportExportBar onDataChanged={loadData} />
 
-      {/* MODULE SELECTION TABS & IMPORT BAR */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-        
-        {/* Module Selector Buttons */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-          <button
-            onClick={() => setSelectedModule('todos')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-              selectedModule === 'todos' 
-                ? 'bg-blue-600 text-white shadow-md' 
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-            }`}
-          >
-            Todos os Módulos
-          </button>
+      {/* NAVEGAÇÃO PRINCIPAL: IMPORTAÇÃO vs REGISTROS */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <button
+          onClick={() => setActiveMainTab('importacao')}
+          className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 cursor-pointer ${
+            activeMainTab === 'importacao'
+              ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20'
+              : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <FileCode className="w-4 h-4" />
+          <span>Importação de Dados Retroativos (JSON)</span>
+          <span className="px-2 py-0.5 rounded-full bg-black/20 text-[10px] font-bold">Novo</span>
+        </button>
 
-          {RETROACTIVE_MODULES_LIST.map(mod => (
-            <button
-              key={mod.id}
-              onClick={() => setSelectedModule(mod.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                selectedModule === mod.id 
-                  ? 'bg-blue-600 text-white shadow-md' 
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              {mod.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Action Controls for Selected Module */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-1">
-          
-          <div className="relative w-full md:w-96">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Buscar por SKU, Placa, Lote, Operador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-            
-            {/* Download Specific Template Button */}
-            <button
-              onClick={() => handleExportTemplateExample()}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Baixar modelo (.CSV) da operação selecionada para preencher e importar"
-            >
-              <Download className="w-3.5 h-3.5 text-blue-400" />
-              Baixar Modelo {selectedModule !== 'todos' ? selectedModule.toUpperCase() : 'CSV'}
-            </button>
-
-            {/* Upload File Input */}
-            <label className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
-              <Upload className="w-3.5 h-3.5 text-emerald-200" />
-              Importar Base (.CSV / Excel)
-              <input
-                type="file"
-                accept=".csv, .txt"
-                onChange={handleCSVImport}
-                className="hidden"
-              />
-            </label>
-
-            {/* Export Current Filtered Table */}
-            <button
-              onClick={handleExportFilteredReport}
-              className="px-3 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Exportar registros filtrados atuais"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              Exportar Relatório
-            </button>
-
-            {/* Clear Base */}
-            <button
-              onClick={handleClearModuleBase}
-              className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl transition-colors cursor-pointer"
-              title="Apagar / Zerar Base do Módulo Ativo"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-
-        </div>
-
+        <button
+          onClick={() => setActiveMainTab('registros')}
+          className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 cursor-pointer ${
+            activeMainTab === 'registros'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+              : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          <span>Visão Geral & Lançamentos Históricos</span>
+          <span className="px-2 py-0.5 rounded-full bg-black/20 text-[10px] font-bold font-mono">{records.length}</span>
+        </button>
       </div>
+
+      {/* CONTEÚDO DA ABA 1: IMPORTAÇÃO RETROATIVA */}
+      {activeMainTab === 'importacao' && (
+        <div className="space-y-6">
+          
+          {/* SUB-ABAS DE MÓDULOS DE IMPORTAÇÃO */}
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+            <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-2">
+                <Database className="w-4 h-4 text-amber-500" />
+                Selecione o Módulo de Importação Retroativa
+              </span>
+              <span className="text-[11px] text-slate-400">
+                Lote de Quebras com formato JSON oficial integrado
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-3">
+              <button
+                onClick={() => setImportModuleTab('wlp_faturado')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'wlp_faturado'
+                    ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-amber-300" />
+                <span>Volume Faturado &amp; WLP (JSON)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              <button
+                onClick={() => setImportModuleTab('quebras')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'quebras'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5 text-amber-300" />
+                <span>Quebras & Avarias (JSON)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              <button
+                onClick={() => setImportModuleTab('despejo')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'despejo'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Droplet className="w-3.5 h-3.5 text-amber-300" />
+                <span>Despejo (JSON)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              <button
+                onClick={() => setImportModuleTab('repack')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'repack' || importModuleTab === 'despejo_repack'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Box className="w-3.5 h-3.5 text-amber-300" />
+                <span>Repack (JSON)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              <button
+                onClick={() => setImportModuleTab('efc_efd')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'efc_efd'
+                    ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Truck className="w-3.5 h-3.5 text-amber-300" />
+                <span>EFC &amp; EFD (JSON)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              {RETROACTIVE_MODULES_LIST.filter(m => m.id !== 'wlp_faturado' && m.id !== 'quebras' && m.id !== 'despejo' && m.id !== 'repack' && m.id !== 'despejo_repack' && m.id !== 'efc_efd').map(mod => (
+                <button
+                  key={mod.id}
+                  onClick={() => setImportModuleTab(mod.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    importModuleTab === mod.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <span>{mod.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE VOLUME FATURADO & WLP JSON */}
+          {importModuleTab === 'wlp_faturado' && (
+            <RetroactiveWlpFaturadoJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de Volume Faturado, Jornadas e Absenteísmo persistidos no banco da plataforma!');
+              }}
+            />
+          )}
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE QUEBRAS JSON */}
+          {importModuleTab === 'quebras' && (
+            <RetroactiveQuebrasJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de Quebras importados e persistidos no banco da plataforma!');
+              }}
+            />
+          )}
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE DESPEJO JSON */}
+          {importModuleTab === 'despejo' && (
+            <RetroactiveDespejoJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de Despejo importados e persistidos no banco da plataforma!');
+              }}
+            />
+          )}
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE REPACK JSON */}
+          {(importModuleTab === 'repack' || importModuleTab === 'despejo_repack') && (
+            <RetroactiveRepackJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de Repack importados e persistidos no banco da plataforma!');
+              }}
+            />
+          )}
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE EFC / EFD JSON */}
+          {importModuleTab === 'efc_efd' && (
+            <RetroactiveEfcEfdJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de EFC e EFD importados e persistidos com sucesso nas 5 camadas!');
+              }}
+              onNavigateToDashboard={() => {
+                if (onNavigate) {
+                  onNavigate('logistica-dashboard');
+                } else {
+                  window.dispatchEvent(new CustomEvent('app_navigate', { detail: 'logistica-dashboard' }));
+                }
+              }}
+            />
+          )}
+
+          {/* RENDERIZAÇÃO PARA DEMAIS MÓDULOS */}
+          {importModuleTab !== 'wlp_faturado' && importModuleTab !== 'quebras' && importModuleTab !== 'despejo' && importModuleTab !== 'repack' && importModuleTab !== 'despejo_repack' && importModuleTab !== 'efc_efd' && (
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <FileSpreadsheet className="w-5 h-5 text-blue-500" />
+                    Importação Retroativa — {importModuleTab.toUpperCase()}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Baixe a planilha modelo correspondente ou carregue seus arquivos (.CSV / Excel) para preencher a base histórica.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleExportTemplateExample(importModuleTab)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Baixar Modelo CSV ({importModuleTab.toUpperCase()})</span>
+                  </button>
+
+                  <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Importar Arquivo</span>
+                    <input
+                      type="file"
+                      accept=".csv, .txt"
+                      onChange={handleCSVImport}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-400 space-y-2">
+                <span className="font-bold text-slate-300 block">Dica de Importação:</span>
+                <p>
+                  Para o módulo <strong>{importModuleTab.toUpperCase()}</strong>, certifique-se de manter as colunas correspondentes ao modelo padrão.
+                  Após o carregamento, todos os lançamentos estarão disponíveis na aba <em>"Visão Geral & Lançamentos Históricos"</em> e nos respectivos dashboards operacionais.
+                </p>
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* CONTEÚDO DA ABA 2: VISÃO GERAL & REGISTROS */}
+      {activeMainTab === 'registros' && (
+        <div className="space-y-6">
+          
+          {/* MODULE SELECTION TABS & IMPORT BAR */}
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+            
+            {/* Module Selector Buttons */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <button
+                onClick={() => setSelectedModule('todos')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  selectedModule === 'todos' 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                }`}
+              >
+                Todos os Módulos
+              </button>
+
+              {RETROACTIVE_MODULES_LIST.map(mod => (
+                <button
+                  key={mod.id}
+                  onClick={() => setSelectedModule(mod.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedModule === mod.id 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  {mod.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Action Controls for Selected Module */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-1">
+              
+              <div className="relative w-full md:w-96">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Buscar por SKU, Placa, Lote, Operador..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                
+                {/* Download Specific Template Button */}
+                <button
+                  onClick={() => handleExportTemplateExample()}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Baixar modelo (.CSV) da operação selecionada para preencher e importar"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-400" />
+                  Baixar Modelo {selectedModule !== 'todos' ? selectedModule.toUpperCase() : 'CSV'}
+                </button>
+
+                {/* Upload File Input */}
+                <label className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                  <Upload className="w-3.5 h-3.5 text-emerald-200" />
+                  Importar Base (.CSV / Excel)
+                  <input
+                    type="file"
+                    accept=".csv, .txt"
+                    onChange={handleCSVImport}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Export Current Filtered Table */}
+                <button
+                  onClick={handleExportFilteredReport}
+                  className="px-3 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Exportar registros filtrados atuais"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  Exportar Relatório
+                </button>
+
+                {/* Clear Base */}
+                <button
+                  onClick={handleClearModuleBase}
+                  className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl transition-colors cursor-pointer"
+                  title="Apagar / Zerar Base do Módulo Ativo"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+
+          </div>
 
       {/* KPI METRICS SUMMARY */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -760,13 +1029,15 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
           </table>
         </div>
       </div>
+    </div>
+  )}
 
       {/* MODAL NEW / EDIT REGISTRATION */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0f172a] text-slate-100 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border border-slate-700">
-            <h3 className="font-black text-white text-base uppercase tracking-tight flex items-center gap-2">
-              <Plus className="w-5 h-5 text-emerald-400" />
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-700">
+            <h3 className="font-black text-slate-900 dark:text-white text-base uppercase tracking-tight flex items-center gap-2">
+              <Plus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               {editingItem ? 'Editar Lançamento Retroativo' : `Novo Lançamento Retroativo — ${modulo.toUpperCase()}`}
             </h3>
 
@@ -774,14 +1045,14 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Módulo Operacional</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Módulo Operacional</label>
                 <select
                   value={modulo}
                   onChange={e => {
                     const m = e.target.value as RetroactiveModule;
                     resetFormFields(m);
                   }}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                 >
                   {RETROACTIVE_MODULES_LIST.map(m => (
                     <option key={m.id} value={m.id}>{m.label}</option>
@@ -790,12 +1061,12 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Data do Evento</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Data do Evento</label>
                 <input
                   type="date"
                   value={dataISO}
                   onChange={e => setDataISO(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold font-mono text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold font-mono text-slate-900 dark:text-white"
                   required
                 />
               </div>
@@ -804,44 +1075,44 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
               {modulo === 'validades' && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Código SKU</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Código SKU</label>
                     <input
                       type="text"
                       value={codigoProduto}
                       onChange={e => setCodigoProduto(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="0009068"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Lote do Produto</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Lote do Produto</label>
                     <input
                       type="text"
                       value={lote}
                       onChange={e => setLote(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="LOTE-2026-001"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-amber-400 mb-1">Data de Validade</label>
+                    <label className="block text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">Data de Validade</label>
                     <input
                       type="date"
                       value={dataValidade}
                       onChange={e => setDataValidade(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-amber-500/50 rounded-xl font-bold font-mono text-amber-300"
+                      className="w-full px-3 py-2 bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-500/50 rounded-xl font-bold font-mono text-amber-800 dark:text-amber-300"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Localização / Baia</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Localização / Baia</label>
                     <input
                       type="text"
                       value={localizacao}
                       onChange={e => setLocalizacao(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="RUA A / BL 02 / N1"
                     />
                   </div>
@@ -851,23 +1122,23 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
               {(modulo === 'efc_efd' || modulo === 'tmr_carretas') && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Placa / Veículo</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Placa / Veículo</label>
                     <input
                       type="text"
                       value={placa}
                       onChange={e => setPlaca(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold font-mono text-white uppercase"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold font-mono text-slate-900 dark:text-white uppercase"
                       placeholder="RLT5J54"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Empilhador Responsável</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Empilhador Responsável</label>
                     <input
                       type="text"
                       value={empilhador}
                       onChange={e => setEmpilhador(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="Nome do Operador"
                     />
                   </div>
@@ -877,23 +1148,23 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
               {modulo === 'picking' && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Código do Produto</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Código do Produto</label>
                     <input
                       type="text"
                       value={codigoProduto}
                       onChange={e => setCodigoProduto(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="0009068"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Empilhador / Separador</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Empilhador / Separador</label>
                     <input
                       type="text"
                       value={empilhador}
                       onChange={e => setEmpilhador(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="Nome do Operador"
                     />
                   </div>
@@ -903,23 +1174,23 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
               {modulo === 'despejo_repack' && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Colaborador / Ajudante</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Colaborador / Ajudante</label>
                     <input
                       type="text"
                       value={colaboradorAjudante}
                       onChange={e => setColaboradorAjudante(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="Carlos Ajudante"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Processo / SKU</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Processo / SKU</label>
                     <input
                       type="text"
                       value={codigoProduto}
                       onChange={e => setCodigoProduto(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                       placeholder="SKU-982"
                     />
                   </div>
@@ -928,52 +1199,52 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
 
               {/* COMMON TIME FIELDS */}
               <div>
-                <label className="block text-[10px] font-bold uppercase text-amber-400 mb-1">Hora Início (HH:MM)</label>
+                <label className="block text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">Hora Início (HH:MM)</label>
                 <input
                   type="time"
                   value={horaInicio}
                   onChange={e => setHoraInicio(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-amber-500/50 rounded-xl font-bold font-mono text-amber-300"
+                  className="w-full px-3 py-2 bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-500/50 rounded-xl font-bold font-mono text-amber-800 dark:text-amber-300"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-amber-400 mb-1">Hora Fim (HH:MM)</label>
+                <label className="block text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">Hora Fim (HH:MM)</label>
                 <input
                   type="time"
                   value={horaFim}
                   onChange={e => setHoraFim(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-amber-500/50 rounded-xl font-bold font-mono text-amber-300"
+                  className="w-full px-3 py-2 bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-500/50 rounded-xl font-bold font-mono text-amber-800 dark:text-amber-300"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Quantidade</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Quantidade</label>
                 <input
                   type="number"
                   value={quantidade}
                   onChange={e => setQuantidade(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold font-mono text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold font-mono text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Valor Financeiro (R$)</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Valor Financeiro (R$)</label>
                 <input
                   type="number"
                   value={valorFinanceiro}
                   onChange={e => setValorFinanceiro(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold font-mono text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold font-mono text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Descrição do Registro</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Descrição do Registro</label>
                 <input
                   type="text"
                   value={descricao}
                   onChange={e => setDescricao(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
                   placeholder="Ex: Operação retroativa de descarregamento"
                   required
                 />
@@ -981,11 +1252,11 @@ export default function DadosRetroativosPanel({ user }: DadosRetroativosPanelPro
 
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 cursor-pointer">
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition-colors">
                 Cancelar
               </button>
-              <button onClick={handleSave} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-500 cursor-pointer shadow-md">
+              <button onClick={handleSave} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-500 cursor-pointer shadow-xs transition-colors">
                 Salvar Lançamento Histórico
               </button>
             </div>

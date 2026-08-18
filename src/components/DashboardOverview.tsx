@@ -73,6 +73,7 @@ import {
 } from 'lucide-react';
 import { QuadroDesviosEAcoes } from './QuadroDesviosEAcoes';
 import AuditoriaDpoPanel from './AuditoriaDpoPanel';
+import { MaterializedDashboardBanner } from './MaterializedDashboardBanner';
 import { PadraoOperacionalModal, OperationalModuleKey } from './PadraoOperacionalModal';
 import { getSopForOperation, openPdfInNewTab, downloadPdfFile } from '../utils/sopUtils';
 import { getUserRoleType } from '../utils/permissions';
@@ -88,8 +89,6 @@ import { FluxogramaDemandasComponent } from './FluxogramaDemandasComponent';
 import { WlpDashboard } from './WlpDashboard';
 import { WorkstationGatilhosBoard } from './WorkstationGatilhosBoard';
 import { ItensCriticosEVerificacao } from './ItensCriticosEVerificacao';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { CADASTRO_MESTRE_COLABORADORES, ColaboradorRankingItem } from './RankingModule';
 import { SWOT_FACTORS_2026 } from './DnSwotPanel';
@@ -270,23 +269,17 @@ export default function DashboardOverview({
 
   // Workstation Subtab Navigation
   const [workstationTab, setWorkstationTab] = useState<'operacao' | '5s' | 'matriz' | 'desvios' | 'gatilhos' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp'>(() => {
-    if (initialTab && (initialTab !== 'desvios' || isSupervisorOrAdmin)) {
+    if (initialTab) {
       return initialTab;
     }
-    return isSupervisorOrAdmin ? 'desvios' : 'operacao';
+    return 'operacao';
   });
 
   useEffect(() => {
     if (initialTab) {
-      if (initialTab === 'desvios' && (!isSupervisorOrAdmin || viewMode === 'operacional')) {
-        setWorkstationTab('operacao');
-      } else {
-        setWorkstationTab(initialTab);
-      }
-    } else if ((!isSupervisorOrAdmin || viewMode === 'operacional') && workstationTab === 'desvios') {
-      setWorkstationTab('operacao');
+      setWorkstationTab(initialTab);
     }
-  }, [initialTab, isSupervisorOrAdmin, viewMode]);
+  }, [initialTab]);
 
   // Action Plans & Collections Data from Context (SINGLE SOURCE OF TRUTH)
   const empresaData = useEmpresaData();
@@ -859,32 +852,29 @@ export default function DashboardOverview({
   return (
     <div className="space-y-6">
       {/* ── CABEÇALHO DA PLATAFORMA & IDENTIDADE DA UNIDADE ── */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg dark:shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20 shrink-0 flex items-center justify-center">
-            <Building2 className="w-7 h-7 text-indigo-400" />
+          <div className="p-3 bg-[#1e56f0] text-white rounded-2xl shadow-md shadow-blue-500/25 shrink-0 flex items-center justify-center">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 shrink-0">
-                UNIDADE OPERACIONAL
-              </span>
-              <span className="text-[10.5px] text-slate-300 font-bold uppercase tracking-wider truncate">
-                {getGreeting()}, <strong className="text-white">{user.nome}</strong>
+              <span className="text-[11px] text-slate-700 dark:text-slate-300 font-extrabold uppercase tracking-wider truncate">
+                {getGreeting()}, <strong className="text-slate-900 dark:text-white">{user.nome}</strong>
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
-              <h1 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-1.5 shrink-0">
-                UNIDADE: <span className="text-indigo-400">{selectedUnidade}</span>
+              <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 shrink-0">
+                UNIDADE: <span className="text-[#1e56f0]">{selectedUnidade}</span>
               </h1>
 
               {/* Filtro de Expansão Futura de Unidade */}
               <select 
                 value={selectedUnidade}
                 onChange={e => setSelectedUnidade(e.target.value)}
-                className="bg-[#0b1222] border border-slate-700 text-slate-300 font-extrabold text-xs px-3 py-1 rounded-lg outline-none focus:border-indigo-400 max-w-[200px]"
+                className="bg-white dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-300 font-bold text-xs px-3 py-1.5 rounded-xl outline-none focus:border-[#1e56f0] max-w-[220px] shadow-sm"
               >
                 {unidadesDisponiveis.map(u => (
                   <option key={u} value={u}>Pau Brasil - {u}</option>
@@ -896,26 +886,28 @@ export default function DashboardOverview({
 
         {/* CONTROLE DE MODO DE VISÃO & BOTÃO AMARELO IR PARA OPERAÇÃO (APENAS PARA ADMINISTRATIVO / SUPERVISOR) */}
         {isSupervisorOrAdmin && (
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-[#0b1222] p-1.5 rounded-xl border border-slate-800 shrink-0">
-            {/* BOTÃO AMARELO IR PARA OPERAÇÃO (VAI PARA O DIÁRIO DE BORDO) */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-2xl border border-slate-300/80 dark:border-slate-800 shrink-0 shadow-inner">
+            {/* BOTÃO AZUL ROYAL IR PARA OPERAÇÃO */}
             <button
               type="button"
               onClick={() => {
-                setWorkstationTab('diario_bordo');
+                setViewMode('operacional');
+                setWorkstationTab('operacao');
               }}
-              className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-2 rounded-lg font-black text-xs uppercase tracking-wider shadow-lg hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center gap-2 border border-amber-300"
-              title="Ir para o Diário de Bordo da Operação"
+              className="bg-[#1e56f0] hover:bg-[#1848c8] text-white px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-blue-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center gap-2 border border-blue-400/30"
+              title="Ir para a Visão Operacional do Armazém"
             >
-              <Zap className="w-4 h-4 fill-slate-950 text-slate-950 shrink-0" />
+              <Zap className="w-4 h-4 fill-white text-white shrink-0" />
               <span className="font-black">Ir para Operação</span>
             </button>
 
             <button
+              type="button"
               onClick={() => setViewMode('gestao')}
-              className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                 viewMode === 'gestao'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/20'
+                  : 'text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5 shrink-0" />
@@ -923,11 +915,17 @@ export default function DashboardOverview({
             </button>
 
             <button
-              onClick={() => setViewMode('operacional')}
-              className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+              type="button"
+              onClick={() => {
+                setViewMode('operacional');
+                if (['desvios', 'matriz', 'agenda', 'diario_bordo'].includes(workstationTab)) {
+                  setWorkstationTab('operacao');
+                }
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                 viewMode === 'operacional'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/20'
+                  : 'bg-white dark:bg-transparent border border-slate-200 dark:border-transparent text-slate-800 dark:text-slate-400 hover:bg-slate-50 dark:hover:text-slate-200 shadow-sm'
               }`}
             >
               <Eye className="w-3.5 h-3.5 shrink-0" />
@@ -938,91 +936,87 @@ export default function DashboardOverview({
       </div>
 
       {/* ==================================================================== */}
-      {/* NAVEGAÇÃO DE SUBGUIAS DO WORKSTATION (SIMÉTRICA SEM BARRA DE ROLAGEM) */}
+      {/* NAVEGAÇÃO DE SUBGUIAS DO WORKSTATION (LEGÍVEL E RESPONSIVA) */}
       {/* ==================================================================== */}
-      <div className={`grid gap-2 w-full border-b border-slate-800 pb-3 ${
-        viewMode === 'operacional' 
-          ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5' 
-          : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9'
-      }`}>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 w-full flex-wrap sm:flex-nowrap scrollbar-thin">
         <button
           type="button"
           onClick={() => setWorkstationTab('operacao')}
-          className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === 'operacao'
-              ? 'bg-[#032b5e] text-white border-2 border-blue-500 shadow-md ring-2 ring-blue-500/20'
-              : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
           }`}
         >
-          <Zap className="w-4 h-4 text-amber-400 shrink-0" />
-          <span className="truncate">Pátio & Focos</span>
+          <Zap className={`w-4 h-4 shrink-0 ${workstationTab === 'operacao' ? 'text-white' : 'text-amber-500'}`} />
+          <span>Pátio & Focos</span>
         </button>
 
         <button
           type="button"
           onClick={() => setWorkstationTab('reunioes')}
-          className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === 'reunioes'
-              ? 'bg-[#032b5e] text-white border-2 border-indigo-500 shadow-md ring-2 ring-indigo-500/20'
-              : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
           }`}
         >
-          <Users className="w-4 h-4 text-indigo-400 shrink-0" />
-          <span className="truncate">Reuniões & Treinamento</span>
+          <Users className={`w-4 h-4 shrink-0 ${workstationTab === 'reunioes' ? 'text-white' : 'text-indigo-500'}`} />
+          <span>Reuniões & Treinamento</span>
         </button>
 
         <button
           type="button"
           onClick={() => setWorkstationTab('fluxograma')}
-          className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === 'fluxograma'
-              ? 'bg-[#032b5e] text-white border-2 border-teal-500 shadow-md ring-2 ring-teal-500/20'
-              : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
           }`}
         >
-          <GitFork className="w-4 h-4 text-teal-400 shrink-0" />
-          <span className="truncate">Fluxograma Demandas</span>
+          <GitFork className={`w-4 h-4 shrink-0 ${workstationTab === 'fluxograma' ? 'text-white' : 'text-teal-500'}`} />
+          <span>Fluxograma Demandas</span>
         </button>
 
         <button
           type="button"
           onClick={() => setWorkstationTab('5s')}
-          className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === '5s'
-              ? 'bg-[#032b5e] text-white border-2 border-amber-500 shadow-md ring-2 ring-amber-500/20'
-              : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
           }`}
         >
-          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-          <span className="truncate">Programa 5S</span>
+          <ShieldCheck className={`w-4 h-4 shrink-0 ${workstationTab === '5s' ? 'text-white' : 'text-amber-500'}`} />
+          <span>Programa 5S</span>
         </button>
 
         {isSupervisorOrAdmin && viewMode !== 'operacional' && (
           <button
             type="button"
             onClick={() => setWorkstationTab('desvios')}
-            className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
               workstationTab === 'desvios'
-                ? 'bg-[#032b5e] text-white border-2 border-rose-500 shadow-md ring-2 ring-rose-500/20'
-                : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+                : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
             }`}
           >
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span className="truncate">Desvios & Ações</span>
+            <AlertTriangle className={`w-4 h-4 shrink-0 ${workstationTab === 'desvios' ? 'text-white' : 'text-rose-500'}`} />
+            <span>Desvios & Ações</span>
           </button>
         )}
 
         <button
           type="button"
           onClick={() => setWorkstationTab('gatilhos')}
-          className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === 'gatilhos'
-              ? 'bg-[#032b5e] text-white border-2 border-amber-500 shadow-md ring-2 ring-amber-500/20'
-              : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
           }`}
         >
-          <Zap className="w-4 h-4 text-amber-400 shrink-0" />
-          <span className="truncate">Gatilhos</span>
+          <Zap className={`w-4 h-4 shrink-0 ${workstationTab === 'gatilhos' ? 'text-white' : 'text-amber-500'}`} />
+          <span>Gatilhos</span>
         </button>
 
         {viewMode !== 'operacional' && (
@@ -1030,40 +1024,40 @@ export default function DashboardOverview({
             <button
               type="button"
               onClick={() => setWorkstationTab('matriz')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
                 workstationTab === 'matriz'
-                  ? 'bg-[#032b5e] text-white border-2 border-sky-500 shadow-md ring-2 ring-sky-500/20'
-                  : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                  ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+                  : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
               }`}
             >
-              <Target className="w-4 h-4 text-sky-400 shrink-0" />
-              <span className="truncate">Matriz SDPO</span>
+              <Target className={`w-4 h-4 shrink-0 ${workstationTab === 'matriz' ? 'text-white' : 'text-sky-500'}`} />
+              <span>Matriz SDPO</span>
             </button>
 
             <button
               type="button"
               onClick={() => setWorkstationTab('agenda')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
                 workstationTab === 'agenda'
-                  ? 'bg-[#032b5e] text-white border-2 border-blue-500 shadow-md ring-2 ring-blue-500/20'
-                  : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                  ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+                  : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
               }`}
             >
-              <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-              <span className="truncate">Agenda Executiva</span>
+              <Calendar className={`w-4 h-4 shrink-0 ${workstationTab === 'agenda' ? 'text-white' : 'text-blue-500'}`} />
+              <span>Agenda Executiva</span>
             </button>
 
             <button
               type="button"
               onClick={() => setWorkstationTab('diario_bordo')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
                 workstationTab === 'diario_bordo'
-                  ? 'bg-[#032b5e] text-white border-2 border-amber-500 shadow-md ring-2 ring-amber-500/20'
-                  : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                  ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+                  : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
               }`}
             >
-              <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="truncate">Diário de Bordo</span>
+              <BookOpen className={`w-4 h-4 shrink-0 ${workstationTab === 'diario_bordo' ? 'text-white' : 'text-amber-500'}`} />
+              <span>Diário de Bordo</span>
             </button>
           </>
         )}
@@ -1192,7 +1186,7 @@ export default function DashboardOverview({
       {/* ==================================================================== */}
       {/* 2. VISÃO OPERACIONAL (OPERADORES E AJUDANTES) */}
       {/* ==================================================================== */}
-      {workstationTab === 'operacao' && viewMode === 'operacional' && (
+      {(workstationTab === 'operacao' || ['desvios', 'matriz', 'agenda', 'diario_bordo'].includes(workstationTab)) && viewMode === 'operacional' && (
         <div className="space-y-6">
           <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl text-sky-200 text-xs font-medium flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -1704,86 +1698,86 @@ export default function DashboardOverview({
         <div className="space-y-6">
           {/* CARDS DE PERFORMANCE GERAL & ATALHOS MESTRE */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#111a30] border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-lg dark:shadow-xl hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
               <div>
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Performance Geral Unidade</span>
-                <strong className="text-2xl text-emerald-400 font-black">{moduleMetrics.avgPerf}%</strong>
-                <span className="text-[10px] text-emerald-300 font-bold block flex items-center gap-0.5">
-                  <ArrowUpRight className="w-3 h-3 text-emerald-400" /> Sincronizado com Módulos
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Performance Geral Unidade</span>
+                <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">{moduleMetrics.avgPerf}%</strong>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block flex items-center gap-0.5 mt-0.5">
+                  <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" /> Sincronizado com Módulos
                 </span>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-lg dark:shadow-xl hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
               <div>
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Situação das Metas</span>
-                <strong className="text-2xl text-white font-black">{moduleMetrics.hitCount} / {moduleMetrics.processes.length}</strong>
-                <span className="text-[10px] text-slate-400 block">processos na meta</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Situação das Metas</span>
+                <strong className="text-2xl text-slate-900 dark:text-white font-black">{moduleMetrics.hitCount} / {moduleMetrics.processes.length}</strong>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold block mt-0.5">processos na meta</span>
               </div>
-              <div className="p-3 bg-sky-500/10 text-sky-400 rounded-2xl border border-sky-500/20">
+              <div className="p-3 bg-blue-50 dark:bg-blue-500/10 text-[#1e56f0] dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-500/20 shadow-xs">
                 <Target className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-lg dark:shadow-xl hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
               <div>
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Gatilhos do Mês</span>
-                <strong className="text-2xl text-amber-400 font-black">{moduleMetrics.triggersCount} Alertas</strong>
-                <span className="text-[10px] text-amber-300 block">Identificados no CCO</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Gatilhos do Mês</span>
+                <strong className="text-2xl text-slate-900 dark:text-white font-black">{moduleMetrics.triggersCount} Ativas</strong>
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">Identificados no CCO</span>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
+              <div className="p-3 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-200 dark:border-amber-500/20 shadow-xs">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-lg dark:shadow-xl hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
               <div>
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Quadro Geral de Ações</span>
-                <strong className="text-2xl text-purple-400 font-black">{acoesList.length} Ativas</strong>
-                <span className="text-[10px] text-purple-300 block">Corretivas & Melhoria</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Quadro Geral de Ações</span>
+                <strong className="text-2xl text-slate-900 dark:text-white font-black">{acoesList.length} Ativas</strong>
+                <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold block mt-0.5">Corretivas & Melhoria</span>
               </div>
-              <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl border border-purple-500/20">
+              <div className="p-3 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl border border-purple-200 dark:border-purple-500/20 shadow-xs">
                 <Sparkles className="w-6 h-6" />
               </div>
             </div>
           </div>
 
           {/* BARRA DE BOTÕES DE NAVEGAÇÃO E MÓDULOS MESTRE */}
-          <div className="bg-[#111a30] border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-2">
-              <Zap className="w-4 h-4 text-indigo-400" /> Módulos Mestre de Gestão CCO:
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg dark:shadow-xl">
+            <span className="text-xs font-black uppercase text-[#1e56f0] tracking-wider flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#1e56f0]" /> Módulos Mestre de Gestão CCO:
             </span>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={() => onNavigate('ranking-produtividade')}
-                className="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-wider border border-indigo-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-[#1e56f0] rounded-xl text-xs font-black uppercase tracking-wider border border-blue-200 hover:border-blue-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
                 <Award className="w-3.5 h-3.5" /> Ranking de Produtividade
               </button>
 
               <button
                 onClick={() => onNavigate('dn-swot')}
-                className="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-wider border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-black uppercase tracking-wider border border-emerald-200 hover:border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> DN & Matriz SWOT
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> DN & Matriz SWOT
               </button>
 
               <button
                 onClick={() => onNavigate('eficiencia-montagem')}
-                className="px-3.5 py-2 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-wider border border-sky-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black uppercase tracking-wider border border-indigo-200 hover:border-indigo-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
-                <Zap className="w-3.5 h-3.5" /> Eficiência de Montagem (Fast Picking)
+                <Zap className="w-3.5 h-3.5 text-indigo-600" /> Eficiência de Montagem (Fast Picking)
               </button>
 
               <button
                 onClick={() => onNavigate('kpi-arvore')}
-                className="px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-wider border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-black uppercase tracking-wider border border-sky-200 hover:border-sky-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
-                <Activity className="w-3.5 h-3.5" /> KPI em Árvore
+                <Activity className="w-3.5 h-3.5 text-sky-600" /> KPI em Árvore
               </button>
             </div>
           </div>
@@ -1797,38 +1791,38 @@ export default function DashboardOverview({
           />
 
           {/* RANKING DOS PIORES (OPORTUNIDADES DE MELHORIA - EXCLUSIVO DA VISÃO EXECUTIVA) */}
-          <div className="bg-[#111a30] border border-rose-500/30 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-[#111a30] border border-rose-200 dark:border-rose-500/30 rounded-2xl p-5 space-y-4 shadow-lg dark:shadow-xl">
+            <div className="flex items-center justify-between border-b border-rose-100 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-400" /> Oportunidades de Melhoria (Ranking Abaixo da Meta)
+                <h3 className="text-sm font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" /> Oportunidades de Melhoria (Ranking Abaixo da Meta)
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Visão Executiva: Estratificação detalhada por colaborador e processos específicos com gargalo de desempenho.
                 </p>
               </div>
-              <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-500/30">
+              <span className="text-[10px] bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold px-2.5 py-1 rounded-full border border-rose-200 dark:border-rose-500/30">
                 Gargalos Prioritários Gestão
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {CADASTRO_MESTRE_COLABORADORES.filter(c => c.percentualMeta < 100).slice(0, 3).map((colab, idx) => (
-                <div key={colab.matricula ? `${colab.matricula}-${idx}` : idx} className="p-4 bg-[#0b1222] border border-rose-500/30 rounded-xl space-y-3 flex flex-col justify-between">
+                <div key={colab.matricula ? `${colab.matricula}-${idx}` : idx} className="p-4 bg-rose-50/60 dark:bg-[#0b1222] border border-rose-200 dark:border-rose-500/30 rounded-xl space-y-3 flex flex-col justify-between shadow-sm">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-rose-400 font-mono font-bold">{colab.matricula}</span>
-                      <span className="text-[10px] bg-rose-500/20 text-rose-400 font-black px-2 py-0.5 rounded font-mono">
+                      <span className="text-[10px] text-rose-600 dark:text-rose-400 font-mono font-bold">{colab.matricula}</span>
+                      <span className="text-[10px] bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 font-black px-2 py-0.5 rounded font-mono">
                         {colab.percentualMeta}% Meta
                       </span>
                     </div>
-                    <strong className="text-xs text-white block">{colab.nome}</strong>
-                    <span className="text-[10px] text-slate-400 block">{colab.cargo} ({colab.funcaoGroup})</span>
+                    <strong className="text-xs text-slate-900 dark:text-white block font-black">{colab.nome}</strong>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{colab.cargo} ({colab.funcaoGroup})</span>
 
-                    <div className="p-2 bg-[#111a30] rounded-lg border border-slate-800 space-y-1 mt-2">
-                      <span className="text-[9px] text-amber-400 font-black uppercase block">Gargalo Estratificado:</span>
-                      <span className="text-[10px] text-slate-200 font-bold block">Setor Crítico: {colab.setor}</span>
-                      <span className="text-[10px] text-slate-400 block">Resultado: {colab.resultado} {colab.unidadeMedida} (Meta: {colab.meta})</span>
+                    <div className="p-2.5 bg-white dark:bg-[#111a30] rounded-lg border border-rose-100 dark:border-slate-800 space-y-1 mt-2">
+                      <span className="text-[9px] text-amber-600 dark:text-amber-400 font-black uppercase block">Gargalo Estratificado:</span>
+                      <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold block">Setor Crítico: {colab.setor}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Resultado: {colab.resultado} {colab.unidadeMedida} (Meta: {colab.meta})</span>
                     </div>
                   </div>
 
@@ -1838,7 +1832,7 @@ export default function DashboardOverview({
                       setActionTitle(`Plano de Ação Corretiva - ${colab.setor}`);
                       setActionDesc(`Acompanhamento de alinhamento operacional para atingimento de meta no processo ${colab.setor}.`);
                     }}
-                    className="w-full py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <Sparkles className="w-3.5 h-3.5" /> Gerar Plano de Ação
                   </button>
@@ -1850,26 +1844,26 @@ export default function DashboardOverview({
           {/* ==================================================================== */}
           {/* 9. TRÍPLICE ESTRUTURA: OBJETIVOS, ITENS CRÍTICOS (IC) E ITENS DE VERIFICAÇÃO (IV) */}
           {/* ==================================================================== */}
-          <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-6 space-y-6">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-6 shadow-lg dark:shadow-xl">
 
             {/* HEADER MATRIZ OPERACIONAL E ABAS DE SELEÇÃO DE CATEGORIA */}
             <div className="space-y-3">
-              <div className="border-b border-slate-800 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#1e56f0] dark:text-indigo-400 bg-blue-50 dark:bg-indigo-500/10 px-3 py-1 rounded-full border border-blue-200/80 dark:border-indigo-500/20">
                     MATRIZ OPERACIONAL DE GOVERNANÇA (GUARABIRA)
                   </span>
-                  <h2 className="text-lg font-black text-white mt-2 flex items-center gap-2">
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white mt-2 flex items-center gap-2">
                     Tríplice Estrutura: Objetivos, Itens Críticos (IC) e Itens de Verificação (IV)
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {GOV_CATEGORIES[govCategory].title}
                   </p>
                 </div>
               </div>
 
               {/* SELETOR DE ABAS DA MATRIZ */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#0b1222] rounded-xl border border-slate-800">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0b1222] rounded-xl border border-slate-200/80 dark:border-slate-800">
                 {(Object.keys(GOV_CATEGORIES) as GovCategory[]).map(catKey => {
                   const cat = GOV_CATEGORIES[catKey];
                   const isActive = govCategory === catKey;
@@ -1879,8 +1873,8 @@ export default function DashboardOverview({
                       onClick={() => setGovCategory(catKey)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                         isActive 
-                          ? 'bg-indigo-600 text-white shadow-md font-black' 
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                          ? 'bg-[#1e56f0] text-white shadow-xs font-black' 
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60'
                       }`}
                     >
                       <span>{cat.label}</span>
@@ -1893,36 +1887,36 @@ export default function DashboardOverview({
             {/* TRES BLOCOS DA MATRIZ OPERACIONAL PARA A CATEGORIA SELECIONADA */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* BLOCO 1: OBJETIVOS */}
-              <div className="bg-[#0b1222] border border-emerald-500/30 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-emerald-400" /> 1. OBJETIVOS
+              <div className="bg-emerald-50/40 dark:bg-[#0b1222] border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-emerald-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> 1. OBJETIVOS
                   </h3>
-                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded">
+                  <span className="text-[9px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded">
                     {GOV_CATEGORIES[govCategory].badge}
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">O que precisamos atingir:</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">O que precisamos atingir:</span>
                 
-                <ul className="space-y-2 text-xs text-slate-200">
+                <ul className="space-y-2 text-xs text-slate-800 dark:text-slate-200">
                   {objetivosList.map((item, idx) => (
-                    <li key={idx} className="p-2.5 bg-[#111a30] rounded-xl border border-slate-800 flex items-start justify-between gap-2 group">
+                    <li key={idx} className="p-2.5 bg-white dark:bg-[#111a30] rounded-xl border border-emerald-100 dark:border-slate-800 flex items-start justify-between gap-2 group shadow-2xs">
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </div>
                       {isSupervisorOrAdmin && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleEditObjetivo(idx)}
-                            className="p-1 hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded transition-colors cursor-pointer"
                             title="Editar Item"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleRemoveObjetivo(idx)}
-                            className="p-1 hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
                             title="Remover Item"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1934,17 +1928,17 @@ export default function DashboardOverview({
                 </ul>
 
                 {isSupervisorOrAdmin && (
-                  <div className="pt-2 border-t border-slate-800 flex items-center gap-2">
+                  <div className="pt-2 border-t border-emerald-100 dark:border-slate-800 flex items-center gap-2">
                     <input
                       type="text"
                       placeholder={`Novo objetivo para ${GOV_CATEGORIES[govCategory].badge}...`}
                       value={newObjInput}
                       onChange={e => setNewObjInput(e.target.value)}
-                      className="w-full bg-[#111a30] border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-400"
+                      className="w-full bg-white dark:bg-[#111a30] border border-emerald-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 shadow-2xs"
                     />
                     <button
                       onClick={handleAddObjetivo}
-                      className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer transition-all shrink-0"
+                      className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer transition-all shrink-0 shadow-xs"
                       title="Adicionar Objetivo"
                     >
                       <Plus className="w-4 h-4" />
@@ -1954,36 +1948,36 @@ export default function DashboardOverview({
               </div>
 
               {/* BLOCO 2: ITENS CRÍTICOS (IC) */}
-              <div className="bg-[#0b1222] border border-rose-500/30 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-rose-400" /> 2. ITENS CRÍTICOS (IC)
+              <div className="bg-rose-50/40 dark:bg-[#0b1222] border border-rose-200 dark:border-rose-500/30 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-rose-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" /> 2. ITENS CRÍTICOS (IC)
                   </h3>
-                  <span className="text-[9px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded">
+                  <span className="text-[9px] bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 font-bold px-2 py-0.5 rounded">
                     Pontos de Risco
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">O que pode impedir o atingimento:</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">O que pode impedir o atingimento:</span>
                 
-                <ul className="space-y-2 text-xs text-slate-200">
+                <ul className="space-y-2 text-xs text-slate-800 dark:text-slate-200">
                   {icList.map((item, idx) => (
-                    <li key={idx} className="p-2.5 bg-[#111a30] rounded-xl border border-slate-800 flex items-start justify-between gap-2 group">
+                    <li key={idx} className="p-2.5 bg-white dark:bg-[#111a30] rounded-xl border border-rose-100 dark:border-slate-800 flex items-start justify-between gap-2 group shadow-2xs">
                       <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </div>
                       {isSupervisorOrAdmin && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleEditIC(idx)}
-                            className="p-1 hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
                             title="Editar Item Crítico"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleRemoveIC(idx)}
-                            className="p-1 hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
                             title="Remover Item Crítico"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1995,17 +1989,17 @@ export default function DashboardOverview({
                 </ul>
 
                 {isSupervisorOrAdmin && (
-                  <div className="pt-2 border-t border-slate-800 flex items-center gap-2">
+                  <div className="pt-2 border-t border-rose-100 dark:border-slate-800 flex items-center gap-2">
                     <input
                       type="text"
                       placeholder={`Novo item crítico para ${GOV_CATEGORIES[govCategory].badge}...`}
                       value={newIcInput}
                       onChange={e => setNewIcInput(e.target.value)}
-                      className="w-full bg-[#111a30] border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-rose-400"
+                      className="w-full bg-white dark:bg-[#111a30] border border-rose-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-rose-500 shadow-2xs"
                     />
                     <button
                       onClick={handleAddIC}
-                      className="p-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg cursor-pointer transition-all shrink-0"
+                      className="p-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg cursor-pointer transition-all shrink-0 shadow-xs"
                       title="Adicionar Item Crítico"
                     >
                       <Plus className="w-4 h-4" />
@@ -2015,36 +2009,36 @@ export default function DashboardOverview({
               </div>
 
               {/* BLOCO 3: ITENS DE VERIFICAÇÃO (IV) */}
-              <div className="bg-[#0b1222] border border-sky-500/30 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-2">
-                    <ClipboardCheck className="w-4 h-4 text-sky-400" /> 3. ITENS DE VERIFICAÇÃO (IV)
+              <div className="bg-blue-50/40 dark:bg-[#0b1222] border border-blue-200 dark:border-sky-500/30 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-blue-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-blue-700 dark:text-sky-400 flex items-center gap-2">
+                    <ClipboardCheck className="w-4 h-4 text-blue-600 dark:text-sky-400" /> 3. ITENS DE VERIFICAÇÃO (IV)
                   </h3>
-                  <span className="text-[9px] bg-sky-500/20 text-sky-300 font-bold px-2 py-0.5 rounded">
+                  <span className="text-[9px] bg-blue-100 dark:bg-sky-500/20 text-blue-800 dark:text-sky-300 font-bold px-2 py-0.5 rounded">
                     Rotina Diária
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Quais processos acompanhar diariamente:</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Quais processos acompanhar diariamente:</span>
                 
-                <ul className="space-y-2 text-xs text-slate-200">
+                <ul className="space-y-2 text-xs text-slate-800 dark:text-slate-200">
                   {ivList.map((item, idx) => (
-                    <li key={idx} className="p-2.5 bg-[#111a30] rounded-xl border border-slate-800 flex items-start justify-between gap-2 group">
+                    <li key={idx} className="p-2.5 bg-white dark:bg-[#111a30] rounded-xl border border-blue-100 dark:border-slate-800 flex items-start justify-between gap-2 group shadow-2xs">
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-sky-400 shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </div>
                       {isSupervisorOrAdmin && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleEditIV(idx)}
-                            className="p-1 hover:bg-sky-500/20 text-slate-500 hover:text-sky-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded transition-colors cursor-pointer"
                             title="Editar Item de Verificação"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleRemoveIV(idx)}
-                            className="p-1 hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 rounded transition-colors cursor-pointer"
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
                             title="Remover Item"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2056,17 +2050,17 @@ export default function DashboardOverview({
                 </ul>
 
                 {isSupervisorOrAdmin && (
-                  <div className="pt-2 border-t border-slate-800 flex items-center gap-2">
+                  <div className="pt-2 border-t border-blue-100 dark:border-slate-800 flex items-center gap-2">
                     <input
                       type="text"
                       placeholder={`Novo item de verificação para ${GOV_CATEGORIES[govCategory].badge}...`}
                       value={newIvInput}
                       onChange={e => setNewIvInput(e.target.value)}
-                      className="w-full bg-[#111a30] border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-sky-400"
+                      className="w-full bg-white dark:bg-[#111a30] border border-blue-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500 shadow-2xs"
                     />
                     <button
                       onClick={handleAddIV}
-                      className="p-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg cursor-pointer transition-all shrink-0"
+                      className="p-1.5 bg-[#1e56f0] hover:bg-blue-600 text-white rounded-lg cursor-pointer transition-all shrink-0 shadow-xs"
                       title="Adicionar Item de Verificação"
                     >
                       <Plus className="w-4 h-4" />
@@ -2087,59 +2081,59 @@ export default function DashboardOverview({
           {/* MODAL DE CRIAÇÃO DE PLANO DE AÇÃO PARA COLABORADOR FORA DA META */}
           {actionModalColab && (
             <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-              <div className="bg-[#111a30] border border-rose-500/40 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-sm font-black uppercase text-rose-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Gerar Plano de Ação Corretiva
+              <div className="bg-white dark:bg-[#111a30] border border-rose-300 dark:border-rose-500/40 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-sm font-black uppercase text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" /> Gerar Plano de Ação Corretiva
                   </h3>
                   <button
                     onClick={() => setActionModalColab(null)}
-                    className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="p-3 bg-[#0b1222] rounded-xl border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-slate-400 uppercase font-black">Colaborador / Processo Crítico:</span>
-                  <strong className="text-xs text-white block">{actionModalColab.nome} ({actionModalColab.matricula})</strong>
-                  <span className="text-[10px] text-rose-400 font-bold block">Setor: {actionModalColab.setor}</span>
+                <div className="p-3 bg-rose-50 dark:bg-[#0b1222] rounded-xl border border-rose-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black">Colaborador / Processo Crítico:</span>
+                  <strong className="text-xs text-slate-900 dark:text-white block">{actionModalColab.nome} ({actionModalColab.matricula})</strong>
+                  <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block">Setor: {actionModalColab.setor}</span>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400">Título da Ação Corretiva:</label>
+                    <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Título da Ação Corretiva:</label>
                     <input
                       type="text"
                       placeholder="Ex: Treinamento de simulação de ergonomia no picking"
                       value={actionTitle}
                       onChange={e => setActionTitle(e.target.value)}
-                      className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1 focus:border-rose-400"
+                      className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1 focus:border-rose-500"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400">Detalhamento & Causa Raiz:</label>
+                    <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Detalhamento & Causa Raiz:</label>
                     <textarea
                       rows={3}
                       placeholder="Descreva o plano de melhoria e as etapas de acompanhamento do supervisor..."
                       value={actionDesc}
                       onChange={e => setActionDesc(e.target.value)}
-                      className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none mt-1 focus:border-rose-400"
+                      className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none mt-1 focus:border-rose-500"
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <button
                     onClick={() => setActionModalColab(null)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleCreateActionForColab}
-                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1.5 shadow-xs"
                   >
                     <Sparkles className="w-3.5 h-3.5" /> Registrar Plano de Ação
                   </button>
@@ -2149,12 +2143,12 @@ export default function DashboardOverview({
           )}
 
           {/* GRID DE DASHBOARDS E PROCESSOS DA UNIDADE */}
-          <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-400" /> Monitoramento Integrado dos 12 Processos Operacionais
+          <div className="bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#1e56f0] dark:text-indigo-400" /> Monitoramento Integrado dos 12 Processos Operacionais
               </h3>
-              <span className="text-[10px] text-slate-400 font-bold bg-slate-800 px-3 py-1 rounded-full">
+              <span className="text-[10px] text-blue-700 dark:text-slate-400 font-bold bg-blue-50 dark:bg-slate-800 border border-blue-200/80 dark:border-transparent px-3 py-1 rounded-full">
                 Sincronização CCO Ativa
               </span>
             </div>
@@ -2168,25 +2162,25 @@ export default function DashboardOverview({
                     onClick={() => onNavigate(proc.id)}
                     className={`p-3.5 border rounded-xl cursor-pointer transition-all space-y-2 group relative overflow-hidden ${
                       isOut 
-                        ? 'bg-rose-950/40 border-rose-500/80 hover:border-rose-400 text-rose-200 shadow-lg shadow-rose-950/50' 
-                        : 'bg-[#0b1222] border-slate-800 hover:border-emerald-500/50 text-white'
+                        ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/80 hover:border-rose-400 text-slate-900 dark:text-rose-200 shadow-2xs hover:shadow-md' 
+                        : 'bg-white dark:bg-[#0b1222] border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-emerald-500/50 text-slate-900 dark:text-white shadow-2xs hover:shadow-md'
                     }`}
                   >
                     {isOut && (
-                      <div className="absolute top-0 right-0 bg-rose-600 text-[8px] font-black uppercase text-white px-1.5 py-0.5 rounded-bl-lg tracking-wider animate-pulse">
+                      <div className="absolute top-0 right-0 bg-rose-600 text-[8px] font-black uppercase text-white px-2 py-0.5 rounded-bl-lg tracking-wider shadow-xs">
                         ⚠️ FORA DA META
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <Activity className={`w-4 h-4 ${isOut ? 'text-rose-400' : proc.hit ? 'text-emerald-400' : 'text-amber-400'}`} />
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                      <Activity className={`w-4 h-4 ${isOut ? 'text-rose-600 dark:text-rose-400' : proc.hit ? 'text-emerald-500 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'}`} />
+                      <ChevronRight className={`w-3.5 h-3.5 transition-colors ${isOut ? 'text-rose-400 group-hover:text-rose-600' : 'text-slate-400 group-hover:text-[#1e56f0] dark:text-slate-500 dark:group-hover:text-indigo-400'}`} />
                     </div>
-                    <strong className={`text-xs block group-hover:text-indigo-300 transition-colors ${isOut ? 'text-rose-100 font-black' : 'text-white'}`}>
+                    <strong className={`text-xs block transition-colors ${isOut ? 'text-slate-900 dark:text-rose-100 font-black group-hover:text-rose-700 dark:group-hover:text-rose-300' : 'text-slate-800 dark:text-white font-bold group-hover:text-[#1e56f0] dark:group-hover:text-indigo-300'}`}>
                       {proc.title}
                     </strong>
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className={`font-mono font-bold ${isOut ? 'text-rose-400' : proc.hit ? 'text-emerald-400' : 'text-amber-400'}`}>{proc.val}</span>
-                      <span className={isOut ? 'text-rose-300/80 font-mono' : 'text-slate-500 font-mono'}>M: {proc.meta}</span>
+                      <span className={`font-mono font-black ${isOut ? 'text-rose-600 dark:text-rose-400' : proc.hit ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{proc.val}</span>
+                      <span className={`font-mono font-semibold ${isOut ? 'text-slate-500 dark:text-rose-300/80' : 'text-slate-400 dark:text-slate-500'}`}>M: {proc.meta}</span>
                     </div>
                   </div>
                 );
@@ -2229,7 +2223,7 @@ export default function DashboardOverview({
             {selectedKpiModal === 'engagement' && (
               <div className="space-y-4 text-xs leading-relaxed text-slate-300">
                 <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-1">
-                  <strong className="text-indigo-300 font-black text-xs uppercase block">🌟 O Sonho de Engagement:</strong>
+                  <strong className="text-indigo-300 font-black text-xs uppercase block">�� O Sonho de Engagement:</strong>
                   <p className="text-indigo-100 italic">
                     "Formar uma equipe 100% engajada, orgulhosa e motivada no Armazém Guarabira, garantindo um ambiente de trabalho seguro, colaborativo e de alto desempenho."
                   </p>

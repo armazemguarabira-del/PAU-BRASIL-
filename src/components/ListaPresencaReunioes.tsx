@@ -126,42 +126,42 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
     <div className="space-y-6">
       
       {/* BANNER PRINCIPAL DE LISTA DE PRESENÇA */}
-      <div className="bg-[#111a30] border border-indigo-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-indigo-500/30 rounded-2xl p-5 shadow-xs dark:shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-indigo-400 shrink-0">
+          <div className="p-3 bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 rounded-xl text-indigo-600 dark:text-indigo-400 shrink-0">
             <Users className="w-8 h-8" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-500/20">
                 GUIA DE PRESENÇA OPERACIONAL
               </span>
-              <span className="text-[10px] text-slate-300 font-mono">Registro de Rituais DPO</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-300 font-mono">Registro de Rituais DPO</span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
               Lista de Presença nas Reuniões ({user?.nome || 'Operador'})
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Histórico e confirmação de presença nas reuniões matinais (RDP), semanais (RPS), comitês de 5S e diálogos de segurança participados.
             </p>
           </div>
         </div>
 
         {/* KPI DE PRESENÇA */}
-        <div className="bg-[#0b1222] border border-indigo-500/30 p-3 rounded-xl flex items-center gap-4 shrink-0">
+        <div className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-indigo-500/30 p-3 rounded-xl flex items-center gap-4 shrink-0 shadow-2xs">
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Sua Frequência</span>
-            <span className="text-xl font-black font-mono text-indigo-400">{taxaPresenca}% Presença</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Sua Frequência</span>
+            <span className="text-xl font-black font-mono text-indigo-600 dark:text-indigo-400">{taxaPresenca}% Presença</span>
           </div>
-          <div className="text-right border-l border-slate-800 pl-4">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Participações</span>
-            <span className="text-base font-black font-mono text-emerald-400">{reunioesParticipadas} / {totalReunioes} Rituais</span>
+          <div className="text-right border-l border-slate-200 dark:border-slate-800 pl-4">
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Participações</span>
+            <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400">{reunioesParticipadas} / {totalReunioes} Rituais</span>
           </div>
         </div>
       </div>
 
       {/* FILTROS E BUSCA */}
-      <div className="bg-[#111a30] border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
@@ -169,7 +169,7 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Buscar reunião, pauta ou condutor..."
-            className="w-full pl-9 pr-4 py-2 bg-[#0b1222] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -178,7 +178,7 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
           <select
             value={selectedFilter}
             onChange={e => setSelectedFilter(e.target.value)}
-            className="bg-[#0b1222] border border-slate-800 rounded-xl text-xs text-white px-3 py-2 focus:outline-none focus:border-indigo-500"
+            className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:border-indigo-500"
           >
             <option value="TODAS">Todos os Tipos</option>
             <option value="RDP (Diária)">RDP (Diária)</option>
@@ -200,27 +200,27 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
           return (
             <div
               key={reu.id}
-              className={`p-4 bg-[#111a30] border rounded-2xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
-                isPresente ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800 hover:border-slate-700'
+              className={`p-4 bg-white dark:bg-[#111a30] border rounded-2xl shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
+                isPresente ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-950/10' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-slate-700'
               }`}
             >
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                  <span className="text-[10px] font-black uppercase text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-500/20">
                     {reu.tipo}
                   </span>
-                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-slate-400" /> {reu.dataFormatted}
                   </span>
-                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-slate-400" /> {reu.duracaoMin} min
                   </span>
                 </div>
 
-                <h3 className="text-sm font-black text-white">{reu.nomeReuniao}</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">{reu.pauta}</p>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">{reu.nomeReuniao}</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{reu.pauta}</p>
 
-                <div className="text-[11px] text-slate-400 pt-1 flex items-center gap-3">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 flex items-center gap-3">
                   <span><strong>Condutor:</strong> {reu.condutor}</span>
                   <span>•</span>
                   <span><strong>Quórum:</strong> {reu.colaboradoresPresentes.length} colaboradores presentes</span>
@@ -229,14 +229,14 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
 
               <div className="shrink-0 flex items-center gap-3">
                 {isPresente ? (
-                  <div className="px-3.5 py-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <div className="px-3.5 py-2 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/40 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Presença Confirmada</span>
                   </div>
                 ) : (
                   <button
                     onClick={() => handleConfirmarPresenca(reu.id)}
-                    className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Check className="w-4 h-4" />
                     <span>Confirmar Minha Presença</span>
@@ -248,7 +248,7 @@ export const ListaPresencaReunioes: React.FC<ListaPresencaReunioesProps> = ({
         })}
 
         {filteredReunioes.length === 0 && (
-          <div className="p-8 text-center text-slate-500 bg-[#111a30] rounded-2xl border border-slate-800">
+          <div className="p-8 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#111a30] rounded-2xl border border-slate-200 dark:border-slate-800">
             Nenhuma reunião encontrada com o filtro selecionado.
           </div>
         )}

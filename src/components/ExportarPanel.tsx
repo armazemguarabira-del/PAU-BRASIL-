@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { getRepository } from '../db';
 import { Usuario, Empresa, RepackRow, DespejoRow, QuebraRow, ValidadeRow, ArmazemRow, BlitzRefugoRow, Tarefa, ProdutoMaster, ColaboradorMaster } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import * as XLSX from 'xlsx';
@@ -38,8 +38,12 @@ import {
   X,
   Clock,
   TrendingUp,
-  Info
+  Info,
+  FileCode
 } from 'lucide-react';
+import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
+import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
+import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
 
 interface ExportarPanelProps {
   user: Usuario;
@@ -74,7 +78,8 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
   const empresaData = useEmpresaData();
 
   // ── SUB-TABS STATE ──
-  const [activeMainSubTab, setActiveMainSubTab] = useState<'zerar-importar' | 'exportar-relatorios'>('zerar-importar');
+  const [activeMainSubTab, setActiveMainSubTab] = useState<'zerar-importar' | 'importar-retroativos-json' | 'exportar-relatorios'>('zerar-importar');
+  const [jsonImportModule, setJsonImportModule] = useState<'despejo' | 'repack' | 'quebras'>('despejo');
 
   // ── APAGAR & IMPORTAR BASE DE OPERAÇÃO STATE ──
   const [opTargetToClear, setOpTargetToClear] = useState<string>('repack');
@@ -218,16 +223,17 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
         const allOps = ['repack', 'despejo', 'quebras', 'validades', 'armazem', 'picking', 'blitz', 'jornadas'];
         for (const op of allOps) {
           const { keys, colName } = getKeysForOp(op);
-          if (db) {
-            try {
-              const q = query(collection(db, colName), where('empresaId', '==', empresaId));
-              const snap = await getDocs(q);
-              for (const docSnap of snap.docs) {
-                await deleteDoc(doc(db, colName, docSnap.id));
+          try {
+            const repo = getRepository(colName);
+            const docs = await repo.getAll(empresaId);
+            for (const d of docs) {
+              const targetId = d._docId || d.id;
+              if (targetId) {
+                await repo.delete(targetId, empresaId);
               }
-            } catch (e) {
-              console.warn(`Erro ao deletar collection ${colName}:`, e);
             }
+          } catch (e) {
+            console.warn(`Erro ao deletar collection ${colName}:`, e);
           }
           keys.forEach(k => localStorage.removeItem(k));
         }
@@ -262,33 +268,34 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
     setClearingOp(true);
     try {
       const { keys, colName } = getKeysForOp(opKey);
+      const repo = getRepository(colName);
 
-      if (db) {
-        try {
-          const q = query(collection(db, colName), where('empresaId', '==', empresaId));
-          const snap = await getDocs(q);
-          for (const docSnap of snap.docs) {
-            await deleteDoc(doc(db, colName, docSnap.id));
+      try {
+        const docs = await repo.getAll(empresaId);
+        for (const d of docs) {
+          const targetId = d._docId || d.id;
+          if (targetId) {
+            await repo.delete(targetId, empresaId);
           }
-        } catch (e) {
-          console.warn('Erro ao deletar via query Firestore:', e);
         }
+      } catch (e) {
+        console.warn('Erro ao deletar via repository:', e);
+      }
 
-        let itemsToDelete: any[] = [];
-        if (opKey === 'repack') itemsToDelete = repack;
-        else if (opKey === 'despejo') itemsToDelete = despejo;
-        else if (opKey === 'quebras') itemsToDelete = quebras;
-        else if (opKey === 'validades') itemsToDelete = validades;
-        else if (opKey === 'armazem') itemsToDelete = armazem;
-        else if (opKey === 'blitz') itemsToDelete = blitz;
-        else if (opKey === 'picking') itemsToDelete = tasks;
+      let itemsToDelete: any[] = [];
+      if (opKey === 'repack') itemsToDelete = repack;
+      else if (opKey === 'despejo') itemsToDelete = despejo;
+      else if (opKey === 'quebras') itemsToDelete = quebras;
+      else if (opKey === 'validades') itemsToDelete = validades;
+      else if (opKey === 'armazem') itemsToDelete = armazem;
+      else if (opKey === 'blitz') itemsToDelete = blitz;
+      else if (opKey === 'picking') itemsToDelete = tasks;
 
-        for (const docObj of itemsToDelete) {
-          if (docObj._docId) {
-            try {
-              await deleteDoc(doc(db, colName, docObj._docId));
-            } catch (e) {}
-          }
+      for (const docObj of itemsToDelete) {
+        if (docObj._docId) {
+          try {
+            await repo.delete(docObj._docId, empresaId);
+          } catch (e) {}
         }
       }
 
@@ -384,17 +391,18 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
         }
 
         const { keys, colName } = getKeysForOp(importTarget);
+        const repo = getRepository(colName);
 
         if (replacePrevious) {
-          if (db) {
-            try {
-              const q = query(collection(db, colName), where('empresaId', '==', empresaId));
-              const snap = await getDocs(q);
-              for (const docSnap of snap.docs) {
-                await deleteDoc(doc(db, colName, docSnap.id));
+          try {
+            const docs = await repo.getAll(empresaId);
+            for (const d of docs) {
+              const targetId = d._docId || d.id;
+              if (targetId) {
+                await repo.delete(targetId, empresaId);
               }
-            } catch (e) {}
-          }
+            }
+          } catch (e) {}
           keys.forEach(k => localStorage.removeItem(k));
         }
 
@@ -504,14 +512,12 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
             };
           }
 
-          if (db) {
-            try {
-              const addedRef = await addDoc(collection(db, colName), docData);
-              docData._docId = addedRef.id;
-              if (!docData.id) docData.id = addedRef.id;
-            } catch (e) {
-              console.warn('Erro ao salvar no Firestore:', e);
-            }
+          try {
+            const addedRef = await repo.create(docData, empresaId);
+            docData._docId = addedRef._docId || addedRef.id;
+            if (!docData.id) docData.id = addedRef._docId || addedRef.id;
+          } catch (e) {
+            console.warn('Erro ao salvar no repositório:', e);
           }
 
           importedList.push(docData);
@@ -612,6 +618,18 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
             >
               <Trash2 className="w-4 h-4" />
               Apagar & Importar Base
+            </button>
+
+            <button
+              onClick={() => setActiveMainSubTab('importar-retroativos-json')}
+              className={`px-3.5 py-2 rounded-lg font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border-none ${
+                activeMainSubTab === 'importar-retroativos-json'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-amber-400/90 hover:text-amber-300 bg-transparent'
+              }`}
+            >
+              <FileCode className="w-4 h-4 text-amber-300" />
+              Importação Retroativa (JSON)
             </button>
 
             <button
@@ -1108,6 +1126,80 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── SUB-ABA: IMPORTAÇÃO DE DADOS RETROATIVOS (JSON) ── */}
+      {activeMainSubTab === 'importar-retroativos-json' && (
+        <div className="space-y-6 max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#111a30] border border-slate-800 p-3 rounded-2xl gap-3">
+            <span className="text-xs font-black uppercase text-amber-400 tracking-wider pl-2 flex items-center gap-2">
+              <FileCode className="w-4 h-4 text-amber-300" />
+              Módulo de Importação JSON:
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setJsonImportModule('despejo')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  jsonImportModule === 'despejo'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                Despejo (JSON)
+              </button>
+              <button
+                onClick={() => setJsonImportModule('repack')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  jsonImportModule === 'repack'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                Repack (JSON)
+              </button>
+              <button
+                onClick={() => setJsonImportModule('quebras')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  jsonImportModule === 'quebras'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                Quebras & Avarias (JSON)
+              </button>
+            </div>
+          </div>
+
+          {jsonImportModule === 'despejo' && (
+            <RetroactiveDespejoJsonImport 
+              user={user} 
+              empresaId={empresaId}
+              onImportSuccess={() => {
+                toast('Dados retroativos de Despejo importados e sincronizados com sucesso!');
+              }}
+            />
+          )}
+
+          {jsonImportModule === 'repack' && (
+            <RetroactiveRepackJsonImport 
+              user={user} 
+              empresaId={empresaId}
+              onImportSuccess={() => {
+                toast('Dados retroativos de Repack importados e sincronizados com sucesso!');
+              }}
+            />
+          )}
+
+          {jsonImportModule === 'quebras' && (
+            <RetroactiveQuebrasJsonImport 
+              user={user} 
+              empresaId={empresaId}
+              onImportSuccess={() => {
+                toast('Dados retroativos de Quebras importados e sincronizados com sucesso!');
+              }}
+            />
+          )}
         </div>
       )}
 

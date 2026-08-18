@@ -49,8 +49,7 @@ import { RondaGsaComponent } from './RondaGsaComponent';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { exportChecklist5SOfficialPdf } from '../utils/exportChecklist5SPdf';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
-import { db } from '../firebase';
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { AcoesGeraisRepository } from '../db';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { 
   BarChart, 
@@ -776,9 +775,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       const updatedActions = [newAction, ...existingActions];
       localStorage.setItem('repack_action_plans', JSON.stringify(updatedActions));
 
-      if (db) {
-        setDoc(doc(db, 'acoes', newAction.id), newAction).catch(err => console.warn('Firestore action error:', err));
-      }
+      const companyId = empresa?.id || 'demo';
+      AcoesGeraisRepository.create(newAction, companyId).catch(err => console.warn('Repository action error:', err));
     } catch (err) {
       console.warn('Error generating auto action plan:', err);
     }

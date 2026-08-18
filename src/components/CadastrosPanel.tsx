@@ -27,11 +27,19 @@ import {
   Key,
   UserPlus,
   Clock,
-  BellRing
+  BellRing,
+  FileCode
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { 
+  ProdutosRepository, 
+  ColaboradoresRepository, 
+  AcessosRepository, 
+  getRepository 
+} from '../db';
+
+const metasOperacaoRepo = getRepository<any>('metas_operacao');
+const acessosRepo = getRepository<any>('acessos');
 import { Usuario, Empresa, ProdutoMaster, ColaboradorMaster, AcessoColaborador } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
@@ -40,6 +48,7 @@ import { normalizeCollaboratorName, normalizeCollaboratorNamesInRecords } from '
 import PadraoOperacionalPanel from './PadraoOperacionalPanel';
 import { CadastrosLembretesManager } from './CadastrosLembretesManager';
 import { autoAssignRoleFromCargo, getDefaultModulesForCargo } from '../utils/permissions';
+import { PaginationControls } from './common/PaginationControls';
 
 interface CadastrosPanelProps {
   user: Usuario;
@@ -186,6 +195,14 @@ export default function CadastrosPanel({
   // Selection state for batch deletion
   const [selectedProdCodes, setSelectedProdCodes] = useState<string[]>([]);
   const [selectedColabMatriculas, setSelectedColabMatriculas] = useState<string[]>([]);
+
+  // ── PAGINAÇÃO STATES (Item 15 das Diretrizes) ──
+  const [prodPage, setProdPage] = useState(1);
+  const [prodPageSize, setProdPageSize] = useState(25);
+  const [colabPage, setColabPage] = useState(1);
+  const [colabPageSize, setColabPageSize] = useState(25);
+  const [acessoPage, setAcessoPage] = useState(1);
+  const [acessoPageSize, setAcessoPageSize] = useState(25);
 
   // ── COLABORADORES STATE ──
   const [colabSearch, setColabSearch] = useState('');
@@ -396,17 +413,17 @@ export default function CadastrosPanel({
     }
 
     try {
-      if (db && updatedColab._docId && !updatedColab._docId.startsWith('local_') && !updatedColab._docId.startsWith('official_')) {
-        await updateDoc(doc(db, 'colaboradores', updatedColab._docId), {
+      if (updatedColab._docId && !updatedColab._docId.startsWith('local_') && !updatedColab._docId.startsWith('official_')) {
+        await ColaboradoresRepository.update(updatedColab._docId, {
           matricula: updatedColab.matricula,
           cargo: updatedColab.cargo,
           senha: updatedColab.senha,
           ativo: updatedColab.ativo,
           modulosPermitidos: defaultMods,
           primeiroAcesso: false
-        });
-      } else if (db && (!updatedColab._docId || updatedColab._docId.startsWith('official_'))) {
-        const docRef = await addDoc(collection(db, 'colaboradores'), {
+        }, empresaId);
+      } else if (!updatedColab._docId || updatedColab._docId.startsWith('official_')) {
+        const docRef = await ColaboradoresRepository.create({
           empresaId,
           matricula: updatedColab.matricula,
           nome: updatedColab.nome,
@@ -417,11 +434,11 @@ export default function CadastrosPanel({
           modulosPermitidos: defaultMods,
           primeiroAcesso: false,
           _criadoEm: new Date().toISOString()
-        });
-        updatedColab._docId = docRef.id;
+        } as any, empresaId);
+        updatedColab._docId = docRef._docId || docRef.id;
       }
     } catch (e) {
-      console.warn('Firestore sync warning:', e);
+      console.warn('Repository sync warning:', e);
     }
 
     const key = `colaboradores_${empresaId}`;
@@ -441,11 +458,11 @@ export default function CadastrosPanel({
     const newAtivo = !(c.ativo !== false);
     const updated = { ...c, ativo: newAtivo };
 
-    if (db && c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
+    if (c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
       try {
-        await updateDoc(doc(db, 'colaboradores', c._docId), { ativo: newAtivo });
+        await ColaboradoresRepository.update(c._docId, { ativo: newAtivo }, empresaId);
       } catch (e) {
-        console.warn('Firestore update error:', e);
+        console.warn('Repository update error:', e);
       }
     }
 
@@ -490,11 +507,11 @@ export default function CadastrosPanel({
 
     const updated = { ...c, senha: '', ativo: false };
 
-    if (db && c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
+    if (c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
       try {
-        await updateDoc(doc(db, 'colaboradores', c._docId), { senha: '', ativo: false });
+        await ColaboradoresRepository.update(c._docId, { senha: '', ativo: false }, empresaId);
       } catch (e) {
-        console.warn('Firestore update error:', e);
+        console.warn('Repository update error:', e);
       }
     }
 
@@ -520,11 +537,11 @@ export default function CadastrosPanel({
 
     const updated = { ...c, cargo: newCargo, modulosPermitidos: defaultMods };
 
-    if (db && c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
+    if (c._docId && !c._docId.startsWith('local_') && !c._docId.startsWith('official_')) {
       try {
-        await updateDoc(doc(db, 'colaboradores', c._docId), { cargo: newCargo, modulosPermitidos: defaultMods });
+        await ColaboradoresRepository.update(c._docId, { cargo: newCargo, modulosPermitidos: defaultMods }, empresaId);
       } catch (e) {
-        console.warn('Firestore update error:', e);
+        console.warn('Repository update error:', e);
       }
     }
 
@@ -576,11 +593,7 @@ export default function CadastrosPanel({
         };
       });
 
-      if (db) {
-        for (const item of initialSeed) {
-          await addDoc(collection(db, 'produtos'), item);
-        }
-      }
+      await ProdutosRepository.batchUpsert(initialSeed, empresaId);
     } catch (e) {
       console.error('Erro ao popular produtos:', e);
     } finally {
@@ -647,13 +660,9 @@ export default function CadastrosPanel({
       };
 
       if (editingProduto && editingProduto._docId) {
-        if (db) {
-          await updateDoc(doc(db, 'produtos', editingProduto._docId), payload);
-        }
+        await ProdutosRepository.update(editingProduto._docId, payload, empresaId);
       } else {
-        if (db) {
-          await addDoc(collection(db, 'produtos'), payload);
-        }
+        await ProdutosRepository.create(payload, empresaId);
       }
       setShowProdutoModal(false);
     } catch (e) {
@@ -668,11 +677,11 @@ export default function CadastrosPanel({
 
     const targetId = p._docId || (p as any).id;
     try {
-      if (db && targetId && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
+      if (targetId && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
         try {
-          await deleteDoc(doc(db, 'produtos', targetId));
+          await ProdutosRepository.delete(targetId, empresaId);
         } catch (e) {
-          console.warn('Firestore delete error:', e);
+          console.warn('Repository delete error:', e);
         }
       }
 
@@ -720,13 +729,11 @@ export default function CadastrosPanel({
     if (!confirm(`⚠️ Confirma a exclusão de ${selectedProdCodes.length} produtos selecionados? esta ação é irreversível.`)) return;
 
     try {
-      if (db) {
-        for (const p of empresaData.produtos) {
-          if (selectedProdCodes.includes(p.codigo) && p._docId && !p._docId.startsWith('local_')) {
-            try {
-              await deleteDoc(doc(db, 'produtos', p._docId));
-            } catch (e) {}
-          }
+      for (const p of empresaData.produtos) {
+        if (selectedProdCodes.includes(p.codigo) && p._docId && !p._docId.startsWith('local_')) {
+          try {
+            await ProdutosRepository.delete(p._docId, empresaId);
+          } catch (e) {}
         }
       }
 
@@ -841,21 +848,20 @@ export default function CadastrosPanel({
     if (prodImportPreview.length === 0) return;
     setImportingProdutos(true);
     try {
-      if (db) {
-        for (const p of empresaData.produtos) {
-          if (p._docId && !p._docId.startsWith('local_')) {
-            try {
-              await deleteDoc(doc(db, 'produtos', p._docId));
-            } catch (e) {
-              console.warn('Erro ao remover produto antigo do firestore:', e);
-            }
+      for (const p of empresaData.produtos) {
+        if (p._docId && !p._docId.startsWith('local_')) {
+          try {
+            await ProdutosRepository.delete(p._docId, empresaId);
+          } catch (e) {
+            console.warn('Erro ao remover produto antigo:', e);
           }
         }
-        for (const newP of prodImportPreview) {
-          const { _docId, ...clean } = newP;
-          await addDoc(collection(db, 'produtos'), clean);
-        }
       }
+      const cleanItems = prodImportPreview.map(newP => {
+        const { _docId, ...clean } = newP;
+        return clean;
+      });
+      await ProdutosRepository.batchUpsert(cleanItems as any, empresaId);
 
       const key = `produtos_${empresaId}`;
       localStorage.setItem(key, JSON.stringify(prodImportPreview));
@@ -904,6 +910,12 @@ export default function CadastrosPanel({
       return matchesSearch && matchesGrupo && matchesCurva;
     });
   }, [empresaData.produtos, produtoSearch, filterGrupo, filterCurva]);
+
+  // Paginação de Produtos
+  const pagedProdutos = useMemo(() => {
+    const start = (prodPage - 1) * prodPageSize;
+    return filteredProdutos.slice(start, start + prodPageSize);
+  }, [filteredProdutos, prodPage, prodPageSize]);
 
   const gruposList = useMemo(() => {
     const list = Array.from(new Set(empresaData.produtos.map(p => p.grupo).filter(Boolean)));
@@ -956,19 +968,15 @@ export default function CadastrosPanel({
       let savedDocId = editingColab?._docId;
 
       if (editingColab && editingColab._docId) {
-        if (db && !editingColab._docId.startsWith('local_')) {
-          await updateDoc(doc(db, 'colaboradores', editingColab._docId), payload);
+        if (!editingColab._docId.startsWith('local_')) {
+          await ColaboradoresRepository.update(editingColab._docId, payload as any, empresaId);
         }
       } else {
-        if (db) {
-          try {
-            const docRef = await addDoc(collection(db, 'colaboradores'), payload);
-            savedDocId = docRef.id;
-          } catch (e) {
-            console.warn('Firestore addDoc fallback:', e);
-            savedDocId = `local_${Date.now()}`;
-          }
-        } else {
+        try {
+          const docRef = await ColaboradoresRepository.create(payload as any, empresaId);
+          savedDocId = docRef._docId || docRef.id;
+        } catch (e) {
+          console.warn('ColaboradoresRepository fallback:', e);
           savedDocId = `local_${Date.now()}`;
         }
       }
@@ -1012,11 +1020,11 @@ export default function CadastrosPanel({
 
     try {
       const targetId = c._docId || (c as any).id;
-      if (db && targetId && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
+      if (targetId && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
         try {
-          await deleteDoc(doc(db, 'colaboradores', targetId));
+          await ColaboradoresRepository.delete(targetId, empresaId);
         } catch (err) {
-          console.warn('Firestore delete:', err);
+          console.warn('Repository delete:', err);
         }
       }
 
@@ -1061,15 +1069,13 @@ export default function CadastrosPanel({
     if (!confirm(`⚠️ Confirma a exclusão de ${selectedColabMatriculas.length} colaboradores selecionados?`)) return;
 
     try {
-      if (db) {
-        const list = empresaData.colaboradores || [];
-        for (const c of list) {
-          if (selectedColabMatriculas.includes(c.matricula) && c._docId && !c._docId.startsWith('local_')) {
-            try {
-              await deleteDoc(doc(db, 'colaboradores', c._docId));
-            } catch (e) {
-              console.warn('Firestore delete:', e);
-            }
+      const list = empresaData.colaboradores || [];
+      for (const c of list) {
+        if (selectedColabMatriculas.includes(c.matricula) && c._docId && !c._docId.startsWith('local_')) {
+          try {
+            await ColaboradoresRepository.delete(c._docId, empresaId);
+          } catch (e) {
+            console.warn('Repository delete:', e);
           }
         }
       }
@@ -1101,14 +1107,12 @@ export default function CadastrosPanel({
     }
 
     try {
-      if (db) {
-        const list = empresaData.colaboradores || [];
-        for (const c of list) {
-          if (c._docId && !c._docId.startsWith('local_')) {
-            try {
-              await deleteDoc(doc(db, 'colaboradores', c._docId));
-            } catch (e) {}
-          }
+      const list = empresaData.colaboradores || [];
+      for (const c of list) {
+        if (c._docId && !c._docId.startsWith('local_')) {
+          try {
+            await ColaboradoresRepository.delete(c._docId, empresaId);
+          } catch (e) {}
         }
       }
 
@@ -1212,13 +1216,11 @@ export default function CadastrosPanel({
         };
 
         let savedDocId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        if (db) {
-          try {
-            const docRef = await addDoc(collection(db, 'colaboradores'), item);
-            savedDocId = docRef.id;
-          } catch (err) {
-            console.warn('Firestore addDoc batch warning:', err);
-          }
+        try {
+          const docRef = await ColaboradoresRepository.create(item as any, empresaId);
+          savedDocId = docRef._docId || docRef.id;
+        } catch (err) {
+          console.warn('ColaboradoresRepository batch warning:', err);
         }
         newItems.push({ _docId: savedDocId, ...item });
       }
@@ -1323,13 +1325,11 @@ export default function CadastrosPanel({
       };
 
       let docId = `local_${Date.now()}`;
-      if (db) {
-        try {
-          const docRef = await addDoc(collection(db, 'colaboradores'), payload as any);
-          docId = docRef.id;
-        } catch (err) {
-          console.warn('Firestore addDoc fallback:', err);
-        }
+      try {
+        const docRef = await ColaboradoresRepository.create(payload as any, empresaId);
+        docId = docRef._docId || docRef.id;
+      } catch (err) {
+        console.warn('ColaboradoresRepository addDoc fallback:', err);
       }
 
       const key = `colaboradores_${empresaId}`;
@@ -1417,16 +1417,14 @@ export default function CadastrosPanel({
     setMetas(updated);
     localStorage.setItem(`metas_operacao_${empresaId}`, JSON.stringify(updated));
 
-    if (db) {
-      try {
-        await addDoc(collection(db, 'metas_operacao'), {
-          empresaId,
-          ...newOrUpdatedMeta,
-          atualizadoEm: new Date().toISOString()
-        });
-      } catch (e) {
-        console.warn('Firestore metas save:', e);
-      }
+    try {
+      await metasOperacaoRepo.create({
+        empresaId,
+        ...newOrUpdatedMeta,
+        atualizadoEm: new Date().toISOString()
+      }, empresaId);
+    } catch (e) {
+      console.warn('Metas save warning:', e);
     }
     setShowMetaModal(false);
     alert(isNewMeta ? 'Nova meta criada com sucesso!' : `Meta para ${newOrUpdatedMeta.nome} atualizada com sucesso!`);
@@ -1496,6 +1494,12 @@ export default function CadastrosPanel({
     });
   }, [allColaboradores, colabSearch, deletedMatriculas, colabCargoFilter, colabTurnoFilter]);
 
+  // Paginação de Colaboradores
+  const pagedColaboradores = useMemo(() => {
+    const start = (colabPage - 1) * colabPageSize;
+    return filteredColaboradores.slice(start, start + colabPageSize);
+  }, [filteredColaboradores, colabPage, colabPageSize]);
+
   // ── ACESSOS HANDLERS ──
   const getColaboradorAccess = (matricula: string): string[] => {
     const existing = empresaData.acessos.find(a => a.matricula === matricula);
@@ -1516,23 +1520,19 @@ export default function CadastrosPanel({
     try {
       const existingDoc = empresaData.acessos.find(a => a.matricula === matricula);
       if (existingDoc && existingDoc._docId) {
-        if (db) {
-          await updateDoc(doc(db, 'acessos', existingDoc._docId), {
-            modulosPermitidos: updated,
-            nomeColaborador,
-            _criadoEm: new Date().toISOString()
-          });
-        }
+        await acessosRepo.update(existingDoc._docId, {
+          modulosPermitidos: updated,
+          nomeColaborador,
+          _criadoEm: new Date().toISOString()
+        }, empresaId);
       } else {
-        if (db) {
-          await addDoc(collection(db, 'acessos'), {
-            empresaId,
-            matricula,
-            nomeColaborador,
-            modulosPermitidos: updated,
-            _criadoEm: new Date().toISOString()
-          });
-        }
+        await acessosRepo.create({
+          empresaId,
+          matricula,
+          nomeColaborador,
+          modulosPermitidos: updated,
+          _criadoEm: new Date().toISOString()
+        }, empresaId);
       }
     } catch (e) {
       console.error('Erro ao salvar acessos:', e);
@@ -1655,6 +1655,17 @@ export default function CadastrosPanel({
                 <Clock className="w-4 h-4" />
                 Lembretes & Horários
               </button>
+
+              {onNavigate && (
+                <button
+                  type="button"
+                  onClick={() => onNavigate('dados-retroativos')}
+                  className="px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
+                >
+                  <FileCode className="w-4 h-4 text-amber-300" />
+                  Importar Retroativos (JSON) ↗
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -1753,13 +1764,11 @@ export default function CadastrosPanel({
                   type="button"
                   onClick={async () => {
                     if (confirm(`⚠️ Tem certeza que deseja ZERAR E EXCLUIR TODA A BASE DE PRODUTOS CADASTRADOS? Esta ação não pode ser desfeita.`)) {
-                      if (db) {
-                        for (const p of empresaData.produtos) {
-                          if (p._docId && !p._docId.startsWith('local_')) {
-                            try {
-                              await deleteDoc(doc(db, 'produtos', p._docId));
-                            } catch (e) {}
-                          }
+                      for (const p of empresaData.produtos) {
+                        if (p._docId && !p._docId.startsWith('local_')) {
+                          try {
+                            await ProdutosRepository.delete(p._docId, empresaId);
+                          } catch (e) {}
                         }
                       }
                       localStorage.setItem(`produtos_${empresaId}`, JSON.stringify([]));
@@ -1864,7 +1873,7 @@ export default function CadastrosPanel({
                       </td>
                     </tr>
                   ) : (
-                    filteredProdutos.map((p) => {
+                    pagedProdutos.map((p) => {
                       const isSelected = selectedProdCodes.includes(p.codigo);
                       return (
                         <tr key={p._docId || p.codigo} className={`hover:bg-slate-800/30 transition-colors ${isSelected ? 'bg-emerald-500/10' : ''}`}>
@@ -1929,6 +1938,26 @@ export default function CadastrosPanel({
                 </tbody>
               </table>
             </div>
+
+            {filteredProdutos.length > 0 && (
+              <div className="p-3 border-t border-slate-800">
+                <PaginationControls
+                  currentPage={prodPage}
+                  pageSize={prodPageSize}
+                  hasMore={prodPage * prodPageSize < filteredProdutos.length}
+                  hasPrev={prodPage > 1}
+                  totalCount={empresaData.produtos.length}
+                  totalFiltered={filteredProdutos.length}
+                  onPrevPage={() => setProdPage((p) => Math.max(1, p - 1))}
+                  onNextPage={() => setProdPage((p) => p + 1)}
+                  onPageSizeChange={(newSize) => {
+                    setProdPageSize(newSize);
+                    setProdPage(1);
+                  }}
+                  theme="dark"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2220,7 +2249,7 @@ export default function CadastrosPanel({
                       </td>
                     </tr>
                   ) : (
-                    filteredColaboradores.map((c, idx) => {
+                    pagedColaboradores.map((c, idx) => {
                       const roleType = autoAssignRoleFromCargo(c.cargo);
                       const isSelected = selectedColabMatriculas.includes(c.matricula);
 
@@ -2306,6 +2335,26 @@ export default function CadastrosPanel({
                 </tbody>
               </table>
             </div>
+
+            {filteredColaboradores.length > 0 && (
+              <div className="p-3 border-t border-slate-800">
+                <PaginationControls
+                  currentPage={colabPage}
+                  pageSize={colabPageSize}
+                  hasMore={colabPage * colabPageSize < filteredColaboradores.length}
+                  hasPrev={colabPage > 1}
+                  totalCount={allColaboradores.length}
+                  totalFiltered={filteredColaboradores.length}
+                  onPrevPage={() => setColabPage((p) => Math.max(1, p - 1))}
+                  onNextPage={() => setColabPage((p) => p + 1)}
+                  onPageSizeChange={(newSize) => {
+                    setColabPageSize(newSize);
+                    setColabPage(1);
+                  }}
+                  theme="dark"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
 import { getStoredEfcVehicles, calculateEfcMetrics, calculateEfdMetrics } from '../utils/efcEfdManager';
+import { convertEfcVehiclesToArmazemRows } from '../services/retroactiveEfcEfdSyncService';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   BarChart, 
@@ -17,7 +18,8 @@ import {
   PieChart,
   Pie,
   ComposedChart,
-  ReferenceLine
+  ReferenceLine,
+  LabelList
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -190,13 +192,57 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
 
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    if (!db) {
-      const saved = localStorage.getItem(`armazem_rows_${companyId}`);
-      if (saved) setActualArmazemRows(JSON.parse(saved));
-      return;
-    }
+    
+    const loadArmazemData = () => {
+      // 1. Carregar diretamente do armazenamento local sincronizado
+      const savedArmazem = localStorage.getItem(`armazem_rows_${companyId}`);
+      let localRows: ArmazemRow[] = [];
+      if (savedArmazem) {
+        try {
+          const parsed = JSON.parse(savedArmazem);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localRows = parsed;
+          }
+        } catch (_) {}
+      }
 
-    setActualArmazemRows(empresaData.armazem);
+      // 2. Se houver veículos EFC/EFD no armazenamento, mesclar ou usar
+      const savedEfc = localStorage.getItem(`efc_efd_vehicles_${companyId}`);
+      if (savedEfc) {
+        try {
+          const efcVehicles = JSON.parse(savedEfc);
+          if (Array.isArray(efcVehicles) && efcVehicles.length > 0) {
+            const converted = convertEfcVehiclesToArmazemRows(efcVehicles, companyId);
+            const rowMap = new Map<string, ArmazemRow>();
+            localRows.forEach(r => { if (r._docId) rowMap.set(r._docId, r); });
+            converted.forEach(r => { if (r._docId) rowMap.set(r._docId, r); });
+            localRows = Array.from(rowMap.values());
+          }
+        } catch (_) {}
+      }
+
+      if (localRows.length > 0) {
+        setActualArmazemRows(localRows);
+        return;
+      }
+
+      // 3. Fallback para dados globais da empresa
+      if (empresaData.armazem && empresaData.armazem.length > 0) {
+        setActualArmazemRows(empresaData.armazem);
+      }
+    };
+
+    loadArmazemData();
+
+    window.addEventListener('efc_vehicles_updated', loadArmazemData);
+    window.addEventListener('local_data_changed', loadArmazemData);
+    window.addEventListener('storage', loadArmazemData);
+
+    return () => {
+      window.removeEventListener('efc_vehicles_updated', loadArmazemData);
+      window.removeEventListener('local_data_changed', loadArmazemData);
+      window.removeEventListener('storage', loadArmazemData);
+    };
   }, [empresaData.armazem, empresa?.id]);
   // Helper for parsing date fields
   const parseRowDate = (r: ArmazemRow) => {
@@ -1283,8 +1329,10 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
       { label: '18:00 - 20:00', range: [18, 20] },
     ];
 
-    // Initialize counts grid
+    // Initialize counts grid and distinct day tracker
     const grid: Record<string, number> = {};
+    const dayOccurrences: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set(), 5: new Set(), 6: new Set() };
+    
     days.forEach(d => {
       slots.forEach((s, idx) => {
         grid[`${d.dayNum}-${idx}`] = 0;
@@ -1296,6 +1344,11 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     filteredRows.forEach(r => {
       const weekday = getRowWeekday(r); // 1 = Mon, ..., 6 = Sat
       if (weekday >= 1 && weekday <= 6) {
+        const dt = parseRowDate(r);
+        if (dt) {
+          dayOccurrences[weekday].add(`${dt.year}-${dt.month}-${dt.day}`);
+        }
+
         const hour = r.inicio ? parseInt(r.inicio.split(':')[0]) : -1;
         if (hour !== -1) {
           let slotIdx = -1;
@@ -1312,36 +1365,47 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
       }
     });
 
-    return days.map(d => {
-      const daySlots = slots.map((s, idx) => {
+    // Calculate maximum rate to normalize colors dynamically
+    let maxRate = 0;
+    const rates: Record<string, { count: number; rate: number }> = {};
+    days.forEach(d => {
+      const activeDaysCount = Math.max(1, dayOccurrences[d.dayNum]?.size || 1);
+      slots.forEach((s, idx) => {
         const key = `${d.dayNum}-${idx}`;
         const count = grid[key] || 0;
+        const rate = count / activeDaysCount; // media de veiculos por hora nesse dia
+        rates[key] = { count, rate };
+        if (rate > maxRate) maxRate = rate;
+      });
+    });
 
-        // Default layout matching the user's uploaded photo
+    return days.map(d => {
+      const activeDaysCount = Math.max(1, dayOccurrences[d.dayNum]?.size || 1);
+      const daySlots = slots.map((s, idx) => {
+        const key = `${d.dayNum}-${idx}`;
+        const { count, rate } = rates[key] || { count: 0, rate: 0 };
+
+        // Default colors if no real data
         let color = 'green';
-        if (idx === 5) {
-          if (d.dayNum === 1 || d.dayNum === 5) {
-            color = 'orange';
-          } else if (d.dayNum === 2 || d.dayNum === 3 || d.dayNum === 4) {
-            color = 'red';
-          }
-        }
-
-        // If there's real filtered data, color based on congestion
-        if (hasRealFilteredData) {
-          if (count >= 4) {
-            color = 'red';
-          } else if (count >= 2) {
-            color = 'orange';
+        if (hasRealFilteredData && maxRate > 0) {
+          const ratio = rate / maxRate;
+          if (ratio >= 0.7 && rate >= 2) {
+            color = 'red'; // Pico de congestionamento
+          } else if (ratio >= 0.35 && rate >= 1) {
+            color = 'orange'; // Movimentação moderada
           } else {
-            color = 'green';
+            color = 'green'; // Fluxo livre
           }
+        } else if (idx === 5) {
+          if (d.dayNum === 1 || d.dayNum === 5) color = 'orange';
+          else if (d.dayNum === 2 || d.dayNum === 3 || d.dayNum === 4) color = 'red';
         }
 
         return {
           slotIdx: idx,
           slotLabel: s.label,
           count,
+          rate: parseFloat(rate.toFixed(1)),
           color,
         };
       });
@@ -1385,31 +1449,27 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
         return {
           day: label,
           avgLoadingTime: avg,
+          count: dailyMinutes[label].count,
         };
       });
 
-    // Baseline mock data matching the user's specs perfectly (68 mean, 82 LSC, 54 LIC)
+    // Baseline mock data matching specs if empty
     const defaultPoints = [
-      { day: '01', avgLoadingTime: 65 },
-      { day: '02', avgLoadingTime: 72 },
-      { day: '03', avgLoadingTime: 58 },
-      { day: '04', avgLoadingTime: 84 }, // out of bounds (> 82)
-      { day: '05', avgLoadingTime: 66 },
-      { day: '06', avgLoadingTime: 70 },
-      { day: '07', avgLoadingTime: 63 },
-      { day: '08', avgLoadingTime: 51 }, // out of bounds (< 54)
-      { day: '09', avgLoadingTime: 69 },
-      { day: '10', avgLoadingTime: 75 },
-      { day: '11', avgLoadingTime: 67 },
-      { day: '12', avgLoadingTime: 76 },
+      { day: '01', avgLoadingTime: 12, count: 10 },
+      { day: '02', avgLoadingTime: 14, count: 12 },
+      { day: '03', avgLoadingTime: 10, count: 8 },
+      { day: '04', avgLoadingTime: 15, count: 14 },
+      { day: '05', avgLoadingTime: 11, count: 9 },
+      { day: '06', avgLoadingTime: 13, count: 11 },
+      { day: '07', avgLoadingTime: 12, count: 10 },
     ];
 
-    const hasRealFilteredData = calculatedPoints.length >= 5;
+    const hasRealFilteredData = calculatedPoints.length >= 3;
     const finalPoints = hasRealFilteredData ? calculatedPoints : defaultPoints;
 
-    let media = 68;
-    let lsc = 82;
-    let lic = 54;
+    let media = 12;
+    let lsc = 15;
+    let lic = 9;
 
     if (hasRealFilteredData) {
       const values = finalPoints.map(p => p.avgLoadingTime);
@@ -1418,12 +1478,13 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
       media = Math.round(sum / n);
 
       const variance = values.reduce((s, v) => s + Math.pow(v - media, 2), 0) / (n - 1 || 1);
-      const stdDev = Math.sqrt(variance);
+      const stdDev = Math.max(0.5, Math.sqrt(variance));
 
-      lsc = Math.round(media + 2.0 * stdDev);
-      lic = Math.round(media - 2.0 * stdDev);
-      if (lic < 10) lic = 10;
-      if (lsc <= media) lsc = media + 15;
+      // Limites estatísticos CEP (3 Sigmas)
+      lsc = Math.round(media + 2.5 * stdDev);
+      lic = Math.max(0, Math.round(media - 2.5 * stdDev));
+      if (lsc <= media) lsc = media + 3;
+      if (lic >= media) lic = Math.max(0, media - 3);
     }
 
     const pointsWithStatus = finalPoints.map(p => {
@@ -1437,8 +1498,9 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
       };
     });
 
-    const hasOutOfBounds = pointsWithStatus.some(p => p.isOutOfBounds);
-    const status = hasOutOfBounds ? 'Fora de Controle' : 'Estável';
+    const outOfBoundsCount = pointsWithStatus.filter(p => p.isOutOfBounds).length;
+    const isUnderControl = outOfBoundsCount <= Math.max(1, Math.round(pointsWithStatus.length * 0.05));
+    const status = isUnderControl ? 'Estável' : 'Fora de Controle';
 
     return {
       points: pointsWithStatus,
@@ -1449,14 +1511,14 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     };
   }, [filteredRows]);
 
-  // Histograma Carregamento distribution
+  // Histograma Carregamento distribution (Faixas Operacionais compatíveis com SLA de 15 min)
   const histogramaCarregamentoData = useMemo(() => {
     const ranges = {
-      '0 - 30 min': { count: 0, fill: '#0284c7' },
-      '30 - 60 min': { count: 0, fill: '#0369a1' },
-      '60 - 90 min': { count: 0, fill: '#032b5e' },
-      '90 - 120 min': { count: 0, fill: '#1e56f0' },
-      '> 120 min': { count: 0, fill: '#1e3a8a' }
+      '0 - 5 min': { count: 0, fill: '#0ea5e9' },
+      '6 - 10 min': { count: 0, fill: '#0284c7' },
+      '11 - 15 min': { count: 0, fill: '#032b5e' },
+      '16 - 20 min': { count: 0, fill: '#f59e0b' },
+      '> 20 min': { count: 0, fill: '#ef4444' }
     };
     
     const carregamentos = filteredRows.filter(r => r.operacao === 'Carregamento');
@@ -1464,11 +1526,11 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
       if (r.inicio && r.fim) {
         const diff = timeToMinutes(r.fim) - timeToMinutes(r.inicio);
         if (diff > 0) {
-          if (diff <= 30) ranges['0 - 30 min'].count++;
-          else if (diff <= 60) ranges['30 - 60 min'].count++;
-          else if (diff <= 90) ranges['60 - 90 min'].count++;
-          else if (diff <= 120) ranges['90 - 120 min'].count++;
-          else ranges['> 120 min'].count++;
+          if (diff <= 5) ranges['0 - 5 min'].count++;
+          else if (diff <= 10) ranges['6 - 10 min'].count++;
+          else if (diff <= 15) ranges['11 - 15 min'].count++;
+          else if (diff <= 20) ranges['16 - 20 min'].count++;
+          else ranges['> 20 min'].count++;
         }
       }
     });
@@ -1720,30 +1782,28 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     ];
   }, [rowsDescarga]);
 
-  // Gráfico 2 - Histograma do Tempo de Descarga
+  // Gráfico 2 - Histograma do Tempo de Descarga (Faixas Operacionais compatíveis com SLA de 10 min)
   const histogramaTempoDescargaData = useMemo(() => {
-    let t10 = 0, t20 = 0, t30 = 0, t40 = 0, t50 = 0, tOver = 0;
+    let t5 = 0, t10 = 0, t15 = 0, t20 = 0, tOver = 0;
     rowsDescarga.forEach(r => {
       if (r.inicio && r.fim) {
         const diff = timeToMinutes(r.fim) - timeToMinutes(r.inicio);
         if (diff > 0) {
-          if (diff <= 10) t10++;
+          if (diff <= 5) t5++;
+          else if (diff <= 10) t10++;
+          else if (diff <= 15) t15++;
           else if (diff <= 20) t20++;
-          else if (diff <= 30) t30++;
-          else if (diff <= 40) t40++;
-          else if (diff <= 50) t50++;
           else tOver++;
         }
       }
     });
 
     return [
-      { faixa: '0 - 10 min', camioes: t10, fill: '#0ea5e9' },
-      { faixa: '10 - 20 min', camioes: t20, fill: '#0284c7' },
-      { faixa: '20 - 30 min', camioes: t30, fill: '#0369a1' },
-      { faixa: '30 - 40 min', camioes: t40, fill: '#032b5e' },
-      { faixa: '40 - 50 min', camioes: t50, fill: '#1e56f0' },
-      { faixa: '> 50 min', camioes: tOver, fill: '#1e3a8a' },
+      { faixa: '0 - 5 min', camioes: t5, fill: '#10b981' },
+      { faixa: '6 - 10 min', camioes: t10, fill: '#f97316' },
+      { faixa: '11 - 15 min', camioes: t15, fill: '#f59e0b' },
+      { faixa: '16 - 20 min', camioes: t20, fill: '#ef4444' },
+      { faixa: '> 20 min', camioes: tOver, fill: '#991b1b' },
     ];
   }, [rowsDescarga]);
 
@@ -2721,7 +2781,7 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
         </div>
       </div>
 
-      {/* 📊 SEÇÃO ESPECIALIZADA: 6 GRÁFICOS DPO DO DASHBOARD EFC / EFD */}
+      {/* 📊 SEÇÃO ESPECIALIZADA: GRÁFICOS DPO DO DASHBOARD EFC / EFD */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* CHART 1: HISTOGRAMA DOS ÚLTIMOS 7 DIAS (EFC x EFD) */}
@@ -2768,20 +2828,20 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           </div>
         </div>
 
-        {/* CHART 2: TEMPO MÉDIO DE CARREGAMENTO E DESCARREGAMENTO */}
+        {/* CHART 2: TEMPO MÉDIO DE CARREGAMENTO */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 gap-2">
             <div>
               <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-                2. Tempo Médio Operacional (Evolução Temporal)
+                2. Tempo Médio de Carregamento (Evolução Temporal)
               </h3>
               <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
-                Tempo de atendimento por veículo em minutos vs. SLA máximo
+                Tempo de carregamento por veículo em minutos vs. SLA Máximo (≤15 min)
               </p>
             </div>
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
               <span className="flex items-center gap-1"><span className="w-3 h-1 bg-[#032b5e] rounded-full inline-block"></span> T.M. Carregamento</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-1 bg-[#f97316] rounded-full inline-block"></span> T.M. Descarga</span>
+              <span className="flex items-center gap-1 text-[#032b5e]"><span className="w-2.5 h-0.5 bg-[#032b5e] inline-block border-t border-dashed border-[#032b5e]"></span> SLA ≤15m</span>
             </div>
           </div>
 
@@ -2794,29 +2854,69 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="2. Tempo Médio Operacional (Evolução)"
-                      concept="Evolução do tempo médio de permanência em minutos por operação de carregamento/descarregamento."
-                      formula="Média (min) = (Minutos totais gastos) / (Total de operações no dia)"
+                      title="2. Tempo Médio de Carregamento (Evolução)"
+                      concept="Evolução diária do tempo médio de carregamento dos veículos em doca comparado ao SLA oficial."
+                      formula="Média (min) = (Soma de minutos gastos em Carregamento) / (Total de veículos carregados no dia)"
                       unit=" min"
                     />
                   } 
                 />
 
                 <ReferenceLine y={15} stroke="#032b5e" strokeDasharray="3 3" label={{ value: 'SLA Carregamento ≤15m', fill: '#032b5e', position: 'right', fontSize: 9, fontWeight: 'bold' }} />
-                <ReferenceLine y={10} stroke="#f97316" strokeDasharray="3 3" label={{ value: 'SLA Descarga ≤10m', fill: '#f97316', position: 'right', fontSize: 9, fontWeight: 'bold' }} />
 
-                <Line type="monotone" dataKey="tempoCarregamento" name="T.M. Carregamento (min)" stroke="#032b5e" strokeWidth={3} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="tempoDescarga" name="T.M. Descarga (min)" stroke="#f97316" strokeWidth={3} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="tempoCarregamento" name="T.M. Carregamento (min)" stroke="#032b5e" strokeWidth={3} dot={{ r: 4, fill: '#032b5e' }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* CHART 3: RANKING DE MELHOR TEMPO / PRODUTIVIDADE POR OPERADOR */}
+        {/* CHART 3: TEMPO MÉDIO DE DESCARREGAMENTO */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 gap-2">
+            <div>
+              <h3 className="font-sans font-black text-sm uppercase text-[#f97316] tracking-wider">
+                3. Tempo Médio de Descarregamento (Evolução Temporal)
+              </h3>
+              <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
+                Tempo de descarga por veículo em minutos vs. SLA Máximo (≤10 min)
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
+              <span className="flex items-center gap-1"><span className="w-3 h-1 bg-[#f97316] rounded-full inline-block"></span> T.M. Descarga</span>
+              <span className="flex items-center gap-1 text-[#f97316]"><span className="w-2.5 h-0.5 bg-[#f97316] inline-block border-t border-dashed border-[#f97316]"></span> SLA ≤10m</span>
+            </div>
+          </div>
+
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={tempoMedioEvolucaoData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="dia" stroke="#94a3b8" fontSize={11} fontWeight="bold" tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit=" min" />
+                <Tooltip 
+                  content={
+                    <ChartTooltipExplainer 
+                      title="3. Tempo Médio de Descarregamento (Evolução)"
+                      concept="Evolução diária do tempo médio de descarregamento/descarga dos veículos em doca comparado ao SLA oficial."
+                      formula="Média (min) = (Soma de minutos gastos em Descarregamento) / (Total de veículos descarregados no dia)"
+                      unit=" min"
+                    />
+                  } 
+                />
+
+                <ReferenceLine y={10} stroke="#f97316" strokeDasharray="3 3" label={{ value: 'SLA Descarga ≤10m', fill: '#f97316', position: 'right', fontSize: 9, fontWeight: 'bold' }} />
+
+                <Line type="monotone" dataKey="tempoDescarga" name="T.M. Descarga (min)" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: '#f97316' }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* CHART 4: RANKING DE MELHOR TEMPO / PRODUTIVIDADE POR OPERADOR */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
           <div className="border-b border-gray-100 pb-4">
             <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-              3. Ranking de Performance por Operador (Empilhador)
+              4. Ranking de Performance por Operador (Empilhador)
             </h3>
             <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
               Tempo médio de movimentação e atingimento de SLA (Verde: Conforme | Vermelho: Atencao)
@@ -2832,7 +2932,7 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="3. Performance por Operador"
+                      title="4. Performance por Operador"
                       concept="Média de minutos de movimentação por empilhador (Verde = Conforme | Vermelho = Atenção)."
                       formula="Tempo Médio = (Minutos Executados pelo Op.) / (Operações Concluídas)"
                       unit=" min"
@@ -2849,27 +2949,33 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           </div>
         </div>
 
-        {/* CHART 4: COMPARATIVO META X REAL */}
+        {/* CHART 5: COMPARATIVO META X REAL */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
-          <div className="border-b border-gray-100 pb-4">
-            <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-              4. Comparativo Geral: Meta DPO x Realizado
-            </h3>
-            <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
-              EFC (Meta 96.0%) vs EFD (Meta 90.0%) acumulados no período
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 gap-2">
+            <div>
+              <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
+                5. Comparativo Geral: Meta DPO x Realizado
+              </h3>
+              <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
+                EFC (Meta 96.0%) vs EFD (Meta 90.0%) acumulados no período
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#032b5e] rounded-xs inline-block"></span> Realizado</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#475569] rounded-xs inline-block"></span> Meta Oficial</span>
+            </div>
           </div>
 
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparativoMetaRealData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+              <BarChart data={comparativoMetaRealData} margin={{ top: 25, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="indicador" stroke="#94a3b8" fontSize={11} fontWeight="bold" tickLine={false} />
-                <YAxis domain={[0, 105]} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="%" />
+                <YAxis domain={[0, 115]} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="%" />
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="4. Comparativo Meta DPO x Real"
+                      title="5. Comparativo Meta DPO x Real"
                       concept="Percentual atingido de conformidade versus meta oficial DPO (EFC 96.0% / EFD 90.0%)."
                       formula="Realizado (%) = (Veículos Conformes / Total Avaliados) * 100"
                       unit="%"
@@ -2877,22 +2983,35 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                   } 
                 />
                 
-                <Bar dataKey="Real" name="Realizado (%)" radius={[4, 4, 0, 0]} barSize={45}>
+                <Bar dataKey="Real" name="Realizado (%)" radius={[4, 4, 0, 0]} barSize={42}>
                   {comparativoMetaRealData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fillReal} />
                   ))}
+                  <LabelList 
+                    dataKey="Real" 
+                    position="top" 
+                    formatter={(val: any) => `${val}%`} 
+                    style={{ fontSize: 11, fontWeight: '900', fill: '#0f172a' }} 
+                  />
                 </Bar>
-                <Bar dataKey="Meta" name="Meta Oficial (%)" fill="#cbd5e1" radius={[4, 4, 0, 0]} barSize={45} />
+                <Bar dataKey="Meta" name="Meta Oficial (%)" fill="#475569" radius={[4, 4, 0, 0]} barSize={42}>
+                  <LabelList 
+                    dataKey="Meta" 
+                    position="top" 
+                    formatter={(val: any) => `${val}%`} 
+                    style={{ fontSize: 11, fontWeight: '900', fill: '#334155' }} 
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* CHART 5: RANKING DE VEÍCULOS COM MAIOR TEMPO */}
+        {/* CHART 6: RANKING DE VEÍCULOS COM MAIOR TEMPO */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
           <div className="border-b border-gray-100 pb-4">
             <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-              5. Ranking de Veículos com Maior Tempo (Gargalos)
+              6. Ranking de Veículos com Maior Tempo (Gargalos)
             </h3>
             <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
               Maior permanência nas docas (Azul: Carregamento | Laranja: Descarga)
@@ -2908,7 +3027,7 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="5. Veículos com Maior Tempo"
+                      title="6. Veículos com Maior Tempo"
                       concept="Gargalos de maior permanência em doca (Azul = Carregamento | Laranja = Descarregamento)."
                       formula="Tempo Estadia = Hora Término - Hora Início (em minutos)"
                       unit=" min"
@@ -2925,12 +3044,12 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           </div>
         </div>
 
-        {/* CHART 6: MAPA DE CALOR 24H / 72H + TRAJETÓRIA IDEAL */}
+        {/* CHART 7: MAPA DE CALOR 24H / 72H + TRAJETÓRIA IDEAL */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 gap-2">
             <div>
               <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-                6. Mapa de Calor (Produtividade 24h/72h) & Trajetória Ideal
+                7. Mapa de Calor (Produtividade 24h/72h) & Trajetória Ideal
               </h3>
               <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
                 Processamento por hora com curva de meta acumulada (06:30 EFC / 22:00 EFD)
@@ -2967,7 +3086,7 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="6. Mapa de Calor & Trajetória"
+                      title="7. Mapa de Calor & Trajetória"
                       concept="Produtividade de veículos por hora sobreposta pela trajetória de meta acumulada."
                       formula="Barras = Veículos Concluídos na hora | Linha = Trajetória Ideal Acumulada"
                     />
@@ -3006,20 +3125,25 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           {/* 3. HISTOGRAMA DE CARREGAMENTO */}
           <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
             <div className="flex flex-col gap-4">
-              <div>
-                <h3 className="font-sans font-black text-sm uppercase text-slate-800 tracking-wider text-[#032b5e]">
-                  3. Histograma de Carregamento
-                </h3>
-                <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
-                  Distribuição do tempo de estadia (Frequência)
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-3 gap-2">
+                <div>
+                  <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
+                    3. Histograma de Carregamento
+                  </h3>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
+                    Distribuição do tempo de estadia por faixa operacional (Frequência)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                  <span className="flex items-center gap-1 text-[#032b5e]"><span className="w-2 h-2 rounded-full bg-[#032b5e]"></span> SLA ≤ 15 min</span>
+                </div>
               </div>
               
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
                     data={histogramaCarregamentoData} 
-                    margin={{ top: 10, right: 10, left: -25, bottom: 5 }}
+                    margin={{ top: 20, right: 15, left: -20, bottom: 5 }}
                   >
                     <CartesianGrid stroke="#f1f5f9" vertical={false} />
                     <XAxis 
@@ -3036,21 +3160,27 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                       axisLine={false}
                     />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }} 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} 
                       cursor={{ fill: '#f8fafc' }}
-                      formatter={(v: any) => [v, 'Caminhões']}
+                      formatter={(v: any) => [`${v} caminhões`, 'Quantidade']}
                     />
                     
                     <Bar 
                       dataKey="camioes" 
                       name="Caminhões" 
-                      barSize={45}
+                      barSize={40}
                       radius={[4, 4, 0, 0]}
                       isAnimationActive={false}
                     >
                       {histogramaCarregamentoData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.fill || '#032b5e'} />
                       ))}
+                      <LabelList 
+                        dataKey="camioes" 
+                        position="top" 
+                        formatter={(val: any) => (val > 0 ? val : '')} 
+                        style={{ fontSize: 11, fontWeight: '900', fill: '#0f172a' }} 
+                      />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -3080,61 +3210,45 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           {/* HISTOGRAMA DO TEMPO DE DESCARREGAMENTO */}
           <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
             <div>
-              <h3 className="font-sans font-black text-sm uppercase text-slate-800 tracking-wider text-orange-600">
-                Histograma do Tempo de Descarregamento de Caminhões
-              </h3>
-              <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
-                Distribuição da quantidade de caminhões descarregados por faixa de tempo operacional (EFD)
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-3 gap-2">
+                <div>
+                  <h3 className="font-sans font-black text-sm uppercase tracking-wider text-[#f97316]">
+                    Histograma de Descarregamento
+                  </h3>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
+                    Distribuição da quantidade de caminhões por faixa de tempo (EFD)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                  <span className="flex items-center gap-1 text-[#f97316]"><span className="w-2 h-2 rounded-full bg-[#f97316]"></span> SLA ≤ 10 min</span>
+                </div>
+              </div>
             </div>
             
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 
                   data={histogramaTempoDescargaData} 
-                  margin={{ top: 25, right: 30, left: 10, bottom: 5 }}
+                  margin={{ top: 20, right: 15, left: -20, bottom: 5 }}
                 >
                   <CartesianGrid stroke="#f1f5f9" vertical={false} />
                   <XAxis 
                     dataKey="faixa" 
                     stroke="#94a3b8" 
-                    fontSize={11} 
+                    fontSize={10} 
                     fontWeight="bold" 
                     tickLine={false} 
                   />
                   <YAxis 
                     stroke="#94a3b8" 
-                    fontSize={11} 
+                    fontSize={10} 
                     tickLine={false} 
                     axisLine={false}
-                    domain={[0, 'dataMax + 10']}
-                    label={{ 
-                      value: 'Quantidade de Caminhões', 
-                      angle: -90, 
-                      position: 'insideLeft', 
-                      style: { textAnchor: 'middle', fontSize: 11, fill: '#64748b', fontWeight: 'bold' },
-                      offset: -5 
-                    }}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }} 
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} 
                     cursor={{ fill: '#f8fafc' }}
-                  />
-                  
-                  {/* Linha de Meta operacional: 15 min */}
-                  <ReferenceLine 
-                    y={15} 
-                    stroke="#ef4444" 
-                    strokeDasharray="4 4" 
-                    strokeWidth={1.5} 
-                    label={{ 
-                      value: 'Meta: 15 min', 
-                      fill: '#ef4444', 
-                      position: 'insideTopLeft', 
-                      fontSize: 10, 
-                      fontWeight: 'black',
-                      offset: 8 
-                    }} 
+                    formatter={(v: any) => [`${v} caminhões`, 'Quantidade']}
                   />
                   
                   <Bar 
@@ -3148,6 +3262,12 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                     {histogramaTempoDescargaData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill || '#f97316'} />
                     ))}
+                    <LabelList 
+                      dataKey="camioes" 
+                      position="top" 
+                      formatter={(val: any) => (val > 0 ? val : '')} 
+                      style={{ fontSize: 11, fontWeight: '900', fill: '#0f172a' }} 
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -3180,16 +3300,17 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                     <XAxis 
                       dataKey="day" 
                       stroke="#94a3b8" 
-                      fontSize={11} 
+                      fontSize={10} 
                       fontWeight="bold" 
                       tickLine={false} 
+                      interval={controlChartCarregamentoData.points.length > 20 ? Math.ceil(controlChartCarregamentoData.points.length / 10) : 0}
                     />
                     <YAxis 
                       stroke="#94a3b8" 
                       fontSize={11} 
                       tickLine={false} 
                       axisLine={false}
-                      domain={[0, 'dataMax + 15']}
+                      domain={[0, 'dataMax + 10']}
                       label={{ 
                         value: 'Minutos', 
                         angle: -90, 
@@ -3199,8 +3320,9 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                       }}
                     />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }} 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} 
                       cursor={{ fill: '#f8fafc' }}
+                      formatter={(val: any) => [`${val} min`, 'Tempo Médio']}
                     />
                     
                     {/* Linha de Process Mean (Média do Processo) - Verde */}
@@ -3253,8 +3375,8 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                     <Bar 
                       dataKey="avgLoadingTime" 
                       name="Tempo Médio de Carregamento" 
-                      barSize={32}
-                      radius={[4, 4, 0, 0]}
+                      maxBarSize={28}
+                      radius={[3, 3, 0, 0]}
                       isAnimationActive={false}
                     >
                       {controlChartCarregamentoData.points.map((entry, index) => {

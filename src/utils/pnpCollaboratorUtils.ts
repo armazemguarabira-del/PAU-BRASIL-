@@ -100,6 +100,7 @@ const EMBALAGENS_META_MIN: Record<string, number> = {
  */
 let _cachedPnpSummaryKey: string | null = null;
 let _cachedPnpSummaryResult: CollaboratorPnpSummary[] | null = null;
+const _cachedIndividualPnpMap = new Map<string, CollaboratorPnpSummary>();
 
 /**
  * Agrega e calcula o PNP oficial (Meta 6.23) e atividades para todos os colaboradores.
@@ -379,6 +380,11 @@ export function getCollaboratorPnpSummary(
   const target = colaboradorNomeOrMatricula.toUpperCase().trim();
   const normTarget = normalizeCollaboratorName(target);
 
+  const individualCacheKey = `${normTarget}_${empresaId}_${repackList.length}_${despejoList.length}_${quebrasList.length}`;
+  if (_cachedIndividualPnpMap.has(individualCacheKey)) {
+    return _cachedIndividualPnpMap.get(individualCacheKey)!;
+  }
+
   // 1. Identificar o colaborador no registro oficial
   let matchedColab = LISTA_COLABORADORES_OFICIAIS.find(c =>
     c.matricula.toUpperCase() === target ||
@@ -394,9 +400,9 @@ export function getCollaboratorPnpSummary(
       matricula: 'EMP-01',
       nome: target,
       cargo: target.toLowerCase().includes('empilha') ? 'Operador de Empilhadeira' : 'Operador Logístico',
-      funcaoGroup: target.toLowerCase().includes('empilha') ? 'Empilhador' : 'Ajudante',
-      turno: 'Turno A',
-      status: 'Ativo'
+      funcaoGroup: (target.toLowerCase().includes('empilha') ? 'Empilhador' : 'Ajudante') as 'Empilhador' | 'Ajudante',
+      cpf: '',
+      turno: 'Turno A'
     };
   }
 
@@ -548,7 +554,7 @@ export function getCollaboratorPnpSummary(
     local: q.area || 'Armazém'
   }));
 
-  return {
+  const result: CollaboratorPnpSummary = {
     matricula: matchedColab.matricula,
     nome: matchedColab.nome,
     cargo: matchedColab.cargo,
@@ -584,4 +590,7 @@ export function getCollaboratorPnpSummary(
     },
     jornadas: colabStored
   };
+
+  _cachedIndividualPnpMap.set(individualCacheKey, result);
+  return result;
 }

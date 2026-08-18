@@ -20,6 +20,7 @@ export interface Usuario {
   nome: string;
   email: string;
   empresaId: string;
+  unidadeId?: string;
   papel: 'admin' | 'supervisor' | 'operador' | string;
   cargo?: string;
   matricula?: string;
@@ -76,9 +77,15 @@ export interface DespejoRow {
   empresaId?: string;
   data: string;
   dataISO: string;
+  mes?: string;
+  codProduto?: number | string;
+  codigoProduto?: number | string;
+  descricao?: string;
   embalagem: string;
   metaEmbalagem?: number;
   quantidade: number;
+  hlPerdido?: number;
+  hectolitroPerdido?: number;
   inicio: string;
   fim: string;
   tempo: string;
@@ -168,6 +175,7 @@ export interface ValidadeRow {
   valorTotal?: number;
   hlTotal?: number;
   cadastradoEm?: string;
+  recontadoEm?: string;
   _criadoEm?: string;
 }
 
@@ -200,9 +208,9 @@ export interface BlitzRefugoRow {
 }
 
 export interface Tarefa {
-  _docId?: string;
+  _docId?: string | number;
   empresaId?: string;
-  id: number;
+  id: number | string;
   codigo: number;
   descricao: string;
   quantidade: number;
@@ -251,6 +259,7 @@ export interface RepackActionPlan {
 
 export interface RepackA3Board {
   _docId?: string;
+  id?: string;
   empresaId: string;
   dashboard?: string; // e.g. 'repack', 'despejo', 'logistica', 'quebras', 'fefo', 'blitz'
   titulo: string;
@@ -295,6 +304,7 @@ export interface RepackA3Board {
 
 export interface ProdutoMaster {
   _docId?: string;
+  id?: string;
   empresaId?: string;
   codigo: string;
   descricao: string;
@@ -313,6 +323,7 @@ export interface ProdutoMaster {
 
 export interface ColaboradorMaster {
   _docId?: string;
+  id?: string;
   empresaId?: string;
   matricula: string;
   nome: string;
@@ -323,15 +334,29 @@ export interface ColaboradorMaster {
   ativo?: boolean;
   modulosPermitidos?: string[];
   primeiroAcesso?: boolean;
+  updatedAt?: string;
   _criadoEm?: string;
 }
 
 export interface AcessoColaborador {
   _docId?: string;
+  id?: string;
   empresaId?: string;
-  matricula: string;
+  userId?: string;
+  nome?: string;
+  email?: string;
+  papel?: string;
+  loginEm?: string;
+  loginData?: string;
+  loginHora?: string;
+  logoutEm?: string | null;
+  ultimoAcesso?: string;
+  abasAcessadas?: string[];
+  atividades?: any[];
+  ativo?: boolean;
+  matricula?: string;
   nomeColaborador?: string;
-  modulosPermitidos: string[];
+  modulosPermitidos?: string[];
   _criadoEm?: string;
 }
 

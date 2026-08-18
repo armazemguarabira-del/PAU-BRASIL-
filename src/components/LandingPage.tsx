@@ -20,8 +20,7 @@ import {
   Activity,
   FileText
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, query, getDocs, limit } from 'firebase/firestore';
+import { RepackRepository, QuebrasRepository, ValidadesRepository } from '../db';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -46,12 +45,10 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
   const [loadingKpis, setLoadingKpis] = useState(false);
 
   const fetchKpis = async (force = false) => {
-    if (!db) return;
-
     if (!force) {
       const cached = localStorage.getItem('landing_page_kpis_cache');
       if (cached) {
-        return; // Skip reading Firestore completely on mount
+        return; // Skip reading completely on mount
       }
     }
 
@@ -63,16 +60,12 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
         validadesAlertas: dbKpis.validadesAlertas,
       };
 
-      // Consultas de amostragem pública para estatísticas demonstrativas na Landing Page (usuários não autenticados).
-      // Mantido limit(15) propositalmente por ser uma prévia pública leve sem isolamento por empresaId.
       try {
-        const qRepack = query(collection(db, 'repack'), limit(15));
-        const snapRepack = await getDocs(qRepack);
-        const rowsRepack = snapRepack.docs.map(doc => doc.data());
+        const rowsRepack = await RepackRepository.getAll();
         if (rowsRepack.length > 0) {
           let totalQty = 0;
           let totalMin = 0;
-          rowsRepack.forEach((r: any) => {
+          rowsRepack.slice(0, 15).forEach((r: any) => {
             totalQty += Number(r.quantidade) || 0;
             if (r.duracao) {
               const parts = r.duracao.split(':').map(Number);
@@ -92,11 +85,9 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
       }
 
       try {
-        const qQuebras = query(collection(db, 'quebras'), limit(15));
-        const snapQuebras = await getDocs(qQuebras);
-        const rowsQuebras = snapQuebras.docs.map(doc => doc.data());
+        const rowsQuebras = await QuebrasRepository.getAll();
         if (rowsQuebras.length > 0) {
-          const totalQty = rowsQuebras.reduce((sum: number, r: any) => sum + (Number(r.quantidade) || 0), 0);
+          const totalQty = rowsQuebras.slice(0, 15).reduce((sum: number, r: any) => sum + (Number(r.quantidade) || 0), 0);
           newKpis.quebrasTotal = totalQty;
         }
       } catch (err) {
@@ -104,15 +95,13 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
       }
 
       try {
-        const qValidades = query(collection(db, 'validades'), limit(15));
-        const snapValidades = await getDocs(qValidades);
-        const rowsValidades = snapValidades.docs.map(doc => doc.data());
+        const rowsValidades = await ValidadesRepository.getAll();
         if (rowsValidades.length > 0) {
           let alertCount = 0;
           const today = new Date();
           today.setHours(0, 0, 0, 0);
 
-          rowsValidades.forEach((v: any) => {
+          rowsValidades.slice(0, 15).forEach((v: any) => {
             if (v.validade) {
               try {
                 let normDate = v.validade;

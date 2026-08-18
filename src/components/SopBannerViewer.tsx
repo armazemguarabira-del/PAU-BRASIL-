@@ -59,13 +59,13 @@ export function SopBannerViewer({ operation, operationName, theme = 'dark' }: So
   const hasFile = Boolean(selectedSop.fileUrl);
 
   return (
-    <div className="mb-5 rounded-2xl border border-[#222d3a] bg-[#151b23] text-slate-100 transition-all duration-300 shadow-md overflow-hidden">
+    <div className="mb-5 rounded-2xl border border-slate-200 dark:border-[#222d3a] bg-white dark:bg-[#151b23] text-slate-800 dark:text-slate-100 transition-all duration-300 shadow-sm overflow-hidden">
       {/* Selector Bar if multiple SOPs are available */}
       {allSopsList.length > 1 && (
-        <div className="bg-[#0d1218] px-4 py-2.5 border-b border-[#222d3a] flex flex-wrap items-center justify-between gap-2">
+        <div className="bg-slate-50 dark:bg-[#0d1218] px-4 py-2.5 border-b border-slate-200 dark:border-[#222d3a] flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">
+            <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-amber-400" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-amber-400">
               Escolher Padrão da Célula ({allSopsList.length} disponíveis):
             </span>
           </div>
@@ -78,10 +78,10 @@ export function SopBannerViewer({ operation, operationName, theme = 'dark' }: So
                 setCompletedSteps({});
                 setShowEmbeddedPdf(true);
               }}
-              className="bg-[#151b23] border border-[#2b384a] text-amber-300 text-xs font-bold py-1.5 px-3 rounded-xl focus:outline-none focus:border-amber-400 w-full sm:w-auto cursor-pointer"
+              className="bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#2b384a] text-slate-900 dark:text-amber-300 text-xs font-bold py-1.5 px-3 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-amber-400 w-full sm:w-auto cursor-pointer"
             >
               {allSopsList.map((s) => (
-                <option key={s.id} value={s.id} className="bg-[#151b23] text-slate-100 font-medium">
+                <option key={s.id} value={s.id} className="bg-white dark:bg-[#151b23] text-slate-900 dark:text-slate-100 font-medium">
                   {s.displayName}
                 </option>
               ))}
@@ -93,7 +93,7 @@ export function SopBannerViewer({ operation, operationName, theme = 'dark' }: So
       {/* Banner Header Bar */}
       <div 
         onClick={() => setExpanded(!expanded)}
-        className="p-4 flex items-center justify-between cursor-pointer select-none hover:bg-[#1a222c] transition-colors"
+        className="p-4 flex items-center justify-between cursor-pointer select-none hover:bg-slate-50 dark:hover:bg-[#1a222c] transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0 flex items-center justify-center">
@@ -101,24 +101,24 @@ export function SopBannerViewer({ operation, operationName, theme = 'dark' }: So
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300 bg-blue-950/80 border border-blue-800/60 px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-full shrink-0">
                 Instrução Padrão de Trabalho (POP / SOP)
               </span>
-              <span className="text-[10px] text-slate-400 font-mono font-bold shrink-0">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold shrink-0">
                 {operationName.toUpperCase()}
               </span>
             </div>
-            <h3 className="text-sm md:text-base font-black uppercase tracking-tight text-white mt-1 break-words">
+            <h3 className="text-sm md:text-base font-black uppercase tracking-tight text-slate-900 dark:text-white mt-1 break-words">
               {selectedSop.displayName || selectedSop.title}
             </h3>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 ml-2">
-          <span className="text-[10px] font-bold text-amber-400 hidden sm:inline-block bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+          <span className="text-[10px] font-bold text-blue-700 dark:text-amber-400 hidden sm:inline-block bg-blue-50 dark:bg-amber-400/10 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-amber-400/20">
             {expanded ? 'Ocultar Padrão' : 'Ver Padrão de Operação'}
           </span>
-          <div className="p-2 rounded-lg bg-[#222d3a] text-amber-400">
+          <div className="p-2 rounded-lg bg-slate-100 dark:bg-[#222d3a] text-blue-600 dark:text-amber-400">
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </div>
         </div>
@@ -126,26 +126,26 @@ export function SopBannerViewer({ operation, operationName, theme = 'dark' }: So
 
       {/* Expanded Content View */}
       {expanded && (
-        <div className="px-5 pb-5 pt-3 border-t border-[#222d3a] space-y-4 animate-in fade-in duration-200 bg-[#11161d]">
+        <div className="px-5 pb-5 pt-3 border-t border-slate-200 dark:border-[#222d3a] space-y-4 animate-in fade-in duration-200 bg-slate-50 dark:bg-[#11161d]">
           {selectedSop.description && (
-            <p className="text-xs text-slate-300 leading-relaxed font-medium bg-[#151b23] p-3 rounded-xl border border-[#222d3a]">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium bg-white dark:bg-[#151b23] p-3 rounded-xl border border-slate-200 dark:border-[#222d3a]">
               {selectedSop.description}
             </p>
           )}
 
           {/* Download or View Attached File if available */}
           {hasFile && (
-            <div className="space-y-3 p-4 rounded-xl bg-[#0d1218] border border-blue-500/40 shadow-inner">
+            <div className="space-y-3 p-4 rounded-xl bg-white dark:bg-[#0d1218] border border-blue-200 dark:border-blue-500/40 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20 flex items-center justify-center shrink-0">
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/20 flex items-center justify-center shrink-0">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-black text-slate-100 block uppercase tracking-wide">
+                    <span className="text-xs font-black text-slate-900 dark:text-slate-100 block uppercase tracking-wide">
                       Documento Oficial Anexado: {selectedSop.fileName || 'Padrao_Operacional.pdf'}
                     </span>
-                    <span className="text-[11px] text-blue-300 font-medium">
+                    <span className="text-[11px] text-blue-600 dark:text-blue-300 font-medium">
                       Padrão de trabalho importado em PDF para visualização e consulta operacional
                     </span>
                   </div>

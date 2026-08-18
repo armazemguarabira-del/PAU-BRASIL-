@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { getRepository } from '../db';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
+
+const acessosRepo = getRepository<any>('acessos');
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Shield, 
@@ -97,10 +98,14 @@ export default function AcessosPanel({ user, empresa }: AcessosPanelProps) {
 
   const empresaData = useEmpresaData();
 
-  // Sync access sessions from Firestore or fallback
+  // Sync access sessions from EmpresaDataContext or fallback
   useEffect(() => {
     setLoading(true);
-    if (!db) {
+    if (empresaData.acessos && empresaData.acessos.length > 0) {
+      const rows = [...(empresaData.acessos as any[])];
+      rows.sort((a, b) => (b.loginEm || b._criadoEm || '').localeCompare(a.loginEm || a._criadoEm || ''));
+      setSessions(rows as AcessoSession[]);
+    } else {
       // Fallback local recovery
       const saved = localStorage.getItem(`local_acessos_${empresaId}`);
       if (saved) {
@@ -108,21 +113,15 @@ export default function AcessosPanel({ user, empresa }: AcessosPanelProps) {
       } else {
         setSessions([]);
       }
-      setLoading(false);
-      return;
     }
-
-    const rows = [...(empresaData.acessos as any[])];
-    rows.sort((a, b) => (b.loginEm || b._criadoEm || '').localeCompare(a.loginEm || a._criadoEm || ''));
-    setSessions(rows as AcessoSession[]);
     setLoading(false);
   }, [empresaData.acessos, empresaId, user]);
 
   // Clean a session log safely
   const handleDeleteSession = async (sessId: string) => {
     try {
-      if (db && !sessId.startsWith('local_') && !sessId.startsWith('mock-')) {
-        await deleteDoc(doc(db, 'acessos', sessId));
+      if (!sessId.startsWith('local_') && !sessId.startsWith('mock-')) {
+        await acessosRepo.delete(sessId, empresaId);
       }
     } catch (e: any) {
       console.error(e);
@@ -141,13 +140,10 @@ export default function AcessosPanel({ user, empresa }: AcessosPanelProps) {
     if (!confirm('ATENÇÃO: Deseja realmente remover TODOS os registros de segurança do histórico desta unidade? Esta ação é irreversível.')) return;
     try {
       setLoading(true);
-      if (db) {
-        // Since we cannot run bulk deletes easily on client side without a backend server, 
-        // we can delete the ones we loaded in state sequentially
-        for (const s of sessions) {
-          if (s._docId) {
-            await deleteDoc(doc(db, 'acessos', s._docId));
-          }
+      for (const s of sessions) {
+        const idToDelete = s._docId || s.id;
+        if (idToDelete && !idToDelete.startsWith('local_')) {
+          await acessosRepo.delete(idToDelete, empresaId);
         }
       }
       setSessions([]);
@@ -590,12 +586,11 @@ export default function AcessosPanel({ user, empresa }: AcessosPanelProps) {
                       if (!confirm(`Deseja forçar a finalização do acesso do usuário ${selectedSession.nome}? Isto irá desconectá-lo das sessões ativas.`)) return;
                       try {
                         const nowStr = new Date().toISOString();
-                        if (db && !selectedSession.id.startsWith('local_')) {
-                          const { updateDoc, doc } = await import('firebase/firestore');
-                          await updateDoc(doc(db, 'acessos', selectedSession.id), {
+                        if (!selectedSession.id.startsWith('local_')) {
+                          await acessosRepo.update(selectedSession.id, {
                             logoutEm: nowStr,
                             ativo: false
-                          });
+                          }, empresaId);
                         } else {
                           const localSessions = JSON.parse(localStorage.getItem(`local_acessos_${empresaId}`) || '[]');
                           const idx = localSessions.findIndex((s: any) => s.id === selectedSession.id);

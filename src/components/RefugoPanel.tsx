@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { RefugoRepository } from '../db';
 import { Usuario, Empresa, BlitzRefugoRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { TrendingUp, CheckCircle, Clock, Award, BarChart2 } from 'lucide-react';
@@ -146,18 +146,19 @@ export default function RefugoPanel({ user, empresa }: RefugoPanelProps) {
 
   const empresaData = useEmpresaData();
 
-  // Sync with Firestore (scoped to company)
+  // Sync with empresaData (scoped to company)
   useEffect(() => {
-    if (!db) {
+    if (empresaData.blitz && empresaData.blitz.length > 0) {
+      const rows = [...empresaData.blitz];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setBlitzRows(rows);
+      localStorage.setItem(`blitz_${empresaId}`, JSON.stringify(rows));
+    } else {
       const saved = localStorage.getItem(`blitz_${empresaId}`);
-      if (saved) setBlitzRows(JSON.parse(saved));
-      return;
+      if (saved) {
+        try { setBlitzRows(JSON.parse(saved)); } catch (e) {}
+      }
     }
-
-    const rows = [...empresaData.blitz];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-    setBlitzRows(rows);
-    localStorage.setItem(`blitz_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.blitz, empresaId]);
 
   const handleInputChange = (tipoId: string, field: string, val: number) => {
@@ -258,13 +259,7 @@ export default function RefugoPanel({ user, empresa }: RefugoPanelProps) {
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'blitz_refugo'), newRow);
-      } else {
-        const current = [...blitzRows, { _docId: String(Date.now()), ...newRow }];
-        setBlitzRows(current);
-        localStorage.setItem(`blitz_${empresaId}`, JSON.stringify(current));
-      }
+      await RefugoRepository.create(newRow, empresaId);
 
       setAjudante('');
       setMapa('');
@@ -289,13 +284,10 @@ export default function RefugoPanel({ user, empresa }: RefugoPanelProps) {
   const handleDelete = async (docId?: string) => {
     if (!docId || !confirm('Excluir ficha de Blitz permanentemente?')) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'blitz_refugo', docId));
-      } else {
-        const remaining = blitzRows.filter(r => r._docId !== docId);
-        setBlitzRows(remaining);
-        localStorage.setItem(`blitz_${empresaId}`, JSON.stringify(remaining));
-      }
+      await RefugoRepository.delete(docId, empresaId);
+      const remaining = blitzRows.filter(r => r._docId !== docId && (r as any).id !== docId);
+      setBlitzRows(remaining);
+      localStorage.setItem(`blitz_${empresaId}`, JSON.stringify(remaining));
     } catch (e) {
       alert('Erro ao deletar: ' + e);
     }

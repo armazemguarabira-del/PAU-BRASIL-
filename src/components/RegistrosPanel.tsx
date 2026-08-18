@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Usuario, Empresa } from '../types';
-import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { 
   Users,
   Package, 

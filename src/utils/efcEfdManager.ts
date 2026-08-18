@@ -1,5 +1,4 @@
-import { db } from '../firebase';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { EfcEfdVehiclesRepository } from '../db/repositories';
 
 export interface EfcEfdVehicle {
   id: string;
@@ -47,6 +46,24 @@ export interface EfcEfdVehicle {
   timestampFimCarregamento?: string; // ISO string
   timestampInicioDescarregamento?: string; // ISO string
   timestampFimDescarregamento?: string; // ISO string
+  // Retroactive Import & Additional Meta attributes
+  colaboradorCarregamento?: string;
+  colaboradorDescarregamento?: string;
+  dataCarregamento?: string;
+  dataFechamentoRota?: string;
+  diaSemanaFechamento?: string;
+  categoriaFinal?: 'D0' | 'D1' | 'D2' | 'D3' | 'D4' | string;
+  qtdPallets?: number;
+  pallets?: number;
+  carregamentoLabel?: string;
+  carregamentoInicio?: string;
+  carregamentoFinal?: string;
+  carregamentoTempoMin?: number;
+  carregamentoMeta?: 'DENTRO' | 'FORA' | string;
+  descarregamentoInicio?: string;
+  descarregamentoFinal?: string;
+  descarregamentoTempoMin?: number;
+  descarregamentoMeta?: 'DENTRO' | 'FORA' | string;
 }
 
 const VEHICLES_STORAGE_PREFIX = 'efc_efd_vehicles_';
@@ -89,15 +106,15 @@ export function saveEfcVehicles(companyId: string = 'demo', vehicles: EfcEfdVehi
     localStorage.setItem(`${VEHICLES_STORAGE_PREFIX}${companyId}`, JSON.stringify(uniqueVehicles));
     window.dispatchEvent(new Event('efc_vehicles_updated'));
 
-    if (db) {
-      const docRef = doc(db, 'efc_efd_vehicles', companyId);
-      setDoc(docRef, {
+    try {
+      EfcEfdVehiclesRepository.update(companyId, {
+        id: companyId,
         vehicles: uniqueVehicles,
         updatedAt: new Date().toISOString()
-      }, { merge: true }).catch(err => {
-        console.warn('Error syncing efc_efd_vehicles to Firestore:', err);
+      }, companyId).catch(err => {
+        console.warn('Error syncing efc_efd_vehicles to repository:', err);
       });
-    }
+    } catch (e) {}
   } catch (e) {
     console.error('Error saving EFC/EFD vehicles:', e);
   }
@@ -116,36 +133,30 @@ export function subscribeToEfcVehicles(companyId: string = 'demo', callback: (ve
   window.addEventListener('storage', handleLocal);
   window.addEventListener('local_data_changed', handleLocal);
 
-  // 3. Firestore onSnapshot real-time listener
+  // 3. Repository subscribeDoc real-time listener
   let unsubFirestore: (() => void) | null = null;
-  if (db) {
-    try {
-      const docRef = doc(db, 'efc_efd_vehicles', companyId);
-      unsubFirestore = onSnapshot(docRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          if (Array.isArray(data?.vehicles)) {
-            const todayISO = new Date().toISOString().split('T')[0];
-            const seenIds = new Set<string>();
-            const updated: EfcEfdVehicle[] = [];
-            for (const v of data.vehicles) {
-              if (v && v.id && !seenIds.has(v.id)) {
-                seenIds.add(v.id);
-                updated.push(updateVehicleDelayStatus(v, todayISO));
-              }
-            }
-            try {
-              localStorage.setItem(`${VEHICLES_STORAGE_PREFIX}${companyId}`, JSON.stringify(updated));
-            } catch (e) {}
-            callback(updated);
+  try {
+    unsubFirestore = EfcEfdVehiclesRepository.subscribeDoc(companyId, (data: any) => {
+      if (data && Array.isArray(data.vehicles)) {
+        const todayISO = new Date().toISOString().split('T')[0];
+        const seenIds = new Set<string>();
+        const updated: EfcEfdVehicle[] = [];
+        for (const v of data.vehicles) {
+          if (v && v.id && !seenIds.has(v.id)) {
+            seenIds.add(v.id);
+            updated.push(updateVehicleDelayStatus(v, todayISO));
           }
         }
-      }, (err) => {
-        console.warn('Firestore subscription warning for efc_efd_vehicles:', err);
-      });
-    } catch (e) {
-      console.warn('Could not attach Firestore listener for efc_efd_vehicles:', e);
-    }
+        try {
+          localStorage.setItem(`${VEHICLES_STORAGE_PREFIX}${companyId}`, JSON.stringify(updated));
+        } catch (e) {}
+        callback(updated);
+      }
+    }, (err) => {
+      console.warn('Subscription warning for efc_efd_vehicles:', err);
+    });
+  } catch (e) {
+    console.warn('Could not attach listener for efc_efd_vehicles:', e);
   }
 
   return () => {

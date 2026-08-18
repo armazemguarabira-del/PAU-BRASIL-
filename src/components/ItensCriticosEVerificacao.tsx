@@ -132,19 +132,19 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* ITENS CRÍTICOS DO DIA (IC) */}
-        <div className="bg-[#111a30] border border-rose-500/30 rounded-2xl p-5 space-y-3 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-400" /> IC - Itens Críticos do Dia
+        <div className="bg-white dark:bg-[#111a30] border border-rose-200 dark:border-rose-500/30 rounded-2xl p-5 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 dark:text-rose-400" /> IC - Itens Críticos do Dia
             </h3>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-500/30">
+              <span className="text-[9px] bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-200 dark:border-rose-500/30">
                 Atenção Imediata
               </span>
               {isSupervisorOrAdmin && (
                 <button
                   onClick={() => setIsManaging(!isManaging)}
-                  className="text-[9px] text-slate-400 hover:text-white p-1 rounded bg-slate-800"
+                  className="text-[9px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded bg-slate-100 dark:bg-slate-800"
                   title="Configurar IC / IV"
                 >
                   <Edit3 className="w-3 h-3" />
@@ -155,18 +155,18 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
 
           <div className="space-y-2">
             {icList.map((ic) => (
-              <div key={ic.id} className="p-3 bg-[#0b1222] rounded-xl border border-rose-500/20 flex items-start justify-between gap-2.5 group">
+              <div key={ic.id} className="p-3 bg-rose-50/50 dark:bg-[#0b1222] rounded-xl border border-rose-200/60 dark:border-rose-500/20 flex items-start justify-between gap-2.5 group">
                 <div className="flex items-start gap-2.5">
                   <span className="w-2 h-2 rounded-full bg-rose-500 mt-1 shrink-0" />
                   <div>
-                    <strong className="text-xs text-white block">{ic.titulo}</strong>
-                    <span className="text-[10px] text-slate-400">{ic.descricao}</span>
+                    <strong className="text-xs text-slate-900 dark:text-white block">{ic.titulo}</strong>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400">{ic.descricao}</span>
                   </div>
                 </div>
                 {isManaging && isSupervisorOrAdmin && (
                   <button
                     onClick={() => handleDeleteItem(ic.id)}
-                    className="text-rose-400 hover:text-rose-300 p-1 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                    className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 p-1 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -181,19 +181,19 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
         </div>
 
         {/* ITENS DE VERIFICAÇÃO DO DIA (IV) */}
-        <div className="bg-[#111a30] border border-sky-500/30 rounded-2xl p-5 space-y-3 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-2">
-              <ClipboardCheck className="w-4 h-4 text-sky-400" /> IV - Itens de Verificação Diária
+        <div className="bg-white dark:bg-[#111a30] border border-sky-200 dark:border-sky-500/30 rounded-2xl p-5 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-sky-500 dark:text-sky-400" /> IV - Itens de Verificação Diária
             </h3>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] bg-sky-500/20 text-sky-300 font-bold px-2 py-0.5 rounded border border-sky-500/30">
+              <span className="text-[9px] bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-bold px-2 py-0.5 rounded border border-sky-200 dark:border-sky-500/30">
                 Checklist Rotina
               </span>
               {isSupervisorOrAdmin && (
                 <button
                   onClick={() => setIsManaging(!isManaging)}
-                  className="text-[9px] text-slate-400 hover:text-white p-1 rounded bg-slate-800"
+                  className="text-[9px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded bg-slate-100 dark:bg-slate-800"
                   title="Configurar IC / IV"
                 >
                   <Edit3 className="w-3 h-3" />
@@ -204,18 +204,18 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
 
           <div className="space-y-2">
             {ivList.map((iv) => (
-              <div key={iv.id} className="p-3 bg-[#0b1222] rounded-xl border border-sky-500/20 flex items-start justify-between gap-2.5 group">
+              <div key={iv.id} className="p-3 bg-sky-50/50 dark:bg-[#0b1222] rounded-xl border border-sky-200/60 dark:border-sky-500/20 flex items-start justify-between gap-2.5 group">
                 <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-xs text-white block">{iv.titulo}</strong>
-                    <span className="text-[10px] text-slate-400">{iv.descricao}</span>
+                    <strong className="text-xs text-slate-900 dark:text-white block">{iv.titulo}</strong>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400">{iv.descricao}</span>
                   </div>
                 </div>
                 {isManaging && isSupervisorOrAdmin && (
                   <button
                     onClick={() => handleDeleteItem(iv.id)}
-                    className="text-rose-400 hover:text-rose-300 p-1 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                    className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 p-1 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -232,51 +232,51 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
 
       {/* FORMULÁRIO DE GESTÃO PARA SUPERVISÃO / ADMIN */}
       {isManaging && isSupervisorOrAdmin && (
-        <form onSubmit={handleAddItem} className="p-4 bg-[#081226] border border-slate-700 rounded-2xl space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-xs font-black text-amber-400 uppercase">Adicionar Novo IC / IV Unificado</span>
-            <button type="button" onClick={() => setIsManaging(false)} className="text-slate-400 hover:text-white">
+        <form onSubmit={handleAddItem} className="p-4 bg-white dark:bg-[#081226] border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+            <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase">Adicionar Novo IC / IV Unificado</span>
+            <button type="button" onClick={() => setIsManaging(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo</label>
+              <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Tipo</label>
               <select
                 value={novoTipo}
                 onChange={e => setNovoTipo(e.target.value as any)}
-                className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs text-white"
+                className="w-full bg-slate-50 dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
               >
                 <option value="IC">IC - Item Crítico (Atenção Imediata)</option>
                 <option value="IV">IV - Item de Verificação (Rotina)</option>
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Título do Item *</label>
+              <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Título do Item *</label>
               <input
                 type="text"
                 placeholder="Ex: Execução Rigorosa da Regra FEFO"
                 value={novoTitulo}
                 onChange={e => setNovoTitulo(e.target.value)}
-                className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs text-white"
+                className="w-full bg-slate-50 dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Descrição / Instrução de Ação</label>
+            <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Descrição / Instrução de Ação</label>
             <input
               type="text"
               placeholder="Ex: Conferir data de validade impresso antes da montagem..."
               value={novaDescricao}
               onChange={e => setNovaDescricao(e.target.value)}
-              className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs text-white"
+              className="w-full bg-slate-50 dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
             />
           </div>
           <div className="flex justify-end gap-2">
             <button
               type="submit"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer shadow-md"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
             >
               <Plus className="w-3.5 h-3.5" /> Adicionar Item
             </button>

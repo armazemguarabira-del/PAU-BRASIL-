@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, updateDoc, doc, addDoc } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo } from 'react';
+import { TarefasRepository, getRepository } from '../db';
+const registrosRepo = getRepository<any>('registros');
 import { Usuario, Empresa, Tarefa, TmrDemand, FefoRelocationDemand } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
@@ -211,7 +211,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
   const empresaData = useEmpresaData();
 
-  // Load and subscribe to real-time events
+  // Load and subscribe to real-time events with debounced FEFO reload
   useEffect(() => {
     const unsubEfc = subscribeToEfcVehicles(empresaId, (list) => {
       setEfcVehicles(list);
@@ -221,39 +221,33 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       setTmrDemands(getStoredTmrDemands(empresaId));
     };
 
-    const reloadFefo = () => {
-      try {
-        const savedValidadesStr = localStorage.getItem(`validades_${empresaId}`);
-        const savedValidades = savedValidadesStr ? JSON.parse(savedValidadesStr) : [];
-        setFefoDemands(syncFefoDemandsFromValidades(empresaId, savedValidades));
-      } catch (e) {
-        setFefoDemands(getStoredFefoDemands(empresaId));
-      }
+    let fefoTimer: any = null;
+    const reloadFefoDebounced = () => {
+      if (fefoTimer) clearTimeout(fefoTimer);
+      fefoTimer = setTimeout(() => {
+        try {
+          const savedValidadesStr = localStorage.getItem(`validades_${empresaId}`);
+          const savedValidades = savedValidadesStr ? JSON.parse(savedValidadesStr) : [];
+          setFefoDemands(syncFefoDemandsFromValidades(empresaId, savedValidades));
+        } catch (e) {
+          setFefoDemands(getStoredFefoDemands(empresaId));
+        }
+      }, 300);
     };
 
     window.addEventListener('tmr_demands_updated', reloadTmr);
-    window.addEventListener('fefo_demands_updated', reloadFefo);
-    window.addEventListener('storage', reloadFefo);
-    window.addEventListener('local_data_changed', reloadFefo);
-    window.addEventListener('app_data_updated', reloadFefo);
+    window.addEventListener('fefo_demands_updated', reloadFefoDebounced);
 
     return () => {
       unsubEfc();
+      if (fefoTimer) clearTimeout(fefoTimer);
       window.removeEventListener('tmr_demands_updated', reloadTmr);
-      window.removeEventListener('fefo_demands_updated', reloadFefo);
-      window.removeEventListener('storage', reloadFefo);
-      window.removeEventListener('local_data_changed', reloadFefo);
-      window.removeEventListener('app_data_updated', reloadFefo);
+      window.removeEventListener('fefo_demands_updated', reloadFefoDebounced);
     };
   }, [empresaId]);
 
-  // Sync tasks from Firestore / localStorage
+  // Sync tasks
   useEffect(() => {
-    if (!db) {
-      const savedTasks = localStorage.getItem(`tasks_${empresaId}`);
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
-      return;
-    }
     setTasks(empresaData.tarefas || []);
     localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(empresaData.tarefas || []));
   }, [empresaData.tarefas, empresaId]);
@@ -664,12 +658,12 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   // --- Picking Tasks Actions ---
   const handleStartPickingTask = async (t: Tarefa) => {
     const nowISO = new Date().toISOString();
-    if (db && t._docId) {
-      await updateDoc(doc(db, 'tarefas', t._docId), {
+    if (t._docId) {
+      await TarefasRepository.update(t._docId, {
         status: 'in_progress',
         iniciadoEm: nowISO,
         operador: user.nome || operatorName
-      });
+      }, empresaId);
     } else {
       const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'in_progress' as const, iniciadoEm: nowISO, operador: user.nome || operatorName } : x);
       setTasks(updated);
@@ -682,16 +676,15 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     const nowISO = new Date().toISOString();
     const duration = Math.max(1, Math.round((new Date(nowISO).getTime() - new Date(t.iniciadoEm || nowISO).getTime()) / 60000));
 
-    if (db && t._docId) {
-      await updateDoc(doc(db, 'tarefas', t._docId), {
+    if (t._docId) {
+      await TarefasRepository.update(t._docId, {
         status: 'done',
         finalizadoEm: nowISO,
         duracaoMin: duration,
         operador: user.nome || operatorName
-      });
+      }, empresaId);
 
-      const repoRef = collection(db, 'registros');
-      await addDoc(repoRef, {
+      await registrosRepo.create({
         empresaId,
         id: t.id,
         codigo: t.codigo,
@@ -705,7 +698,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
         duracaoMin: duration,
         enviadoEm: nowISO,
         tipoOperacao: 'Ressuprimento de Picking'
-      });
+      }, empresaId);
     } else {
       const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'done' as const, finalizadoEm: nowISO, duracaoMin: duration, operador: user.nome || operatorName } : x);
       setTasks(updated);
@@ -718,134 +711,161 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   const activeOperatorClean = (user.nome || operatorName).toUpperCase().trim();
 
   // Filtered lists for the logged-in operator
-  // All EFC/EFD imported vehicles are available to all operators concurrently
   const myAssignedVehicles = efcVehicles;
 
-  const myAssignedTasks = tasks.filter(t => {
-    if (!t.operador || t.operador === 'TODOS') return true;
-    return t.operador.toUpperCase().includes(activeOperatorClean);
-  });
+  const myAssignedTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (!t.operador || t.operador === 'TODOS') return true;
+      return t.operador.toUpperCase().includes(activeOperatorClean);
+    });
+  }, [tasks, activeOperatorClean]);
 
-  const myAssignedTmr = tmrDemands.filter(t => {
-    // Admin, supervisor, manager or conferente profile can see all delegated TMR demands
-    const userRole = (user.papel || '').toLowerCase();
-    const userCargo = (user.cargo || '').toLowerCase();
-    const isAdminOrSupervisor = 
-      user.isControle || 
-      userRole === 'admin' || 
-      userRole === 'controle' || 
-      userRole.includes('supervisor') || 
-      userRole.includes('coordenador') || 
-      userCargo.includes('admin') || 
-      userCargo.includes('supervisor') || 
-      userCargo.includes('gerente') ||
-      userCargo.includes('coordenador') ||
-      userCargo.includes('conferente') ||
-      userRole.includes('conferente');
+  const myAssignedTmr = useMemo(() => {
+    return tmrDemands.filter(t => {
+      const userRole = (user.papel || '').toLowerCase();
+      const userCargo = (user.cargo || '').toLowerCase();
+      const isAdminOrSupervisor = 
+        user.isControle || 
+        userRole === 'admin' || 
+        userRole === 'controle' || 
+        userRole.includes('supervisor') || 
+        userRole.includes('coordenador') || 
+        userCargo.includes('admin') || 
+        userCargo.includes('supervisor') || 
+        userCargo.includes('gerente') ||
+        userCargo.includes('coordenador') ||
+        userCargo.includes('conferente') ||
+        userRole.includes('conferente');
 
-    if (isAdminOrSupervisor) return true;
+      if (isAdminOrSupervisor) return true;
+      if (!t.operadorDesignado || t.operadorDesignado === 'TODOS' || t.operadorDesignado.toUpperCase().includes('TODOS')) return true;
 
-    // If designated to TODOS or unassigned, available to all
-    if (!t.operadorDesignado || t.operadorDesignado === 'TODOS' || t.operadorDesignado.toUpperCase().includes('TODOS')) return true;
+      const activeOp = activeOperatorClean;
+      const firstName = activeOp.split(' ')[0];
 
-    // Operator name comparison (full name, substring, or first name match)
-    const activeOp = activeOperatorClean;
-    const firstName = activeOp.split(' ')[0];
+      const desigUpper = (t.operadorDesignado || '').toUpperCase();
+      if (desigUpper.includes(activeOp) || (firstName.length >= 3 && desigUpper.includes(firstName))) return true;
 
-    const desigUpper = (t.operadorDesignado || '').toUpperCase();
-    if (desigUpper.includes(activeOp) || (firstName.length >= 3 && desigUpper.includes(firstName))) return true;
+      if (t.operadoresAtribuidos && Array.isArray(t.operadoresAtribuidos) && t.operadoresAtribuidos.length > 0) {
+        return t.operadoresAtribuidos.some(o => {
+          const oUpper = o.toUpperCase().trim();
+          const oFirstName = oUpper.split(' ')[0];
+          return activeOp.includes(oUpper) || 
+                 oUpper.includes(activeOp) || 
+                 (oFirstName.length >= 3 && activeOp.includes(oFirstName)) ||
+                 (firstName.length >= 3 && oUpper.includes(firstName));
+        });
+      }
 
-    if (t.operadoresAtribuidos && Array.isArray(t.operadoresAtribuidos) && t.operadoresAtribuidos.length > 0) {
-      return t.operadoresAtribuidos.some(o => {
-        const oUpper = o.toUpperCase().trim();
-        const oFirstName = oUpper.split(' ')[0];
-        return activeOp.includes(oUpper) || 
-               oUpper.includes(activeOp) || 
-               (oFirstName.length >= 3 && activeOp.includes(oFirstName)) ||
-               (firstName.length >= 3 && oUpper.includes(firstName));
-      });
-    }
+      return false;
+    });
+  }, [tmrDemands, user, activeOperatorClean]);
 
-    return false;
-  });
+  const myAssignedFefo = useMemo(() => {
+    return fefoDemands.filter(t => {
+      if (!t.solicitadoPorConferente) return false;
+      if (t.status === 'done') return false;
+      return true;
+    });
+  }, [fefoDemands]);
 
-  const myAssignedFefo = fefoDemands.filter(t => {
-    if (!t.solicitadoPorConferente) return false;
-    if (t.status === 'done') return false;
-    return true;
-  });
-
-  // Completed items by logged in user (Recarga is excluded from EFC metrics, included in TMR metrics)
-  const myCompletedEfc = efcVehicles.filter(v => 
-    !(v.isRecarga || v.tipoCarga === 'Recarga') && 
-    v.statusCarregamento === 'Finalizado' && 
-    (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
-  );
+  // Completed items by logged in user
+  const myCompletedEfc = useMemo(() => {
+    return efcVehicles.filter(v => 
+      !(v.isRecarga || v.tipoCarga === 'Recarga') && 
+      v.statusCarregamento === 'Finalizado' && 
+      (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
+    );
+  }, [efcVehicles, activeOperatorClean]);
   
-  const myCompletedEfd = efcVehicles.filter(v => 
-    v.statusDescarregamento === 'Finalizado' && 
-    (v.operadorExecutorDescarregamento || '').toUpperCase().includes(activeOperatorClean)
-  );
+  const myCompletedEfd = useMemo(() => {
+    return efcVehicles.filter(v => 
+      v.statusDescarregamento === 'Finalizado' && 
+      (v.operadorExecutorDescarregamento || '').toUpperCase().includes(activeOperatorClean)
+    );
+  }, [efcVehicles, activeOperatorClean]);
 
-  const completedRecargasEfc = efcVehicles.filter(v => 
-    (v.isRecarga || v.tipoCarga === 'Recarga') && 
-    v.statusCarregamento === 'Finalizado' && 
-    (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
-  ).map(v => ({
-    id: v.id,
-    carreta: v.placa || 'Recarga EFC',
-    revendaNome: v.tipoCarga || 'Recarga',
-    status: 'done' as const,
-    duracaoMin: v.duracaoCarregamentoMin || 15
-  }));
+  const completedRecargasEfc = useMemo(() => {
+    return efcVehicles.filter(v => 
+      (v.isRecarga || v.tipoCarga === 'Recarga') && 
+      v.statusCarregamento === 'Finalizado' && 
+      (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
+    ).map(v => ({
+      id: v.id,
+      carreta: v.placa || 'Recarga EFC',
+      revendaNome: v.tipoCarga || 'Recarga',
+      status: 'done' as const,
+      duracaoMin: v.duracaoCarregamentoMin || 15
+    }));
+  }, [efcVehicles, activeOperatorClean]);
 
-  const myCompletedTmr = [
-    ...tmrDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean)),
-    ...completedRecargasEfc
-  ];
+  const myCompletedTmr = useMemo(() => {
+    return [
+      ...tmrDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean)),
+      ...completedRecargasEfc
+    ];
+  }, [tmrDemands, activeOperatorClean, completedRecargasEfc]);
 
-  const myCompletedPicking = tasks.filter(t => t.status === 'done' && (t.operador || '').toUpperCase().includes(activeOperatorClean));
+  const myCompletedPicking = useMemo(() => {
+    return tasks.filter(t => t.status === 'done' && (t.operador || '').toUpperCase().includes(activeOperatorClean));
+  }, [tasks, activeOperatorClean]);
 
-  const myCompletedFefo = fefoDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean));
+  const myCompletedFefo = useMemo(() => {
+    return fefoDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean));
+  }, [fefoDemands, activeOperatorClean]);
 
   // Total operations count
   const totalOpsCompleted = myCompletedEfc.length + myCompletedEfd.length + myCompletedTmr.length + myCompletedPicking.length + myCompletedFefo.length;
 
   // Total duration & Average duration calculation
-  const totalDurations = [
-    ...myCompletedEfc.map(v => v.duracaoCarregamentoMin || 15),
-    ...myCompletedEfd.map(v => v.duracaoDescarregamentoMin || 20),
-    ...myCompletedTmr.map(t => t.duracaoMin || 15),
-    ...myCompletedPicking.map(t => t.duracaoMin || 10),
-    ...myCompletedFefo.map(t => t.duracaoMin || 10)
-  ];
-  const avgOperationDuration = totalDurations.length > 0 
-    ? Math.round(totalDurations.reduce((a, b) => a + b, 0) / totalDurations.length) 
-    : 0;
+  const avgOperationDuration = useMemo(() => {
+    const totalDurations = [
+      ...myCompletedEfc.map(v => v.duracaoCarregamentoMin || 15),
+      ...myCompletedEfd.map(v => v.duracaoDescarregamentoMin || 20),
+      ...myCompletedTmr.map(t => t.duracaoMin || 15),
+      ...myCompletedPicking.map(t => t.duracaoMin || 10),
+      ...myCompletedFefo.map(t => t.duracaoMin || 10)
+    ];
+    return totalDurations.length > 0 
+      ? Math.round(totalDurations.reduce((a, b) => a + b, 0) / totalDurations.length) 
+      : 0;
+  }, [myCompletedEfc, myCompletedEfd, myCompletedTmr, myCompletedPicking, myCompletedFefo]);
 
   // Hectoliters & Pallets replenished in Picking
-  const totalPalletsPicking = myCompletedPicking.reduce((acc, t) => acc + (t.quantidade || 0), 0);
-  const totalHectolitersPicking = Math.round(totalPalletsPicking * 48.5 * 10) / 10; // ~48.5 CX/palete avg
+  const totalPalletsPicking = useMemo(() => {
+    return myCompletedPicking.reduce((acc, t) => acc + (t.quantidade || 0), 0);
+  }, [myCompletedPicking]);
+
+  const totalHectolitersPicking = useMemo(() => {
+    return Math.round(totalPalletsPicking * 48.5 * 10) / 10;
+  }, [totalPalletsPicking]);
 
   // Vehicle Counts for assigned (Pernoite & 03.111.49.02 sorted to top)
-  // Rule 1: Placa importada -> aparece em EFC (statusCarregamento !== 'Finalizado')
-  const efcPendingVehicles = myAssignedVehicles.filter(v => v.statusCarregamento !== 'Finalizado');
+  const efcPendingVehicles = useMemo(() => {
+    return myAssignedVehicles.filter(v => v.statusCarregamento !== 'Finalizado');
+  }, [myAssignedVehicles]);
 
-  // Rule 2 & Rule 5: Placa CARREGADA (ou Pernoite/D1) -> aparece em EFD (somente se statusCarregamento === 'Finalizado' ou pernoiteMarked)
-  // "nunca existe uma placa disponível para descarregar que não foi carregada antes"
-  const efdPendingVehicles = myAssignedVehicles
-    .filter(v => {
-      const isLoadedOrPernoite = v.statusCarregamento === 'Finalizado' || v.pernoiteMarked === true || v.statusDescarregamento === 'Pernoite';
-      const isNotDischarged = v.statusDescarregamento !== 'Finalizado';
-      return isLoadedOrPernoite && isNotDischarged;
-    })
-    .sort((a, b) => {
-      const aPernoite = (a.pernoiteMarked || a.statusDescarregamento === 'Pernoite' || a.placa?.includes('03.111.49.02')) ? 1 : 0;
-      const bPernoite = (b.pernoiteMarked || b.statusDescarregamento === 'Pernoite' || b.placa?.includes('03.111.49.02')) ? 1 : 0;
-      return bPernoite - aPernoite;
-    });
-  const tercerosVehicles = myAssignedVehicles.filter(v => (v.tipoCarga || '').toLowerCase().includes('terceiro'));
-  const pernoiteVehicles = myAssignedVehicles.filter(v => v.statusDescarregamento === 'Pernoite' || v.pernoiteMarked === true);
+  const efdPendingVehicles = useMemo(() => {
+    return myAssignedVehicles
+      .filter(v => {
+        const isLoadedOrPernoite = v.statusCarregamento === 'Finalizado' || v.pernoiteMarked === true || v.statusDescarregamento === 'Pernoite';
+        const isNotDischarged = v.statusDescarregamento !== 'Finalizado';
+        return isLoadedOrPernoite && isNotDischarged;
+      })
+      .sort((a, b) => {
+        const aPernoite = (a.pernoiteMarked || a.statusDescarregamento === 'Pernoite' || a.placa?.includes('03.111.49.02')) ? 1 : 0;
+        const bPernoite = (b.pernoiteMarked || b.statusDescarregamento === 'Pernoite' || b.placa?.includes('03.111.49.02')) ? 1 : 0;
+        return bPernoite - aPernoite;
+      });
+  }, [myAssignedVehicles]);
+
+  const tercerosVehicles = useMemo(() => {
+    return myAssignedVehicles.filter(v => (v.tipoCarga || '').toLowerCase().includes('terceiro'));
+  }, [myAssignedVehicles]);
+
+  const pernoiteVehicles = useMemo(() => {
+    return myAssignedVehicles.filter(v => v.statusDescarregamento === 'Pernoite' || v.pernoiteMarked === true);
+  }, [myAssignedVehicles]);
 
   return (
     <div className="flex flex-col gap-6">

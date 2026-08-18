@@ -29,10 +29,9 @@ import {
   ExternalLink,
   Trash2
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { exportRondaGsaManualPdf } from '../utils/exportRondaGsaPdf';
 import * as XLSX from 'xlsx';
+import { RondaGsaRepository } from '../db';
 
 export type NivelAvaliacao = 'excelente' | 'bom' | 'razoavel' | 'ruim';
 
@@ -177,21 +176,15 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with Firestore
+  // Sync with Repository / Hybrid Database Router
   useEffect(() => {
     const fetchFirestoreGSA = async () => {
-      if (!db) return;
       try {
-        const colRef = collection(db, 'fefo_ronda_gsa');
-        const snap = await getDocs(colRef);
-        if (!snap.empty) {
-          const list: RondaGSARecord[] = [];
-          snap.forEach(d => list.push({ id: d.id, ...d.data() } as RondaGSARecord));
-          if (list.length > 0) {
-            list.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
-            setRecords(list);
-            localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(list));
-          }
+        const list = await RondaGsaRepository.getAll(empresaId);
+        if (list && list.length > 0) {
+          list.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
+          setRecords(list);
+          localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(list));
         }
       } catch (e) {
         console.warn('Fallback loading Ronda GSA:', e);
@@ -199,7 +192,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
     };
 
     fetchFirestoreGSA();
-  }, []);
+  }, [empresaId]);
 
   // Compute live score from 4 evaluation options
   let countExcelente = 0;
@@ -274,12 +267,10 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
     setRecords(updated);
     localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(updated));
 
-    if (db) {
-      try {
-        await setDoc(doc(db, 'fefo_ronda_gsa', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('Firestore write error for Ronda GSA:', err);
-      }
+    try {
+      await RondaGsaRepository.create(newRecord, empresaId, newRecord.id);
+    } catch (err) {
+      console.warn('Repository write error for Ronda GSA:', err);
     }
 
     // Reset Form
@@ -443,22 +434,22 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
     <div className="space-y-6">
       
       {/* CABEÇALHO DA SEÇÃO RONDA DE QUALIDADE */}
-      <div className="bg-[#111a30] border border-blue-500/30 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#111a30] dark:via-[#111a30] dark:to-[#0f172a] border border-slate-200 dark:border-blue-500/30 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-400 shrink-0">
+          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-600 dark:text-blue-400 shrink-0">
             <ClipboardList className="w-8 h-8" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
                 AUDITORIA DE QUALIDADE & SEGURANÇA
               </span>
-              <span className="text-[10px] text-slate-300 font-mono">Realizado pelo perfil Controle</span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">Realizado pelo perfil Controle</span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
               Ronda de Qualidade Semanal (34 Itens)
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Avaliação de condições do local auditado com 4 níveis de qualidade: Excelente (Azul), Bom (Verde), Razoável (Amarelo) e Ruim (Vermelho).
             </p>
           </div>
@@ -477,7 +468,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
           <button
             type="button"
             onClick={handleExportBlankPdf}
-            className="px-3.5 py-2.5 bg-[#0b1222] hover:bg-slate-800 text-sky-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-sky-500/30 transition-all cursor-pointer shadow-lg flex items-center gap-1.5"
+            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0b1222] dark:hover:bg-slate-800 text-sky-700 dark:text-sky-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 dark:border-sky-500/30 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             title="Baixar formulário das 34 questões em PDF para preenchimento manual"
           >
             <Download className="w-4 h-4" />
@@ -487,7 +478,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="px-3.5 py-2.5 bg-[#0b1222] hover:bg-slate-800 text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-500/30 transition-all cursor-pointer shadow-lg flex items-center gap-1.5"
+            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0b1222] dark:hover:bg-slate-800 text-amber-700 dark:text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 dark:border-amber-500/30 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             title="Importar planilha com histórico anual retroativo de rondas e respostas"
           >
             <Upload className="w-4 h-4" />
@@ -505,13 +496,13 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
       </div>
 
       {/* CAMPO DE PASTA COMPARTILHADA DA QUALIDADE DO ARMAZÉM */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1">
-          <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg shrink-0">
+          <div className="p-2 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
             <FolderOpen className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-[10px] font-black uppercase text-indigo-400 block">
+            <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 block">
               Pasta Compartilhada da Qualidade (Google Drive / Rede Corporativa)
             </span>
             {isEditingPasta ? (
@@ -521,7 +512,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                   defaultValue={pastaCompartilhadaUrl}
                   id="input-pasta-url"
                   placeholder="Cole o link do Google Drive, OneDrive ou caminho de rede aqui..."
-                  className="flex-1 bg-[#0b1222] border border-indigo-500/40 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
+                  className="flex-1 bg-slate-50 dark:bg-[#0b1222] border border-indigo-500/40 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none"
                 />
                 <button
                   type="button"
@@ -536,17 +527,17 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditingPasta(false)}
-                  className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-xs"
+                  className="px-2 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg text-xs cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <div className="text-xs text-slate-300 truncate mt-0.5">
+              <div className="text-xs text-slate-600 dark:text-slate-300 truncate mt-0.5">
                 {pastaCompartilhadaUrl ? (
-                  <span className="font-mono text-indigo-300">{pastaCompartilhadaUrl}</span>
+                  <span className="font-mono text-indigo-600 dark:text-indigo-300">{pastaCompartilhadaUrl}</span>
                 ) : (
-                  <span className="text-slate-500 italic">Nenhum caminho ou link de pasta compartilhada cadastrado.</span>
+                  <span className="text-slate-400 italic">Nenhum caminho ou link de pasta compartilhada cadastrado.</span>
                 )}
               </div>
             )}
@@ -558,7 +549,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
             <button
               type="button"
               onClick={() => setIsEditingPasta(true)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition-all cursor-pointer"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-lg transition-all cursor-pointer"
             >
               {pastaCompartilhadaUrl ? 'Alterar Caminho' : '+ Colar Caminho'}
             </button>
@@ -579,39 +570,39 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
       </div>
 
       {/* GRÁFICO DE QUALIDADE DO LOCAL AUDITADO (GLOBAL/MENSAL) */}
-      <div className="bg-[#111a30] border border-blue-500/30 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-blue-500/30 rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-400" />
-            <h3 className="text-sm font-black uppercase tracking-wider text-white">
+            <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
               Gráfico de Qualidade da Situação do Local Auditado
             </h3>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[10px] font-black uppercase text-slate-400">Filtrar Mês:</span>
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
+            <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Filtrar Mês:</span>
             <select
               value={selectedMonthFilter}
               onChange={(e) => setSelectedMonthFilter(e.target.value)}
-              className="bg-transparent text-xs font-black text-blue-400 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-black text-blue-600 dark:text-blue-400 outline-none cursor-pointer"
             >
-              <option value="todos" className="bg-[#0b1222] text-white">Todos os Meses</option>
-              <option value="08/2026" className="bg-[#0b1222] text-white">Agosto / 2026</option>
-              <option value="07/2026" className="bg-[#0b1222] text-white">Julho / 2026</option>
-              <option value="06/2026" className="bg-[#0b1222] text-white">Junho / 2026</option>
-              <option value="05/2026" className="bg-[#0b1222] text-white">Maio / 2026</option>
+              <option value="todos" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Todos os Meses</option>
+              <option value="08/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Agosto / 2026</option>
+              <option value="07/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Julho / 2026</option>
+              <option value="06/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Junho / 2026</option>
+              <option value="05/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Maio / 2026</option>
             </select>
           </div>
         </div>
 
         {/* MÉTRICAS E DISTRIBUIÇÃO GRÁFICA */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-1 bg-[#0b1222] p-4 rounded-xl border border-slate-800 flex flex-col justify-center items-center text-center">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+          <div className="md:col-span-1 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Média de Qualidade Semanal
             </span>
-            <div className="text-3xl font-black font-mono text-blue-400 mt-1">
+            <div className="text-3xl font-black font-mono text-blue-600 dark:text-blue-400 mt-1">
               {avgQualityPctInFilter}%
             </div>
             <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded mt-2 ${
@@ -623,13 +614,13 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
             </span>
           </div>
 
-          <div className="md:col-span-4 bg-[#0b1222] p-4 rounded-xl border border-slate-800 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+          <div className="md:col-span-4 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
               Distribuição Visual por Nível de Avaliação ({totalAuditsInFilter} Ronda(s) Mês)
             </span>
 
             {/* BARRA DE PROGRESSO MULTICOLORIDA */}
-            <div className="h-6 w-full bg-slate-900 rounded-lg overflow-hidden flex shadow-inner">
+            <div className="h-6 w-full bg-slate-200 dark:bg-slate-900 rounded-lg overflow-hidden flex shadow-inner">
               <div 
                 style={{ width: `${Math.round((totalExcelenteAll / grandTotalItems) * 100)}%` }} 
                 className="bg-blue-500 h-full transition-all flex items-center justify-center text-[10px] font-black text-white"
@@ -665,32 +656,32 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 p-2 rounded-lg">
                 <div className="w-3.5 h-3.5 bg-blue-500 rounded-full shrink-0" />
                 <div>
-                  <span className="block text-[10px] font-black uppercase text-blue-400">Excelente (Azul)</span>
-                  <strong className="text-white font-mono">{totalExcelenteAll} item(s)</strong>
+                  <span className="block text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">Excelente (Azul)</span>
+                  <strong className="text-slate-900 dark:text-white font-mono">{totalExcelenteAll} item(s)</strong>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-lg">
                 <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full shrink-0" />
                 <div>
-                  <span className="block text-[10px] font-black uppercase text-emerald-400">Bom (Verde)</span>
-                  <strong className="text-white font-mono">{totalBomAll} item(s)</strong>
+                  <span className="block text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Bom (Verde)</span>
+                  <strong className="text-slate-900 dark:text-white font-mono">{totalBomAll} item(s)</strong>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 p-2 rounded-lg">
                 <div className="w-3.5 h-3.5 bg-amber-500 rounded-full shrink-0" />
                 <div>
-                  <span className="block text-[10px] font-black uppercase text-amber-400">Razoável (Amarelo)</span>
-                  <strong className="text-white font-mono">{totalRazoavelAll} item(s)</strong>
+                  <span className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">Razoável (Amarelo)</span>
+                  <strong className="text-slate-900 dark:text-white font-mono">{totalRazoavelAll} item(s)</strong>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/30 p-2 rounded-lg">
                 <div className="w-3.5 h-3.5 bg-rose-500 rounded-full shrink-0" />
                 <div>
-                  <span className="block text-[10px] font-black uppercase text-rose-400">Ruim (Vermelho)</span>
-                  <strong className="text-white font-mono">{totalRuimAll} item(s)</strong>
+                  <span className="block text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">Ruim (Vermelho)</span>
+                  <strong className="text-slate-900 dark:text-white font-mono">{totalRuimAll} item(s)</strong>
                 </div>
               </div>
             </div>
@@ -700,28 +691,28 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
 
       {/* DETALHES DO REGISTRO SELECIONADO NO HISTÓRICO */}
       {selectedRecord && (
-        <div className="bg-[#0b1222] border-2 border-blue-500/50 rounded-2xl p-5 space-y-4 shadow-2xl relative">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-black uppercase text-blue-400 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-blue-400" /> Detalhes da Ronda de Qualidade - {selectedRecord.dataFormatted} ({selectedRecord.localAuditado})
+        <div className="bg-white dark:bg-[#0b1222] border-2 border-blue-500/50 rounded-2xl p-5 space-y-4 shadow-2xl relative">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-black uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Detalhes da Ronda de Qualidade - {selectedRecord.dataFormatted} ({selectedRecord.localAuditado})
             </h3>
             <button
               onClick={() => setSelectedRecord(null)}
-              className="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg cursor-pointer"
+              className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#111a30] p-3 rounded-xl text-xs text-slate-300">
-            <div><span className="text-slate-500 block uppercase text-[10px]">Data:</span> <strong>{selectedRecord.dataFormatted}</strong></div>
-            <div><span className="text-slate-500 block uppercase text-[10px]">Local Auditado:</span> <strong>{selectedRecord.localAuditado}</strong></div>
-            <div><span className="text-slate-500 block uppercase text-[10px]">Colaborador Auditado:</span> <strong>{selectedRecord.colaboradorAuditado}</strong></div>
-            <div><span className="text-slate-500 block uppercase text-[10px]">Auditor:</span> <strong>{selectedRecord.auditorNome}</strong></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 dark:bg-[#111a30] p-3 rounded-xl text-xs text-slate-700 dark:text-slate-300">
+            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Data:</span> <strong>{selectedRecord.dataFormatted}</strong></div>
+            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Local Auditado:</span> <strong>{selectedRecord.localAuditado}</strong></div>
+            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Colaborador Auditado:</span> <strong>{selectedRecord.colaboradorAuditado}</strong></div>
+            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Auditor:</span> <strong>{selectedRecord.auditorNome}</strong></div>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-blue-950/60 border border-blue-500/30 rounded-xl">
-            <span className="text-xs font-black uppercase text-slate-200">Percentual de Qualidade Semanal:</span>
+          <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 rounded-xl">
+            <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-200">Percentual de Qualidade Semanal:</span>
             <span className={`text-base font-mono font-black px-3 py-1 rounded ${
               selectedRecord.statusPontuacao === 'EXCELENTE' ? 'bg-blue-600 text-white' :
               selectedRecord.statusPontuacao === 'BOM' ? 'bg-emerald-600 text-white' :
@@ -732,17 +723,17 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
             </span>
           </div>
 
-          <div className="max-h-80 overflow-y-auto space-y-1 pr-1 border border-slate-800 rounded-xl p-2 bg-[#111a30]">
+          <div className="max-h-80 overflow-y-auto space-y-1 pr-1 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-[#111a30]">
             {QUESTOES_RONDA_GSA.map(q => {
               const resp = selectedRecord.respostasAvaliacao?.[q.id] || 'excelente';
               const obs = selectedRecord.observacoesItem?.[q.id] || '';
 
               return (
-                <div key={q.id} className="p-2 bg-[#0b1222] rounded flex items-center justify-between text-xs gap-3">
+                <div key={q.id} className="p-2 bg-white dark:bg-[#0b1222] rounded flex items-center justify-between text-xs gap-3 shadow-xs">
                   <div className="flex-1">
                     <span className="text-slate-400 font-mono font-bold mr-1.5">{q.id}.</span>
-                    <span className="text-white font-medium">{q.pergunta}</span>
-                    {obs && <span className="block text-[10px] text-amber-300 italic mt-0.5">Obs: "{obs}"</span>}
+                    <span className="text-slate-900 dark:text-white font-medium">{q.pergunta}</span>
+                    {obs && <span className="block text-[10px] text-amber-600 dark:text-amber-300 italic mt-0.5">Obs: "{obs}"</span>}
                   </div>
                   <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase shrink-0 ${
                     resp === 'excelente' ? 'bg-blue-600 text-white' :
@@ -761,94 +752,94 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
 
       {/* FORMULÁRIO COMPLETO DE PREENCHIMENTO DA RONDA */}
       {showForm && (
-        <form onSubmit={handleSaveAuditoriaGSA} className="bg-[#111a30] border-2 border-blue-500/50 rounded-2xl p-5 space-y-6 shadow-2xl">
+        <form onSubmit={handleSaveAuditoriaGSA} className="bg-white dark:bg-[#111a30] border-2 border-blue-500/50 rounded-2xl p-5 space-y-6 shadow-2xl">
           
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-blue-400" />
-              <h3 className="text-sm font-black uppercase text-white">
+              <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white">
                 Preenchimento da Ronda de Qualidade Semanal (34 Itens)
               </h3>
             </div>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="p-1 text-slate-400 hover:text-white"
+              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* DADOS BÁSICOS DA AUDITORIA */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#0b1222] p-4 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Data da Ronda</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Data da Ronda</label>
               <input
                 type="date"
                 value={dataISO}
                 onChange={e => setDataISO(e.target.value)}
-                className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs font-mono text-white outline-none focus:border-blue-400"
+                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-blue-400"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Local / Ponto Auditado</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Local / Ponto Auditado</label>
               <input
                 type="text"
                 value={localAuditado}
                 onChange={e => setLocalAuditado(e.target.value)}
                 placeholder="Ex: Armazém Central - Setor A/B"
-                className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs font-bold text-white outline-none focus:border-blue-400"
+                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Colaborador Inspecionado *</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Colaborador Inspecionado *</label>
               <input
                 type="text"
                 placeholder="Ex: Carlos Silva / Equipe Operacional"
                 value={colaboradorAuditado}
                 onChange={e => setColaboradorAuditado(e.target.value)}
-                className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2 text-xs text-white outline-none focus:border-blue-400"
+                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-400"
                 required
               />
             </div>
           </div>
 
           {/* CRITÉRIO E PONTUAÇÃO AO VIVO (4 NÍVEIS) */}
-          <div className="bg-[#081226] border border-blue-500/30 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-blue-50/70 dark:bg-[#081226] border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Award className="w-8 h-8 text-blue-400 shrink-0" />
+              <Award className="w-8 h-8 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
                   Percentual de Qualidade Semanal Calculado
                 </span>
-                <strong className="text-xl font-mono font-black text-white">
-                  {pctQualidade}% Qualidade <span className="text-xs text-slate-400 font-normal">({nota10Scale}/10 pts)</span>
+                <strong className="text-xl font-mono font-black text-slate-900 dark:text-white">
+                  {pctQualidade}% Qualidade <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">({nota10Scale}/10 pts)</span>
                 </strong>
               </div>
             </div>
 
             {/* SELETOR DE STATUS */}
             <div className="flex items-center gap-2 text-[10px] font-black">
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'EXCELENTE' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'EXCELENTE' ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                 ≥ 90% = Excelente (Azul)
               </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'BOM' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'BOM' ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                 75-89% = Bom (Verde)
               </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RAZOÁVEL' ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RAZOÁVEL' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                 60-74% = Razoável (Amarelo)
               </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RUIM' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RUIM' ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                 &lt; 60% = Ruim (Vermelho)
               </span>
             </div>
           </div>
 
           {/* TABELA DAS 34 PERGUNTAS COM 4 OPÇÕES DE AVALIAÇÃO */}
-          <div className="border border-slate-800 rounded-xl overflow-hidden">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
@@ -859,16 +850,16 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                     <th className="p-3 w-64">Observação do Item</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 bg-[#0b1222] text-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-200">
                   {QUESTOES_RONDA_GSA.map((item) => {
                     const currentVal = respostasAvaliacao[item.id] || 'excelente';
 
                     return (
-                      <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 font-mono font-bold text-slate-400 text-center">
+                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="p-3 font-mono font-bold text-slate-500 dark:text-slate-400 text-center">
                           {item.id}
                         </td>
-                        <td className="p-3 font-medium text-slate-200">
+                        <td className="p-3 font-medium text-slate-800 dark:text-slate-200">
                           {item.pergunta}
                         </td>
                         <td className="p-3">
@@ -879,7 +870,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                               className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
                                 currentVal === 'ruim'
                                   ? 'bg-rose-600 text-white border-rose-400 shadow-md'
-                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-rose-500'
+                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-rose-500'
                               }`}
                             >
                               Ruim
@@ -891,7 +882,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                               className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
                                 currentVal === 'razoavel'
                                   ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
-                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-amber-500'
+                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-amber-500'
                               }`}
                             >
                               Razoável
@@ -903,7 +894,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                               className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
                                 currentVal === 'bom'
                                   ? 'bg-emerald-600 text-white border-emerald-400 shadow-md'
-                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-emerald-500'
+                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-emerald-500'
                               }`}
                             >
                               Bom
@@ -915,7 +906,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                               className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
                                 currentVal === 'excelente'
                                   ? 'bg-blue-600 text-white border-blue-400 shadow-md'
-                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-blue-500'
+                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-blue-500'
                               }`}
                             >
                               Excelente
@@ -928,7 +919,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                             placeholder="Anotação / Desvio..."
                             value={observacoesItem[item.id] || ''}
                             onChange={(e) => handleObsChange(item.id, e.target.value)}
-                            className="w-full bg-[#111a30] border border-slate-700 rounded p-1.5 text-xs text-white outline-none focus:border-blue-400"
+                            className="w-full bg-slate-50 dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-400"
                           />
                         </td>
                       </tr>
@@ -940,16 +931,16 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
           </div>
 
           {/* ITEM 35 - PERGUNTA ABERTA DE TREINAMENTO */}
-          <div className="p-4 bg-[#0b1222] border border-amber-500/40 rounded-xl space-y-2">
-            <label className="block text-xs font-black uppercase text-amber-400 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-amber-400" /> Item 35: "Os colaboradores lembram qual foi o último treinamento? Qual foi a resposta?"
+          <div className="p-4 bg-amber-50/50 dark:bg-[#0b1222] border border-amber-300 dark:border-amber-500/40 rounded-xl space-y-2">
+            <label className="block text-xs font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Item 35: "Os colaboradores lembram qual foi o último treinamento? Qual foi a resposta?"
             </label>
             <textarea
               rows={2}
               value={respostaTreinamento}
               onChange={e => setRespostaTreinamento(e.target.value)}
               placeholder="Descreva o treinamento mencionado pelos colaboradores durante a ronda..."
-              className="w-full bg-[#111a30] border border-slate-700 rounded-lg p-2.5 text-xs text-white outline-none focus:border-amber-400 resize-none"
+              className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-amber-400 resize-none"
             />
           </div>
 
@@ -957,7 +948,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer"
+              className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer"
             >
               Cancelar
             </button>
@@ -973,39 +964,39 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
       )}
 
       {/* HISTÓRICO DE RONDAS DE QUALIDADE REALIZADAS */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-blue-400" />
+            <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider text-white">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
                 Histórico de Rondas de Qualidade Semanal
               </h3>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
                 Auditorias registradas pelo perfil Controle
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[10px] font-black uppercase text-slate-400">Filtrar Mês:</span>
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
+            <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Filtrar Mês:</span>
             <select
               value={selectedMonthFilter}
               onChange={(e) => setSelectedMonthFilter(e.target.value)}
-              className="bg-transparent text-xs font-black text-blue-400 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-black text-blue-600 dark:text-blue-400 outline-none cursor-pointer"
             >
-              <option value="todos" className="bg-[#0b1222] text-white">Todos os Meses</option>
-              <option value="08/2026" className="bg-[#0b1222] text-white">Agosto / 2026</option>
-              <option value="07/2026" className="bg-[#0b1222] text-white">Julho / 2026</option>
-              <option value="06/2026" className="bg-[#0b1222] text-white">Junho / 2026</option>
-              <option value="05/2026" className="bg-[#0b1222] text-white">Maio / 2026</option>
+              <option value="todos" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Todos os Meses</option>
+              <option value="08/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Agosto / 2026</option>
+              <option value="07/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Julho / 2026</option>
+              <option value="06/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Junho / 2026</option>
+              <option value="05/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Maio / 2026</option>
             </select>
           </div>
         </div>
 
         {filteredRecords.length > 0 ? (
-          <div className="border border-slate-800 rounded-xl overflow-hidden shadow-md">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-md">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
@@ -1019,22 +1010,22 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                     <th className="p-3 text-center">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 bg-[#0b1222] text-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-700 dark:text-slate-200">
                   {filteredRecords.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-white">
+                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
                         {r.dataFormatted}
                       </td>
-                      <td className="p-3 font-bold text-blue-400 uppercase">
+                      <td className="p-3 font-bold text-blue-600 dark:text-blue-400 uppercase">
                         {r.localAuditado}
                       </td>
-                      <td className="p-3 text-slate-300 font-bold">
+                      <td className="p-3 text-slate-800 dark:text-slate-300 font-bold">
                         {r.colaboradorAuditado}
                       </td>
-                      <td className="p-3 text-slate-400 text-[11px]">
+                      <td className="p-3 text-slate-500 dark:text-slate-400 text-[11px]">
                         {r.auditorNome}
                       </td>
-                      <td className="p-3 text-center font-mono font-black text-sm text-blue-400">
+                      <td className="p-3 text-center font-mono font-black text-sm text-blue-600 dark:text-blue-400">
                         {r.pontosPercentual}%
                       </td>
                       <td className="p-3 text-center">
@@ -1064,7 +1055,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                                 localAuditado: `${r.localAuditado} - Insp: ${r.colaboradorAuditado}`,
                               });
                             }}
-                            className="p-1 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded text-[10px] font-bold cursor-pointer transition-all"
+                            className="p-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-700 dark:text-sky-400 rounded text-[10px] font-bold cursor-pointer transition-all"
                             title="Baixar formulário desta ronda em PDF"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -1077,7 +1068,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                                 localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(next));
                               }
                             }}
-                            className="p-1 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded text-[10px] font-bold cursor-pointer transition-all"
+                            className="p-1 bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded text-[10px] font-bold cursor-pointer transition-all"
                             title="Excluir registro"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1091,9 +1082,9 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-6 bg-[#0b1222] border border-slate-800 rounded-xl text-center space-y-2">
-            <ClipboardList className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-400">
+          <div className="p-6 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-center space-y-2">
+            <ClipboardList className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Nenhuma Ronda de Qualidade foi cadastrada para o mês selecionado. Clique no botão acima para iniciar o formulário.
             </p>
           </div>

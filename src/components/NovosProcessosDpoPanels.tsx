@@ -23,11 +23,18 @@ import {
   BarChart2,
   Check
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { getRepository } from '../db';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { WlpDashboard } from './WlpDashboard';
+
+const treinamentosRepo = getRepository<any>('treinamentos_qualidade');
+const bloqueioRepo = getRepository<any>('bloqueio_armazem');
+const devolucoesRepo = getRepository<any>('devolucoes_armazem');
+const inventariosRepo = getRepository<any>('inventarios_ciclicos');
+const ativosRepo = getRepository<any>('ativos_retornaveis');
+const qualidadePuxadaRepo = getRepository<any>('qualidade_puxada');
+const cicloCarretasRepo = getRepository<any>('ciclo_carretas');
 
 interface PanelProps {
   user: Usuario;
@@ -50,12 +57,8 @@ export function TreinamentosQualidadePanel({ user, empresa, theme = 'light' }: P
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'treinamentos_qualidade'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await treinamentosRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -73,14 +76,14 @@ export function TreinamentosQualidadePanel({ user, empresa, theme = 'light' }: P
       status: 'Concluído',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'treinamentos_qualidade'), newItem);
+    await treinamentosRepo.create(newItem, empresaId);
     setTema('');
     setColaborador('');
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'treinamentos_qualidade', docId));
+    if (docId) await treinamentosRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -162,12 +165,8 @@ export function BloqueioArmazemPanel({ user, empresa, theme = 'light' }: PanelPr
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'bloqueio_armazem'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await bloqueioRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -186,13 +185,13 @@ export function BloqueioArmazemPanel({ user, empresa, theme = 'light' }: PanelPr
       status: 'Bloqueado',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'bloqueio_armazem'), newItem);
+    await bloqueioRepo.create(newItem, empresaId);
     setProduto('');
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'bloqueio_armazem', docId));
+    if (docId) await bloqueioRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -276,12 +275,8 @@ export function DevolucaoPanel({ user, empresa, theme = 'light' }: PanelProps) {
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'devolucoes_armazem'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await devolucoesRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -300,14 +295,14 @@ export function DevolucaoPanel({ user, empresa, theme = 'light' }: PanelProps) {
       status: 'Analisado / Conciliado PNC',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'devolucoes_armazem'), newItem);
+    await devolucoesRepo.create(newItem, empresaId);
     setRota('');
     setCliente('');
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'devolucoes_armazem', docId));
+    if (docId) await devolucoesRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -390,12 +385,8 @@ export function ContagemInventarioPanel({ user, empresa, theme = 'light' }: Pane
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'inventarios_ciclicos'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await inventariosRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -412,12 +403,12 @@ export function ContagemInventarioPanel({ user, empresa, theme = 'light' }: Pane
       status: 'Concluído com Ata',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'inventarios_ciclicos'), newItem);
+    await inventariosRepo.create(newItem, empresaId);
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'inventarios_ciclicos', docId));
+    if (docId) await inventariosRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -495,12 +486,8 @@ export function GestaoAtivosPanel({ user, empresa, theme = 'light' }: PanelProps
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'ativos_retornaveis'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await ativosRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -516,12 +503,12 @@ export function GestaoAtivosPanel({ user, empresa, theme = 'light' }: PanelProps
       status: 'Carta de Saldo Conciliada',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'ativos_retornaveis'), newItem);
+    await ativosRepo.create(newItem, empresaId);
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'ativos_retornaveis', docId));
+    if (docId) await ativosRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -593,12 +580,8 @@ export function QualidadePuxadaPanel({ user, empresa, theme = 'light' }: PanelPr
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'qualidade_puxada'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await qualidadePuxadaRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -616,13 +599,13 @@ export function QualidadePuxadaPanel({ user, empresa, theme = 'light' }: PanelPr
       status: 'Alerta Aberto na Fábrica',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'qualidade_puxada'), newItem);
+    await qualidadePuxadaRepo.create(newItem, empresaId);
     setPlaca('');
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'qualidade_puxada', docId));
+    if (docId) await qualidadePuxadaRepo.delete(docId, empresaId);
     loadData();
   };
 
@@ -709,12 +692,8 @@ export function CicloCarretasPanel({ user, empresa, theme = 'light' }: PanelProp
   useEffect(() => { loadData(); }, [empresaId]);
 
   const loadData = async () => {
-    if (!db) return;
     try {
-      const q = query(collection(db, 'ciclo_carretas'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const rows: any[] = [];
-      snap.forEach(d => rows.push({ _docId: d.id, ...d.data() }));
+      const rows = await cicloCarretasRepo.getAll(empresaId);
       setList(rows);
     } catch (e) { console.error(e); }
   };
@@ -734,13 +713,13 @@ export function CicloCarretasPanel({ user, empresa, theme = 'light' }: PanelProp
       status: (Number(tma) + Number(tmv) + Number(tmr)) <= 120 ? 'No ANS' : 'Atraso em Pátio',
       criadoEm: new Date().toISOString()
     };
-    if (db) await addDoc(collection(db, 'ciclo_carretas'), newItem);
+    await cicloCarretasRepo.create(newItem, empresaId);
     setPlaca('');
     loadData();
   };
 
   const handleDelete = async (docId: string) => {
-    if (db && docId) await deleteDoc(doc(db, 'ciclo_carretas', docId));
+    if (docId) await cicloCarretasRepo.delete(docId, empresaId);
     loadData();
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useDeferredValue } from 'react';
 import { ValidadeRow, Usuario, Empresa } from '../types';
 import { 
   AlertTriangle, 
@@ -13,7 +13,10 @@ import {
   ShieldAlert,
   RefreshCw,
   Send,
-  Trash2
+  Trash2,
+  X,
+  Loader2,
+  Check
 } from 'lucide-react';
 import { PRODUCTS } from '../planosData';
 import { syncFefoDemandsFromValidades, getStoredFefoDemands, updateFefoDemandStatus } from '../utils/fefoDemandManager';
@@ -34,9 +37,31 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
   onRefresh
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearch = useDeferredValue(searchTerm);
   const [localFilter, setLocalFilter] = useState<string>('todos');
   const [statusActionFilter, setStatusActionFilter] = useState<string>('todos');
   const [tratadosSet, setTratadosSet] = useState<Set<string>>(new Set());
+
+  // Non-blocking Toast & Mutation locks
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'warning' | 'info' | 'error' } | null>(null);
+  const [recentlyUpdatedKey, setRecentlyUpdatedKey] = useState<string | null>(null);
+  const [isSubmittingBulk, setIsSubmittingBulk] = useState<boolean>(false);
+  const [submittingActionKey, setSubmittingActionKey] = useState<string | null>(null);
+
+  // Custom non-blocking Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText: string;
+    variant: 'danger' | 'warning';
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'warning' | 'info' | 'error' = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3800);
+  };
 
   const companyId = empresa?.id || 'demo';
 
@@ -214,11 +239,11 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     return getStoredFefoDemands(companyId);
   }, [companyId, validadesList]);
 
-  // Filtered rows for UI
+  // Filtered rows for UI with deferred search for maximum responsiveness
   const filteredList = useMemo(() => {
     return criticosUnificados.filter(item => {
-      if (searchTerm) {
-        const q = searchTerm.toLowerCase();
+      if (deferredSearch.trim()) {
+        const q = deferredSearch.toLowerCase().trim();
         const matchCode = item.codigo.toLowerCase().includes(q);
         const matchDesc = item.descricao.toLowerCase().includes(q);
         if (!matchCode && !matchDesc) return false;
@@ -239,7 +264,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
       return true;
     });
-  }, [criticosUnificados, searchTerm, localFilter, statusActionFilter, tratadosSet]);
+  }, [criticosUnificados, deferredSearch, localFilter, statusActionFilter, tratadosSet]);
 
   // KPI stats
   const totalSkusCriticos = criticosUnificados.length;
@@ -251,62 +276,121 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
   const handleToggleTratado = (key: string) => {
     setTratadosSet(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+        showToast('Item marcado como pendente de ação.', 'info');
+      } else {
+        next.add(key);
+        showToast('Item marcado como concluído/tratado!', 'success');
+      }
       return next;
     });
   };
 
-  const handleEncaminharDespejo = (codigo: string, descricao: string, validade?: string) => {
+  const handleEncaminharDespejo = async (codigo: string, descricao: string, validade?: string) => {
     const key = validade ? `${codigo}_${validade}` : codigo;
-    setTratadosSet(prev => new Set(prev).add(key));
-    const list = JSON.parse(localStorage.getItem(`despejo_encaminhados_${companyId}`) || '[]');
-    list.push({ codigo, descricao, data: new Date().toISOString(), user: user?.nome || 'Operador' });
-    localStorage.setItem(`despejo_encaminhados_${companyId}`, JSON.stringify(list));
-    alert(`🗑️ SKU ${codigo} - ${descricao} encaminhado com sucesso para o Setor de Despejo!`);
-    if (onRefresh) onRefresh();
+    if (submittingActionKey === key) return;
+
+    setSubmittingActionKey(key);
+    try {
+      setTratadosSet(prev => new Set(prev).add(key));
+      const list = JSON.parse(localStorage.getItem(`despejo_encaminhados_${companyId}`) || '[]');
+      list.push({ codigo, descricao, validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
+      localStorage.setItem(`despejo_encaminhados_${companyId}`, JSON.stringify(list));
+      showToast(`🗑️ SKU ${codigo} - ${descricao} encaminhado para Despejo!`, 'warning');
+      if (onRefresh) onRefresh();
+    } finally {
+      setSubmittingActionKey(null);
+    }
   };
 
-  const handleEncaminharPNC = (codigo: string, descricao: string, validade?: string) => {
+  const handleEncaminharPNC = async (codigo: string, descricao: string, validade?: string) => {
     const key = validade ? `${codigo}_${validade}` : codigo;
-    setTratadosSet(prev => new Set(prev).add(key));
-    const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
-    list.push({ codigo, descricao, data: new Date().toISOString(), user: user?.nome || 'Operador' });
-    localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
-    alert(`⚠️ SKU ${codigo} - ${descricao} encaminhado para Produtos Não Conformes (PNC)!`);
-    if (onRefresh) onRefresh();
+    if (submittingActionKey === key) return;
+
+    setSubmittingActionKey(key);
+    try {
+      setTratadosSet(prev => new Set(prev).add(key));
+      const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
+      list.push({ codigo, descricao, validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
+      localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
+      showToast(`⚠️ SKU ${codigo} - ${descricao} encaminhado para PNC!`, 'warning');
+      if (onRefresh) onRefresh();
+    } finally {
+      setSubmittingActionKey(null);
+    }
   };
 
   const handleEncaminharListaDespejo = () => {
     if (criticosUnificados.length === 0) {
-      alert('Nenhum item na lista para encaminhar.');
+      showToast('Nenhum item na lista para encaminhar.', 'info');
       return;
     }
-    if (!confirm(`⚠️ Confirma o encaminhamento de TODOS os ${criticosUnificados.length} itens da lista para o setor de DESPEJO?`)) return;
-    criticosUnificados.forEach(i => {
-      setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Confirmar Encaminhamento para Despejo',
+      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para o setor de DESPEJO? Esta ação atualizará o status de todos os itens.`,
+      confirmText: 'Sim, Encaminhar Despejo',
+      variant: 'danger',
+      onConfirm: async () => {
+        setIsSubmittingBulk(true);
+        try {
+          criticosUnificados.forEach(i => {
+            setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+          });
+          const list = JSON.parse(localStorage.getItem(`despejo_encaminhados_${companyId}`) || '[]');
+          criticosUnificados.forEach(i => {
+            list.push({ codigo: i.codigo, descricao: i.descricao, validade: i.validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
+          });
+          localStorage.setItem(`despejo_encaminhados_${companyId}`, JSON.stringify(list));
+          showToast(`🗑️ Lista completa (${criticosUnificados.length} SKUs) encaminhada para DESPEJO!`, 'success');
+          if (onRefresh) onRefresh();
+        } finally {
+          setIsSubmittingBulk(false);
+          setConfirmModal(null);
+        }
+      }
     });
-    alert(`🗑️ Lista completa (${criticosUnificados.length} SKUs) encaminhada com sucesso para o setor de DESPEJO!`);
-    if (onRefresh) onRefresh();
   };
 
   const handleEncaminharListaPNC = () => {
     if (criticosUnificados.length === 0) {
-      alert('Nenhum item na lista para encaminhar.');
+      showToast('Nenhum item na lista para encaminhar.', 'info');
       return;
     }
-    if (!confirm(`⚠️ Confirma o encaminhamento de TODOS os ${criticosUnificados.length} itens da lista para PRODUTOS NÃO CONFORMES (PNC)?`)) return;
-    criticosUnificados.forEach(i => {
-      setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Confirmar Encaminhamento para PNC',
+      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para PRODUTOS NÃO CONFORMES (PNC)?`,
+      confirmText: 'Sim, Encaminhar PNC',
+      variant: 'warning',
+      onConfirm: async () => {
+        setIsSubmittingBulk(true);
+        try {
+          criticosUnificados.forEach(i => {
+            setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+          });
+          const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
+          criticosUnificados.forEach(i => {
+            list.push({ codigo: i.codigo, descricao: i.descricao, validade: i.validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
+          });
+          localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
+          showToast(`⚠️ Lista completa (${criticosUnificados.length} SKUs) encaminhada para PNC!`, 'success');
+          if (onRefresh) onRefresh();
+        } finally {
+          setIsSubmittingBulk(false);
+          setConfirmModal(null);
+        }
+      }
     });
-    alert(`⚠️ Lista completa (${criticosUnificados.length} SKUs) encaminhada com sucesso para PNC!`);
-    if (onRefresh) onRefresh();
   };
 
   const handleSaveQtyUpdate = (itemKey: string, code: string) => {
     const qtyNum = parseInt(editingQtyVal, 10);
     if (isNaN(qtyNum) || qtyNum < 0) {
-      alert('Por favor, informe uma quantidade válida.');
+      showToast('Por favor, informe uma quantidade válida.', 'error');
       return;
     }
 
@@ -332,100 +416,186 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
     setEditingKey(null);
     setEditingQtyVal('');
-    alert(`✅ Quantidade atualizada do SKU ${code} para ${qtyNum} cx notificada com sucesso por ${confName}!`);
+    setRecentlyUpdatedKey(itemKey);
+    setTimeout(() => setRecentlyUpdatedKey(null), 3000);
+    showToast(`✅ Quantidade do SKU ${code} atualizada para ${qtyNum} cx por ${confName}!`, 'success');
   };
 
   return (
-    <div className="bg-[#111a30] border border-rose-500/30 rounded-2xl p-5 space-y-5 shadow-2xl">
+    <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-rose-500/30 rounded-2xl p-5 sm:p-6 space-y-5 shadow-lg dark:shadow-2xl relative">
+      
+      {/* FLOATING TOAST NOTIFICATION */}
+      {toastMessage && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-bold transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 border ${
+          toastMessage.type === 'success' 
+            ? 'bg-emerald-950 text-emerald-200 border-emerald-500/50 shadow-emerald-950/50' 
+            : toastMessage.type === 'warning'
+            ? 'bg-amber-950 text-amber-200 border-amber-500/50 shadow-amber-950/50'
+            : toastMessage.type === 'error'
+            ? 'bg-rose-950 text-rose-200 border-rose-500/50 shadow-rose-950/50'
+            : 'bg-slate-900 text-slate-100 border-slate-700'
+        }`}>
+          {toastMessage.type === 'success' && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
+          {toastMessage.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />}
+          {toastMessage.type === 'error' && <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />}
+          <span>{toastMessage.text}</span>
+          <button 
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-slate-400 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* NON-BLOCKING CONFIRMATION MODAL */}
+      {confirmModal && confirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl ${
+                confirmModal.variant === 'danger' 
+                  ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400' 
+                  : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+              }`}>
+                {confirmModal.variant === 'danger' ? <Trash2 className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                {confirmModal.title}
+              </h3>
+            </div>
+            
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              {confirmModal.description}
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isSubmittingBulk}
+                onClick={() => setConfirmModal(null)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isSubmittingBulk}
+                onClick={() => confirmModal.onConfirm()}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-white flex items-center gap-2 cursor-pointer transition-all shadow-md ${
+                  confirmModal.variant === 'danger'
+                    ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/30'
+                    : 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/30'
+                } ${isSubmittingBulk ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                {isSubmittingBulk && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {confirmModal.confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-              <ShieldAlert className="w-3 h-3 text-rose-400" /> Workstation CCO
+            <span className="bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/40 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+              <ShieldAlert className="w-3 h-3 text-rose-500" /> Workstation CCO
             </span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
               Último Recolhimento & Janela de Validade
             </span>
           </div>
-          <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-rose-400" /> Acompanhamento de Itens em Janela Crítica (≤ 45 Dias)
+          <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-rose-500" /> Acompanhamento de Itens em Janela Crítica (≤ 45 Dias)
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Monitoramento unificado de produtos com validade na janela crítica (≤ 45 dias) identificados na coleta de pátio. Conferente pode notificar saldo físico atualizado.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
+            type="button"
+            disabled={isSubmittingBulk}
             onClick={handleEncaminharListaDespejo}
-            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-lg shadow-rose-900/30"
+            className={`px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-rose-600/25 ${
+              isSubmittingBulk ? 'opacity-60 cursor-not-allowed' : ''
+            }`}
             title="Encaminhar toda a lista para o Setor de Despejo"
           >
-            <Trash2 className="w-4 h-4" /> Encaminhar p/ Despejo
+            {isSubmittingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            Encaminhar p/ Despejo
           </button>
           <button
+            type="button"
+            disabled={isSubmittingBulk}
             onClick={handleEncaminharListaPNC}
-            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-lg shadow-amber-900/30"
+            className={`px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-amber-600/25 ${
+              isSubmittingBulk ? 'opacity-60 cursor-not-allowed' : ''
+            }`}
             title="Encaminhar toda a lista para Produtos Não Conformes (PNC)"
           >
-            <ShieldAlert className="w-4 h-4" /> Encaminhar p/ PNC
+            {isSubmittingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+            Encaminhar p/ PNC
           </button>
         </div>
       </div>
 
       {/* KPI METRICS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-[#0b1222] border border-rose-500/30 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-rose-50/70 dark:bg-[#0b1222] border border-rose-200 dark:border-rose-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">SKUs na Janela (≤45d)</span>
-            <strong className="text-xl text-rose-400 font-black">{totalSkusCriticos}</strong>
-            <span className="text-[10px] text-rose-300 block">janela crítica total</span>
+            <span className="text-[10px] text-rose-700 dark:text-slate-400 font-extrabold uppercase tracking-wider block">SKUs na Janela (≤45d)</span>
+            <strong className="text-2xl text-rose-600 dark:text-rose-400 font-black">{totalSkusCriticos}</strong>
+            <span className="text-[10px] text-rose-600 dark:text-rose-300 font-bold block mt-0.5">janela crítica total</span>
           </div>
-          <div className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
+          <div className="p-3 bg-white dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-500/20 shadow-xs">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#0b1222] border border-amber-500/30 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-amber-50/70 dark:bg-[#0b1222] border border-amber-200 dark:border-amber-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Volume Em Risco</span>
-            <div className="flex items-baseline gap-1.5">
-              <strong className="text-xl text-amber-400 font-black">{totalCaixasRisco.toLocaleString('pt-BR')} cx</strong>
-              <span className="text-xs text-sky-400 font-bold font-mono">({totalHlRisco.toFixed(1)} HL)</span>
+            <span className="text-[10px] text-amber-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Volume Em Risco</span>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <strong className="text-2xl text-amber-600 dark:text-amber-400 font-black">{totalCaixasRisco.toLocaleString('pt-BR')} cx</strong>
+              <span className="text-xs text-sky-700 dark:text-sky-400 font-bold font-mono">({totalHlRisco.toFixed(1)} HL)</span>
             </div>
-            <span className="text-[10px] text-amber-300 block">caixas e hectolitros totais em risco</span>
+            <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold block mt-0.5">caixas e hectolitros totais em risco</span>
           </div>
-          <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+          <div className="p-3 bg-white dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-500/20 shadow-xs">
             <Box className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#0b1222] border border-emerald-500/30 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-emerald-50/70 dark:bg-[#0b1222] border border-emerald-200 dark:border-emerald-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Valoração em Risco</span>
-            <strong className="text-xl text-emerald-400 font-black">R$ {valorTotalRisco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-            <span className="text-[10px] text-emerald-300 block">montante total R$</span>
+            <span className="text-[10px] text-emerald-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Valoração em Risco</span>
+            <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">R$ {valorTotalRisco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold block mt-0.5">montante total R$</span>
           </div>
-          <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+          <div className="p-3 bg-white dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
             <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#0b1222] border border-sky-500/30 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-sky-50/70 dark:bg-[#0b1222] border border-sky-200 dark:border-sky-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Status do Acompanhamento</span>
-            <strong className="text-xl text-sky-400 font-black">{totalTratados} / {totalSkusCriticos}</strong>
-            <span className="text-[10px] text-sky-300 block">itens tratados no workstation</span>
+            <span className="text-[10px] text-sky-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Status do Acompanhamento</span>
+            <strong className="text-2xl text-[#1e56f0] dark:text-sky-400 font-black">{totalTratados} / {totalSkusCriticos}</strong>
+            <span className="text-[10px] text-sky-700 dark:text-sky-300 font-bold block mt-0.5">itens tratados no workstation</span>
           </div>
-          <div className="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
+          <div className="p-3 bg-white dark:bg-sky-500/10 text-[#1e56f0] dark:text-sky-400 rounded-xl border border-sky-200 dark:border-sky-500/20 shadow-xs">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* FILTERS TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0b1222] p-3 rounded-xl border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
         <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[240px]">
           <div className="relative flex-1 min-w-[180px]">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -434,14 +604,14 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
               placeholder="Buscar por código ou produto..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-[#111a30] border border-slate-700 text-xs text-white placeholder-slate-500 pl-8 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-rose-500"
+              className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 pl-8 pr-3 py-2 rounded-lg focus:outline-none focus:border-[#1e56f0] shadow-2xs"
             />
           </div>
 
           <select
             value={localFilter}
             onChange={e => setLocalFilter(e.target.value)}
-            className="bg-[#111a30] border border-slate-700 text-xs text-slate-200 font-medium rounded-lg px-2.5 py-1.5 outline-none"
+            className="bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-200 font-bold rounded-lg px-3 py-2 outline-none shadow-2xs"
           >
             <option value="todos">📍 Todos os Locais</option>
             <option value="central">Central</option>
@@ -452,7 +622,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
           <select
             value={statusActionFilter}
             onChange={e => setStatusActionFilter(e.target.value)}
-            className="bg-[#111a30] border border-slate-700 text-xs text-slate-200 font-medium rounded-lg px-2.5 py-1.5 outline-none"
+            className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 font-medium rounded-lg px-2.5 py-1.5 outline-none"
           >
             <option value="todos">⚡ Todos os Status</option>
             <option value="pendente">Pendente de Ação</option>
@@ -460,16 +630,16 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
           </select>
         </div>
 
-        <span className="text-[11px] text-slate-400 font-mono font-bold">
+        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-bold">
           Exibindo {filteredList.length} registros unificados
         </span>
       </div>
 
       {/* TABLE OF CRITICAL RECOLHIMENTO ITEMS */}
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0b1222]">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1222]">
         <table className="w-full text-center border-collapse min-w-[850px]">
           <thead>
-            <tr className="bg-[#111a30] border-b border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+            <tr className="bg-slate-50 dark:bg-[#111a30] border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <th className="py-3 px-3 text-center">Farol</th>
               <th className="py-3 px-3 text-center">Código</th>
               <th className="py-3 px-4 text-center">Produto / Descrição</th>
@@ -482,7 +652,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
               <th className="py-3 px-4 text-center">Ações Workstation</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 text-xs text-center">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs text-center">
             {filteredList.length === 0 ? (
               <tr>
                 <td colSpan={10} className="py-10 text-center text-slate-500 font-medium">
@@ -497,6 +667,8 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                 const itemKey = `${item.codigo}_${item.validade}`;
                 const isTratado = tratadosSet.has(itemKey);
                 const isEditing = editingKey === itemKey;
+                const isActionLoading = submittingActionKey === itemKey;
+                const isJustUpdated = recentlyUpdatedKey === itemKey;
                 const volumeHlStr = (item as any).volumeHl ? (item as any).volumeHl.toFixed(2) : (item.quantidade * 0.072).toFixed(2);
                 const vendaMediaVal = (item as any).vendaMedia || Math.max(5, Math.round(item.quantidade / 6));
                 const diasEstoqueVal = (item as any).diasEstoque || (item.quantidade / vendaMediaVal).toFixed(1);
@@ -504,32 +676,34 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                 return (
                   <tr 
                     key={`${itemKey}_${idx}`} 
-                    className={`transition-colors ${
-                      isTratado 
-                        ? 'bg-emerald-950/20 hover:bg-emerald-900/30 text-slate-400 opacity-75' 
+                    className={`transition-all duration-300 ${
+                      isJustUpdated
+                        ? 'bg-emerald-100/90 dark:bg-emerald-900/50 ring-2 ring-emerald-500'
+                        : isTratado 
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-slate-500 dark:text-slate-400 opacity-75' 
                         : item.diasParaVencer <= 30
-                        ? 'bg-rose-950/20 hover:bg-rose-900/30 text-white font-semibold'
-                        : 'bg-amber-950/20 hover:bg-amber-900/30 text-white font-semibold'
+                        ? 'bg-rose-50/80 dark:bg-rose-950/20 hover:bg-rose-100/80 dark:hover:bg-rose-900/30 text-slate-900 dark:text-white font-semibold'
+                        : 'bg-amber-50/80 dark:bg-amber-950/20 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 text-slate-900 dark:text-white font-semibold'
                     }`}
                   >
                     {/* FAROL */}
                     <td className="py-3 px-3 text-center">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
                         item.diasParaVencer <= 30 
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' 
-                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40' 
+                          : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40'
                       }`}>
                         {item.diasParaVencer <= 30 ? 'CRÍTICO (≤30d)' : 'ALERTA (31-45d)'}
                       </span>
                     </td>
 
                     {/* CÓDIGO */}
-                    <td className="py-3 px-3 text-center font-mono font-bold text-slate-200">
+                    <td className="py-3 px-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
                       {item.codigo}
                     </td>
 
                     {/* PRODUTO */}
-                    <td className="py-3 px-4 text-center font-extrabold">
+                    <td className="py-3 px-4 text-center font-extrabold text-slate-900 dark:text-white">
                       <span className="truncate max-w-[240px] mx-auto block" title={item.descricao}>
                         {item.descricao}
                       </span>
@@ -543,19 +717,21 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                             type="number"
                             value={editingQtyVal}
                             onChange={e => setEditingQtyVal(e.target.value)}
-                            className="w-16 bg-slate-900 border border-amber-400 text-white font-mono font-bold text-center text-xs py-0.5 rounded outline-none"
+                            className="w-16 bg-white dark:bg-slate-900 border border-amber-500 text-slate-900 dark:text-white font-mono font-bold text-center text-xs py-0.5 rounded outline-none"
                             autoFocus
                           />
                           <button
+                            type="button"
                             onClick={() => handleSaveQtyUpdate(itemKey, item.codigo)}
-                            className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-black uppercase transition-colors"
+                            className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-black uppercase transition-colors flex items-center gap-1 cursor-pointer"
                             title="Salvar e notificar quantidade atualizada no workstation"
                           >
-                            💾 Notificar
+                            <Check className="w-3 h-3" /> Notificar
                           </button>
                           <button
+                            type="button"
                             onClick={() => setEditingKey(null)}
-                            className="px-1.5 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-[10px]"
+                            className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded text-[10px] cursor-pointer"
                           >
                             ✕
                           </button>
@@ -563,26 +739,27 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                       ) : (
                         <div className="flex flex-col items-center justify-center">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-amber-400 font-mono text-sm">{item.quantidade}</span>
-                            <span className="text-[10px] text-slate-400 font-normal">cx</span>
+                            <span className="text-amber-700 dark:text-amber-400 font-mono text-sm font-black">{item.quantidade}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">cx</span>
                             <button
+                              type="button"
                               onClick={() => {
                                 setEditingKey(itemKey);
                                 setEditingQtyVal(String(item.quantidade));
                               }}
-                              className="p-1 hover:bg-amber-500/20 text-amber-400 rounded transition-colors cursor-pointer"
+                              className="p-1 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded transition-colors cursor-pointer"
                               title="Conferente: Notificar quantidade física atualizada do item no workstation"
                             >
                               ✏️
                             </button>
                           </div>
-                          <span className="text-[10px] text-sky-400 font-mono font-bold">
+                          <span className="text-[10px] text-[#1e56f0] dark:text-sky-400 font-mono font-bold">
                             {volumeHlStr} HL
                           </span>
                         </div>
                       )}
                       {item.qtdAtualizadaLog && (
-                        <span className="block text-[9px] text-emerald-400 font-normal font-sans">
+                        <span className="block text-[9px] text-emerald-600 dark:text-emerald-400 font-normal font-sans">
                           Aferido às {item.qtdAtualizadaLog.updatedAt} por {item.qtdAtualizadaLog.conferente}
                         </span>
                       )}
@@ -590,22 +767,22 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
                     {/* VENDA MÉDIA DIÁRIA */}
                     <td className="py-3 px-3 text-center font-mono">
-                      <span className="text-white font-bold text-sm block">{vendaMediaVal}</span>
-                      <span className="text-[9px] text-slate-400 uppercase block">cx / dia</span>
+                      <span className="text-slate-900 dark:text-white font-bold text-sm block">{vendaMediaVal}</span>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase block">cx / dia</span>
                     </td>
 
                     {/* VENCIMENTO */}
-                    <td className="py-3 px-3 text-center font-mono font-extrabold text-slate-200">
+                    <td className="py-3 px-3 text-center font-mono font-extrabold text-slate-800 dark:text-slate-200">
                       {item.validade}
                     </td>
 
                     {/* DIAS RESTANTES & DIAS DE ESTOQUE */}
                     <td className="py-3 px-3 text-center">
                       <div className="flex flex-col items-center">
-                        <span className={`font-mono font-black text-sm ${item.diasParaVencer <= 30 ? 'text-rose-400' : 'text-amber-400'}`}>
+                        <span className={`font-mono font-black text-sm ${item.diasParaVencer <= 30 ? 'text-rose-600 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                           {item.diasParaVencer} dias
                         </span>
-                        <span className="text-[10px] text-slate-300 font-mono font-semibold">
+                        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono font-semibold">
                           ({diasEstoqueVal}d cobertura)
                         </span>
                       </div>
@@ -613,13 +790,13 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
                     {/* SETOR */}
                     <td className="py-3 px-3 text-center">
-                      <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block">
+                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block border border-slate-200 dark:border-slate-700">
                         {item.localizacao} {item.bloco ? `(${item.bloco})` : ''}
                       </span>
                     </td>
 
                     {/* VALORAÇÃO */}
-                    <td className="py-3 px-3 text-center font-mono text-emerald-400 font-bold">
+                    <td className="py-3 px-3 text-center font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                       R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
 
@@ -627,33 +804,45 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1.5 flex-wrap">
                         <button
+                          type="button"
                           onClick={() => {
                             setEditingKey(itemKey);
                             setEditingQtyVal(String(item.quantidade));
                           }}
-                          className="px-2 py-1 bg-sky-600/30 hover:bg-sky-600 text-sky-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-sky-500/40 transition-all cursor-pointer flex items-center gap-1"
+                          className="px-2 py-1 bg-blue-50 hover:bg-blue-100 dark:bg-sky-600/30 dark:hover:bg-sky-600 text-[#1e56f0] dark:text-sky-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-blue-200 dark:border-sky-500/40 transition-all cursor-pointer flex items-center gap-1"
                           title="Conferente: Notificar quantidade física atualizada deste item no workstation"
                         >
                           ✏️ Qtd
                         </button>
 
                         <button
+                          type="button"
+                          disabled={isActionLoading}
                           onClick={() => handleEncaminharDespejo(item.codigo, item.descricao, item.validade)}
-                          className="px-2 py-1 bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-rose-500/40 transition-all cursor-pointer flex items-center gap-1"
+                          className={`px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/30 dark:hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-rose-200 dark:border-rose-500/40 transition-all cursor-pointer flex items-center gap-1 ${
+                            isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                           title="Encaminhar este item para o Setor de Despejo"
                         >
-                          <Trash2 className="w-3 h-3" /> Despejo
+                          {isActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          Despejo
                         </button>
 
                         <button
+                          type="button"
+                          disabled={isActionLoading}
                           onClick={() => handleEncaminharPNC(item.codigo, item.descricao, item.validade)}
-                          className="px-2 py-1 bg-amber-600/30 hover:bg-amber-600 text-amber-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-amber-500/40 transition-all cursor-pointer flex items-center gap-1"
+                          className={`px-2 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-600/30 dark:hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-amber-200 dark:border-amber-500/40 transition-all cursor-pointer flex items-center gap-1 ${
+                            isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                           title="Encaminhar este item para Produtos Não Conformes (PNC)"
                         >
-                          <ShieldAlert className="w-3 h-3" /> PNC
+                          {isActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldAlert className="w-3 h-3" />}
+                          PNC
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => handleToggleTratado(itemKey)}
                           className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border ${
                             isTratado

@@ -670,16 +670,16 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
   return (
     <div className="space-y-6">
       {/* BANNER PRINCIPAL DE RANKING */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-2xl p-6 text-white shadow-xl border border-indigo-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 dark:from-slate-900 dark:via-indigo-950 dark:to-blue-950 rounded-2xl p-6 text-white shadow-xl border border-blue-700/40 dark:border-indigo-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-400/10 px-3 py-1 rounded-full border border-indigo-400/20 flex items-center gap-1.5 w-max">
-            <Trophy className="w-3.5 h-3.5 text-indigo-300" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200 bg-white/10 px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5 w-max">
+            <Trophy className="w-3.5 h-3.5 text-amber-300" />
             Rankings de Produtividade em Tempo Real (Unidade Guarabira-PB)
           </span>
-          <h2 className="text-2xl font-black tracking-tight mt-2 flex items-center gap-2">
+          <h2 className="text-2xl font-black tracking-tight mt-2 flex items-center gap-2 text-white">
             Ranking de Produtividade Operacional por Processo
           </h2>
-          <p className="text-xs text-indigo-200/90 font-medium mt-1 max-w-3xl">
+          <p className="text-xs text-blue-100/90 font-medium mt-1 max-w-3xl">
             Dados calculados continuamente a partir de lançamentos reais do Firestore e cadastros da unidade.
           </p>
         </div>
@@ -697,10 +697,10 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
             </button>
           )}
 
-          <div className="bg-indigo-500/20 border border-indigo-500/40 p-3 rounded-xl flex items-center gap-3 shrink-0">
-            <Award className="w-8 h-8 text-indigo-400" />
+          <div className="bg-white/10 border border-white/20 p-3 rounded-xl flex items-center gap-3 shrink-0">
+            <Award className="w-8 h-8 text-amber-300" />
             <div>
-              <span className="text-[9px] text-indigo-300 uppercase font-black block">Base Oficial</span>
+              <span className="text-[9px] text-blue-200 uppercase font-black block">Base Oficial</span>
               <span className="text-sm font-black text-white">{LISTA_COLABORADORES_OFICIAIS.length} Colaboradores</span>
             </div>
           </div>
@@ -709,18 +709,18 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
       {/* TABS DE SELEÇÃO DE PROCESSO / SETOR (BARRA DE ROLAGEM VISÍVEL E FLUIDA) */}
       <div className="relative group">
-        <div className="flex overflow-x-auto gap-2 pb-2.5 scrollbar-thin scrollbar-thumb-indigo-600/60 scrollbar-track-slate-900/60 border-b border-slate-800">
+        <div className="flex overflow-x-auto gap-2 pb-2.5 scrollbar-thin scrollbar-thumb-blue-600/60 scrollbar-track-slate-200 dark:scrollbar-track-slate-900/60 border-b border-slate-200 dark:border-slate-800">
           {setoresList.map(s => (
             <button
               key={s}
               onClick={() => setActiveSetor(s)}
               className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                 activeSetor === s
-                  ? 'bg-indigo-600 text-white shadow-lg scale-[1.02]'
-                  : 'bg-[#111a30] text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-blue-600 dark:bg-indigo-600 text-white shadow-md scale-[1.02]'
+                  : 'bg-white dark:bg-[#111a30] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-sm'
               }`}
             >
-              {s === 'Ranking Geral' ? <Trophy className="w-3.5 h-3.5 text-amber-400" /> : <Layers className="w-3.5 h-3.5" />}
+              {s === 'Ranking Geral' ? <Trophy className="w-3.5 h-3.5 text-amber-500" /> : <Layers className="w-3.5 h-3.5" />}
               {s}
             </button>
           ))}
@@ -734,80 +734,80 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
         <div className="space-y-6">
           {/* CARDS DE RESUMO GLOBAL DINÂMICOS DE OPERAÇÕES */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#111a30] border border-indigo-500/30 p-5 rounded-2xl flex items-center justify-between shadow-lg">
+            <div className="bg-white dark:bg-[#111a30] border border-blue-200/80 dark:border-indigo-500/30 p-5 rounded-2xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Operações Monitoradas</span>
-                <strong className="text-2xl text-white font-black">{summaryStats.totalComDados} / 13</strong>
-                <span className="text-[10px] text-indigo-400 block font-bold">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Operações Monitoradas</span>
+                <strong className="text-2xl text-slate-900 dark:text-white font-black">{summaryStats.totalComDados} / 13</strong>
+                <span className="text-[10px] text-blue-600 dark:text-indigo-400 block font-bold">
                   {summaryStats.totalComDados > 0 ? `${Math.round((summaryStats.totalComDados / 13) * 100)}% com dados reais` : 'Nenhum dado lançado'}
                 </span>
               </div>
-              <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+              <div className="p-3 bg-blue-50 dark:bg-indigo-500/10 text-blue-600 dark:text-indigo-400 rounded-xl border border-blue-200/60 dark:border-indigo-500/20">
                 <Layers3 className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-emerald-500/30 p-5 rounded-2xl flex items-center justify-between shadow-lg">
+            <div className="bg-white dark:bg-[#111a30] border border-emerald-200/80 dark:border-emerald-500/30 p-5 rounded-2xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Eficiência Média Geral</span>
-                <strong className="text-2xl text-emerald-400 font-black">{summaryStats.mediaEfic}</strong>
-                <span className="text-[10px] text-emerald-300 block font-bold">média das operações ativas</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Eficiência Média Geral</span>
+                <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">{summaryStats.mediaEfic}</strong>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-300 block font-bold">média das operações ativas</span>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200/60 dark:border-emerald-500/20">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-emerald-500/30 p-5 rounded-2xl flex items-center justify-between shadow-lg">
+            <div className="bg-white dark:bg-[#111a30] border border-emerald-200/80 dark:border-emerald-500/30 p-5 rounded-2xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Operações Conformes (OK)</span>
-                <strong className="text-2xl text-emerald-400 font-black">{summaryStats.conformesCount} {summaryStats.conformesCount === 1 ? 'Operação' : 'Operações'}</strong>
-                <span className="text-[10px] text-emerald-300 block font-bold">dentro ou acima do padrão</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Operações Conformes (OK)</span>
+                <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">{summaryStats.conformesCount} {summaryStats.conformesCount === 1 ? 'Operação' : 'Operações'}</strong>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-300 block font-bold">dentro ou acima do padrão</span>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200/60 dark:border-emerald-500/20">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-[#111a30] border border-amber-500/30 p-5 rounded-2xl flex items-center justify-between shadow-lg">
+            <div className="bg-white dark:bg-[#111a30] border border-amber-200/80 dark:border-amber-500/30 p-5 rounded-2xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Acompanhamento & Planos</span>
-                <strong className="text-2xl text-amber-400 font-black">{summaryStats.acompanhamentoCount} {summaryStats.acompanhamentoCount === 1 ? 'Operação' : 'Operações'}</strong>
-                <span className="text-[10px] text-amber-300 block font-bold">governança e planos ativos</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Acompanhamento & Planos</span>
+                <strong className="text-2xl text-amber-600 dark:text-amber-400 font-black">{summaryStats.acompanhamentoCount} {summaryStats.acompanhamentoCount === 1 ? 'Operação' : 'Operações'}</strong>
+                <span className="text-[10px] text-amber-600 dark:text-amber-300 block font-bold">governança e planos ativos</span>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+              <div className="p-3 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-200/60 dark:border-amber-500/20">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
           </div>
 
           {/* TABELA CONSOLIDADA DA MATRIZ DAS 13 OPERAÇÕES */}
-          <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-indigo-400 bg-blue-50 dark:bg-indigo-500/10 px-3 py-1 rounded-full border border-blue-200 dark:border-indigo-500/20">
                   QUADRO EXECUTIVO DE PRODUTIVIDADE OPERACIONAL
                 </span>
-                <h3 className="text-lg font-black text-white mt-1.5 flex items-center gap-2">
-                  <SlidersHorizontal className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-1.5 flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-blue-600 dark:text-indigo-400" />
                   Matriz de Metas e Reais — Todas as 13 Operações Logísticas
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Comparativo direto de metas, resultados reais e colaboradores responsáveis designados em cada frente de trabalho.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-slate-400 font-bold bg-[#0b1222] px-3 py-1.5 rounded-xl border border-slate-800">
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-[#0b1222] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
                   Unidade Guarabira-PB
                 </span>
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0b1222]">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
               <table className="w-full text-left border-collapse min-w-[950px]">
                 <thead>
-                  <tr className="bg-[#111a30] border-b border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  <tr className="bg-slate-100 dark:bg-[#111a30] border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     <th className="py-3.5 px-4">Operação / Processo</th>
                     <th className="py-3.5 px-3 text-center">Meta Padrão</th>
                     <th className="py-3.5 px-3 text-center">Resultado Real</th>
@@ -817,36 +817,36 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     <th className="py-3.5 px-3 text-center">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-xs">
                   {matriz13OperacoesDinamica.map((op) => (
-                    <tr key={op.id} className="hover:bg-slate-900/60 transition-colors">
+                    <tr key={op.id} className="hover:bg-blue-50/50 dark:hover:bg-slate-900/60 transition-colors">
                       {/* OPERAÇÃO */}
-                      <td className="py-3.5 px-4 font-black text-white">
-                        <span className="block text-xs font-bold text-slate-200">{op.nome}</span>
+                      <td className="py-3.5 px-4 font-black text-slate-900 dark:text-white">
+                        <span className="block text-xs font-bold text-slate-900 dark:text-slate-200">{op.nome}</span>
                         <span className="text-[10px] text-slate-500 uppercase font-mono">{op.unidade}</span>
                       </td>
 
                       {/* META */}
-                      <td className="py-3.5 px-3 text-center font-mono font-extrabold text-indigo-300">
+                      <td className="py-3.5 px-3 text-center font-mono font-extrabold text-blue-700 dark:text-indigo-300">
                         {op.meta}
                       </td>
 
                       {/* REAL */}
-                      <td className="py-3.5 px-3 text-center font-mono font-black text-emerald-400 text-sm">
+                      <td className="py-3.5 px-3 text-center font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
                         {op.real}
                       </td>
 
                       {/* % ATINGIMENTO */}
                       <td className="py-3.5 px-3 text-center">
                         <div className="inline-flex items-center gap-1.5 font-mono font-black text-xs">
-                          <span className={op.hasData ? (op.atingimentoPct >= 100 ? 'text-emerald-400' : 'text-amber-400') : 'text-slate-500'}>
+                          <span className={op.hasData ? (op.atingimentoPct >= 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-400 dark:text-slate-500'}>
                             {op.hasData ? `${op.atingimentoPct}%` : '—'}
                           </span>
                         </div>
                         {op.hasData && (
-                          <div className="w-20 bg-slate-800 h-1.5 rounded-full mx-auto mt-1 overflow-hidden">
+                          <div className="w-20 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full mx-auto mt-1 overflow-hidden">
                             <div 
-                              className={`h-full rounded-full ${op.atingimentoPct >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                              className={`h-full rounded-full ${op.atingimentoPct >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                               style={{ width: `${Math.min(100, op.atingimentoPct)}%` }}
                             />
                           </div>
@@ -857,21 +857,21 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                       <td className="py-3.5 px-3 text-center">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${
                           !op.hasData
-                            ? 'bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                             : op.isOk 
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                            : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30' 
+                            : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30'
                         }`}>
-                          {!op.hasData ? null : op.isOk ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <AlertTriangle className="w-3 h-3 text-amber-400" />}
+                          {!op.hasData ? null : op.isOk ? <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
                           {op.status}
                         </span>
                       </td>
 
                       {/* COLABORADORES RESPONSÁVEIS */}
-                      <td className="py-3.5 px-4 font-medium text-slate-300">
+                      <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300">
                         <div className="flex flex-wrap gap-1">
                           {op.responsaveis.split(',').map((resp, idx) => (
-                            <span key={idx} className="bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 px-2 py-0.5 rounded text-[10px] font-semibold">
+                            <span key={idx} className="bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 px-2 py-0.5 rounded text-[10px] font-semibold">
                               👤 {resp.trim()}
                             </span>
                           ))}
@@ -888,7 +888,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                               onNavigate((op as any).panelTab);
                             }
                           }}
-                          className="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-[10px] font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1 mx-auto"
+                          className="px-2.5 py-1 bg-blue-50 dark:bg-indigo-600/30 hover:bg-blue-600 dark:hover:bg-indigo-600 text-blue-700 dark:text-indigo-300 hover:text-white border border-blue-200 dark:border-indigo-500/40 rounded-lg text-[10px] font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1 mx-auto shadow-sm"
                         >
                           Ver Detalhes <ChevronRight className="w-3 h-3" />
                         </button>
@@ -907,25 +907,25 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {/* ==================================================================== */}
       {activeSetor === 'Gestão da Capacidade' && (
         <div className="space-y-6">
-          <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-6 space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-6 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-indigo-400 bg-blue-50 dark:bg-indigo-500/10 px-3 py-1 rounded-full border border-blue-200 dark:border-indigo-500/20">
                   INDICADOR DE SAÚDE DO ESTOQUE (CAPACIDADE)
                 </span>
-                <h3 className="text-xl font-black text-white mt-2">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-2">
                   Gestão da Capacidade — Distribuição de Status dos Itens
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Métrica consolidada do percentual de SKUs OK, em Falta e em Risco de Falta no armazém.
                 </p>
               </div>
 
               {!capacidadeEstoqueStats.metaAtingida && capacidadeEstoqueStats.hasData && (
-                <div className="p-3 bg-rose-500/20 border border-rose-500/50 rounded-xl text-rose-300 text-xs font-black flex items-center gap-2.5 max-w-md animate-pulse">
-                  <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
+                <div className="p-3 bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/50 rounded-xl text-rose-700 dark:text-rose-300 text-xs font-black flex items-center gap-2.5 max-w-md">
+                  <AlertTriangle className="w-6 h-6 text-rose-500 shrink-0" />
                   <div>
-                    <strong className="block text-rose-200">ALERTA CRÍTICO: META NÃO ATINGIDA!</strong>
+                    <strong className="block text-rose-800 dark:text-rose-200">ALERTA CRÍTICO: META NÃO ATINGIDA!</strong>
                     <span>Falta + Risco somam {capacidadeEstoqueStats.somaRiscoEFalta}% dos itens (limite máximo tolerado: 80%).</span>
                   </div>
                 </div>
@@ -934,56 +934,56 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
             {/* CARDS DE PERCENTUAL DE SAÚDE DO ESTOQUE */}
             {!capacidadeEstoqueStats.hasData ? (
-              <div className="p-8 bg-[#0b1222] border border-slate-800 rounded-2xl text-center text-slate-400 space-y-2">
+              <div className="p-8 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-2xl text-center text-slate-500 dark:text-slate-400 space-y-2">
                 <p className="text-sm font-bold">Nenhum item cadastrado no armazém.</p>
-                <p className="text-xs text-slate-500">Cadastre os produtos e posições no módulo de Armazém para visualizar a ocupação e capacidade.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Cadastre os produtos e posições no módulo de Armazém para visualizar a ocupação e capacidade.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {/* ITENS OK */}
-                <div className="bg-[#0b1222] border border-emerald-500/30 rounded-2xl p-5 space-y-2">
+                <div className="bg-emerald-50/50 dark:bg-[#0b1222] border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-5 space-y-2 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
+                    <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400 tracking-wider">
                       Itens em Situação OK
                     </span>
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <strong className="text-3xl font-black text-emerald-400 font-mono">
+                  <strong className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
                     {capacidadeEstoqueStats.pctOk}%
                   </strong>
-                  <span className="text-xs text-slate-400 block font-bold">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 block font-bold">
                     {capacidadeEstoqueStats.ok} de {capacidadeEstoqueStats.totalItens} SKUs com nível ideal
                   </span>
                 </div>
 
                 {/* ITENS EM RISCO DE FALTA */}
-                <div className="bg-[#0b1222] border border-amber-500/30 rounded-2xl p-5 space-y-2">
+                <div className="bg-amber-50/50 dark:bg-[#0b1222] border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5 space-y-2 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">
+                    <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-400 tracking-wider">
                       Itens em Risco de Falta
                     </span>
-                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <strong className="text-3xl font-black text-amber-400 font-mono">
+                  <strong className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono">
                     {capacidadeEstoqueStats.pctRisco}%
                   </strong>
-                  <span className="text-xs text-slate-400 block font-bold">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 block font-bold">
                     {capacidadeEstoqueStats.emRisco} SKUs próximos ao ponto crítico de ressuprimento
                   </span>
                 </div>
 
                 {/* ITENS EM FALTA (RUPTURA) */}
-                <div className="bg-[#0b1222] border border-rose-500/30 rounded-2xl p-5 space-y-2">
+                <div className="bg-rose-50/50 dark:bg-[#0b1222] border border-rose-200 dark:border-rose-500/30 rounded-2xl p-5 space-y-2 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-rose-400 tracking-wider">
+                    <span className="text-[10px] font-black uppercase text-rose-700 dark:text-rose-400 tracking-wider">
                       Itens em Falta (Ruptura)
                     </span>
-                    <AlertTriangle className="w-5 h-5 text-rose-400" />
+                    <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                   </div>
-                  <strong className="text-3xl font-black text-rose-500 font-mono">
+                  <strong className="text-3xl font-black text-rose-600 dark:text-rose-500 font-mono">
                     {capacidadeEstoqueStats.pctFalta}%
                   </strong>
-                  <span className="text-xs text-slate-400 block font-bold">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 block font-bold">
                     {capacidadeEstoqueStats.emFalta} SKUs zerados no estoque
                   </span>
                 </div>
@@ -1007,25 +1007,25 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {/* ==================================================================== */}
       {activeSetor === 'Ranking Geral' && (
         <div className="space-y-6">
-          <div className="bg-[#111a30] border border-indigo-500/30 rounded-2xl p-6 space-y-4">
-            <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-indigo-500/30 rounded-2xl p-6 space-y-4 shadow-md">
+            <div className="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-400" /> Ranking Geral Multi-Processo (Consolidado)
+                <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-500" /> Ranking Geral Multi-Processo (Consolidado)
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Desempenho consolidado dos colaboradores que atuam em um ou mais processos operacionais.
                 </p>
               </div>
-              <span className="text-xs bg-indigo-500/20 text-indigo-300 font-bold px-3 py-1 rounded-full border border-indigo-500/30">
+              <span className="text-xs bg-blue-50 dark:bg-indigo-500/20 text-blue-700 dark:text-indigo-300 font-bold px-3 py-1 rounded-full border border-blue-200 dark:border-indigo-500/30">
                 {rankingGeralConsolidado.length} Colaboradores Ranqueados
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#0b1222] text-slate-400 font-black uppercase text-[9px] border-b border-slate-800">
+                  <tr className="bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 font-black uppercase text-[9px] border-b border-slate-200 dark:border-slate-800">
                     <th className="p-3">Posição</th>
                     <th className="p-3">Matrícula / Colaborador</th>
                     <th className="p-3">Grupo / Cargo</th>
@@ -1033,30 +1033,30 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     <th className="p-3 text-right">Média % Atingido</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300 font-medium">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                   {rankingGeralConsolidado.map((item, idx) => (
-                    <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 font-black text-sm">
+                    <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="p-3 font-black text-sm text-slate-900 dark:text-white">
                         {idx === 0 ? '🥇 1º' : idx === 1 ? '🥈 2º' : idx === 2 ? '🥉 3º' : `${idx + 1}º`}
                       </td>
                       <td className="p-3">
-                        <span className="text-indigo-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
-                        <strong className="text-white text-xs">{item.nome}</strong>
-                        <span className="text-[9px] text-slate-400 block">Sup: {item.supervisor}</span>
+                        <span className="text-blue-600 dark:text-indigo-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
+                        <strong className="text-slate-900 dark:text-white text-xs">{item.nome}</strong>
+                        <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Sup: {item.supervisor}</span>
                       </td>
                       <td className="p-3">
-                        <span className="text-white font-bold block">{item.cargo}</span>
-                        <span className="text-[10px] text-slate-400">{item.funcaoGroup}</span>
+                        <span className="text-slate-900 dark:text-white font-bold block">{item.cargo}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">{item.funcaoGroup}</span>
                       </td>
                       <td className="p-3">
-                        <span className="text-indigo-300 font-bold text-[11px] block">{item.setoresStr}</span>
-                        <span className="text-[9px] text-slate-400">{item.numProcessos} processo(s)</span>
+                        <span className="text-blue-700 dark:text-indigo-300 font-bold text-[11px] block">{item.setoresStr}</span>
+                        <span className="text-[9px] text-slate-500 dark:text-slate-400">{item.numProcessos} processo(s)</span>
                       </td>
                       <td className="p-3 text-right">
                         <span className={`font-mono font-black text-sm px-2.5 py-1 rounded-lg border ${
                           item.atingiuMeta 
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                            : 'bg-rose-500/10 text-rose-500 border-rose-500/40 font-extrabold'
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30' 
+                            : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-500 border-rose-200 dark:border-rose-500/40 font-extrabold'
                         }`}>
                           {item.percentualMetaConsolidado}%
                         </span>
@@ -1065,7 +1065,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                   ))}
                   {rankingGeralConsolidado.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-500 italic">
+                      <td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500 italic">
                         Nenhum lançamento real encontrado para os colaboradores no período selecionado.
                       </td>
                     </tr>
@@ -1082,52 +1082,52 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {/* ==================================================================== */}
       {isQuebras && (
         <div className="space-y-6">
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200 font-medium flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-200 font-medium flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <span><strong>Regra de Quebras (Conceito Invertido):</strong> Ranking dividido em duas tabelas estritas (Empilhadores vs Ajudantes). Quanto menor o percentual de quebra, melhor a colocação.</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* LISTA 1: EMPILHADORES - QUEBRAS */}
-            <div className="bg-[#111a30] border border-amber-500/30 rounded-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-sm font-black uppercase text-amber-400 flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-amber-400" /> Empilhadores — Ranking de Quebras
+            <div className="bg-white dark:bg-[#111a30] border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Empilhadores — Ranking de Quebras
                 </h3>
-                <span className="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded">
+                <span className="text-[9px] bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">
                   Menor % é Melhor
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#0b1222] text-slate-400 font-black uppercase text-[9px] border-b border-slate-800">
+                    <tr className="bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 font-black uppercase text-[9px] border-b border-slate-200 dark:border-slate-800">
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">Colaborador</th>
                       <th className="p-2.5">Resultado</th>
                       <th className="p-2.5 text-right">Status Meta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                     {quebrasEmpilhadores.map((item, idx) => {
                       const atingiu = item.resultado <= item.meta;
                       return (
-                        <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-slate-800/30">
-                          <td className="p-2.5 font-black">{idx + 1}º</td>
+                        <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/30">
+                          <td className="p-2.5 font-black text-slate-900 dark:text-white">{idx + 1}º</td>
                           <td className="p-2.5">
-                            <span className="text-indigo-400 font-mono text-[10px] block">{item.matricula}</span>
-                            <strong className="text-white">{item.nome}</strong>
+                            <span className="text-blue-600 dark:text-indigo-400 font-mono text-[10px] block">{item.matricula}</span>
+                            <strong className="text-slate-900 dark:text-white">{item.nome}</strong>
                           </td>
                           <td className="p-2.5 font-mono">
-                            <span className={atingiu ? 'text-emerald-400 font-bold' : 'text-rose-500 font-extrabold'}>
+                            <span className={atingiu ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-500 font-extrabold'}>
                               {item.resultado}%
                             </span>
                             <span className="text-[9px] text-slate-500 block">Meta: ≤{item.meta}%</span>
                           </td>
                           <td className="p-2.5 text-right font-mono font-bold">
                             <span className={`px-2 py-0.5 rounded text-[10px] ${
-                              atingiu ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-500 font-extrabold border border-rose-500/30'
+                              atingiu ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-500 font-extrabold border border-rose-200 dark:border-rose-500/30'
                             }`}>
                               {atingiu ? '🟢 NO PRAZO' : '🔴 ACIMA DA META'}
                             </span>
@@ -1137,7 +1137,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     })}
                     {quebrasEmpilhadores.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="p-4 text-center text-slate-500 italic">
+                        <td colSpan={4} className="p-4 text-center text-slate-400 dark:text-slate-500 italic">
                           Nenhum registro de quebras para Empilhadores.
                         </td>
                       </tr>
@@ -1148,45 +1148,45 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
             </div>
 
             {/* LISTA 2: AJUDANTES - QUEBRAS */}
-            <div className="bg-[#111a30] border border-amber-500/30 rounded-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-sm font-black uppercase text-amber-400 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-amber-400" /> Ajudantes — Ranking de Quebras
+            <div className="bg-white dark:bg-[#111a30] border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Ajudantes — Ranking de Quebras
                 </h3>
-                <span className="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded">
+                <span className="text-[9px] bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">
                   Menor % é Melhor
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#0b1222] text-slate-400 font-black uppercase text-[9px] border-b border-slate-800">
+                    <tr className="bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 font-black uppercase text-[9px] border-b border-slate-200 dark:border-slate-800">
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">Colaborador</th>
                       <th className="p-2.5">Resultado</th>
                       <th className="p-2.5 text-right">Status Meta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                     {quebrasAjudantes.map((item, idx) => {
                       const atingiu = item.resultado <= item.meta;
                       return (
-                        <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-slate-800/30">
-                          <td className="p-2.5 font-black">{idx + 1}º</td>
+                        <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/30">
+                          <td className="p-2.5 font-black text-slate-900 dark:text-white">{idx + 1}º</td>
                           <td className="p-2.5">
-                            <span className="text-indigo-400 font-mono text-[10px] block">{item.matricula}</span>
-                            <strong className="text-white">{item.nome}</strong>
+                            <span className="text-blue-600 dark:text-indigo-400 font-mono text-[10px] block">{item.matricula}</span>
+                            <strong className="text-slate-900 dark:text-white">{item.nome}</strong>
                           </td>
                           <td className="p-2.5 font-mono">
-                            <span className={atingiu ? 'text-emerald-400 font-bold' : 'text-rose-500 font-extrabold'}>
+                            <span className={atingiu ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-500 font-extrabold'}>
                               {item.resultado}%
                             </span>
                             <span className="text-[9px] text-slate-500 block">Meta: ≤{item.meta}%</span>
                           </td>
                           <td className="p-2.5 text-right font-mono font-bold">
                             <span className={`px-2 py-0.5 rounded text-[10px] ${
-                              atingiu ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-500 font-extrabold border border-rose-500/30'
+                              atingiu ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-500 font-extrabold border border-rose-200 dark:border-rose-500/30'
                             }`}>
                               {atingiu ? '🟢 NO PRAZO' : '🔴 ACIMA DA META'}
                             </span>
@@ -1196,7 +1196,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     })}
                     {quebrasAjudantes.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="p-4 text-center text-slate-500 italic">
+                        <td colSpan={4} className="p-4 text-center text-slate-400 dark:text-slate-500 italic">
                           Nenhum registro de quebras para Ajudantes.
                         </td>
                       </tr>
@@ -1215,10 +1215,10 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {!isQuebras && activeSetor !== 'Gestão da Capacidade' && activeSetor !== 'Ranking Geral' && (
         <>
           {/* FILTRO DE GRUPO DE FUNÇÃO & BUSCA */}
-          <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-indigo-400" /> Grupo de Função:
+              <span className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-indigo-400" /> Grupo de Função:
               </span>
               {(['Todos', 'Conferente', 'Ajudante', 'Empilhador'] as const).map(f => (
                 <button
@@ -1226,8 +1226,8 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                   onClick={() => setActiveFuncao(f)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
                     activeFuncao === f
-                      ? 'bg-indigo-500 text-white shadow-sm'
-                      : 'bg-[#0b1222] text-slate-400 hover:text-slate-200 border border-slate-700'
+                      ? 'bg-blue-600 dark:bg-indigo-500 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   {f === 'Todos' ? 'Todos os Grupos' : f}
@@ -1242,27 +1242,27 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                 placeholder="Buscar por Matrícula, Nome, Cargo ou Supervisor..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 text-white text-xs rounded-xl pl-9 pr-4 py-2 outline-none focus:border-indigo-400"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs rounded-xl pl-9 pr-4 py-2 outline-none focus:border-blue-500 dark:focus:border-indigo-400"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* TOP MELHORES (ATINGINDO A META) */}
-            <div className="bg-[#111a30] border border-emerald-500/30 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-sm font-black uppercase text-emerald-400 flex items-center gap-2">
-                  <Medal className="w-4 h-4 text-emerald-400" /> Top Melhores — {activeSetor}
+            <div className="bg-white dark:bg-[#111a30] border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-black uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                  <Medal className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Top Melhores — {activeSetor}
                 </h3>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-500/30">
+                <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
                   Atingiram Meta
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#0b1222] text-slate-400 font-black uppercase text-[9px] border-b border-slate-800">
+                    <tr className="bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 font-black uppercase text-[9px] border-b border-slate-200 dark:border-slate-800">
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">Matrícula / Colaborador</th>
                       <th className="p-2.5">Cargo / Grupo</th>
@@ -1270,29 +1270,29 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                       <th className="p-2.5 text-right">% Atingido</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                     {topMelhores.map((item, idx) => (
-                      <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="p-2.5 font-black text-xs">
+                      <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="p-2.5 font-black text-xs text-slate-900 dark:text-white">
                           {idx === 0 ? '🥇 1º' : idx === 1 ? '🥈 2º' : idx === 2 ? '🥉 3º' : `${idx + 1}º`}
                         </td>
                         <td className="p-2.5">
-                          <span className="text-indigo-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
-                          <strong className="text-white text-xs">{item.nome}</strong>
-                          <span className="text-[9px] text-slate-400 block">Sup: {item.supervisor}</span>
+                          <span className="text-blue-600 dark:text-indigo-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
+                          <strong className="text-slate-900 dark:text-white text-xs">{item.nome}</strong>
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Sup: {item.supervisor}</span>
                         </td>
                         <td className="p-2.5 text-[11px]">
-                          <span>{item.cargo}</span>
-                          <span className="text-[9px] text-slate-400 block font-bold">{item.funcaoGroup}</span>
+                          <span className="text-slate-900 dark:text-slate-200">{item.cargo}</span>
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-bold">{item.funcaoGroup}</span>
                         </td>
                         <td className="p-2.5 font-mono text-xs">
-                          <strong className="text-emerald-400">{item.resultado} {item.unidadeMedida}</strong>
-                          <span className="text-[9px] text-slate-400 block">Meta: {item.meta} {item.unidadeMedida}</span>
+                          <strong className="text-emerald-600 dark:text-emerald-400">{item.resultado} {item.unidadeMedida}</strong>
+                          <span className="text-[9px] text-slate-500 block">Meta: {item.meta} {item.unidadeMedida}</span>
                         </td>
-                        <td className="p-2.5 text-right font-mono font-black text-emerald-400 text-xs">
+                        <td className="p-2.5 text-right font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
                           <span>{item.percentualMeta}%</span>
-                          <span className="text-[9px] text-emerald-300 font-normal block flex items-center justify-end gap-0.5">
-                            <ArrowUpRight className="w-3 h-3 text-emerald-400" />
+                          <span className="text-[9px] text-emerald-600 dark:text-emerald-300 font-normal block flex items-center justify-end gap-0.5">
+                            <ArrowUpRight className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                             +{item.variacaoMetaPct}%
                           </span>
                         </td>
@@ -1300,7 +1300,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     ))}
                     {topMelhores.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="p-4 text-center text-slate-500 italic">
+                        <td colSpan={5} className="p-4 text-center text-slate-400 dark:text-slate-500 italic">
                           Nenhum registro acima da meta encontrado para este filtro.
                         </td>
                       </tr>
@@ -1311,20 +1311,20 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
             </div>
 
             {/* PONTOS DE ATENÇÃO (NÃO ATINGIRAM A META - DESTAQUE EM VERMELHO) */}
-            <div className="bg-[#111a30] border border-rose-500/30 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-sm font-black uppercase text-rose-500 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500" /> Pontos de Atenção — Fora da Meta
+            <div className="bg-white dark:bg-[#111a30] border border-rose-200 dark:border-rose-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-black uppercase text-rose-600 dark:text-rose-500 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-500" /> Pontos de Atenção — Fora da Meta
                 </h3>
-                <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-500/30">
+                <span className="text-[10px] bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-200 dark:border-rose-500/30">
                   Requer Acompanhamento
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b1222]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#0b1222] text-slate-400 font-black uppercase text-[9px] border-b border-slate-800">
+                    <tr className="bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 font-black uppercase text-[9px] border-b border-slate-200 dark:border-slate-800">
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">Matrícula / Colaborador</th>
                       <th className="p-2.5">Cargo / Grupo</th>
@@ -1332,31 +1332,31 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                       <th className="p-2.5 text-right">% Atingido</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                     {pontosAtencao.map((item, idx) => (
-                      <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-slate-800/30 bg-rose-500/5 transition-colors">
-                        <td className="p-2.5 font-black text-xs text-rose-500">
+                      <tr key={item.matricula ? `${item.matricula}-${idx}` : idx} className="hover:bg-rose-50/60 dark:hover:bg-slate-800/30 bg-rose-50/20 dark:bg-rose-500/5 transition-colors">
+                        <td className="p-2.5 font-black text-xs text-rose-600 dark:text-rose-500">
                           {`#${idx + 1}`}
                         </td>
                         <td className="p-2.5">
-                          <span className="text-rose-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
-                          <strong className="text-white text-xs">{item.nome}</strong>
-                          <span className="text-[9px] text-slate-400 block">Sup: {item.supervisor}</span>
+                          <span className="text-rose-600 dark:text-rose-400 font-mono text-[10px] font-bold block">{item.matricula}</span>
+                          <strong className="text-slate-900 dark:text-white text-xs">{item.nome}</strong>
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Sup: {item.supervisor}</span>
                         </td>
                         <td className="p-2.5 text-[11px]">
-                          <span>{item.cargo}</span>
-                          <span className="text-[9px] text-slate-400 block font-bold">{item.funcaoGroup}</span>
+                          <span className="text-slate-900 dark:text-slate-200">{item.cargo}</span>
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-bold">{item.funcaoGroup}</span>
                         </td>
                         <td className="p-2.5 font-mono text-xs">
-                          <strong className="text-rose-500 font-black">{item.resultado} {item.unidadeMedida}</strong>
-                          <span className="text-[9px] text-slate-400 block">Meta: {item.meta} {item.unidadeMedida}</span>
+                          <strong className="text-rose-600 dark:text-rose-500 font-black">{item.resultado} {item.unidadeMedida}</strong>
+                          <span className="text-[9px] text-slate-500 block">Meta: {item.meta} {item.unidadeMedida}</span>
                         </td>
                         <td className="p-2.5 text-right font-mono font-black text-xs">
-                          <span className="text-rose-500 font-extrabold bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded">
+                          <span className="text-rose-700 dark:text-rose-500 font-extrabold bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2 py-0.5 rounded">
                             {item.percentualMeta}%
                           </span>
-                          <span className="text-[9px] text-rose-400 font-bold block flex items-center justify-end gap-0.5 mt-1">
-                            <ArrowDownRight className="w-3 h-3 text-rose-500" />
+                          <span className="text-[9px] text-rose-600 dark:text-rose-400 font-bold block flex items-center justify-end gap-0.5 mt-1">
+                            <ArrowDownRight className="w-3 h-3 text-rose-600 dark:text-rose-500" />
                             {item.variacaoMetaPct}%
                           </span>
                         </td>
@@ -1364,7 +1364,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                     ))}
                     {pontosAtencao.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="p-4 text-center text-slate-500 italic">
+                        <td colSpan={5} className="p-4 text-center text-slate-400 dark:text-slate-500 italic">
                           Nenhum ponto de atenção registrado para este filtro.
                         </td>
                       </tr>

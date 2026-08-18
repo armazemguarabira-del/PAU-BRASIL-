@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, getDocs, setDoc, deleteDoc, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, startAfter as firestoreStartAfter } from 'firebase/firestore';
 
 export interface AcaoDesvioItem {
   id: string;
@@ -322,11 +322,25 @@ export function saveAcoesDesviosLocal(items: AcaoDesvioItem[]): void {
   } catch (e) {}
 }
 
-export async function fetchAcoesDesvios(empresaId: string = 'demo'): Promise<AcaoDesvioItem[]> {
+export async function fetchAcoesDesvios(
+  empresaId: string = 'demo',
+  limitCount: number = 50,
+  startAfterDoc?: any
+): Promise<AcaoDesvioItem[]> {
   if (db) {
     try {
       const colRef = collection(db, 'acoes_desvios_gatilhos');
-      const q = query(colRef);
+      const constraints: any[] = [
+        where('empresaId', '==', empresaId),
+        orderBy('dataISO', 'desc')
+      ];
+      if (startAfterDoc) {
+        constraints.push(firestoreStartAfter(startAfterDoc));
+      }
+      if (limitCount > 0) {
+        constraints.push(firestoreLimit(limitCount));
+      }
+      const q = query(colRef, ...constraints);
       const snap = await getDocs(q);
       if (!snap.empty) {
         const list: AcaoDesvioItem[] = [];
@@ -412,11 +426,25 @@ export function saveAcoesMelhoriasLocal(items: AcaoMelhoriaItem[]): void {
   } catch (e) {}
 }
 
-export async function fetchAcoesMelhorias(empresaId: string = 'demo'): Promise<AcaoMelhoriaItem[]> {
+export async function fetchAcoesMelhorias(
+  empresaId: string = 'demo',
+  limitCount: number = 50,
+  startAfterDoc?: any
+): Promise<AcaoMelhoriaItem[]> {
   if (db) {
     try {
       const colRef = collection(db, 'acoes_melhoria_tor');
-      const q = query(colRef);
+      const constraints: any[] = [
+        where('empresaId', '==', empresaId),
+        orderBy('dataISO', 'desc')
+      ];
+      if (startAfterDoc) {
+        constraints.push(firestoreStartAfter(startAfterDoc));
+      }
+      if (limitCount > 0) {
+        constraints.push(firestoreLimit(limitCount));
+      }
+      const q = query(colRef, ...constraints);
       const snap = await getDocs(q);
       if (!snap.empty) {
         const list: AcaoMelhoriaItem[] = [];

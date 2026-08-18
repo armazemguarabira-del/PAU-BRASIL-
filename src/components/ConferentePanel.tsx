@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { TarefasRepository } from '../db';
 import { Usuario, Empresa, Tarefa, ArmazemTemperaturaLog, TmrDemand } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
@@ -1025,38 +1025,20 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     }
   }, [empresaId]);
 
-  // Sync with Firestore Tasks (scoped to company)
+  // Sync with Tasks (scoped to company)
   useEffect(() => {
-    if (!db) {
-      const savedTasks = localStorage.getItem(`tasks_${empresaId}`);
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
-      return;
-    }
-
-    const rows = [...empresaData.tarefas];
+    const rows = [...(empresaData.tarefas || [])];
     rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
     setTasks(rows);
     localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.tarefas, empresaId]);
 
-  // Sync colaboradores from Firestore/localStorage to use as operators and conferentes
+  // Sync colaboradores to use as operators and conferentes
   useEffect(() => {
     const allowedOps = ['MARIVALDO', 'RONILDO', 'PAULO PEREIRA'];
     setOperators(allowedOps);
 
-    if (!db) {
-      const savedColab = localStorage.getItem(`colaboradores_${empresaId}`);
-      if (savedColab) {
-        const list = JSON.parse(savedColab);
-        const confs = list
-          .filter((c: any) => (c.funcao || '').toLowerCase() === 'conferente')
-          .map((c: any) => c.nome.toUpperCase());
-        if (confs.length > 0) setConferentes(confs);
-      }
-      return;
-    }
-
-    const list = empresaData.colaboradores;
+    const list = empresaData.colaboradores || [];
     const confs = list
       .filter((c: any) => (c.funcao || '').toLowerCase() === 'conferente')
       .map((c: any) => c.nome.toUpperCase());
@@ -1106,14 +1088,11 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'tarefas'), newRow);
-      } else {
-        const current = [...tasks, { _docId: String(Date.now()), ...newRow }];
-        setTasks(current);
-        localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(current));
-        localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(current));
-      }
+      const added = await TarefasRepository.create(newRow, empresaId);
+      const current = [...tasks, { _docId: added._docId || added.id, ...newRow }];
+      setTasks(current);
+      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(current));
+      localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(current));
 
       window.dispatchEvent(new CustomEvent('app_data_updated'));
       window.dispatchEvent(new CustomEvent('local_data_changed'));
@@ -1134,13 +1113,12 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
   const handleDeleteTask = async (t: Tarefa) => {
     try {
-      if (db && t._docId) {
-        await deleteDoc(doc(db, 'tarefas', t._docId));
-      } else {
-        const remaining = tasks.filter(x => x.id !== t.id);
-        setTasks(remaining);
-        localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(remaining));
+      if (t._docId) {
+        await TarefasRepository.delete(t._docId, empresaId);
       }
+      const remaining = tasks.filter(x => x.id !== t.id);
+      setTasks(remaining);
+      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(remaining));
       toast('Tarefa #' + t.id + ' removida com sucesso.');
     } catch (e) {
       console.error(e);

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ValidadeRow, Usuario, Empresa } from '../types';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { ValidadesRepository } from '../db';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import { 
@@ -501,26 +501,26 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           };
 
           newImportedRows.push(newRowObj);
+        }
 
-          if (db && isCustomFirebaseConnected()) {
-            try {
-              await addDoc(collection(db, 'validades'), {
-                empresaId: empresa?.id || 'demo',
-                codigo,
-                descricao,
-                palhete: 1,
-                lastro: 1,
-                caixa: quantidade,
-                validade: validadeStr,
-                lote,
-                quantidade,
-                localizacao: localizacaoStr,
-                _criadoEm: new Date().toISOString()
-              });
-            } catch (err) {
-              console.error('Erro ao salvar no firebase:', err);
-            }
-          }
+        try {
+          const empId = empresa?.id || 'demo';
+          const itemsToSave = newImportedRows.map(r => ({
+            empresaId: empId,
+            codigo: r.codigo,
+            descricao: r.descricao,
+            palhete: 1,
+            lastro: 1,
+            caixa: r.quantidade,
+            validade: r.dataVencimento,
+            lote: r.lote,
+            quantidade: r.quantidade,
+            localizacao: r.localizacao,
+            _criadoEm: new Date().toISOString()
+          }));
+          await ValidadesRepository.batchUpsert(itemsToSave as any, empId);
+        } catch (err) {
+          console.error('Erro ao salvar no repositório de validades:', err);
         }
 
         setCustomRows(prev => [...prev, ...newImportedRows]);

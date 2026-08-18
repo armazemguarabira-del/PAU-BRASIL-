@@ -44,6 +44,7 @@ import {
   Search,
   RotateCcw
 } from 'lucide-react';
+import RetroactiveWlpFaturadoJsonImport from './RetroactiveWlpFaturadoJsonImport';
 
 export interface HistoricalVolumeRowItem {
   m: string;
@@ -54,7 +55,7 @@ export interface HistoricalVolumeRowItem {
   isParcial26?: boolean;
 }
 
-const DEFAULT_HISTORICAL_VOLUMES: HistoricalVolumeRowItem[] = [
+export const DEFAULT_HISTORICAL_VOLUMES: HistoricalVolumeRowItem[] = [
   { m: 'Jan', v24: '-', v25: '13.491,3', v26: '16.336,4', crit: false },
   { m: 'Fev', v24: '-', v25: '11.676,1', v26: '12.486,1', crit: false },
   { m: 'Mar', v24: '-', v25: '10.023,7', v26: '13.813,4', crit: true },
@@ -163,7 +164,7 @@ export const WlpDashboard: React.FC<WlpDashboardProps> = ({
 }) => {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedMesAno, setSelectedMesAno] = useState<string>('08/2026');
-  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente'>('indicador');
+  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente' | 'importacao_json'>('indicador');
 
   // Filtro Entre Dias (Intervalo de Datas)
   const [filterMode, setFilterMode] = useState<'MES' | 'INTERVALO'>('MES');
@@ -1313,109 +1314,108 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
         </div>
       )}
 
-      {/* CABEÇALHO COMPACTO E ALINHADO WLP WORKSTATION */}
+      {/* CABEÇALHO COMPACTO E RESPONSIVO WLP WORKSTATION */}
       <div className="bg-[#111a30] border border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4">
-        {/* Linha 1: Título do Dashboard */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/20 border border-amber-500/40 rounded-xl text-amber-400 shrink-0">
-              <BarChart3 className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  INDICADOR ESTRATÉGICO WORKSTATION
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  Fórmula: HL Faturado ÷ (TT QLP × 7.33h × Dias Úteis)
-                </span>
-              </div>
-              <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-tight mt-0.5">
-                Dashboard de WLP (Workload Planning &amp; Produtividade Operacional)
-              </h2>
-            </div>
+        {/* Bloco de Título e Identificação */}
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="p-3 bg-amber-500/20 border border-amber-500/40 rounded-xl text-amber-400 shrink-0 mt-0.5 sm:mt-0 shadow-inner">
+            <BarChart3 className="w-6 h-6" />
           </div>
-
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsActionModalOpen(true)}
-              className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 border border-blue-400/30"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-              <span>Plano de Ações (WLP / PNP)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={exportWlpModelExcel}
-              className="px-3 py-2 bg-[#0b1222] hover:bg-slate-800 text-emerald-400 font-bold text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-emerald-500/40 flex items-center gap-1.5 shadow-xs"
-              title="Baixar Modelo de Planilha Excel (.xlsx)"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Modelo Excel (.xlsx)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowFaturadoModal(true)}
-              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>+ HL Faturado Diário</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Ponto Manual</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowImportModal(true)}
-              className="px-3 py-2 bg-sky-950 hover:bg-sky-900 text-sky-200 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-sky-500/50 flex items-center gap-1.5 shadow-md"
-            >
-              <Upload className="w-3.5 h-3.5 text-sky-400" />
-              <span>Central Importação Geral</span>
-            </button>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20 whitespace-nowrap">
+                INDICADOR ESTRATÉGICO WORKSTATION
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono">
+                Fórmula: HL Faturado ÷ (TT QLP × 7.33h × Dias Úteis)
+              </span>
+            </div>
+            <h2 className="text-base sm:text-lg lg:text-xl font-black text-white uppercase tracking-tight leading-snug">
+              Dashboard de WLP (Workload Planning &amp; Produtividade Operacional)
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed mt-1">
+              Medição da eficiência de carregamento e operação por homem-hora (HL/HH) baseada na jornada dos colaboradores ajudantes, empilhadores e conferentes.
+            </p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-300 leading-snug">
-          Medição da eficiência de carregamento e operação por homem-hora (HL/HH) baseada na jornada dos colaboradores ajudantes, empilhadores e conferentes.
-        </p>
+        {/* Barra de Ações Responsiva */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-3 border-t border-slate-800/80">
+          <button
+            type="button"
+            onClick={() => setIsActionModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 border border-blue-400/30 whitespace-nowrap"
+          >
+            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+            <span>Plano de Ações (WLP / PNP)</span>
+          </button>
 
-        {/* CARD INDICADOR ACUMULADO DO ANO 2026 (YTD) */}
-        <div className="bg-[#111a30] border-2 border-amber-500/50 rounded-2xl p-5 shadow-2xl space-y-4 relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/60 text-amber-400 shrink-0 shadow-md">
-                <Award className="w-6 h-6 animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base font-black uppercase text-white tracking-wide">
-                    INDICADOR ACUMULADO DO ANO 2026 (YTD)
-                  </h3>
-                  <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase rounded-full tracking-wide shadow-xs flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" /> 🔒 Mês a Mês Isolado & Protegido
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mt-1">
-                  Consolidação oficial de desempenho DPO em 2026. Cada importação mensal atualiza <strong>estritamente o mês correspondente</strong>, sem impactar ou alterar dados dos outros meses.
-                </p>
-              </div>
+          <button
+            type="button"
+            onClick={exportWlpModelExcel}
+            className="px-3 py-2 bg-[#0b1222] hover:bg-slate-800 text-emerald-400 font-bold text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-emerald-500/40 flex items-center gap-1.5 shadow-xs whitespace-nowrap"
+            title="Baixar Modelo de Planilha Excel (.xlsx)"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Modelo Excel (.xlsx)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowFaturadoModal(true)}
+            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+            <span>+ HL Faturado Diário</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>+ Ponto Manual</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowImportModal(true)}
+            className="px-3 py-2 bg-sky-950 hover:bg-sky-900 text-sky-200 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-sky-500/50 flex items-center gap-1.5 shadow-md whitespace-nowrap"
+          >
+            <Upload className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span>Central Importação Geral</span>
+          </button>
+        </div>
+      </div>
+
+      {/* CARD INDICADOR ACUMULADO DO ANO 2026 (YTD) */}
+      <div className="bg-[#111a30] border-2 border-amber-500/50 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4 relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-3.5">
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/60 text-amber-400 shrink-0 shadow-md">
+              <Award className="w-6 h-6 animate-pulse" />
             </div>
-
-            <div className="px-4 py-2 bg-[#0b1222] border border-amber-500/40 rounded-xl shrink-0 text-center self-start md:self-auto shadow-inner">
-              <span className="text-[10px] uppercase font-black text-slate-400 block">Status Acumulado 2026</span>
-              <span className="text-sm font-mono font-black text-emerald-400 block">+38,6% Acima da Meta</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                  INDICADOR ACUMULADO DO ANO 2026 (YTD)
+                </h3>
+                <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase rounded-full tracking-wide shadow-xs flex items-center gap-1 whitespace-nowrap">
+                  <ShieldCheck className="w-3 h-3" /> 🔒 Mês a Mês Isolado &amp; Protegido
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                Consolidação oficial de desempenho DPO em 2026. Cada importação mensal atualiza <strong>estritamente o mês correspondente</strong>, sem impactar ou alterar dados dos outros meses.
+              </p>
             </div>
           </div>
+
+          <div className="px-4 py-2.5 bg-[#0b1222] border border-amber-500/40 rounded-xl shrink-0 text-center self-start lg:self-auto shadow-inner">
+            <span className="text-[10px] uppercase font-black text-slate-400 block">Status Acumulado 2026</span>
+            <span className="text-sm font-mono font-black text-emerald-400 block">+38,6% Acima da Meta</span>
+          </div>
+        </div>
 
           {/* KPI GRID DO ACUMULADO DO ANO */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1638,7 +1638,6 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
             </div>
           )}
         </div>
-      </div>
 
       {/* BANNER DE ALERTA DE PERÍODO CRÍTICO (MARÇO, JUNHO, DEZEMBRO) */}
       {(selectedMesAno.startsWith('03/') || selectedMesAno.startsWith('06/') || selectedMesAno.startsWith('12/')) && (
@@ -2523,7 +2522,40 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
           <Users className="w-4 h-4 text-purple-400" />
           <span>PNP Conferente</span>
         </button>
+
+        <button
+          onClick={() => setActiveSubTab('importacao_json')}
+          className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-2 ${
+            activeSubTab === 'importacao_json'
+              ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-300'
+              : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30'
+          }`}
+        >
+          <Upload className="w-4 h-4 text-amber-400" />
+          <span>Importar Dados Retroativos (JSON)</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        </button>
       </div>
+
+      {/* GUIA DE IMPORTAÇÃO RETROATIVA JSON DE VOLUME FATURADO & JORNADAS WLP */}
+      {activeSubTab === 'importacao_json' && (
+        <div className="space-y-4">
+          <RetroactiveWlpFaturadoJsonImport
+            user={user}
+            empresaId={empresaId}
+            onImportSuccess={() => {
+              // Recarrega os estados no dashboard
+              setJornadas(getStoredJornadas(empresaId));
+              setDailyFaturados(getStoredDailyFaturado(empresaId));
+              setConfig(getWlpConfig(empresaId, selectedMesAno));
+              try {
+                const savedHist = localStorage.getItem(`wlp_historico_volumes_${empresaId}`);
+                if (savedHist) setHistoricalVolumes(JSON.parse(savedHist));
+              } catch (e) {}
+            }}
+          />
+        </div>
+      )}
 
       {/* GUIA DE HISTÓRICO DIÁRIO DE WLP, JORNADAS E FATURAMENTO */}
       {activeSubTab === 'historico_diario' && (

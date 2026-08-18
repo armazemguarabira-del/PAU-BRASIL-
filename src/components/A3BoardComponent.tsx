@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../firebase';
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc, 
-  doc,
-  updateDoc
-} from 'firebase/firestore';
+import { getRepository } from '../db';
 import { Usuario, Empresa, RepackA3Board } from '../types';
+
+const repackA3BoardsRepo = getRepository<RepackA3Board>('repack_a3_boards');
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { 
   Search, 
@@ -534,25 +529,25 @@ export default function A3BoardComponent({ user, empresa, dashboard }: A3BoardCo
       
       if (activeBoard._docId && activeBoard._docId.startsWith('seed-board-')) {
         const { _docId, ...cleanPayload } = payload;
-        const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+        const created = await repackA3BoardsRepo.create({
           ...cleanPayload,
           _criadoEm: new Date().toISOString()
-        });
+        } as any, companyId);
         setActiveBoard({
           ...activeBoard,
-          _docId: docRef.id
+          _docId: created._docId || created.id
         });
       } else if (activeBoard._docId) {
         const { _docId, ...saveData } = activeBoard;
-        await updateDoc(doc(db, 'repack_a3_boards', _docId), saveData);
+        await repackA3BoardsRepo.update(_docId, saveData as any, companyId);
       } else {
-        const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+        const created = await repackA3BoardsRepo.create({
           ...payload,
           _criadoEm: new Date().toISOString()
-        });
+        } as any, companyId);
         setActiveBoard({
           ...activeBoard,
-          _docId: docRef.id
+          _docId: created._docId || created.id
         });
       }
       setBoardSaveStatus('success');
@@ -574,15 +569,15 @@ export default function A3BoardComponent({ user, empresa, dashboard }: A3BoardCo
     const newBoard = getEmptyBoard(companyId, title);
     
     try {
-      const docRef = await addDoc(collection(db, 'repack_a3_boards'), {
+      const created = await repackA3BoardsRepo.create({
         ...newBoard,
         _criadoEm: new Date().toISOString()
-      });
-      const created = {
-        _docId: docRef.id,
+      } as any, companyId);
+      const newCreated = {
+        _docId: created._docId || created.id,
         ...newBoard
       } as RepackA3Board;
-      setActiveBoard(created);
+      setActiveBoard(newCreated);
     } catch (err) {
       console.error('Error creating A3 board:', err);
     }
@@ -599,7 +594,7 @@ export default function A3BoardComponent({ user, empresa, dashboard }: A3BoardCo
     if (!confirmDelete) return;
     
     try {
-      await deleteDoc(doc(db, 'repack_a3_boards', activeBoard._docId!));
+      await repackA3BoardsRepo.delete(activeBoard._docId!, empresa?.id || 'demo');
       setActiveBoard(null);
     } catch (err) {
       console.error('Error deleting A3 board:', err);

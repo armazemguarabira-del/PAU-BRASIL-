@@ -21,9 +21,10 @@ import {
   ExternalLink,
   Info
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
+import { getRepository } from '../db';
+
+const fluxogramasRepo = getRepository<FluxogramaColaborador>('fluxogramas_demandas_colaboradores');
 
 export interface FluxogramaColaborador {
   id: string;
@@ -211,23 +212,17 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Sync with Firestore
+  // Sync with Repository / Hybrid Database Router
   useEffect(() => {
     const fetchFluxogramasFirestore = async () => {
-      if (!db) return;
       try {
-        const colRef = collection(db, 'fluxogramas_demandas_colaboradores');
-        const snap = await getDocs(colRef);
-        if (!snap.empty) {
-          const list: FluxogramaColaborador[] = [];
-          snap.forEach(d => list.push({ id: d.id, ...d.data() } as FluxogramaColaborador));
-          if (list.length > 0) {
-            setFluxogramas(list);
-            localStorage.setItem(`fluxogramas_demandas_list_${empresaId}`, JSON.stringify(list));
-          }
+        const list = await fluxogramasRepo.getAll(empresaId);
+        if (list && list.length > 0) {
+          setFluxogramas(list);
+          localStorage.setItem(`fluxogramas_demandas_list_${empresaId}`, JSON.stringify(list));
         }
       } catch (err) {
-        console.warn('Firestore fetch fallback for Fluxograma de Demandas:', err);
+        console.warn('Repository fetch fallback for Fluxograma de Demandas:', err);
       }
     };
 
@@ -238,17 +233,15 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
     setFluxogramas(newList);
     localStorage.setItem(`fluxogramas_demandas_list_${empresaId}`, JSON.stringify(newList));
 
-    if (db) {
-      try {
-        if (itemToSave) {
-          await setDoc(doc(db, 'fluxogramas_demandas_colaboradores', itemToSave.id), itemToSave);
-        }
-        if (deleteId) {
-          await deleteDoc(doc(db, 'fluxogramas_demandas_colaboradores', deleteId));
-        }
-      } catch (e) {
-        console.warn('Firestore sync error for Fluxograma:', e);
+    try {
+      if (itemToSave) {
+        await fluxogramasRepo.create(itemToSave, empresaId, itemToSave.id);
       }
+      if (deleteId) {
+        await fluxogramasRepo.delete(deleteId, empresaId);
+      }
+    } catch (e) {
+      console.warn('Repository sync error for Fluxograma:', e);
     }
   };
 
@@ -413,22 +406,22 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
       )}
 
       {/* 🚀 CABEÇALHO DO FLUXOGRAMA DE DEMANDAS */}
-      <div className="bg-[#111a30] border border-teal-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-teal-500/30 rounded-2xl p-5 shadow-xs dark:shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-teal-500/20 border border-teal-500/30 rounded-xl text-teal-400 shrink-0">
+          <div className="p-3 bg-teal-50 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-500/30 rounded-xl text-teal-600 dark:text-teal-400 shrink-0">
             <GitFork className="w-8 h-8" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-widest text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-200 dark:border-teal-500/20">
                 WORKSTATION OPERACIONAL
               </span>
-              <span className="text-[10px] text-slate-300 font-mono">ETAPA 5 — REPOSITÓRIO VISUAL</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-300 font-mono">ETAPA 5 — REPOSITÓRIO VISUAL</span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
               Fluxograma de Demandas por Colaborador
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Repositório visual de "quem faz o quê". Cadastre cada colaborador com o seu fluxograma em imagem ou PDF. Consultável de forma simples e rápida por toda a equipe.
             </p>
           </div>
@@ -437,14 +430,14 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg flex items-center gap-2 shrink-0"
+          className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs dark:shadow-lg flex items-center gap-2 shrink-0"
         >
           <Plus className="w-4 h-4" /> Cadastrar Fluxograma
         </button>
       </div>
 
       {/* PAINEL DE BUSCA E FILTROS */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs dark:shadow-lg">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -452,7 +445,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
             <select
               value={funcaoFiltro}
               onChange={(e) => setFuncaoFiltro(e.target.value)}
-              className="w-full sm:w-56 bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-teal-400"
+              className="w-full sm:w-56 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-400"
             >
               <option value="todos">Todas as Funções Operacionais</option>
               <option value="ajudante">Ajudantes de Armazém</option>
@@ -468,7 +461,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
               placeholder="Buscar por colaborador, matrícula ou função..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#0b1222] border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white outline-none focus:border-teal-400"
+              className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-teal-400"
             />
           </div>
 
@@ -478,11 +471,11 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
       {/* GRID DE CARDS COM OS FLUXOGRAMAS ANEXADOS POR COLABORADOR */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-teal-400" />
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             Colaboradores Cadastrados ({fluxogramasFiltrados.length})
           </h3>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
             Consultável por qualquer integrante do time
           </span>
         </div>
@@ -495,21 +488,21 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
               return (
                 <div
                   key={item.id}
-                  className="bg-[#111a30] border border-slate-800 hover:border-teal-500/50 rounded-2xl p-5 space-y-4 transition-all flex flex-col justify-between shadow-xl"
+                  className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 hover:border-teal-500/50 rounded-2xl p-5 space-y-4 transition-all flex flex-col justify-between shadow-xs dark:shadow-xl"
                 >
                   <div className="space-y-3">
                     
                     {/* CABEÇALHO DO COLABORADOR */}
-                    <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-teal-500/10 border border-teal-500/20 rounded-xl text-teal-400 shrink-0 font-mono text-xs font-black">
+                        <div className="p-2.5 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 rounded-xl text-teal-700 dark:text-teal-400 shrink-0 font-mono text-xs font-black">
                           {item.matricula || 'COLAB'}
                         </div>
                         <div>
-                          <h4 className="text-sm font-black text-white uppercase tracking-tight leading-snug">
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-snug">
                             {item.nomeColaborador}
                           </h4>
-                          <span className="text-[10px] font-bold text-teal-400 block uppercase">
+                          <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 block uppercase">
                             {item.cargoOuFuncao}
                           </span>
                         </div>
@@ -519,7 +512,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                         <button
                           type="button"
                           onClick={() => handleEdit(item)}
-                          className="p-1.5 text-slate-400 hover:text-teal-400 cursor-pointer bg-slate-800/60 rounded-lg"
+                          className="p-1.5 text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg transition-colors"
                           title="Editar Fluxograma"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -527,7 +520,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                         <button
                           type="button"
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 cursor-pointer bg-slate-800/60 rounded-lg"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg transition-colors"
                           title="Excluir Fluxograma"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -537,23 +530,23 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
 
                     {/* DESCRIÇÃO / NOTAS */}
                     {item.descricaoResumida && (
-                      <p className="text-xs text-slate-300 bg-[#080d1a] p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#080d1a] p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80 leading-relaxed">
                         "{item.descricaoResumida}"
                       </p>
                     )}
 
                     {/* PREVIEW DO ANEXO (SE FOR IMAGEM BASE64) */}
-                    <div className="bg-[#080d1a] rounded-xl border border-slate-800 p-3 space-y-2">
-                      <div className="flex items-center justify-between text-[11px] text-slate-300">
+                    <div className="bg-slate-50 dark:bg-[#080d1a] rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300">
                         <span className="font-mono flex items-center gap-1.5 truncate pr-2">
                           {isPdf ? (
-                            <FileText className="w-4 h-4 text-rose-400 shrink-0" />
+                            <FileText className="w-4 h-4 text-rose-500 shrink-0" />
                           ) : (
-                            <ImageIcon className="w-4 h-4 text-purple-400 shrink-0" />
+                            <ImageIcon className="w-4 h-4 text-purple-500 shrink-0" />
                           )}
                           <span className="truncate font-bold">{item.anexo.nomeArquivo}</span>
                         </span>
-                        <span className="text-[9px] font-mono text-slate-400 shrink-0">
+                        <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
                           {item.anexo.tamanhoFormatted}
                         </span>
                       </div>
@@ -562,7 +555,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                       {!isPdf && item.anexo.dataUrl && (
                         <div 
                           onClick={() => setPreviewDoc(item)}
-                          className="relative rounded-lg overflow-hidden border border-slate-800 max-h-36 bg-black/40 group cursor-pointer"
+                          className="relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 max-h-36 bg-slate-100 dark:bg-black/40 group cursor-pointer"
                         >
                           <img
                             src={item.anexo.dataUrl}
@@ -579,7 +572,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                   </div>
 
                   {/* BOTOES DE AÇÃO — VISUALIZAR E DOWNLOAD */}
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span className="text-[9px] text-slate-500 font-mono">
                       Cadastrado em: {item.dataFormatted}
                     </span>
@@ -588,15 +581,15 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                       <button
                         type="button"
                         onClick={() => setPreviewDoc(item)}
-                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
                       >
-                        <Eye className="w-3.5 h-3.5 text-teal-400" /> Consultar
+                        <Eye className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" /> Consultar
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handleDownloadOrOpen(item)}
-                        className="px-3 py-1.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
+                        className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 dark:bg-teal-500/20 dark:hover:bg-teal-500/30 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-500/30 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
                         title="Baixar Arquivo Anexo"
                       >
                         <Download className="w-3.5 h-3.5" /> Baixar
@@ -609,10 +602,10 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
             })}
           </div>
         ) : (
-          <div className="p-10 text-center space-y-3 bg-[#0b1222] border border-slate-800 rounded-2xl">
-            <GitFork className="w-10 h-10 text-slate-600 mx-auto" />
-            <h4 className="text-sm font-bold text-slate-300">Nenhum fluxograma de colaborador encontrado</h4>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+          <div className="p-10 text-center space-y-3 bg-white dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <GitFork className="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto" />
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Nenhum fluxograma de colaborador encontrado</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
               Nenhum fluxograma cadastrado para os filtros atuais. Clique no botão "Cadastrar Fluxograma" acima para anexar a imagem ou PDF com as demandas do colaborador.
             </p>
           </div>
@@ -622,17 +615,17 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
       {/* MODAL DE CADASTRO / EDIÇÃO DE FLUXOGRAMA */}
       {showModal && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleSaveForm} className="bg-[#111a30] border-2 border-teal-500/50 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
+          <form onSubmit={handleSaveForm} className="bg-white dark:bg-[#111a30] border-2 border-slate-200 dark:border-teal-500/50 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-black uppercase text-white flex items-center gap-2">
-                <GitFork className="w-4 h-4 text-teal-400" />
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                <GitFork className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 {editingId ? 'Editar Fluxograma de Colaborador' : 'Novo Fluxograma de Demanda'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -640,13 +633,13 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
 
             {/* SELETOR DE COLABORADOR DA BASE OFICIAL */}
             <div>
-              <label className="block text-[10px] font-black uppercase text-teal-400 mb-1">
+              <label className="block text-[10px] font-black uppercase text-teal-700 dark:text-teal-400 mb-1">
                 Selecionar Colaborador da Base (ou digitar abaixo)
               </label>
               <select
                 value={selectedMatricula}
                 onChange={(e) => handleSelectOfficialColab(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2.5 text-xs font-bold text-white outline-none focus:border-teal-400"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-400"
               >
                 <option value="">-- Selecionar da Lista Oficial ou Digitar Personalizado --</option>
                 {LISTA_COLABORADORES_OFICIAIS.map(c => (
@@ -659,55 +652,55 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Nome do Colaborador *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Nome do Colaborador *</label>
                 <input
                   type="text"
                   placeholder="Ex: GLADSON LISBOA DOS SANTOS"
                   value={nomeColaborador}
                   onChange={(e) => setNomeColaborador(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-teal-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-400"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Cargo / Função *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Cargo / Função *</label>
                 <input
                   type="text"
                   placeholder="Ex: OPERADOR DE EMPILHADEIRA"
                   value={cargoOuFuncao}
                   onChange={(e) => setCargoOuFuncao(e.target.value)}
-                  className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-bold text-white outline-none focus:border-teal-400"
+                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-400"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Matrícula (Opcional)</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Matrícula (Opcional)</label>
               <input
                 type="text"
                 placeholder="Ex: G1009"
                 value={matricula}
                 onChange={(e) => setMatricula(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs font-mono text-white outline-none focus:border-teal-400"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-teal-400"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Descrição do Fluxo / Observações</label>
+              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Descrição do Fluxo / Observações</label>
               <textarea
                 rows={2}
                 placeholder="Resumo do fluxo de trabalho, demandas do turno ou observações operacionais..."
                 value={descricaoResumida}
                 onChange={(e) => setDescricaoResumida(e.target.value)}
-                className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-2 text-xs text-white outline-none focus:border-teal-400 resize-none"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-teal-400 resize-none"
               />
             </div>
 
             {/* SEÇÃO DE UPLOAD DO ANEXO (IMAGEM OU PDF) */}
-            <div className="space-y-2 border-t border-slate-800 pt-3">
-              <label className="block text-[10px] font-black uppercase text-teal-400">
+            <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+              <label className="block text-[10px] font-black uppercase text-teal-700 dark:text-teal-400">
                 Upload de Imagem ou PDF com o Fluxo/Demanda *
               </label>
 
@@ -720,23 +713,23 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
               />
 
               {anexoFile ? (
-                <div className="flex items-center justify-between bg-[#0b1222] p-3 rounded-xl border border-teal-500/40">
+                <div className="flex items-center justify-between bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-teal-300 dark:border-teal-500/40">
                   <div className="flex items-center gap-2 truncate pr-2">
                     {anexoFile.tipo === 'pdf' ? (
-                      <FileText className="w-5 h-5 text-rose-400 shrink-0" />
+                      <FileText className="w-5 h-5 text-rose-500 shrink-0" />
                     ) : (
-                      <ImageIcon className="w-5 h-5 text-purple-400 shrink-0" />
+                      <ImageIcon className="w-5 h-5 text-purple-500 shrink-0" />
                     )}
                     <div>
-                      <span className="text-xs font-mono font-bold text-white block truncate">{anexoFile.nomeArquivo}</span>
-                      <span className="text-[10px] font-mono text-slate-400 block">{anexoFile.tamanhoFormatted}</span>
+                      <span className="text-xs font-mono font-bold text-slate-900 dark:text-white block truncate">{anexoFile.nomeArquivo}</span>
+                      <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block">{anexoFile.tamanhoFormatted}</span>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setAnexoFile(null)}
-                    className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
                     title="Remover anexo"
                   >
                     <X className="w-5 h-5" />
@@ -745,28 +738,28 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
               ) : (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-5 border-2 border-dashed border-slate-700 hover:border-teal-400/80 rounded-xl text-center cursor-pointer bg-[#0b1222]/60 space-y-2 transition-all"
+                  className="p-5 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-400 rounded-xl text-center cursor-pointer bg-slate-50/60 dark:bg-[#0b1222]/60 space-y-2 transition-all"
                 >
-                  <Upload className="w-6 h-6 text-teal-400 mx-auto" />
+                  <Upload className="w-6 h-6 text-teal-600 dark:text-teal-400 mx-auto" />
                   <div>
-                    <p className="text-xs font-bold text-white">Clique para selecionar Imagem (.png, .jpg) ou PDF (.pdf)</p>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Anexe o organograma ou mapa de fluxo do colaborador</span>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white">Clique para selecionar Imagem (.png, .jpg) ou PDF (.pdf)</p>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Anexe o organograma ou mapa de fluxo do colaborador</span>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-black uppercase shadow-lg cursor-pointer"
+                className="px-6 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-black uppercase shadow-xs dark:shadow-lg cursor-pointer"
               >
                 Salvar Fluxograma
               </button>
@@ -784,15 +777,15 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
 
         return (
           <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
-            <div className="bg-[#111a30] border-2 border-teal-500/50 rounded-2xl p-6 w-full max-w-4xl max-h-[92vh] flex flex-col space-y-4 shadow-2xl">
+            <div className="bg-white dark:bg-[#111a30] border-2 border-slate-200 dark:border-teal-500/50 rounded-2xl p-6 w-full max-w-4xl max-h-[92vh] flex flex-col space-y-4 shadow-2xl">
               
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase text-teal-400 block font-mono">
+                  <span className="text-[10px] font-black uppercase text-teal-700 dark:text-teal-400 block font-mono">
                     [{previewDoc.matricula || 'COLAB'}] — {previewDoc.cargoOuFuncao}
                   </span>
-                  <h3 className="text-base font-black uppercase text-white flex items-center gap-2">
-                    <GitFork className="w-5 h-5 text-teal-400" />
+                  <h3 className="text-base font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                    <GitFork className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                     Fluxograma de Demandas — {previewDoc.nomeColaborador}
                   </h3>
                 </div>
@@ -802,7 +795,7 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                     <button
                       type="button"
                       onClick={() => openPdfInNewTab(pdfDataUrl, previewDoc.anexo.nomeArquivo)}
-                      className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                      className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
                       title="Abrir PDF diretamente em uma nova guia"
                     >
                       <ExternalLink className="w-4 h-4" /> Abrir em Nova Aba
@@ -811,15 +804,15 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                   <button
                     type="button"
                     onClick={() => handleDownloadOrOpen(previewDoc)}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
                     title="Baixar arquivo"
                   >
-                    <Download className="w-4 h-4 text-teal-400" /> Baixar
+                    <Download className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Baixar
                   </button>
                   <button
                     type="button"
                     onClick={() => setPreviewDoc(null)}
-                    className="p-2 text-slate-400 hover:text-white cursor-pointer rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-600"
+                    className="p-2 text-slate-400 hover:text-slate-800 dark:hover:text-white cursor-pointer rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                     title="Fechar Visualizador"
                   >
                     <X className="w-5 h-5" />
@@ -828,30 +821,30 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
               </div>
 
               {previewDoc.descricaoResumida && (
-                <div className="bg-[#0b1222] p-3 rounded-xl border border-slate-800 text-xs text-slate-200">
-                  <strong className="text-teal-400">Observações do Fluxo:</strong> {previewDoc.descricaoResumida}
+                <div className="bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200">
+                  <strong className="text-teal-700 dark:text-teal-400">Observações do Fluxo:</strong> {previewDoc.descricaoResumida}
                 </div>
               )}
 
               {/* ÁREA DE VISUALIZAÇÃO DO DOCUMENTO OU IMAGEM */}
-              <div className="flex-1 bg-[#080d1a] border border-slate-800 rounded-xl overflow-hidden p-2 flex items-center justify-center min-h-[420px]">
+              <div className="flex-1 bg-slate-50 dark:bg-[#080d1a] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden p-2 flex items-center justify-center min-h-[420px]">
                 {isPdf ? (
                   <object
                     data={blobUrl || pdfDataUrl}
                     type="application/pdf"
-                    className="w-full h-[520px] rounded-lg border border-slate-800 bg-[#0b1222]"
+                    className="w-full h-[520px] rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1222]"
                   >
                     {/* FALLBACK QUANDO O NAVEGADOR BLOQUEIA VISUALIZAÇÃO DE PDF EM IFRAME */}
-                    <div className="p-8 text-center space-y-4 bg-[#0b1222] border border-slate-800 rounded-xl max-w-lg mx-auto my-auto">
-                      <div className="w-16 h-16 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                    <div className="p-8 text-center space-y-4 bg-white dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl max-w-lg mx-auto my-auto">
+                      <div className="w-16 h-16 bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-xs">
                         <FileText className="w-8 h-8" />
                       </div>
                       <div className="space-y-1">
-                        <h4 className="text-base font-black text-white uppercase">{previewDoc.anexo.nomeArquivo}</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
+                        <h4 className="text-base font-black text-slate-900 dark:text-white uppercase">{previewDoc.anexo.nomeArquivo}</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                           Visualizador interno do navegador ativo. Clique no botão abaixo para abrir ou baixar o documento PDF em tela cheia sem restrições.
                         </p>
-                        <span className="text-[10px] font-mono text-slate-400 block pt-1">
+                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block pt-1">
                           Tamanho: {previewDoc.anexo.tamanhoFormatted} • Registrado em: {previewDoc.dataFormatted}
                         </span>
                       </div>
@@ -859,16 +852,16 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                         <button
                           type="button"
                           onClick={() => openPdfInNewTab(pdfDataUrl, previewDoc.anexo.nomeArquivo)}
-                          className="px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase rounded-xl flex items-center gap-2 shadow-lg cursor-pointer"
+                          className="px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs uppercase rounded-xl flex items-center gap-2 shadow-xs cursor-pointer"
                         >
                           <ExternalLink className="w-4 h-4" /> Abrir PDF em Nova Aba
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDownloadOrOpen(previewDoc)}
-                          className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase rounded-xl flex items-center gap-2 cursor-pointer border border-slate-700"
+                          className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs uppercase rounded-xl flex items-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700"
                         >
-                          <Download className="w-4 h-4 text-teal-400" /> Baixar PDF
+                          <Download className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Baixar PDF
                         </button>
                       </div>
                     </div>
@@ -882,9 +875,9 @@ export const FluxogramaDemandasComponent: React.FC<FluxogramaDemandasComponentPr
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
-                <span>Cadastrado por: <strong className="text-slate-200">{previewDoc.criadoPor || 'Sistema'}</strong></span>
-                <span>Data de Registro: <strong className="text-slate-200">{previewDoc.dataFormatted}</strong></span>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span>Cadastrado por: <strong className="text-slate-700 dark:text-slate-200">{previewDoc.criadoPor || 'Sistema'}</strong></span>
+                <span>Data de Registro: <strong className="text-slate-700 dark:text-slate-200">{previewDoc.dataFormatted}</strong></span>
               </div>
 
             </div>

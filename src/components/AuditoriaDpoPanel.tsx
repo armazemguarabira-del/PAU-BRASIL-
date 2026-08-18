@@ -26,8 +26,8 @@ import {
   BarChart3,
   ListCheck
 } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { DpoAuditoriasRepository, AcoesGeraisRepository } from '../db';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { getAcoesAll, saveAcoes, AcaoCorretiva } from '../utils/simulacaoAcoesUtils';
@@ -468,17 +468,9 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
   }, [empresaId]);
 
   const loadHistoricoAuditorias = async () => {
-    if (!db) {
-      const savedHist = localStorage.getItem(`dpo_audits_${empresaId}`);
-      if (savedHist) setHistorico(JSON.parse(savedHist));
-      return;
-    }
     try {
-      const q = query(collection(db, 'dpo_auditorias'), where('empresaId', '==', empresaId));
-      const snap = await getDocs(q);
-      const list: any[] = [];
-      snap.forEach(d => list.push({ _docId: d.id, ...d.data() }));
-      list.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      const list = await DpoAuditoriasRepository.getAll(empresaId);
+      list.sort((a: any, b: any) => (b.dataISO || '').localeCompare(a.dataISO || ''));
       setHistorico(list);
 
       if (list.length > 0) {
@@ -489,6 +481,8 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
       }
     } catch (e) {
       console.error("Erro ao carregar auditorias DPO:", e);
+      const savedHist = localStorage.getItem(`dpo_audits_${empresaId}`);
+      if (savedHist) setHistorico(JSON.parse(savedHist));
     }
   };
 
@@ -657,12 +651,13 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
         saveAcoes([...newActionsToSave, ...existingAcoes]);
       }
 
-      if (db) {
-        await addDoc(collection(db, 'dpo_auditorias'), auditRecord);
-        for (const act of firestoreActions) {
-          await addDoc(collection(db, 'acoes'), act);
+      try {
+        await DpoAuditoriasRepository.create(auditRecord as any, empresaId);
+        if (firestoreActions.length > 0) {
+          await AcoesGeraisRepository.batchUpsert(firestoreActions as any, empresaId);
         }
-      } else {
+      } catch (repoErr) {
+        console.error("Repository error:", repoErr);
         const hist = JSON.parse(localStorage.getItem(`dpo_audits_${empresaId}`) || '[]');
         hist.unshift(auditRecord);
         localStorage.setItem(`dpo_audits_${empresaId}`, JSON.stringify(hist));

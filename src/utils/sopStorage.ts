@@ -42,7 +42,7 @@ export async function initSopStorage(): Promise<SopDocument[]> {
   }
 
   const db = await openSopDB();
-  if (!db) return [];
+  if (!db || !db.objectStoreNames.contains(STORE_NAME)) return [];
 
   return new Promise((resolve) => {
     try {
@@ -77,7 +77,7 @@ export async function saveSopToIDB(sop: SopDocument): Promise<void> {
   inMemorySopCache.set(sop.id, sop);
 
   const db = await openSopDB();
-  if (!db) return;
+  if (!db || !db.objectStoreNames.contains(STORE_NAME)) return;
 
   return new Promise((resolve) => {
     try {
@@ -101,7 +101,7 @@ export async function deleteSopFromIDB(sopId: string): Promise<void> {
   inMemorySopCache.delete(sopId);
 
   const db = await openSopDB();
-  if (!db) return;
+  if (!db || !db.objectStoreNames.contains(STORE_NAME)) return;
 
   return new Promise((resolve) => {
     try {

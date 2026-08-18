@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { RepackRepository, RepackValidadesRepository } from '../db';
 import { Usuario, Empresa, RepackRow, RepackValidadeRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
+
+const repackValidadesRepo = RepackValidadesRepository;
 import { PRODUCTS } from '../planosData';
 import { TrendingUp, CheckCircle, Clock, Award, BarChart2, BookOpen, Users, FileText, ChevronDown, ChevronUp, AlertCircle, ShieldAlert } from 'lucide-react';
 import { SopBannerViewer } from './SopBannerViewer';
@@ -177,35 +179,36 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
 
   const empresaData = useEmpresaData();
 
-  // Sync with Firestore (scoped to company)
+  // Sync with empresaData (scoped to company)
   useEffect(() => {
-    if (!db || !empresa?.id) {
-      // Local sync fallback
-      const saved = localStorage.getItem(`repack_rows_${empresa?.id || 'demo'}`);
-      if (saved) setRepackRows(JSON.parse(saved));
-      return;
-    }
-
     const companyId = empresa?.id || 'demo';
-    const rows = [...empresaData.repack];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setRepackRows(rows);
-    localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
+    if (empresaData.repack && empresaData.repack.length > 0) {
+      const rows = [...empresaData.repack];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setRepackRows(rows);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
+    } else {
+      const saved = localStorage.getItem(`repack_rows_${companyId}`);
+      if (saved) {
+        try { setRepackRows(JSON.parse(saved)); } catch (e) {}
+      }
+    }
   }, [empresaData.repack, empresa?.id]);
 
   // Listen for repack_validades
   useEffect(() => {
-    if (!db || !empresa?.id) {
-      const saved = localStorage.getItem(`repack_validades_${empresa?.id || 'demo'}`);
-      if (saved) setRepackValidades(JSON.parse(saved));
-      return;
-    }
-
     const companyId = empresa?.id || 'demo';
-    const rows = [...empresaData.repackValidades];
-    rows.sort((a, b) => (a.validade || '').localeCompare(b.validade || '') || (a.descricao || '').localeCompare(b.descricao || ''));
-    setRepackValidades(rows);
-    localStorage.setItem(`repack_validades_${companyId}`, JSON.stringify(rows));
+    if (empresaData.repackValidades && empresaData.repackValidades.length > 0) {
+      const rows = [...empresaData.repackValidades];
+      rows.sort((a, b) => (a.validade || '').localeCompare(b.validade || '') || (a.descricao || '').localeCompare(b.descricao || ''));
+      setRepackValidades(rows);
+      localStorage.setItem(`repack_validades_${companyId}`, JSON.stringify(rows));
+    } else {
+      const saved = localStorage.getItem(`repack_validades_${companyId}`);
+      if (saved) {
+        try { setRepackValidades(JSON.parse(saved)); } catch (e) {}
+      }
+    }
   }, [empresaData.repackValidades, empresa?.id]);
 
   useEffect(() => {
@@ -269,14 +272,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'repack'), newRow);
-      } else {
-        // standalone fallback
-        const current = [...repackRows, { _docId: String(Date.now()), ...newRow }];
-        setRepackRows(current);
-        localStorage.setItem(`repack_rows_${empresa?.id || 'demo'}`, JSON.stringify(current));
-      }
+      await RepackRepository.create(newRow, empresa?.id || 'demo');
 
       if (isAboveMeta) {
         triggerAutoAcaoCorretiva({
@@ -310,9 +306,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'repack', docId));
-      }
+      await RepackRepository.delete(docId, empresa?.id || 'demo');
     } catch (e) {
       console.error(e);
     } finally {
@@ -350,10 +344,11 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     };
 
     try {
-      if (db && editingRepack._docId) {
-        await updateDoc(doc(db, 'repack', editingRepack._docId), updatedFields);
+      const idToUpdate = editingRepack._docId || editingRepack.id;
+      if (idToUpdate) {
+        await RepackRepository.update(idToUpdate, updatedFields, empresa?.id || 'demo');
       }
-      const nextRows = repackRows.map(r => (r._docId === editingRepack._docId ? { ...r, ...updatedFields } : r));
+      const nextRows = repackRows.map(r => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
       setRepackRows(nextRows);
       localStorage.setItem(`repack_rows_${empresa?.id || 'demo'}`, JSON.stringify(nextRows));
       setEditingRepack(null);
@@ -391,13 +386,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'repack_validades'), newRow);
-      } else {
-        const current = [...repackValidades, { _docId: String(Date.now()), ...newRow }];
-        setRepackValidades(current);
-        localStorage.setItem(`repack_validades_${empresa?.id || 'demo'}`, JSON.stringify(current));
-      }
+      await repackValidadesRepo.create(newRow, empresa?.id || 'demo');
 
       // Reset
       setVProdutoBusca('');
@@ -416,13 +405,10 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   const handleVDelete = async (docId?: string) => {
     if (!docId || !confirm('Deseja excluir este registro de validade de repack?')) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'repack_validades', docId));
-      } else {
-        const remaining = repackValidades.filter(r => r._docId !== docId);
-        setRepackValidades(remaining);
-        localStorage.setItem(`repack_validades_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
-      }
+      await repackValidadesRepo.delete(docId, empresa?.id || 'demo');
+      const remaining = repackValidades.filter(r => r._docId !== docId && (r as any).id !== docId);
+      setRepackValidades(remaining);
+      localStorage.setItem(`repack_validades_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
     } catch (e) {
       alert('Erro ao deletar validade: ' + e);
     }
@@ -459,14 +445,14 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     <div className="flex flex-col gap-6">
       
       {/* Top Header bar with Metadata */}
-      <div className="flex items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs">
         <div className="flex items-center gap-2">
-          <span className="font-sans font-black text-sm tracking-widest text-[#f5a623] uppercase flex items-center gap-2">
+          <span className="font-sans font-black text-sm tracking-widest text-blue-600 dark:text-[#f5a623] uppercase flex items-center gap-2">
             ♻️ REPACK TIMER — PRODUTIVIDADE
           </span>
         </div>
-        <div className="text-xs text-[#6a7d92] tracking-wider font-semibold">
-          META UNIT.: <strong className="text-[#f5a623] font-mono">{activeMeta}</strong>
+        <div className="text-xs text-slate-500 dark:text-[#6a7d92] tracking-wider font-semibold">
+          META UNIT.: <strong className="text-blue-600 dark:text-[#f5a623] font-mono">{activeMeta}</strong>
         </div>
       </div>
 

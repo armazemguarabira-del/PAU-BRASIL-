@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { ArmazemRepository } from '../db';
 import { Usuario, Empresa, ArmazemRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { TrendingUp, CheckCircle, Clock, Award, BarChart2, Pencil } from 'lucide-react';
@@ -161,7 +161,7 @@ export default function ArmazemPanel({ user, empresa }: ArmazemPanelProps) {
   }, [draftKey]);
 
   function AF_getEmpresaId() { return empresaId; }
-  function dbOk() { return !!db && !!empresaId; }
+  function dbOk() { return !!empresaId; }
 
   const pad2 = (num: number) => String(num).padStart(2, '0');
   const nowHHMM = () => {
@@ -172,37 +172,32 @@ export default function ArmazemPanel({ user, empresa }: ArmazemPanelProps) {
   const empresaData = useEmpresaData();
 
   useEffect(() => {
-    if (db) {
-      const rows = empresaData.armazem;
+    const rows = empresaData.armazem || [];
+    if (rows.length > 0) {
       setArmazemRows(rows);
       localStorage.setItem(`armazem_rows_${empresaId}`, JSON.stringify(rows));
-      if (rows.length > 0) {
-        const dates = [...new Set(rows.map(r => r.dataISO))].sort().reverse();
-        if (dates.length > 0) {
-          const firstDate = dates[0] as string;
-          setExpandedDates(prev => ({ [firstDate]: true, ...prev }));
-        }
+      const dates = [...new Set(rows.map(r => r.dataISO))].sort().reverse();
+      if (dates.length > 0) {
+        const firstDate = dates[0] as string;
+        setExpandedDates(prev => ({ [firstDate]: true, ...prev }));
+      }
+    } else {
+      const saved = localStorage.getItem(`armazem_rows_${empresaId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setArmazemRows(parsed);
+          if (parsed.length > 0) {
+            const dates = [...new Set(parsed.map((r: any) => r.dataISO))].sort().reverse();
+            if (dates.length > 0) {
+              const firstDate = dates[0] as string;
+              setExpandedDates({ [firstDate]: true });
+            }
+          }
+        } catch (e) {}
       }
     }
   }, [empresaData.armazem, empresaId]);
-
-  useEffect(() => {
-    // Local fallback if no live database is active
-    if (!db) {
-      const saved = localStorage.getItem(`armazem_rows_${empresaId}`);
-      if (saved) {
-        const rows = JSON.parse(saved);
-        setArmazemRows(rows);
-        if (rows.length > 0) {
-          const dates = [...new Set(rows.map((r: any) => r.dataISO))].sort().reverse();
-          if (dates.length > 0) {
-            const firstDate = dates[0] as string;
-            setExpandedDates({ [firstDate]: true });
-          }
-        }
-      }
-    }
-  }, [empresaId]);
 
   const timeToMinutes = (t: string) => {
     if (!t) return 0;
@@ -330,13 +325,7 @@ export default function ArmazemPanel({ user, empresa }: ArmazemPanelProps) {
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'armazem'), newRow);
-      } else {
-        const current = [...armazemRows, { _docId: String(Date.now()), ...newRow }];
-        setArmazemRows(current);
-        localStorage.setItem(`armazem_rows_${empresaId}`, JSON.stringify(current));
-      }
+      await ArmazemRepository.create(newRow, empresaId);
       
       window.dispatchEvent(new CustomEvent('app_data_updated'));
       window.dispatchEvent(new CustomEvent('local_data_changed'));
@@ -369,9 +358,7 @@ export default function ArmazemPanel({ user, empresa }: ArmazemPanelProps) {
     setSuccessMsg(null);
     if (!docId) return;
     try {
-      if (db) {
-        await deleteDoc(doc(db, 'armazem', docId));
-      }
+      await ArmazemRepository.delete(docId, empresaId);
     } catch (e) {
       console.error(e);
     } finally {
@@ -433,13 +420,14 @@ export default function ArmazemPanel({ user, empresa }: ArmazemPanelProps) {
     };
 
     try {
-      if (db && editingRow._docId) {
-        await updateDoc(doc(db, 'armazem', editingRow._docId), updatedFields);
-      } else {
-        const updatedList = armazemRows.map(r => r._docId === editingRow._docId ? { ...r, ...updatedFields } : r);
-        setArmazemRows(updatedList as ArmazemRow[]);
-        localStorage.setItem(`armazem_rows_${empresaId}`, JSON.stringify(updatedList));
+      const idToUpdate = editingRow._docId || (editingRow as any).id;
+      if (idToUpdate) {
+        await ArmazemRepository.update(idToUpdate, updatedFields, empresaId);
       }
+
+      const updatedList = armazemRows.map(r => ((r._docId === idToUpdate || (r as any).id === idToUpdate) ? { ...r, ...updatedFields } : r));
+      setArmazemRows(updatedList as ArmazemRow[]);
+      localStorage.setItem(`armazem_rows_${empresaId}`, JSON.stringify(updatedList));
 
       window.dispatchEvent(new CustomEvent('app_data_updated'));
       window.dispatchEvent(new CustomEvent('local_data_changed'));

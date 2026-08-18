@@ -55,8 +55,8 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { Usuario, Empresa, ValidadeRow } from '../types';
-import { db, isCustomFirebaseConnected } from '../firebase';
-import { collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { isCustomFirebaseConnected } from '../firebase';
+import { ValidadesRepository } from '../db';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
 import A3BoardComponent from './A3BoardComponent';
@@ -359,16 +359,16 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
       localStorage.setItem(validadesKey, JSON.stringify(updatedList));
       localStorage.setItem(armazemValidadesKey, JSON.stringify(updatedList));
 
-      if (db && recontagemModal._rawDoc?._docId) {
+      if (recontagemModal._rawDoc?._docId) {
         try {
-          await updateDoc(doc(db, 'validades', recontagemModal._rawDoc._docId), {
+          await ValidadesRepository.update(recontagemModal._rawDoc._docId, {
             quantidade: recontagemModal.quantidade,
             caixa: recontagemModal.quantidade,
             validade: recontagemModal.novaValidade,
             localizacao: recontagemModal.localizacao,
             bloco: recontagemModal.bloco,
             recontadoEm: new Date().toISOString()
-          });
+          }, companyId);
         } catch (e) {}
       }
 
@@ -999,11 +999,9 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
       return;
     }
     try {
-      if (db) {
-        for (const item of actualValidades) {
-          if (item._docId) {
-            try { await deleteDoc(doc(db, 'validades', item._docId)); } catch(e){}
-          }
+      for (const item of actualValidades) {
+        if (item._docId) {
+          try { await ValidadesRepository.delete(item._docId, companyId); } catch(e){}
         }
       }
       setActualValidades([]);

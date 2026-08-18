@@ -374,14 +374,14 @@ export default function PlataformasExternasPanel({
             >
               <div>
                 {/* CARD HEADER */}
-                <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+                <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                   <div className="flex items-center gap-3.5">
                     <div className={`p-3 rounded-2xl border flex items-center justify-center shrink-0 ${
                       isRetorno 
-                        ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' 
+                        ? 'bg-blue-500/15 border-blue-500/30 text-blue-500 dark:text-blue-400' 
                         : isTrocas 
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                          : 'bg-purple-500/15 border-purple-500/30 text-purple-400'
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-purple-500/15 border-purple-500/30 text-purple-600 dark:text-purple-400'
                     }`}>
                       {isRetorno ? (
                         <Truck className="w-7 h-7" />
@@ -395,14 +395,14 @@ export default function PlataformasExternasPanel({
                     <div>
                       <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
                         isRetorno 
-                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
+                          ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400' 
                           : isTrocas 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                            : 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                            : 'bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20 text-purple-700 dark:text-purple-400'
                       }`}>
                         {tool.category}
                       </span>
-                      <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight mt-1">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">
                         {tool.name}
                       </h3>
                     </div>
@@ -411,12 +411,12 @@ export default function PlataformasExternasPanel({
                   {/* STATUS BADGE & ADMIN CONTROLS */}
                   <div className="flex items-center gap-2">
                     {tool.status === 'active' ? (
-                      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                         Ativo
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider">
                         Em Manutenção
                       </span>
                     )}
@@ -425,7 +425,7 @@ export default function PlataformasExternasPanel({
                       <div className="flex items-center gap-1 ml-1">
                         <button
                           onClick={() => handleEditTool(tool)}
-                          className="p-2 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                           title="Editar/Anexar Link da Ferramenta"
                         >
                           <Edit3 className="w-4 h-4" />
@@ -433,7 +433,7 @@ export default function PlataformasExternasPanel({
                         {tools.length > 2 && (
                           <button
                             onClick={() => handleDeleteTool(tool.id)}
-                            className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                            className="p-2 text-slate-400 hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                             title="Excluir Ferramenta"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function PlataformasExternasPanel({
                 </div>
 
                 {/* DESCRIPTION */}
-                <p className="text-xs text-slate-300 font-medium leading-relaxed my-4">
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed my-4">
                   {tool.description}
                 </p>
 
@@ -542,9 +542,9 @@ export default function PlataformasExternasPanel({
         <div className={`border rounded-2xl p-5 space-y-3 ${
           isDark ? 'bg-[#111a30] border-slate-800' : 'bg-white border-slate-200 shadow-sm'
         }`}>
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
-              <History className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-2">
+              <History className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               Histórico Recente de Acessos e Redirecionamentos
             </h3>
             <span className="text-[10px] font-mono text-slate-500">
@@ -555,7 +555,7 @@ export default function PlataformasExternasPanel({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-sans">
               <thead>
-                <tr className="border-b border-slate-800 text-[10px] uppercase font-black text-slate-400">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black text-slate-500 dark:text-slate-400">
                   <th className="py-2 px-3">Data / Hora</th>
                   <th className="py-2 px-3">Colaborador</th>
                   <th className="py-2 px-3">Cargo / Função</th>
@@ -563,19 +563,19 @@ export default function PlataformasExternasPanel({
                   <th className="py-2 px-3 text-right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {accessLogs.slice(0, 10).map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/30">
-                    <td className="py-2 px-3 font-mono text-[11px] text-slate-400">{log.timestamp}</td>
-                    <td className="py-2 px-3 font-bold text-white">{log.userName}</td>
-                    <td className="py-2 px-3 text-slate-400 text-[11px] uppercase">{log.userRole}</td>
-                    <td className="py-2 px-3 font-bold text-sky-400">{log.toolName}</td>
+                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    <td className="py-2 px-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">{log.timestamp}</td>
+                    <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">{log.userName}</td>
+                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 text-[11px] uppercase">{log.userRole}</td>
+                    <td className="py-2 px-3 font-bold text-sky-600 dark:text-sky-400">{log.toolName}</td>
                     <td className="py-2 px-3 text-right">
                       <a 
                         href={log.url} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="text-[10px] font-bold text-emerald-400 hover:underline inline-flex items-center gap-1"
+                        className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
                       >
                         <span>Reabrir</span>
                         <ArrowUpRight className="w-3 h-3" />
@@ -591,27 +591,27 @@ export default function PlataformasExternasPanel({
 
       {/* MODAL: ANEXAR OU EDITAR LINK DA FERRAMENTA */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className={`w-full max-w-2xl border rounded-2xl p-6 shadow-2xl relative space-y-5 max-h-[90vh] overflow-y-auto ${
             isDark ? 'bg-[#0d1527] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl">
+                <div className="p-2.5 bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-xl">
                   <Sliders className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black uppercase tracking-tight text-white">
+                  <h3 className="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white">
                     {editingTool ? 'Editar / Anexar Link da Ferramenta' : 'Cadastrar Nova Ferramenta de Gestão'}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Insira a URL oficial de redirecionamento e as instruções operacionais para os colaboradores.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -620,7 +620,7 @@ export default function PlataformasExternasPanel({
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                  <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                     Nome da Plataforma / Ferramenta *
                   </label>
                   <input
@@ -636,7 +636,7 @@ export default function PlataformasExternasPanel({
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                  <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                     Categoria
                   </label>
                   <input
@@ -652,7 +652,7 @@ export default function PlataformasExternasPanel({
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase text-amber-400 block mb-1 flex items-center justify-between">
+                <label className="text-xs font-bold uppercase text-amber-600 dark:text-amber-400 block mb-1 flex items-center justify-between">
                   <span>URL / Link de Redirecionamento (Destino) *</span>
                   <span className="text-[10px] text-slate-400 font-normal">Ex: https://meusistema.com.br</span>
                 </label>
@@ -672,7 +672,7 @@ export default function PlataformasExternasPanel({
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                   Descrição da Ferramenta
                 </label>
                 <textarea
@@ -687,7 +687,7 @@ export default function PlataformasExternasPanel({
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                   Instruções Passo a Passo de Operação (Opcional)
                 </label>
                 <textarea
@@ -703,7 +703,7 @@ export default function PlataformasExternasPanel({
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                  <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                     Status da Plataforma
                   </label>
                   <select
@@ -719,7 +719,7 @@ export default function PlataformasExternasPanel({
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                  <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                     Modo de Abertura
                   </label>
                   <select
@@ -735,7 +735,7 @@ export default function PlataformasExternasPanel({
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1">
+                  <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                     Ícone
                   </label>
                   <select
@@ -752,17 +752,17 @@ export default function PlataformasExternasPanel({
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase rounded-xl cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-lg flex items-center gap-1.5"
+                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   <span>Salvar & Anexar Link</span>
@@ -776,12 +776,12 @@ export default function PlataformasExternasPanel({
       {/* EMBEDDED PREVIEW MODAL IF IFRAME MODE */}
       {previewTool && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col p-4">
-          <div className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-t-2xl text-white">
+          <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-2xl text-slate-900 dark:text-white">
             <div className="flex items-center gap-3">
-              <span className="font-black text-sm uppercase text-amber-400">
+              <span className="font-black text-sm uppercase text-amber-600 dark:text-amber-400">
                 {previewTool.name}
               </span>
-              <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+              <span className="text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">
                 {previewTool.url}
               </span>
             </div>
@@ -798,14 +798,14 @@ export default function PlataformasExternasPanel({
               </a>
               <button
                 onClick={() => setPreviewTool(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 bg-white rounded-b-2xl overflow-hidden border border-slate-800 border-t-0 relative">
+          <div className="flex-1 bg-white rounded-b-2xl overflow-hidden border border-slate-200 dark:border-slate-800 border-t-0 relative">
             <iframe
               src={previewTool.url}
               title={previewTool.name}

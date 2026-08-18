@@ -532,28 +532,28 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="space-y-6 text-slate-800 dark:text-slate-100">
       
       {/* MASTER TOP BANNER */}
-      <div className="border rounded-2xl p-6 relative overflow-hidden shadow-xl bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border-indigo-800/60">
+      <div className="border rounded-2xl p-6 relative overflow-hidden shadow-xs bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-indigo-950 dark:via-slate-900 dark:to-purple-950 border-blue-200/80 dark:border-indigo-800/60">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="p-3.5 bg-indigo-500/20 border border-indigo-500/30 rounded-2xl text-indigo-400 flex items-center justify-center shrink-0 shadow-inner">
+            <div className="p-3.5 bg-blue-100/80 dark:bg-indigo-500/20 border border-blue-200 dark:border-indigo-500/30 rounded-2xl text-blue-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-xs">
               <Users className="w-8 h-8" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/20 px-2.5 py-0.5 rounded-md border border-indigo-500/30">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#1e56f0] dark:text-indigo-300 bg-blue-50 dark:bg-indigo-500/20 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-indigo-500/30">
                   Book de Atas TOR (Pau Brasil / Ambev)
                 </span>
-                <span className="text-[10px] font-bold text-emerald-400 font-mono">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                   11 Reuniões Oficiais Catalogadas
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mt-1">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">
                 Gestão de Reuniões, Fichas & Atas Assinadas
               </h1>
-              <p className="text-xs text-slate-300 font-medium max-w-3xl mt-1 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium max-w-3xl mt-1 leading-relaxed">
                 Plataforma oficial de controle de aderência (Meta x Real), lista de presenças e anexos de Atas em PDF das 11 reuniões corporativas da Unidade.
               </p>
             </div>
@@ -562,7 +562,7 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => handleOpenNewOccurrence()}
-              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-lg flex items-center gap-2"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs flex items-center gap-2"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Registrar Nova Ocorrência</span>
@@ -582,25 +582,25 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
       }).slice(0, 3).map(occ => {
         const matchingFicha = fichas.find(f => f.id === occ.reuniaoId);
         return (
-          <div key={occ.id} className="p-4 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 border-2 border-indigo-500 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xl">
+          <div key={occ.id} className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50/60 to-slate-50 dark:from-indigo-950 dark:via-slate-900 dark:to-indigo-900 border-2 border-blue-300 dark:border-indigo-500 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
             <div className="flex items-center gap-3.5">
-              <div className="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-500/30 shrink-0">
-                <Users className="w-6 h-6 text-indigo-400" />
+              <div className="p-3 bg-blue-100/80 dark:bg-indigo-500/20 text-blue-600 dark:text-indigo-400 rounded-xl border border-blue-200 dark:border-indigo-500/30 shrink-0">
+                <Users className="w-6 h-6 text-blue-600 dark:text-indigo-400" />
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-500/30">
                     📢 Convocar Comparecimento / Assinatura de Presença
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                     {occ.dataFormatted} às {occ.hora}
                   </span>
                 </div>
-                <h4 className="text-sm sm:text-base font-black text-white uppercase mt-1">
+                <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase mt-1">
                   {matchingFicha?.nome || 'Reunião e Treinamento Operacional'}
                 </h4>
-                <p className="text-xs text-slate-300 font-medium mt-0.5">
-                  Facilitador: <strong className="text-amber-300">{occ.facilitador}</strong> — O responsável solicitou seu comparecimento e confirmação na Lista de Presença.
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">
+                  Facilitador: <strong className="text-amber-700 dark:text-amber-300">{occ.facilitador}</strong> — O responsável solicitou seu comparecimento e confirmação na Lista de Presença.
                 </p>
               </div>
             </div>
@@ -608,9 +608,9 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
             <button
               type="button"
               onClick={() => handleConfirmPresence(occ.id)}
-              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer shrink-0 border border-emerald-300 flex items-center gap-2"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all cursor-pointer shrink-0 flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-slate-950" />
+              <CheckCircle2 className="w-4 h-4 text-white" />
               <span>Assinar Lista de Presença</span>
             </button>
           </div>
@@ -618,20 +618,20 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
       })}
 
       {/* MASTER SUB-TABS SELECTOR */}
-      <div className="p-2 rounded-2xl bg-[#0d1527] border border-slate-800 overflow-x-auto flex items-center gap-2 no-scrollbar">
+      <div className="p-2 rounded-2xl bg-slate-100 dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 overflow-x-auto flex items-center gap-2 no-scrollbar shadow-2xs">
         <button
           onClick={() => setSelectedMeetingId('overview')}
           className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shrink-0 flex items-center gap-2 cursor-pointer ${
             selectedMeetingId === 'overview'
-              ? 'bg-indigo-600 text-white shadow-lg'
-              : 'text-slate-400 hover:text-white bg-slate-900/60'
+              ? 'bg-[#1e56f0] text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-transparent'
           }`}
         >
           <Filter className="w-4 h-4" />
           <span>Visão Geral Consolidada & Filtro</span>
         </button>
 
-        <div className="w-px h-6 bg-slate-800 shrink-0" />
+        <div className="w-px h-6 bg-slate-300 dark:bg-slate-800 shrink-0" />
 
         {fichas.map((f) => {
           const stats = getMeetingStatsForPeriod(f.id, filterMesAno);
@@ -643,18 +643,18 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
               onClick={() => setSelectedMeetingId(f.id)}
               className={`px-3 py-2 rounded-xl font-bold text-[11px] transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${
                 isSelected
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
-                  : 'bg-[#111a30] border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xs font-black'
+                  : 'bg-white dark:bg-[#111a30] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white shadow-2xs'
               }`}
             >
               <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
-                f.area === 'Armazém' ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300'
+                f.area === 'Armazém' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300'
               }`}>
                 TOR {f.numTOR}
               </span>
               <span className="truncate max-w-[140px]">{f.nome}</span>
               <span className={`text-[9px] font-mono font-black px-1.5 py-0.5 rounded-full ${
-                stats.aderencia >= 90 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                stats.aderencia >= 90 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
               }`}>
                 {stats.aderencia}%
               </span>
@@ -669,28 +669,28 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
       {selectedMeetingId === 'overview' && (
         <div className="space-y-6">
           {/* GENERAL FILTER BAR */}
-          <div className="p-5 rounded-2xl bg-[#111a30] border border-slate-800 space-y-4 shadow-lg">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-black uppercase text-white tracking-wider">
+                <Sliders className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-wider">
                   Filtro Geral de Aderência & Pendências (TOR)
                 </h3>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                 Exibindo {filteredFichas.length} de {fichas.length} Reuniões Catalogadas
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">
                   Filtrar por Área
                 </label>
                 <select
                   value={filterArea}
                   onChange={(e) => setFilterArea(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-[#080d19] border border-slate-700 text-xs font-bold text-white rounded-xl outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#080d19] border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white rounded-xl outline-none"
                 >
                   <option value="Todas">Todas as Áreas (Armazém + SPO/DPO)</option>
                   <option value="Armazém">Armazém / Controle</option>
@@ -699,13 +699,13 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">
                   Filtrar por Reunião Específica
                 </label>
                 <select
                   value={filterMeetingId}
                   onChange={(e) => setFilterMeetingId(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#080d19] border border-slate-700 text-xs font-bold text-white rounded-xl outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#080d19] border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white rounded-xl outline-none"
                 >
                   <option value="todas">Todas as 11 Reuniões</option>
                   {fichas.map(f => (
@@ -715,24 +715,24 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">
                   Período de Apuração (Mês/Ano)
                 </label>
                 <input
                   type="month"
                   value={filterMesAno}
                   onChange={(e) => setFilterMesAno(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#080d19] border border-slate-700 text-xs font-mono font-bold text-amber-300 rounded-xl outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#080d19] border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold text-slate-900 dark:text-amber-300 rounded-xl outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* CONSOLIDATED MEETING TABLE */}
-          <div className="p-6 rounded-2xl bg-[#111a30] border border-slate-800 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-emerald-400" />
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-xs font-black uppercase text-slate-800 dark:text-slate-300 tracking-wider flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                 Resumo Consolidado por Reunião ({filterMesAno})
               </h3>
             </div>
@@ -752,54 +752,54 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
                     <th className="py-3 px-3 text-right">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {filteredFichas.map((ficha) => {
                     const stats = getMeetingStatsForPeriod(ficha.id, filterMesAno);
 
                     return (
-                      <tr key={ficha.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-3 font-mono font-bold text-amber-400">#{ficha.numTOR}</td>
+                      <tr key={ficha.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 font-mono font-bold text-amber-600 dark:text-amber-400">#{ficha.numTOR}</td>
                         <td className="py-3 px-3">
-                          <div className="font-extrabold text-white">{ficha.nome}</div>
-                          <div className="text-[10px] text-slate-400 truncate max-w-xs">{ficha.dono}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-white">{ficha.nome}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-xs">{ficha.dono}</div>
                         </td>
                         <td className="py-3 px-3">
                           <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${
                             ficha.area === 'Armazém' 
-                              ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
-                              : 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                              ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400' 
+                              : 'bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20 text-purple-700 dark:text-purple-400'
                           }`}>
                             {ficha.area}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-slate-300 font-medium">{ficha.frequencia}</td>
-                        <td className="py-3 px-3 text-center font-mono font-bold">
+                        <td className="py-3 px-3 text-slate-700 dark:text-slate-300 font-medium">{ficha.frequencia}</td>
+                        <td className="py-3 px-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
                           {stats.realizadas} / {stats.meta}
                         </td>
                         <td className="py-3 px-3 text-center">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-black font-mono inline-block ${
                             stats.aderencia >= 90
-                              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
                               : stats.aderencia >= 70
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                                : 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30'
                           }`}>
                             {stats.aderencia}%
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-slate-300 font-mono text-[11px]">
+                        <td className="py-3 px-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
                           {stats.lastOcc ? stats.lastOcc.dataFormatted : 'Nenhuma'}
                         </td>
                         <td className="py-3 px-3 text-center">
                           {!stats.lastOcc ? (
-                            <span className="text-[10px] text-slate-500 font-mono">-</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">-</span>
                           ) : stats.hasAtaInLastOcc ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
                               <Check className="w-3 h-3" />
                               Anexada
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 animate-pulse">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-500/20 animate-pulse">
                               <AlertCircle className="w-3 h-3" />
                               Pendente
                             </span>
@@ -808,7 +808,7 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
                         <td className="py-3 px-3 text-right">
                           <button
                             onClick={() => setSelectedMeetingId(ficha.id)}
-                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-[11px] cursor-pointer inline-flex items-center gap-1"
+                            className="px-3 py-1.5 bg-[#1e56f0] hover:bg-blue-600 text-white font-bold rounded-lg text-[11px] cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                           >
                             <span>Sub-Guia</span>
                             <ChevronRight className="w-3.5 h-3.5" />
@@ -832,10 +832,10 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
           
           {/* SPECIAL WARNING NOTICE FOR RPS ARMAZÉM / CONTROLE */}
           {activeFicha.alertaEspecial && (
-            <div className="p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs font-bold flex items-start gap-3 shadow-lg">
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-start gap-3 shadow-2xs">
+              <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <span className="font-black text-amber-300 uppercase tracking-wider block mb-0.5">
+                <span className="font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider block mb-0.5">
                   Regra Especial TOR — RPS Armazém / Controle
                 </span>
                 <p className="leading-relaxed font-sans">{activeFicha.alertaEspecial}</p>
@@ -844,18 +844,18 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
           )}
 
           {/* BLOCK 2.1: CABEÇALHO / FICHA DA REUNIÃO */}
-          <div className="p-6 rounded-2xl bg-[#111a30] border border-slate-800 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
+                  <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-200 dark:border-amber-500/20">
                     TOR #{activeFicha.numTOR} • Ficha Cadastral da Reunião
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">
                     {activeFicha.area}
                   </span>
                 </div>
-                <h2 className="text-xl font-black text-white uppercase tracking-tight mt-1">
+                <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">
                   {activeFicha.nome}
                 </h2>
               </div>
@@ -863,7 +863,7 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
               {isManager && (
                 <button
                   onClick={handleOpenEditFicha}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-xl font-bold text-xs uppercase cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-amber-400 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs uppercase cursor-pointer flex items-center gap-1.5"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Editar Ficha</span>
@@ -872,43 +872,43 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-3.5 rounded-xl bg-[#0d1527] border border-slate-800">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Dono / Facilitador</span>
-                <span className="text-xs font-bold text-sky-400 mt-0.5 block">{activeFicha.dono}</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Dono / Facilitador</span>
+                <span className="text-xs font-bold text-blue-600 dark:text-sky-400 mt-0.5 block">{activeFicha.dono}</span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0d1527] border border-slate-800">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Frequência</span>
-                <span className="text-xs font-bold text-emerald-400 mt-0.5 block">{activeFicha.frequencia}</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Frequência</span>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">{activeFicha.frequencia}</span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0d1527] border border-slate-800">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Duração Padrão</span>
-                <span className="text-xs font-bold text-purple-400 mt-0.5 block">{activeFicha.duracaoPadraoMin} minutos</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Duração Padrão</span>
+                <span className="text-xs font-bold text-purple-600 dark:text-purple-400 mt-0.5 block">{activeFicha.duracaoPadraoMin} minutos</span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0d1527] border border-slate-800">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Local Padrão</span>
-                <span className="text-xs font-bold text-amber-400 mt-0.5 block">{activeFicha.local}</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Local Padrão</span>
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-0.5 block">{activeFicha.local}</span>
               </div>
             </div>
 
             <div>
-              <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">
                 Objetivo Oficial da Reunião
               </span>
-              <p className="text-xs font-medium text-slate-200 leading-relaxed bg-[#080d19] p-3 rounded-xl border border-slate-800">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed bg-slate-50 dark:bg-[#080d19] p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                 {activeFicha.objetivo}
               </p>
             </div>
 
             <div>
-              <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">
                 Participantes Padrão Envolvidos
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {activeFicha.participantesPadrao.map((p, idx) => (
-                  <span key={idx} className="text-[11px] font-bold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+                  <span key={idx} className="text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                     {p}
                   </span>
                 ))}
@@ -917,20 +917,20 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
           </div>
 
           {/* BLOCK 2.2: HISTÓRICO & ADERÊNCIA (META X REAL) */}
-          <div className="p-6 rounded-2xl bg-[#111a30] border border-slate-800 space-y-6 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 space-y-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
-                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
                   Bloco 2.2 — Indicadores & Ocorrências
                 </span>
-                <h3 className="text-lg font-black text-white uppercase tracking-tight mt-0.5">
+                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
                   Histórico de Ocorrências e Aderência
                 </h3>
               </div>
 
               <button
                 onClick={() => handleOpenNewOccurrence(activeFicha.id)}
-                className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-lg flex items-center gap-2"
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs flex items-center gap-2"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>Registrar Nova Ocorrência</span>
@@ -942,28 +942,28 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
               const stats = getMeetingStatsForPeriod(activeFicha.id, filterMesAno);
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl border border-slate-800 bg-[#0d1527] flex items-center justify-between">
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0d1527] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400">Meta no Mês</span>
-                      <div className="text-2xl font-black text-amber-400 mt-1">{stats.meta} reunião(ões)</div>
+                      <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Meta no Mês</span>
+                      <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.meta} reunião(ões)</div>
                     </div>
-                    <Calendar className="w-8 h-8 text-amber-400" />
+                    <Calendar className="w-8 h-8 text-amber-500 dark:text-amber-400" />
                   </div>
 
-                  <div className="p-4 rounded-xl border border-slate-800 bg-[#0d1527] flex items-center justify-between">
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0d1527] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400">Realizadas</span>
-                      <div className="text-2xl font-black text-emerald-400 mt-1">{stats.realizadas} reunião(ões)</div>
+                      <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Realizadas</span>
+                      <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.realizadas} reunião(ões)</div>
                     </div>
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
                   </div>
 
-                  <div className="p-4 rounded-xl border border-slate-800 bg-[#0d1527] flex items-center justify-between">
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0d1527] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400">% Aderência do Mês</span>
-                      <div className="text-2xl font-black text-sky-400 mt-1">{stats.aderencia}%</div>
+                      <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">% Aderência do Mês</span>
+                      <div className="text-2xl font-black text-blue-600 dark:text-sky-400 mt-1">{stats.aderencia}%</div>
                     </div>
-                    <BarChart3 className="w-8 h-8 text-sky-400" />
+                    <BarChart3 className="w-8 h-8 text-blue-500 dark:text-sky-400" />
                   </div>
                 </div>
               );
@@ -971,17 +971,17 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
 
             {/* OCORRÊNCIAS REGISTRADAS TABLE */}
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider">
+              <h4 className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">
                 Lista Cronológica de Ocorrências Registradas
               </h4>
 
               {ocorrencias.filter(o => o.reuniaoId === activeFicha.id).length === 0 ? (
-                <div className="text-center py-10 border border-dashed border-slate-800 rounded-2xl">
-                  <Users className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-slate-400">Nenhuma ocorrência registrada para esta reunião.</p>
+                <div className="text-center py-10 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <Users className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Nenhuma ocorrência registrada para esta reunião.</p>
                   <button
                     onClick={() => handleOpenNewOccurrence(activeFicha.id)}
-                    className="mt-3 px-4 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl hover:bg-emerald-400 cursor-pointer"
+                    className="mt-3 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-500 cursor-pointer shadow-2xs"
                   >
                     Lançar Primeira Ocorrência
                   </button>
@@ -995,17 +995,17 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
                       const hasAtaPDF = occ.anexos.some(a => a.categoria === 'Ata Assinada (PDF)');
 
                       return (
-                        <div key={occ.id} className="p-5 rounded-2xl border border-slate-800 bg-[#0d1527] space-y-4 shadow-md">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                        <div key={occ.id} className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0d1527] space-y-4 shadow-2xs">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div className="flex items-center gap-3">
-                              <span className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono font-black text-xs">
+                              <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-400 font-mono font-black text-xs">
                                 {occ.dataFormatted}
                               </span>
                               <div>
-                                <h5 className="text-xs font-bold text-white">
+                                <h5 className="text-xs font-bold text-slate-900 dark:text-white">
                                   Facilitador: {occ.facilitador} ({occ.duracaoRealMin} min)
                                 </h5>
-                                <span className="text-[10px] text-slate-400 font-mono">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                                   Registrado por {occ.criadoPor} em {occ.criadoEm}
                                 </span>
                               </div>
@@ -1013,22 +1013,22 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
 
                             <div className="flex items-center gap-2">
                               {occ.status === 'Realizada' ? (
-                                <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                                <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-200 dark:border-emerald-500/20">
                                   Realizada
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-black uppercase text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20">
+                                <span className="text-[10px] font-black uppercase text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded border border-rose-200 dark:border-rose-500/20">
                                   {occ.status}
                                 </span>
                               )}
 
                               {hasAtaPDF ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-200 dark:border-emerald-500/20">
                                   <Check className="w-3.5 h-3.5" />
                                   Ata Anexada
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20 animate-pulse">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded border border-rose-200 dark:border-rose-500/20 animate-pulse">
                                   <AlertCircle className="w-3.5 h-3.5" />
                                   Ata Pendente
                                 </span>
@@ -1038,19 +1038,19 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
 
                           {/* ASSUNTOS */}
                           <div>
-                            <span className="text-[10px] font-black uppercase text-slate-400 block mb-0.5">
+                            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block mb-0.5">
                               Principais Assuntos Tratados
                             </span>
-                            <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-sans">
                               {occ.principaisAssuntos || 'Nenhuma pauta detalhada preenchida.'}
                             </p>
                           </div>
 
                           {/* LISTA DE PRESENÇA RESUMO & ANEXOS */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200 dark:border-slate-800/80">
                             {/* PRESENCA */}
                             <div className="space-y-1.5">
-                              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">
                                 Lista de Presença ({occ.listaPresenca.filter(p => p.presente).length}/{occ.listaPresenca.length} presentes)
                               </span>
                               <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
@@ -1058,7 +1058,7 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
                                   <span
                                     key={idx}
                                     className={`text-[9px] font-bold px-2 py-0.5 rounded border ${
-                                      p.presente ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500 border-slate-700 line-through'
+                                      p.presente ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700 line-through'
                                     }`}
                                   >
                                     {p.nome}
@@ -1069,19 +1069,19 @@ export const ReunioesComponent: React.FC<ReunioesComponentProps> = ({
 
                             {/* ANEXOS */}
                             <div className="space-y-1.5">
-                              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">
                                 Documentos e Ata Assinada ({occ.anexos.length})
                               </span>
                               {occ.anexos.length === 0 ? (
-                                <span className="text-[10px] font-mono text-rose-400 block">
+                                <span className="text-[10px] font-mono text-rose-600 dark:text-rose-400 block">
                                   Nenhum arquivo anexado para esta ocorrência.
                                 </span>
                               ) : (
                                 <div className="space-y-1">
                                   {occ.anexos.map(a => (
-                                    <div key={a.id} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
-                                      <span className="truncate text-white font-semibold text-[11px]">{a.nomeArquivo}</span>
-                                      <a href={a.dataUrl} download={a.nomeArquivo} className="text-sky-400 hover:underline text-[10px] font-bold shrink-0">
+                                    <div key={a.id} className="flex items-center justify-between p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                                      <span className="truncate text-slate-900 dark:text-white font-semibold text-[11px]">{a.nomeArquivo}</span>
+                                      <a href={a.dataUrl} download={a.nomeArquivo} className="text-[#1e56f0] dark:text-sky-400 hover:underline text-[10px] font-bold shrink-0">
                                         Baixar
                                       </a>
                                     </div>

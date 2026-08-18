@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { ColaboradoresRepository, getRepository } from '../db';
+
+const usuariosRepo = getRepository<any>('usuarios');
 import { motion } from 'motion/react';
 import { BrandLogo } from './BrandLogo';
-import FirebasePanel from './FirebasePanel';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 
 interface LoginAuthProps {
@@ -14,7 +15,6 @@ interface LoginAuthProps {
 
 export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'controle'>('login');
-  const [showFirebaseConfig, setShowFirebaseConfig] = useState(false);
   
   // Login States
   const [lEmail, setLEmail] = useState('');
@@ -93,24 +93,18 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
       let colabData: any = null;
       let colabDocId: string = '';
 
-      if (db) {
-        try {
-          const colabRef = collection(db, 'colaboradores');
-          let q;
-          if (inputClean.includes('@')) {
-            q = query(colabRef, where('email', '==', emailClean));
-          } else {
-            q = query(colabRef, where('matricula', '==', inputClean));
-          }
-
-          const colabSnap = await getDocs(q);
-          if (!colabSnap.empty) {
-            colabDocId = colabSnap.docs[0].id;
-            colabData = colabSnap.docs[0].data();
-          }
-        } catch (dbErr) {
-          console.warn("Consulta Firestore colaboradores falhou no primeiro acesso (offline ou sem permissão remota), buscando em dados locais/oficiais:", dbErr);
+      try {
+        const allColabs = await ColaboradoresRepository.getAll();
+        const found = allColabs.find((c: any) => 
+          (c.email && String(c.email).toLowerCase().trim() === emailClean) ||
+          String(c.matricula).trim() === inputClean
+        );
+        if (found) {
+          colabDocId = found._docId || found.id || 'local_' + found.matricula;
+          colabData = found;
         }
+      } catch (dbErr) {
+        console.warn("Consulta colaboradores falhou no primeiro acesso:", dbErr);
       }
 
       // Offline localStorage lookup fallback
@@ -200,13 +194,16 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
     try {
       const colabId = firstAccessUser.id;
       
-      if (db && !colabId.startsWith('local_')) {
-        const colabRef = doc(db, 'colaboradores', colabId);
-        await updateDoc(colabRef, {
-          senha: targetSenha,
-          primeiroAcesso: false,
-          updatedAt: new Date().toISOString()
-        });
+      if (colabId && !colabId.startsWith('local_')) {
+        try {
+          await ColaboradoresRepository.update(colabId, {
+            senha: targetSenha,
+            primeiroAcesso: false,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (e) {
+          console.warn('Repository update error:', e);
+        }
       } else {
         // Local state updates
         const savedKeys = Object.keys(localStorage).filter(k => k.startsWith('colaboradores_'));
@@ -298,26 +295,18 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
     let colabData: any = null;
     let colabDocId: string = '';
 
-    if (db) {
-      try {
-        const colabRef = collection(db, 'colaboradores');
-        
-        // Search by email if it contains '@', otherwise by matricula
-        let q;
-        if (inputClean.includes('@')) {
-          q = query(colabRef, where('email', '==', inputClean.toLowerCase()));
-        } else {
-          q = query(colabRef, where('matricula', '==', inputClean));
-        }
-        
-        const colabSnap = await getDocs(q);
-        if (!colabSnap.empty) {
-          colabDocId = colabSnap.docs[0].id;
-          colabData = colabSnap.docs[0].data();
-        }
-      } catch (dbErr) {
-        console.warn("Consulta Firestore colaboradores falhou (offline ou sem permissão remota), buscando em dados locais e base oficial:", dbErr);
+    try {
+      const allColabs = await ColaboradoresRepository.getAll();
+      const found = allColabs.find((c: any) => 
+        (c.email && String(c.email).toLowerCase().trim() === inputClean.toLowerCase()) ||
+        String(c.matricula).trim().toUpperCase() === inputClean.toUpperCase()
+      );
+      if (found) {
+        colabDocId = found._docId || found.id || 'local_' + found.matricula;
+        colabData = found;
       }
+    } catch (dbErr) {
+      console.warn("Consulta colaboradores falhou:", dbErr);
     }
 
     // If not found in Firestore or if we are offline / permission restricted, try localStorage fallback
@@ -415,12 +404,10 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
       const cred = await signInWithEmailAndPassword(auth, inputClean, lSenha);
       const uid = cred.user.uid;
 
-      // Fetch user profiling data from Firestore
-      const userRef = doc(db, 'usuarios', uid);
-      const userSnap = await getDoc(userRef);
+      // Fetch user profiling data from repository
+      const userData = await usuariosRepo.getById(uid);
 
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
+      if (userData) {
 
         if (userData.status === 'inativo') {
           await auth.signOut();
@@ -503,24 +490,18 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
       let colabData: any = null;
       let colabDocId: string = '';
 
-      if (db) {
-        try {
-          const colabRef = collection(db, 'colaboradores');
-          let q;
-          if (inputClean.includes('@')) {
-            q = query(colabRef, where('email', '==', emailClean));
-          } else {
-            q = query(colabRef, where('matricula', '==', inputClean));
-          }
-
-          const colabSnap = await getDocs(q);
-          if (!colabSnap.empty) {
-            colabDocId = colabSnap.docs[0].id;
-            colabData = colabSnap.docs[0].data();
-          }
-        } catch (dbErr) {
-          console.warn("Consulta Firestore colaboradores falhou para controle (offline ou sem permissão remota), buscando em dados locais e base oficial:", dbErr);
+      try {
+        const allColabs = await ColaboradoresRepository.getAll();
+        const found = allColabs.find((c: any) => 
+          (c.email && String(c.email).toLowerCase().trim() === emailClean) ||
+          String(c.matricula).trim() === inputClean
+        );
+        if (found) {
+          colabDocId = found._docId || found.id || 'local_' + found.matricula;
+          colabData = found;
         }
+      } catch (dbErr) {
+        console.warn("Consulta colaboradores falhou para controle:", dbErr);
       }
 
       // Offline fallback
@@ -604,11 +585,9 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
           const cred = await signInWithEmailAndPassword(auth, inputClean, contSenha);
           const uid = cred.user.uid;
 
-          const userRef = doc(db, 'usuarios', uid);
-          const userSnap = await getDoc(userRef);
+          const userData = await usuariosRepo.getById(uid);
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
+          if (userData) {
 
             if (userData.status === 'inativo') {
               await auth.signOut();
@@ -698,37 +677,23 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
       
       <div className="w-full max-w-[440px] relative z-10">
         {/* Top Header */}
-        <div className="text-center mb-8 flex flex-col items-center">
+        <div className="text-center mb-6 flex flex-col items-center">
           <motion.div 
             onClick={onBackToLanding} 
-            className="cursor-pointer mb-5 flex justify-center"
+            className="cursor-pointer flex justify-center"
             whileHover={{ scale: 1.03 }}
             transition={{ duration: 0.2 }}
           >
             <BrandLogo variant="login" />
           </motion.div>
-
-          <span className="text-xs uppercase font-extrabold tracking-[1.5px] text-slate-700 mt-4 block max-w-[340px] leading-tight text-center">
-            RETORNO DE ROTA — GUARABIRA
-          </span>
-          <span className="text-[11px] text-slate-500 mt-1.5 block max-w-[320px] leading-relaxed text-center font-medium">
-            Controle de Retornos, Aferição Física e Conciliação Fiscal
-          </span>
-          
-          <div 
-            className="mt-4 inline-flex items-center justify-center px-6 py-1.5 border text-[10px] uppercase font-black tracking-[1.5px] rounded-full bg-transparent shadow-xs"
-            style={{ borderColor: '#1f2937', color: '#1f2937' }}
-          >
-            SISTEMA OFICIAL
-          </div>
         </div>
 
         {/* Auth Card Container */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(30,86,240,0.04)] border border-slate-100/80 hover:border-slate-200 transition-all duration-300">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-slate-200 hover:border-slate-300 transition-all duration-300">
           
           {/* Header tabs/MFA state */}
           {mfaAtingido && (
-            <div className="bg-[#f1f5f9] border-b border-slate-100 p-4 text-center">
+            <div className="bg-slate-100 border-b border-slate-200 p-4 text-center">
               <span className="font-sans font-black text-sm text-[#1e56f0] tracking-widest uppercase">🔐 SEGUNDA ETAPA DE ACESSO</span>
             </div>
           )}
@@ -739,18 +704,18 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
             {/* MFA PASSCODE FORM */}
             {mfaAtingido ? (
               <div className="flex flex-col gap-4">
-                <p className="text-xs text-slate-500 text-center leading-relaxed mb-2">
+                <p className="text-xs text-slate-600 text-center leading-relaxed mb-2">
                   Por medidas de segurança, digite o código de 6 dígitos gerado no seu dispositivo <strong>Google Authenticator</strong>.
                 </p>
                 <div className="flex flex-col gap-1.5 align-center text-center">
-                  <label className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Código MFA de 6 Dígitos</label>
+                  <label className="text-xs font-bold tracking-widest text-slate-700 uppercase">Código MFA de 6 Dígitos</label>
                   <input 
                     type="password"
                     maxLength={6}
                     placeholder="••••••"
                     value={lMfaCode}
                     onChange={e => setLMfaCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-mono text-center text-2xl tracking-[12px] h-14 focus:outline-none focus:border-[#1e56f0]"
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-center text-2xl tracking-[12px] h-14 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20"
                   />
                 </div>
                 {msg && (
@@ -761,7 +726,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                 <div className="flex gap-3">
                   <button 
                     onClick={() => { setMfaAtingido(false); setLMfaCode(''); }}
-                    className="flex-1 py-3 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-transparent cursor-pointer transition-colors"
+                    className="flex-1 py-3 border border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                   >
                     Voltar
                   </button>
@@ -782,20 +747,20 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                     <span className="font-sans font-black text-xs text-[#1e56f0] tracking-wider uppercase block">
                       🔑 PRIMEIRO ACESSO À PLATAFORMA
                     </span>
-                    <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
+                    <p className="text-xs text-slate-600 leading-relaxed mt-1">
                       Se você foi pré-cadastrado por um supervisor, digite seu e-mail ou matrícula abaixo para validar seu primeiro login e criar sua senha.
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-extrabold tracking-widest text-slate-500 uppercase">E-mail ou Matrícula</label>
+                    <label className="text-xs font-bold tracking-widest text-slate-700 uppercase">E-mail ou Matrícula</label>
                     <input 
                       type="text"
                       required
                       placeholder="Ex: 50811 ou email@empresa.com"
                       value={firstAccessInput}
                       onChange={e => setFirstAccessInput(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/10 transition-all text-sm"
+                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20 transition-all text-sm font-medium"
                     />
                   </div>
 
@@ -808,7 +773,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-[#1e56f0] hover:bg-[#1848c8] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(30,86,240,0.15)] flex items-center justify-center"
+                    className="w-full py-4 bg-[#1e56f0] hover:bg-[#1848c8] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(30,86,240,0.2)] flex items-center justify-center"
                   >
                     {loading ? 'Validando...' : 'Validar Primeiro Acesso'}
                   </button>
@@ -816,7 +781,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                   <button 
                     type="button"
                     onClick={() => { setIsFirstAccess(false); setMsg(null); }}
-                    className="w-full py-3 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-transparent cursor-pointer transition-colors"
+                    className="w-full py-3 border border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                   >
                     Voltar ao Login
                   </button>
@@ -828,32 +793,32 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                     <span className="font-sans font-black text-xs text-[#22c55e] tracking-wider uppercase block">
                       ✅ CADASTRO DE SENHA AUTORIZADO
                     </span>
-                    <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
+                    <p className="text-xs text-slate-600 leading-relaxed mt-1">
                       Olá, <strong>{firstAccessUser.nome}</strong>! Crie a sua senha pessoal abaixo para acessar a plataforma Pau Brasil.
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-extrabold tracking-widest text-slate-500 uppercase">Defina sua Nova Senha</label>
+                    <label className="text-xs font-bold tracking-widest text-slate-700 uppercase">Defina sua Nova Senha</label>
                     <input 
                       type="password"
                       required
                       placeholder="Mínimo 4 caracteres"
                       value={faNovaSenha}
                       onChange={e => setFaNovaSenha(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/10 transition-all text-sm"
+                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20 transition-all text-sm"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-extrabold tracking-widest text-slate-500 uppercase">Confirme a Nova Senha</label>
+                    <label className="text-xs font-bold tracking-widest text-slate-700 uppercase">Confirme a Nova Senha</label>
                     <input 
                       type="password"
                       required
                       placeholder="Repita a senha digitada"
                       value={faConfirmSenha}
                       onChange={e => setFaConfirmSenha(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/10 transition-all text-sm"
+                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20 transition-all text-sm"
                     />
                   </div>
 
@@ -866,7 +831,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-[#22c55e] hover:bg-[#1ebd52] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(34,197,94,0.15)] flex items-center justify-center"
+                    className="w-full py-4 bg-[#22c55e] hover:bg-[#1ebd52] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(34,197,94,0.2)] flex items-center justify-center"
                   >
                     {loading ? 'Salvando...' : 'Salvar e Entrar no Sistema'}
                   </button>
@@ -874,7 +839,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                   <button 
                     type="button"
                     onClick={() => { setFirstAccessUser(null); setMsg(null); }}
-                    className="w-full py-3 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-transparent cursor-pointer transition-colors"
+                    className="w-full py-3 border border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                   >
                     Voltar
                   </button>
@@ -885,26 +850,26 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
               /* SIGN IN FORM PANEL */
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-extrabold tracking-widest text-slate-500 uppercase">E-mail ou Matrícula</label>
+                  <label className="text-xs font-bold tracking-wider text-slate-700 uppercase">E-mail ou Matrícula</label>
                   <input 
                     type="text"
                     required
                     placeholder="Seu e-mail ou matrícula"
                     value={lEmail}
                     onChange={e => setLEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/10 transition-all text-sm"
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20 transition-all text-sm font-medium"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-extrabold tracking-widest text-slate-500 uppercase">Senha</label>
+                  <label className="text-xs font-bold tracking-wider text-slate-700 uppercase">Senha</label>
                   <input 
                     type="password"
                     required
                     placeholder="••••••••"
                     value={lSenha}
                     onChange={e => setLSenha(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/10 transition-all text-sm"
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e56f0] focus:ring-2 focus:ring-[#1e56f0]/20 transition-all text-sm"
                   />
                 </div>
 
@@ -917,7 +882,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-[#1e56f0] hover:bg-[#1848c8] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(30,86,240,0.15)] hover:shadow-[0_4px_16px_rgba(30,86,240,0.25)] flex items-center justify-center"
+                  className="w-full py-4 bg-[#1e56f0] hover:bg-[#1848c8] text-white text-xs font-sans font-bold uppercase tracking-[2px] rounded-xl cursor-pointer disabled:opacity-50 border-none transition-all shadow-[0_4px_16px_rgba(30,86,240,0.25)] hover:shadow-[0_6px_20px_rgba(30,86,240,0.35)] flex items-center justify-center"
                 >
                   {loading ? 'Aguarde...' : 'Entrar na Operação'}
                 </button>
@@ -925,7 +890,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                 <button 
                   type="button"
                   onClick={() => { setIsFirstAccess(true); setMsg(null); }}
-                  className="w-full py-3.5 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 rounded-xl text-xs font-bold tracking-wide transition-colors"
+                  className="w-full py-3.5 bg-blue-50/80 border border-blue-200 hover:bg-blue-100 text-[#1e56f0] hover:text-[#1848c8] rounded-xl text-xs font-bold tracking-wide transition-all shadow-xs"
                 >
                   💡 Primeiro acesso? Crie sua senha
                 </button>
@@ -933,7 +898,7 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
                 <button 
                   type="button"
                   onClick={handleResetSenha}
-                  className="w-full py-3.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 rounded-xl text-xs font-bold tracking-wide transition-colors"
+                  className="w-full py-3.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold tracking-wide transition-all"
                 >
                   Esqueci minha senha
                 </button>
@@ -942,34 +907,15 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
 
             <button 
               onClick={onBackToLanding}
-              className="w-full text-center mt-6 text-xs text-slate-500 hover:text-slate-800 transition-colors uppercase font-bold tracking-widest cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full text-center mt-6 text-xs text-slate-600 hover:text-[#1e56f0] transition-colors uppercase font-extrabold tracking-widest cursor-pointer flex items-center justify-center gap-1.5"
             >
               ← Voltar ao site
             </button>
           </div>
         </div>
 
-        <div className="text-center mt-6 text-[10px] text-slate-400 tracking-widest uppercase font-semibold">
+        <div className="text-center mt-6 text-xs text-slate-700 font-extrabold tracking-[2px] uppercase">
           Pau Brasil Distribuidora &copy; Implantação Corporativa
-        </div>
-
-        {/* Firebase Connection Panel directly below the corporate footer */}
-        <div className="mt-4 flex flex-col items-center">
-          <button
-            onClick={() => setShowFirebaseConfig(!showFirebaseConfig)}
-            className="px-4 py-2 bg-[#1e56f0]/10 hover:bg-[#1e56f0]/20 border border-[#1e56f0]/20 text-[#1e56f0] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-          >
-            <span>⚡ CONEXÃO AO FIREBASE</span>
-            <span className="text-[9px] text-slate-500 font-bold">({showFirebaseConfig ? 'OCULTAR' : 'CONFIGURAR'})</span>
-          </button>
-          
-          {showFirebaseConfig && (
-            <div className="w-full mt-4 p-1 bg-[#07090d] text-snow rounded-2xl border border-slate-800 shadow-2xl animate-fadeIn overflow-hidden text-left">
-              <div className="p-4 max-h-[450px] overflow-y-auto custom-scrollbar">
-                <FirebasePanel />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

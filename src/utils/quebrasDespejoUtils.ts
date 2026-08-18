@@ -14,6 +14,7 @@ export interface AnáliseQuebraDespejo {
   nivelRisco: 'alto' | 'medio' | 'baixo';
   volumeHl: number;
   skus: number;
+  unidades?: number;
   tempoEstimativalustrativaSec: number;
   tempoEstimativalustrativaStr: string;
 }
@@ -30,6 +31,9 @@ export interface TemposIlustrativosOperacao {
   tempoMedioPorSkuSec: number;
   tempoMedioPorSkuStr: string;
   ritmoSkusPorHora: number;
+  tempoMedioPorUnidadeSec?: number;
+  tempoMedioPorUnidadeStr?: string;
+  ritmoUnidadesPorHora?: number;
   vazaoHlPorMinuto: number;
   desvioPadraoStr: string;
   desvioPositivo: boolean;
@@ -205,6 +209,9 @@ export function elaborarTemposIlustrativosOperacao(
     tempoMedioPorSkuSec,
     tempoMedioPorSkuStr,
     ritmoSkusPorHora,
+    tempoMedioPorUnidadeSec: tempoMedioPorSkuSec,
+    tempoMedioPorUnidadeStr: tempoMedioPorSkuStr,
+    ritmoUnidadesPorHora: ritmoSkusPorHora,
     vazaoHlPorMinuto,
     desvioPadraoStr,
     desvioPositivo

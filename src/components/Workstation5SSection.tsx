@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, 
   UserCheck, 
@@ -23,8 +23,7 @@ import {
 } from 'lucide-react';
 import { Checklist5SForm, Audit5SRecord, SETORES_5S, isWeekendISO, generateYTD5SAudits } from './Checklist5SModal';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
-import { db } from '../firebase';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { Workstation5SRepository } from '../db';
 
 export interface AreaResponsavel5S {
   id: string;
@@ -201,22 +200,18 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
     return rankingItems.sort((a, b) => b.pontuacaoFinal - a.pontuacaoFinal);
   };
 
-  const rankingList = computeCollaboratorRanking();
+  const rankingList = useMemo(() => {
+    return computeCollaboratorRanking();
+  }, [audits, responsaveis, rankingMonth, rankingYear]);
 
-  // Sync with Firestore & localStorage
+  // Sync with Repository / Hybrid Database Router & localStorage
   useEffect(() => {
     const fetchFirestoreResponsaveis = async () => {
-      if (!db) return;
       try {
-        const colRef = collection(db, 'fefo_5s_responsaveis');
-        const snap = await getDocs(colRef);
-        if (!snap.empty) {
-          const list: AreaResponsavel5S[] = [];
-          snap.forEach(d => list.push({ id: d.id, ...d.data() } as AreaResponsavel5S));
-          if (list.length > 0) {
-            setResponsaveis(list);
-            localStorage.setItem('workstation_5s_responsaveis', JSON.stringify(list));
-          }
+        const list = await Workstation5SRepository.getAll('demo');
+        if (list && list.length > 0) {
+          setResponsaveis(list as any);
+          localStorage.setItem('workstation_5s_responsaveis', JSON.stringify(list));
         }
       } catch (e) {
         console.warn('Fallback on fetching 5S responsáveis:', e);
@@ -262,14 +257,10 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
     localStorage.setItem('workstation_5s_responsaveis', JSON.stringify(editingList));
     window.dispatchEvent(new Event('5s_responsaveis_updated'));
     
-    if (db) {
-      try {
-        for (const item of editingList) {
-          await setDoc(doc(db, 'fefo_5s_responsaveis', item.id), item);
-        }
-      } catch (err) {
-        console.warn('Error saving responsaveis to firestore:', err);
-      }
+    try {
+      await Workstation5SRepository.batchUpsert(editingList as any, 'demo');
+    } catch (err) {
+      console.warn('Error saving responsaveis to repository:', err);
     }
 
     setIsEditingResponsaveis(false);
@@ -291,18 +282,20 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
   const userFirstName = userNameUpper.split(' ')[0] || '';
 
   // Determine user's assigned areas
-  const userAssignedAreas = responsaveis.filter(r => {
-    if (!userNameUpper) return false;
-    const respUpper = r.responsavel.toUpperCase();
-    return respUpper.includes(userFirstName) || userNameUpper.includes(respUpper);
-  });
+  const userAssignedAreas = useMemo(() => {
+    return responsaveis.filter(r => {
+      if (!userNameUpper) return false;
+      const respUpper = r.responsavel.toUpperCase();
+      return respUpper.includes(userFirstName) || userNameUpper.includes(respUpper);
+    });
+  }, [responsaveis, userNameUpper, userFirstName]);
 
   // Automatically select first assigned area for operator if available
   useEffect(() => {
     if (userAssignedAreas.length > 0 && !operatorSelectedSector) {
       setOperatorSelectedSector(userAssignedAreas[0].area);
     }
-  }, [userAssignedAreas]);
+  }, [userAssignedAreas, operatorSelectedSector]);
 
   // Calculate overall metrics (Monday to Friday only)
   const totalAreas = responsaveis.length;
@@ -330,61 +323,61 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
     <div className="space-y-6 animate-fadeIn">
       
       {/* BANNER DE CABEÇALHO 5S COM INDICADOR DE SEGUNDA A SEXTA */}
-      <div className="bg-gradient-to-r from-[#032b5e] via-[#091f42] to-slate-900 border border-blue-800/80 rounded-2xl p-5 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#032b5e] dark:via-[#091f42] dark:to-slate-900 border border-blue-100 dark:border-blue-800/80 rounded-2xl p-5 text-slate-900 dark:text-white shadow-xs dark:shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 shrink-0">
+          <div className="p-3 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 dark:border-amber-500/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
             <ShieldCheck className="w-8 h-8" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-500/20">
                 PROGRAMA 5S WORKSTATION
               </span>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> Jornada: Segunda a Sexta
               </span>
             </div>
-            <h2 className="text-lg font-black text-white mt-1 uppercase tracking-tight">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
               Governança do 5S Corporativo & Quadro de Responsáveis
             </h2>
-            <p className="text-xs text-slate-300 leading-snug max-w-2xl">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
               Monitoramento dos 14 setores do armazém. Registros e metas contabilizados estritamente nos dias úteis da jornada operacional.
             </p>
           </div>
         </div>
 
         {/* METRIC BADGE */}
-        <div className="bg-[#081226]/90 border border-amber-500/40 p-4 rounded-xl flex items-center gap-4 shrink-0 shadow-lg">
+        <div className="bg-white/90 dark:bg-[#081226]/90 border border-amber-500/30 dark:border-amber-500/40 p-4 rounded-xl flex items-center gap-4 shrink-0 shadow-xs">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">
+            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block tracking-wider">
               Atingimento Global (Seg - Sex)
             </span>
             <strong className={`text-2xl font-black font-mono block ${
-              averageAtingimentoPct >= 80 ? 'text-emerald-400' : 'text-amber-400'
+              averageAtingimentoPct >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
             }`}>
               {averageAtingimentoPct}%
             </strong>
-            <span className="text-[9px] text-slate-400 block">
+            <span className="text-[9px] text-slate-500 dark:text-slate-400 block">
               {auditedAreasCount} de {totalAreas} setores auditados
             </span>
           </div>
-          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400">
             <Award className="w-6 h-6" />
           </div>
         </div>
       </div>
 
       {/* SUB-NAVEGAÇÃO: GUIA DA SUPERVISÃO VS RANKING 5S VS GUIA DO OPERADOR */}
-      <div className="flex flex-col sm:flex-row items-center gap-2 bg-[#0b1222] p-1.5 rounded-xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
         <button
           onClick={() => setSubTab('supervisao')}
           className={`w-full sm:flex-1 py-2.5 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
             subTab === 'supervisao'
-              ? 'bg-[#032b5e] text-white border border-blue-500/50 shadow-md ring-2 ring-blue-500/20'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              ? 'bg-[#1e56f0] dark:bg-[#032b5e] text-white border border-blue-400 dark:border-blue-500/50 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/50'
           }`}
         >
-          <LayoutDashboard className="w-4 h-4 text-blue-400 shrink-0" />
+          <LayoutDashboard className="w-4 h-4 text-blue-300 dark:text-blue-400 shrink-0" />
           Guia da Supervisão (Validação 5S)
         </button>
 
@@ -392,11 +385,11 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
           onClick={() => setSubTab('ranking')}
           className={`w-full sm:flex-1 py-2.5 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
             subTab === 'ranking'
-              ? 'bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-400/40'
-              : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 border border-amber-500/30'
+              ? 'bg-amber-500 text-slate-950 font-black shadow-2xs ring-2 ring-amber-400/40'
+              : 'text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30'
           }`}
         >
-          <Award className={`w-4 h-4 shrink-0 ${subTab === 'ranking' ? 'text-slate-950' : 'text-amber-400'}`} />
+          <Award className={`w-4 h-4 shrink-0 ${subTab === 'ranking' ? 'text-slate-950' : 'text-amber-600 dark:text-amber-400'}`} />
           Ranking 5S & Pontuações (Frequência + Qualidade)
         </button>
 
@@ -404,55 +397,55 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
           onClick={() => setSubTab('operador')}
           className={`w-full sm:flex-1 py-2.5 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
             subTab === 'operador'
-              ? 'bg-[#032b5e] text-white border border-amber-500/50 shadow-md ring-2 ring-amber-500/20'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              ? 'bg-[#1e56f0] dark:bg-[#032b5e] text-white border border-amber-500/50 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/50'
           }`}
         >
-          <ClipboardList className="w-4 h-4 text-emerald-400 shrink-0" />
+          <ClipboardList className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           Guia do Operador (Apontamento)
         </button>
       </div>
 
       {/* SE SUBTAB === 'ranking': VISÃO DO RANKING DE 5S WORKSTATION */}
       {subTab === 'ranking' && (
-        <div className="bg-[#111a30] border border-amber-500/40 rounded-2xl p-5 space-y-6 shadow-2xl animate-fadeIn">
+        <div className="bg-white dark:bg-[#111a30] border border-amber-300 dark:border-amber-500/40 rounded-2xl p-5 space-y-6 shadow-xs dark:shadow-2xl animate-fadeIn">
           {/* BANNER DO RANKING */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 shrink-0">
+              <div className="p-3 bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
                 <Award className="w-8 h-8" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-500/20">
                   RANKING WORKSTATION 5S & GUIA DOS COLABORADORES
                 </span>
-                <h3 className="text-base font-black text-white uppercase mt-1">
+                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase mt-1">
                   Desempenho por Colaborador: Realização do Formulário & Qualidade da Área
                 </h3>
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-slate-600 dark:text-slate-300">
                   Meta de Realização: <strong>5 vezes na semana</strong> (~22 no mês). Meta de Qualidade: <strong>80,0 Pontos (80%)</strong>.
                 </p>
               </div>
             </div>
 
             {/* SELETOR DE MÊS DA BASE HISTÓRICA */}
-            <div className="flex items-center gap-2 bg-[#080d1a] border border-slate-700 p-2.5 rounded-xl">
-              <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#080d1a] border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+              <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase text-slate-400">Mês do Histórico 2026:</span>
+                <span className="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">Mês do Histórico 2026:</span>
                 <select
                   value={rankingMonth}
                   onChange={e => setRankingMonth(e.target.value)}
-                  className="bg-transparent text-xs font-mono font-black text-amber-300 outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-mono font-black text-amber-700 dark:text-amber-300 outline-none cursor-pointer"
                 >
-                  <option value="08" className="bg-slate-900 text-white">Agosto / 2026 (Atual - 100% Meta Atingida)</option>
-                  <option value="07" className="bg-slate-900 text-white">Julho / 2026 (100% Meta Atingida)</option>
-                  <option value="06" className="bg-slate-900 text-white">Junho / 2026 (100% Meta Atingida)</option>
-                  <option value="05" className="bg-slate-900 text-white">Maio / 2026 (100% Meta Atingida)</option>
-                  <option value="04" className="bg-slate-900 text-white">Abril / 2026 (100% Meta Atingida)</option>
-                  <option value="03" className="bg-slate-900 text-white">Março / 2026 (100% Meta Atingida)</option>
-                  <option value="02" className="bg-slate-900 text-white">Fevereiro / 2026 (100% Meta Atingida)</option>
-                  <option value="01" className="bg-slate-900 text-white">Janeiro / 2026 (100% Meta Atingida)</option>
+                  <option value="08" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Agosto / 2026 (Atual - 100% Meta Atingida)</option>
+                  <option value="07" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Julho / 2026 (100% Meta Atingida)</option>
+                  <option value="06" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Junho / 2026 (100% Meta Atingida)</option>
+                  <option value="05" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Maio / 2026 (100% Meta Atingida)</option>
+                  <option value="04" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Abril / 2026 (100% Meta Atingida)</option>
+                  <option value="03" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Março / 2026 (100% Meta Atingida)</option>
+                  <option value="02" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Fevereiro / 2026 (100% Meta Atingida)</option>
+                  <option value="01" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Janeiro / 2026 (100% Meta Atingida)</option>
                 </select>
               </div>
             </div>
@@ -460,28 +453,28 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
 
           {/* KPI METRIC CARDS DO RANKING */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="p-4 bg-[#081226] border border-blue-500/30 rounded-xl space-y-1">
-              <span className="text-[10px] font-black uppercase text-slate-400 block">Meta Frequência Semanal</span>
-              <strong className="text-xl font-mono font-black text-blue-400 block">5x / Semana</strong>
-              <span className="text-[10px] text-slate-400 font-mono">Realização do Formulário Diário</span>
+            <div className="p-4 bg-slate-50 dark:bg-[#081226] border border-blue-200 dark:border-blue-500/30 rounded-xl space-y-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Meta Frequência Semanal</span>
+              <strong className="text-xl font-mono font-black text-blue-600 dark:text-blue-400 block">5x / Semana</strong>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Realização do Formulário Diário</span>
             </div>
 
-            <div className="p-4 bg-[#081226] border border-amber-500/30 rounded-xl space-y-1">
-              <span className="text-[10px] font-black uppercase text-slate-400 block">Meta Qualidade da Área</span>
-              <strong className="text-xl font-mono font-black text-amber-400 block">80,0 Pts (80%)</strong>
-              <span className="text-[10px] text-slate-400 font-mono">Pontuação Média nos Checklists</span>
+            <div className="p-4 bg-slate-50 dark:bg-[#081226] border border-amber-200 dark:border-amber-500/30 rounded-xl space-y-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Meta Qualidade da Área</span>
+              <strong className="text-xl font-mono font-black text-amber-600 dark:text-amber-400 block">80,0 Pts (80%)</strong>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Pontuação Média nos Checklists</span>
             </div>
 
-            <div className="p-4 bg-[#081226] border border-emerald-500/30 rounded-xl space-y-1">
-              <span className="text-[10px] font-black uppercase text-slate-400 block">Atingimento Retroativo</span>
-              <strong className="text-xl font-mono font-black text-emerald-400 block">100% dos Meses</strong>
-              <span className="text-[10px] text-emerald-300 font-mono">Jan a Ago &gt;= 80% Meta Atingida</span>
+            <div className="p-4 bg-slate-50 dark:bg-[#081226] border border-emerald-200 dark:border-emerald-500/30 rounded-xl space-y-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Atingimento Retroativo</span>
+              <strong className="text-xl font-mono font-black text-emerald-600 dark:text-emerald-400 block">100% dos Meses</strong>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-mono">Jan a Ago &gt;= 80% Meta Atingida</span>
             </div>
 
-            <div className="p-4 bg-[#081226] border border-sky-500/30 rounded-xl space-y-1">
-              <span className="text-[10px] font-black uppercase text-slate-400 block">Colaboradores no Ranking</span>
-              <strong className="text-xl font-mono font-black text-sky-400 block">{rankingList.length} Colaboradores</strong>
-              <span className="text-[10px] text-slate-400 font-mono">Áreas Mapeadas no Workstation</span>
+            <div className="p-4 bg-slate-50 dark:bg-[#081226] border border-blue-200 dark:border-sky-500/30 rounded-xl space-y-1">
+              <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block">Colaboradores no Ranking</span>
+              <strong className="text-xl font-mono font-black text-[#1e56f0] dark:text-sky-400 block">{rankingList.length} Colaboradores</strong>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Áreas Mapeadas no Workstation</span>
             </div>
           </div>
 
@@ -489,44 +482,44 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             {rankingList.slice(0, 3).map((item, idx) => {
               const medals = ['🥇 1º LUGAR (OURO)', '🥈 2º LUGAR (PRATA)', '🥉 3º LUGAR (BRONZE)'];
-              const borders = ['border-amber-400/80 bg-amber-500/10', 'border-slate-300/80 bg-slate-400/10', 'border-amber-700/80 bg-amber-800/10'];
-              const textColors = ['text-amber-400', 'text-slate-200', 'text-amber-600'];
+              const borders = ['border-amber-400/80 bg-amber-50 dark:bg-amber-500/10', 'border-slate-300/80 bg-slate-100 dark:bg-slate-400/10', 'border-amber-700/80 bg-amber-50 dark:bg-amber-800/10'];
+              const textColors = ['text-amber-700 dark:text-amber-400', 'text-slate-700 dark:text-slate-200', 'text-amber-800 dark:text-amber-600'];
 
               return (
                 <div key={item.nome} className={`p-4 rounded-xl border-2 space-y-3 relative overflow-hidden ${borders[idx]}`}>
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                     <span className={`text-xs font-black uppercase tracking-wider ${textColors[idx]}`}>
                       {medals[idx]}
                     </span>
-                    <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
                       🎯 META ATINGIDA
                     </span>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-black text-white uppercase truncate">{item.nome}</h4>
-                    <span className="text-[10px] font-mono text-amber-300 font-bold block">{item.cargo}</span>
-                    <span className="text-[10px] text-slate-400 block truncate" title={item.areas.join(', ')}>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase truncate">{item.nome}</h4>
+                    <span className="text-[10px] font-mono text-amber-700 dark:text-amber-300 font-bold block">{item.cargo}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate" title={item.areas.join(', ')}>
                       📍 Áreas: {item.areas.join(', ')}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 p-2 bg-[#080d1a] rounded-lg text-xs font-mono">
+                  <div className="grid grid-cols-2 gap-2 p-2 bg-white/80 dark:bg-[#080d1a] rounded-lg text-xs font-mono border border-slate-200 dark:border-slate-800">
                     <div>
-                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Frequência:</span>
-                      <strong className="text-emerald-400 font-black">{item.freqSemanal}x / sem</strong>
-                      <span className="text-[9px] text-slate-400 block">({item.realQtd}/{item.metaQtd} forms)</span>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Frequência:</span>
+                      <strong className="text-emerald-600 dark:text-emerald-400 font-black">{item.freqSemanal}x / sem</strong>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">({item.realQtd}/{item.metaQtd} forms)</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Qualidade Área:</span>
-                      <strong className="text-amber-400 font-black">{item.realQualidadeNota} Pts</strong>
-                      <span className="text-[9px] text-slate-400 block">(Meta: 80,0 Pts)</span>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Qualidade Área:</span>
+                      <strong className="text-amber-600 dark:text-amber-400 font-black">{item.realQualidadeNota} Pts</strong>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">(Meta: 80,0 Pts)</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800/60 font-mono">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold">Pontuação Total 5S:</span>
-                    <strong className="text-sm font-black text-white">{item.pontuacaoFinal} Pts</strong>
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800/60 font-mono">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Pontuação Total 5S:</span>
+                    <strong className="text-sm font-black text-slate-900 dark:text-white">{item.pontuacaoFinal} Pts</strong>
                   </div>
                 </div>
               );
@@ -534,12 +527,12 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
           </div>
 
           {/* TABELA COMPLETA DE RANKING POR COLABORADOR */}
-          <div className="border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-            <div className="p-3 bg-[#032b5e] text-white flex items-center justify-between">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs dark:shadow-xl">
+            <div className="p-3 bg-[#1e56f0] dark:bg-[#032b5e] text-white flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider flex items-center gap-2">
-                <Users className="w-4 h-4 text-amber-400" /> Tabela do Ranking Workstation 5S por Colaborador & Guias
+                <Users className="w-4 h-4 text-amber-300 dark:text-amber-400" /> Tabela do Ranking Workstation 5S por Colaborador & Guias
               </span>
-              <span className="text-[10px] text-amber-300 font-mono">
+              <span className="text-[10px] text-amber-200 dark:text-amber-300 font-mono">
                 Real x Meta por Colaborador
               </span>
             </div>
@@ -547,7 +540,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#081226] text-slate-300 font-black uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-100 dark:bg-[#081226] text-slate-700 dark:text-slate-300 font-black uppercase tracking-wider text-[10px]">
                     <th className="p-3 w-12 text-center whitespace-nowrap">Pos.</th>
                     <th className="p-3 whitespace-nowrap">Colaborador</th>
                     <th className="p-3 whitespace-nowrap">Cargo / Função</th>
@@ -559,46 +552,46 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                     <th className="p-3 text-center whitespace-nowrap">Status Meta</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 bg-[#0b1222] text-slate-200 font-mono">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-200 font-mono">
                   {rankingList.map((item, index) => (
-                    <tr key={item.nome} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="p-3 text-center font-black text-amber-400 whitespace-nowrap text-xs">
+                    <tr key={item.nome} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="p-3 text-center font-black text-amber-600 dark:text-amber-400 whitespace-nowrap text-xs">
                         {index === 0 ? '🥇 1º' : index === 1 ? '🥈 2º' : index === 2 ? '🥉 3º' : `#${index + 1}`}
                       </td>
-                      <td className="p-3 font-bold text-white uppercase whitespace-nowrap">
+                      <td className="p-3 font-bold text-slate-900 dark:text-white uppercase whitespace-nowrap">
                         {item.nome}
                       </td>
-                      <td className="p-3 text-slate-300 text-[11px] whitespace-nowrap">
-                        <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded font-bold text-sky-300">
+                      <td className="p-3 text-slate-600 dark:text-slate-300 text-[11px] whitespace-nowrap">
+                        <span className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded font-bold text-blue-700 dark:text-sky-300">
                           {item.cargo}
                         </span>
                       </td>
-                      <td className="p-3 text-slate-300 text-[11px]">
-                        <span className="text-slate-300 font-sans">{item.areas.join(', ')}</span>
+                      <td className="p-3 text-slate-600 dark:text-slate-300 text-[11px]">
+                        <span className="text-slate-700 dark:text-slate-300 font-sans">{item.areas.join(', ')}</span>
                       </td>
-                      <td className="p-3 text-center text-emerald-400 font-bold whitespace-nowrap">
+                      <td className="p-3 text-center text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">
                         <div>{item.freqSemanal}x / sem</div>
-                        <span className="text-[9px] text-slate-400">({item.realQtd}/{item.metaQtd} forms)</span>
+                        <span className="text-[9px] text-slate-500 dark:text-slate-400">({item.realQtd}/{item.metaQtd} forms)</span>
                       </td>
-                      <td className="p-3 text-center text-amber-400 font-black whitespace-nowrap">
+                      <td className="p-3 text-center text-amber-600 dark:text-amber-400 font-black whitespace-nowrap">
                         <div>{item.realQualidadeNota} Pts</div>
-                        <span className="text-[9px] text-slate-400">(Meta: 80,0 Pts)</span>
+                        <span className="text-[9px] text-slate-500 dark:text-slate-400">(Meta: 80,0 Pts)</span>
                       </td>
                       <td className="p-3 text-center whitespace-nowrap">
-                        <div className="w-24 mx-auto bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700 mb-1">
+                        <div className="w-24 mx-auto bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700 mb-1">
                           <div
                             className={`h-full ${item.realQualidadeNota >= 80 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                             style={{ width: `${Math.min(100, item.realQualidadeNota)}%` }}
                           />
                         </div>
-                        <span className="text-[10px] text-slate-300 font-bold">{item.freqPct}% Atingido</span>
+                        <span className="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{item.freqPct}% Atingido</span>
                       </td>
-                      <td className="p-3 text-center font-black text-white text-sm whitespace-nowrap">
+                      <td className="p-3 text-center font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
                         {item.pontuacaoFinal} Pts
                       </td>
                       <td className="p-3 text-center whitespace-nowrap">
                         <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${
-                          item.atingiuMeta ? 'bg-emerald-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950 font-black'
+                          item.atingiuMeta ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-amber-500 text-slate-950 font-black'
                         }`}>
                           {item.atingiuMeta ? '🎯 META ATINGIDA' : '⚠️ ABAIXO DA META'}
                         </span>
@@ -614,22 +607,22 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
 
       {/* SE VISÃO OPERACIONAL: SEÇÃO INDIVIDUAL DO COLABORADOR */}
       {viewMode === 'operacional' && (
-        <div className="bg-[#111a30] border border-sky-500/30 rounded-2xl p-5 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white dark:bg-[#111a30] border border-blue-200 dark:border-sky-500/30 rounded-2xl p-5 space-y-4 shadow-xs dark:shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-sky-400" />
+              <UserCheck className="w-5 h-5 text-[#1e56f0] dark:text-sky-400" />
               <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-sky-300">
+                <h3 className="text-sm font-black uppercase tracking-wider text-blue-900 dark:text-sky-300">
                   Sua Área de Responsabilidade (Rotina de {user?.nome || 'Operador'})
                 </h3>
-                <span className="text-[10px] text-slate-400">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">
                   Auditoria individual vinculada ao seu usuário
                 </span>
               </div>
             </div>
 
             {userAssignedAreas.length > 0 && (
-              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+              <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-500/30">
                 {userAssignedAreas.length} Área(s) Designada(s)
               </span>
             )}
@@ -643,13 +636,13 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                 const scorePontos = lastAudit ? lastAudit.pontos : 8;
 
                 return (
-                  <div key={item.id} className="bg-[#0b1222] border border-sky-500/40 rounded-xl p-4 space-y-3 relative overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <span className="text-xs font-black text-sky-300 uppercase tracking-wider">
+                  <div key={item.id} className="bg-slate-50 dark:bg-[#0b1222] border border-blue-200 dark:border-sky-500/40 rounded-xl p-4 space-y-3 relative overflow-hidden">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                      <span className="text-xs font-black text-blue-900 dark:text-sky-300 uppercase tracking-wider">
                         📍 {item.area}
                       </span>
                       <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
-                        scorePct >= 80 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        scorePct >= 80 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30'
                       }`}>
                         {scorePct >= 80 ? '🟢 Conforme' : '🟡 Atenção'}
                       </span>
@@ -657,24 +650,24 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Pontuação:</span>
-                        <strong className="text-sm font-mono font-black text-white">{scorePontos} / 10 pts</strong>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Pontuação:</span>
+                        <strong className="text-sm font-mono font-black text-slate-900 dark:text-white">{scorePontos} / 10 pts</strong>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">% Atingimento:</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">% Atingimento:</span>
                         <strong className={`text-sm font-mono font-black ${
-                          scorePct >= 80 ? 'text-emerald-400' : 'text-amber-400'
+                          scorePct >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                         }`}>{scorePct}%</strong>
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-slate-400">
-                      Última Auditoria: <strong className="text-slate-200">{lastAudit ? lastAudit.dataFormatted : 'Não realizada hoje'}</strong>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                      Última Auditoria: <strong className="text-slate-800 dark:text-slate-200">{lastAudit ? lastAudit.dataFormatted : 'Não realizada hoje'}</strong>
                     </div>
 
                     <button
                       onClick={() => setSelectedAreaForAudit(item.area)}
-                      className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs uppercase rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                      className="w-full py-2 bg-[#1e56f0] hover:bg-blue-600 text-white font-black text-xs uppercase rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                     >
                       <ClipboardCheck className="w-4 h-4 text-amber-300" />
                       Preencher / Atualizar Checklist 5S
@@ -684,8 +677,8 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
               })}
             </div>
           ) : (
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
-              <p className="text-xs text-slate-300">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
+              <p className="text-xs text-slate-700 dark:text-slate-300">
                 ⚠️ Seu usuário <strong>"{user?.nome}"</strong> não possui uma área de 5S associada no momento. Selecione abaixo a área do armazém que deseja auditar hoje:
               </p>
               <div className="flex flex-wrap gap-2">
@@ -693,7 +686,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                   <button
                     key={s}
                     onClick={() => setSelectedAreaForAudit(s)}
-                    className="px-3 py-1.5 bg-[#0b1222] hover:bg-sky-600/30 border border-slate-700 hover:border-sky-400 text-slate-200 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                    className="px-3 py-1.5 bg-white dark:bg-[#0b1222] hover:bg-blue-50 dark:hover:bg-sky-600/30 border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-sky-400 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-all cursor-pointer"
                   >
                     Auditar {s}
                   </button>
@@ -706,14 +699,14 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
 
       {/* MODAL / VIEW PARA REALIZAR CHECKLIST 5S */}
       {selectedAreaForAudit && (
-        <div className="bg-[#111a30] border-2 border-amber-500/50 rounded-2xl p-4 sm:p-6 space-y-4 shadow-2xl relative">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-black uppercase text-amber-400 flex items-center gap-2">
-              <ClipboardCheck className="w-5 h-5 text-amber-400" /> Preenchendo Checklist 5S - Área {selectedAreaForAudit}
+        <div className="bg-white dark:bg-[#111a30] border-2 border-amber-400 dark:border-amber-500/50 rounded-2xl p-4 sm:p-6 space-y-4 shadow-xl dark:shadow-2xl relative">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" /> Preenchendo Checklist 5S - Área {selectedAreaForAudit}
             </h3>
             <button
               onClick={() => setSelectedAreaForAudit(null)}
-              className="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg cursor-pointer"
+              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -735,15 +728,15 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
       )}
 
       {/* QUADRO GERAL DE RESPONSÁVEIS POR ÁREA DE 5S (VISÃO EXECUTIVA & CONSULTA GERAL) */}
-      <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="bg-white dark:bg-[#111a30] border border-blue-100 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xs dark:shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-400" />
+            <Users className="w-5 h-5 text-[#1e56f0] dark:text-indigo-400" />
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider text-white">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
                 Quadro Mestre de Responsáveis por Área de 5S (14 Áreas)
               </h3>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
                 Mapeamento de área x colaborador e % de atingimento atualizado
               </span>
             </div>
@@ -752,13 +745,13 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
           <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* BUSCA DE ÁREA/RESPONSÁVEL */}
             <div className="relative flex-1 sm:w-60">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="Buscar área ou responsável..."
-                className="w-full bg-[#0b1222] border border-slate-700 text-white text-xs pl-8 pr-3 py-1.5 rounded-lg outline-none focus:border-indigo-400 font-medium"
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs pl-8 pr-3 py-1.5 rounded-lg outline-none focus:border-blue-400 dark:focus:border-indigo-400 font-medium"
               />
             </div>
 
@@ -769,7 +762,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                   setEditingList([...responsaveis]);
                   setIsEditingResponsaveis(true);
                 }}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="px-3 py-1.5 bg-[#1e56f0] hover:bg-blue-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
               >
                 <Edit3 className="w-3.5 h-3.5" /> Editar Responsáveis
               </button>
@@ -779,14 +772,14 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
 
         {/* MODAL / INTERFACE DE EDIÇÃO DO QUADRO DE RESPONSÁVEIS */}
         {isEditingResponsaveis && (
-          <div className="bg-[#0b1222] border border-indigo-500/50 rounded-xl p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h4 className="text-xs font-black uppercase text-indigo-300 flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-indigo-400" /> Edição do Quadro Mestre de Responsáveis de 5S
+          <div className="bg-slate-50 dark:bg-[#0b1222] border border-blue-200 dark:border-indigo-500/50 rounded-xl p-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <h4 className="text-xs font-black uppercase text-blue-900 dark:text-indigo-300 flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-[#1e56f0] dark:text-indigo-400" /> Edição do Quadro Mestre de Responsáveis de 5S
               </h4>
               <button
                 onClick={() => setIsEditingResponsaveis(false)}
-                className="text-slate-400 hover:text-white text-xs font-bold"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -798,13 +791,13 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                 const currentCargo = officialMatch ? officialMatch.cargo : (item.cargoResponsavel || 'AJUDANTE');
 
                 return (
-                  <div key={item.id} className="p-3 bg-[#111a30] border border-slate-700 rounded-lg space-y-2">
-                    <span className="text-[10px] font-black uppercase text-amber-400 block border-b border-slate-800 pb-1 flex items-center justify-between">
+                  <div key={item.id} className="p-3 bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-700 rounded-lg space-y-2">
+                    <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-400 block border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center justify-between">
                       <span>{item.area}</span>
-                      <span className="text-[9px] text-slate-400 font-mono font-bold bg-slate-800 px-1.5 py-0.5 rounded">{currentCargo}</span>
+                      <span className="text-[9px] text-slate-600 dark:text-slate-400 font-mono font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{currentCargo}</span>
                     </span>
                     <div>
-                      <label className="text-[9px] text-slate-400 font-bold uppercase block">Responsável (Cadastro Oficial):</label>
+                      <label className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Responsável (Cadastro Oficial):</label>
                       <select
                         value={item.responsavel}
                         onChange={e => {
@@ -818,7 +811,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                           };
                           setEditingList(updated);
                         }}
-                        className="w-full bg-[#080d1a] border border-slate-700 rounded text-xs p-1.5 text-amber-300 font-bold outline-none mt-0.5 cursor-pointer focus:border-amber-500"
+                        className="w-full bg-slate-50 dark:bg-[#080d1a] border border-slate-200 dark:border-slate-700 rounded text-xs p-1.5 text-amber-700 dark:text-amber-300 font-bold outline-none mt-0.5 cursor-pointer focus:border-amber-500"
                       >
                         {LISTA_COLABORADORES_OFICIAIS.map(c => (
                           <option key={c.matricula} value={c.nome}>
@@ -828,7 +821,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-[9px] text-slate-400 font-bold uppercase block">Observação / Detalhe:</label>
+                      <label className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase block">Observação / Detalhe:</label>
                       <input
                         type="text"
                         value={item.observacao}
@@ -837,7 +830,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                           updated[idx].observacao = e.target.value;
                           setEditingList(updated);
                         }}
-                        className="w-full bg-[#080d1a] border border-slate-700 rounded text-[11px] p-1 text-slate-300 outline-none mt-0.5"
+                        className="w-full bg-slate-50 dark:bg-[#080d1a] border border-slate-200 dark:border-slate-700 rounded text-[11px] p-1 text-slate-800 dark:text-slate-300 outline-none mt-0.5"
                       />
                     </div>
                   </div>
@@ -845,16 +838,16 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
               })}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setIsEditingResponsaveis(false)}
-                className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold uppercase hover:bg-slate-700 transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold uppercase hover:bg-slate-300 dark:hover:bg-slate-700 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveResponsaveis}
-                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-black uppercase flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="px-4 py-1.5 bg-[#1e56f0] hover:bg-blue-600 text-white rounded-lg text-xs font-black uppercase flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Save className="w-3.5 h-3.5 shrink-0" /> Salvar Quadro
               </button>
@@ -863,11 +856,11 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
         )}
 
         {/* TABELA PRINCIPAL DE RESPONSÁVEIS E DESEMPENHO */}
-        <div className="border border-slate-800 rounded-xl overflow-hidden shadow-md">
+        <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#032b5e] text-white font-black uppercase tracking-wider text-[11px]">
+                <tr className="bg-[#1e56f0] dark:bg-[#032b5e] text-white font-black uppercase tracking-wider text-[11px]">
                   <th className="p-3 w-12 text-center whitespace-nowrap">Nº</th>
                   <th className="p-3 whitespace-nowrap">Área / Local 5S</th>
                   <th className="p-3 whitespace-nowrap">Colaborador Responsável</th>
@@ -879,7 +872,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                   <th className="p-3 text-center whitespace-nowrap">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 bg-[#0b1222] text-slate-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-200">
                 {responsaveis
                   .filter(r => 
                     r.area.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -897,30 +890,30 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                     const cargoExibicao = officialColab ? officialColab.cargo : (item.cargoResponsavel || 'AJUDANTE');
 
                     return (
-                      <tr key={item.id} className="hover:bg-slate-800/50 transition-colors">
-                        <td className="p-3 text-center font-mono font-bold text-slate-500 whitespace-nowrap">
+                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="p-3 text-center font-mono font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
                           {index + 1}
                         </td>
-                        <td className="p-3 font-black text-white uppercase whitespace-nowrap">
+                        <td className="p-3 font-black text-slate-900 dark:text-white uppercase whitespace-nowrap">
                           {item.area}
                         </td>
-                        <td className="p-3 font-extrabold text-amber-400 whitespace-nowrap">
+                        <td className="p-3 font-extrabold text-amber-700 dark:text-amber-400 whitespace-nowrap">
                           {item.responsavel}
                         </td>
-                        <td className="p-3 text-slate-300 text-[11px] whitespace-nowrap">
-                          <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded font-mono font-bold text-sky-300">
+                        <td className="p-3 text-slate-600 dark:text-slate-300 text-[11px] whitespace-nowrap">
+                          <span className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded font-mono font-bold text-blue-700 dark:text-sky-300">
                             {cargoExibicao}
                           </span>
                         </td>
-                        <td className="p-3 text-center font-mono text-slate-300 text-[11px]">
+                        <td className="p-3 text-center font-mono text-slate-600 dark:text-slate-300 text-[11px]">
                           {lastAudit ? lastAudit.dataFormatted : 'Não auditado'}
                         </td>
-                        <td className="p-3 text-center font-mono font-black text-white">
+                        <td className="p-3 text-center font-mono font-black text-slate-900 dark:text-white">
                           {scorePontos} / 10
                         </td>
                         <td className="p-3 text-center">
                           <span className={`font-mono font-black text-xs px-2 py-0.5 rounded ${
-                            scorePct >= 80 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10'
+                            scorePct >= 80 ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10' : 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10'
                           }`}>
                             {scorePct}%
                           </span>
@@ -941,7 +934,7 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
                         <td className="p-3 text-center">
                           <button
                             onClick={() => setSelectedAreaForAudit(item.area)}
-                            className="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-1 mx-auto"
+                            className="px-2.5 py-1 bg-[#1e56f0] hover:bg-blue-600 text-white rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-1 mx-auto shadow-2xs"
                           >
                             <ClipboardCheck className="w-3 h-3" /> Auditar
                           </button>
