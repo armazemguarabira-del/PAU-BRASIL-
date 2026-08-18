@@ -183,30 +183,39 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   // Sync with empresaData (scoped to company)
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    if (empresaData.repack && empresaData.repack.length > 0) {
-      const rows = [...empresaData.repack];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-      setRepackRows(rows);
-      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
-    } else {
+    const refreshFromStorageOrBase = () => {
       const saved = localStorage.getItem(`repack_rows_${companyId}`);
       if (saved) {
         try { 
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setRepackRows(parsed);
-          } else {
-            setRepackRows(buildOfficialRepackRows(companyId));
+            return;
           }
-        } catch (e) {
-          setRepackRows(buildOfficialRepackRows(companyId));
-        }
-      } else {
-        const fallback = buildOfficialRepackRows(companyId);
-        setRepackRows(fallback);
-        localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(fallback));
+        } catch (e) {}
       }
+      const fallback = buildOfficialRepackRows(companyId);
+      setRepackRows(fallback);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(fallback));
+    };
+
+    if (empresaData.repack && empresaData.repack.length > 0) {
+      const rows = [...empresaData.repack];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setRepackRows(rows);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
+    } else {
+      refreshFromStorageOrBase();
     }
+
+    const handleRepackUpdated = () => {
+      refreshFromStorageOrBase();
+    };
+
+    window.addEventListener('repack-db-updated', handleRepackUpdated);
+    return () => {
+      window.removeEventListener('repack-db-updated', handleRepackUpdated);
+    };
   }, [empresaData.repack, empresa?.id]);
 
   // Listen for repack_validades

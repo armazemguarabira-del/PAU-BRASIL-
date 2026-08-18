@@ -55,37 +55,47 @@ export async function persistirRepackRetroativoNoBanco(
       throw new Error('Nenhum registro de Repack / Despejo fornecido para persistência.');
     }
 
-    // 1. Salvar no Repositório de Despejo e Repack (BaseRepository / DatabaseRouter)
+    // 1. Salvar no Repositório de Despejo e Repack (Firebase Firestore / BaseRepository / DatabaseRouter)
     try {
       if (tornarPadraoOficial) {
+        // Excluir registros divergentes anteriores de Repack no Firebase
         const prevRepacks = await RepackRepository.getAll(empresaId);
-        const newRepackIds = new Set(repackRows.map(r => String(r.id)));
+        const newRepackIds = new Set(repackRows.map(r => String(r.id || r._docId)));
         for (const doc of prevRepacks) {
           const docId = String(doc.id || (doc as any)._docId);
-          if (!newRepackIds.has(docId)) {
+          if (docId && !newRepackIds.has(docId)) {
             try { await RepackRepository.delete(docId, empresaId); } catch (_) {}
           }
         }
+
+        // Excluir registros divergentes anteriores de Despejo vinculados a Repack
+        try {
+          const prevDespejos = await DespejoRepository.getAll(empresaId);
+          const newDespejoIds = new Set(despejoRows.map(d => String(d.id || d._docId)));
+          for (const doc of prevDespejos) {
+            const docId = String(doc.id || (doc as any)._docId);
+            const modulo = (doc as any).modulo;
+            if (docId && (modulo === 'despejo_repack' || docId.includes('repack')) && !newDespejoIds.has(docId)) {
+              try { await DespejoRepository.delete(docId, empresaId); } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (repackRows && repackRows.length > 0) {
+        await RepackRepository.batchUpsert(repackRows, empresaId);
+        destinos.repositorioRepack = true;
+        arquivosGerados.push(`Firebase Firestore: empresas/${empresaId}/repack (${repackRows.length} docs)`);
       }
 
       await DespejoRepository.batchUpsert(despejoRows, empresaId);
       destinos.repositorioDespejo = true;
-      arquivosGerados.push(`Coleção Oficial: empresas/${empresaId}/despejo (${despejoRows.length} docs)`);
+      arquivosGerados.push(`Firebase Firestore: empresas/${empresaId}/despejo (${despejoRows.length} docs)`);
     } catch (err) {
-      console.warn('Alerta ao persistir no repositório de despejo:', err);
+      console.warn('Alerta ao persistir nos repositórios Firebase:', err);
     }
 
-    try {
-      if (repackRows && repackRows.length > 0) {
-        await RepackRepository.batchUpsert(repackRows, empresaId);
-        destinos.repositorioRepack = true;
-        arquivosGerados.push(`Coleção Oficial: empresas/${empresaId}/repack (${repackRows.length} docs)`);
-      }
-    } catch (err) {
-      console.warn('Alerta ao persistir no repositório de repack:', err);
-    }
-
-    // 2. Salvar na Tabela JSON do Banco Local Híbrido (hybridJsonDatabase)
+    // 2. Salvar na Tabela JSON do Banco Local Híbrido (hybridJsonDatabase) e no Código da Plataforma (LocalStorage)
     try {
       let updatedDespejoTable: DespejoRow[] = [];
       if (tornarPadraoOficial) {
@@ -118,6 +128,12 @@ export async function persistirRepackRetroativoNoBanco(
       await saveJsonTable(empresaId, 'repack', updatedRepackTable);
       destinos.tabelaJsonRepack = true;
       arquivosGerados.push(`Tabela JSON Híbrida: json_db:${empresaId}:repack (${updatedRepackTable.length} total)`);
+      
+      // Salvar no LocalStorage da Plataforma como Padrão Permanente
+      try {
+        localStorage.setItem(`repack_rows_${empresaId}`, JSON.stringify(repackRows));
+        localStorage.setItem('repack_rows_demo', JSON.stringify(repackRows));
+      } catch (_) {}
     } catch (err) {
       console.warn('Alerta ao salvar tabela JSON local de repack:', err);
     }

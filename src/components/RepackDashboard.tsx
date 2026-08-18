@@ -422,13 +422,38 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
 
   // Fetch Firestore entries
   useEffect(() => {
-    let rows = [...empresaData.repack];
-    if (rows.length === 0) {
-      rows = buildOfficialRepackRows(empresa?.id || 'demo');
-    }
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setActualRepackRows(rows);
-    setLoading(false);
+    const companyId = empresa?.id || 'demo';
+    const refreshRepackRows = () => {
+      let rows = [...(empresaData.repack || [])];
+      if (rows.length === 0) {
+        const saved = localStorage.getItem(`repack_rows_${companyId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              rows = parsed;
+            }
+          } catch (_) {}
+        }
+      }
+      if (rows.length === 0) {
+        rows = buildOfficialRepackRows(companyId);
+      }
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setActualRepackRows(rows);
+      setLoading(false);
+    };
+
+    refreshRepackRows();
+
+    const handleUpdated = () => {
+      refreshRepackRows();
+    };
+
+    window.addEventListener('repack-db-updated', handleUpdated);
+    return () => {
+      window.removeEventListener('repack-db-updated', handleUpdated);
+    };
   }, [empresaData.repack, empresa?.id]);
 
   // Fetch Action Plans

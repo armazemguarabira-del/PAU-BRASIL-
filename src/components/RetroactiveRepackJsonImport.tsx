@@ -213,8 +213,8 @@ export default function RetroactiveRepackJsonImport({
               Importação de Dados Retroativos de Repack em JSON
             </h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Carregue ou cole os lotes históricos de repack com o formato exato. Os registros são validados, 
-              as durações e metas são auditadas, e os dados são gravados nas coleções de Despejo e Repack com sincronização em <code className="text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded font-mono">/public/banco-dados/hoje/despejo.json</code>.
+              Carregue ou cole os lotes de repack no formato padrão da plataforma. Os registros são validados, 
+              as durações e metas são auditadas, e os dados são gravados com persistência tanto no código da plataforma quanto no Firebase, com expurgo de registros divergentes.
             </p>
           </div>
 
@@ -222,7 +222,7 @@ export default function RetroactiveRepackJsonImport({
             <button
               onClick={handleCopySchema}
               className="px-3.5 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="Copiar estrutura JSON esperada"
+              title="Copiar estrutura JSON padrão"
             >
               {copiedSchema ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
               <span>{copiedSchema ? 'Copiado!' : 'Copiar Schema'}</span>
@@ -233,7 +233,7 @@ export default function RetroactiveRepackJsonImport({
               className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>Baixar Modelo JSON</span>
+              <span>Baixar Modelo JSON Padrão</span>
             </button>
           </div>
         </div>
@@ -242,17 +242,17 @@ export default function RetroactiveRepackJsonImport({
         <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
           <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
             <div className="text-[10px] font-black uppercase text-amber-400 tracking-wider mb-1 flex items-center justify-between">
-              <span>Campos Oficiais do Formato Repack</span>
+              <span>Campos Oficiais do Formato Padrão Repack</span>
               <span className="text-[9px] text-slate-500 font-mono">JSON Standard</span>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-slate-300">
-              <div><span className="text-amber-300">Data</span>: "2026-01-01"</div>
+              <div><span className="text-amber-300">Data</span>: "2026-01-02"</div>
               <div><span className="text-amber-300">Embalagem</span>: "PET 2,5L"</div>
-              <div><span className="text-amber-300">Quantidade</span>: 1</div>
-              <div><span className="text-amber-300">Inicio</span>: "14:50:21"</div>
-              <div><span className="text-amber-300">Fim</span>: "14:57:12"</div>
-              <div><span className="text-amber-300">Meta</span>: "00:04:30"</div>
-              <div><span className="text-amber-300">Resultado</span>: "🔴 ACIMA DA META"</div>
+              <div><span className="text-amber-300">Quantidade</span>: 15</div>
+              <div><span className="text-amber-300">Inicio</span>: "08:15:00"</div>
+              <div><span className="text-amber-300">Fim</span>: "09:20:00"</div>
+              <div><span className="text-amber-300">Meta</span>: "01:07:30"</div>
+              <div><span className="text-amber-300">Resultado</span>: "🟢 DENTRO DA META"</div>
               <div><span className="text-amber-300">Operador</span>: "OZENILDO (G1137)"</div>
             </div>
           </div>
@@ -261,31 +261,31 @@ export default function RetroactiveRepackJsonImport({
             <div>
               <div className="text-[10px] font-black uppercase text-emerald-400 tracking-wider mb-1 flex items-center gap-1.5">
                 <Server className="w-3 h-3" />
-                Destinos no Banco de Dados da Plataforma
+                Destinos Sincronizados na Plataforma & Firebase
               </div>
               <ul className="space-y-1 text-[10px] text-slate-400">
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span><strong>Repositório Oficial</strong>: Coleções <code>empresas/{empresaId}/despejo</code> & <code>repack</code></span>
+                  <span><strong>Firebase Firestore</strong>: Coleções <code>empresas/{empresaId}/repack</code> & <code>despejo</code></span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span><strong>Tabela JSON Híbrida</strong>: <code>json_db:{empresaId}:despejo</code></span>
+                  <span><strong>Código / Local Storage</strong>: <code>repack_rows_{empresaId}</code> (Padrão Ativo)</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span><strong>Backend Sync</strong>: <code>/public/banco-dados/hoje/despejo.json</code></span>
+                  <span><strong>Tabela JSON Híbrida</strong>: <code>json_db:{empresaId}:repack</code></span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span><strong>Painel Histórico</strong>: Relatórios e Acompanhamento de Metas</span>
+                  <span><strong>Backend Sync</strong>: <code>/public/banco-dados/hoje/repack.json</code></span>
                 </li>
               </ul>
             </div>
             
             <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[9px] text-slate-500">
-              <span>Sanitização: JsonSecuritySanitizer ativo</span>
-              <span>Cálculo Automático de Duração & Meta</span>
+              <span>Expurgo Automático de Divergências</span>
+              <span>Persistência Código + Firebase</span>
             </div>
           </div>
         </div>
