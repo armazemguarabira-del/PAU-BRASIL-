@@ -41,7 +41,6 @@ import {
   clearRetroactiveModule
 } from '../utils/dadosRetroativosUtils';
 import { Usuario } from '../types';
-import TemperaturaImportExportBar from './TemperaturaImportExportBar';
 import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
 import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
 import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
@@ -73,7 +72,7 @@ export default function DadosRetroativosPanel({
   const [editingItem, setEditingItem] = useState<Partial<RetroactiveRecord> | null>(null);
 
   // Form Fields adapting to active module
-  const [modulo, setModulo] = useState<RetroactiveModule>('validades');
+  const [modulo, setModulo] = useState<RetroactiveModule>('quebras');
   const [dataISO, setDataISO] = useState(new Date().toISOString().split('T')[0]);
   const [codigoProduto, setCodigoProduto] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -122,11 +121,10 @@ export default function DadosRetroativosPanel({
   const resetFormFields = (targetModule: RetroactiveModule) => {
     setModulo(targetModule);
     setDataISO(new Date().toISOString().split('T')[0]);
-    setDataISO(new Date().toISOString().split('T')[0]);
     setCodigoProduto('SKU-9068');
     setDescricao(`Registro Retroativo - ${targetModule.toUpperCase()}`);
     setQuantidade(100);
-    setUnidade(targetModule === 'validades' || targetModule === 'quebras' ? 'CX' : 'HL');
+    setUnidade(targetModule === 'quebras' ? 'CX' : 'HL');
     setValorFinanceiro(2500);
     setOperador(user.nome || 'Operador Histórico');
     setSetor('Armazém Central');
@@ -144,7 +142,7 @@ export default function DadosRetroativosPanel({
 
   const handleOpenNew = () => {
     setEditingItem(null);
-    const initialMod = selectedModule === 'todos' ? 'validades' : selectedModule;
+    const initialMod = selectedModule === 'todos' ? 'quebras' : selectedModule;
     resetFormFields(initialMod);
     setIsModalOpen(true);
   };
@@ -239,7 +237,7 @@ export default function DadosRetroativosPanel({
   };
 
   const handleClearModuleBase = () => {
-    const activeMod = selectedModule === 'todos' ? 'validades' : selectedModule;
+    const activeMod = selectedModule === 'todos' ? 'quebras' : selectedModule;
     if (confirm(`Atenção: Deseja apagar todos os registros retroativos do módulo [${activeMod.toUpperCase()}]?`)) {
       clearRetroactiveModule(activeMod);
       loadData();
@@ -249,22 +247,13 @@ export default function DadosRetroativosPanel({
 
   // Export Template Example for user to fill and re-import
   const handleExportTemplateExample = (targetMod?: RetroactiveModule) => {
-    const modToExport = targetMod || (selectedModule === 'todos' ? 'validades' : selectedModule);
+    const modToExport = targetMod || (selectedModule === 'todos' ? 'quebras' : selectedModule);
 
     let csvHeader = '';
     let csvRows = '';
     let filename = `Modelo_Importacao_Retroativa_${modToExport.toUpperCase()}.csv`;
 
     switch (modToExport) {
-      case 'validades':
-        csvHeader = 'DATA_CADASTRO;CODIGO_SKU;DESCRICAO_PRODUTO;LOTE;DATA_VALIDADE;QUANTIDADE_HL_CX;LOCALIZACAO_BAIA\n';
-        csvRows = 
-          '2026-01-10;0001010;SKOL 600ML RETORNAVEL;LOTE-2026-01;2026-04-15;450;RUA A / BL 02\n' +
-          '2026-01-20;0005040;PEPSI 2L PET;LOTE-2026-02;2026-05-30;320;RUA B / BL 04\n' +
-          '2026-02-05;0009068;SKOL LATA 350ML;LOTE-2026-03;2026-03-20;180;RUA C / BL 01\n' +
-          '2026-02-18;0018836;CORONA EXTRA 330ML;LOTE-2026-04;2026-07-10;210;RUA D / BL 03\n';
-        break;
-
       case 'efc_efd':
         csvHeader = 'DATA;PLACA;EMPILHADOR;HORA_INICIO;HORA_FIM;SKU_PROCESSO;QUANTIDADE_PALLETS;VALOR_RS;OBSERVACOES\n';
         csvRows = 
@@ -273,28 +262,19 @@ export default function DadosRetroativosPanel({
           '2026-02-12;NMN4092;Roberto Alves (Empilhador);13:00;15:10;CARREGAMENTO EFC;140;42000.00;Liberado sem avarias\n';
         break;
 
-      case 'tmr_carretas':
-        csvHeader = 'DATA;PLACA_CARRETA;EMPILHADOR;HORA_INICIO;HORA_FIM;TIPO_OPERACAO;QUANTIDADE_VIAGENS;VALOR_RS\n';
-        csvRows = 
-          '2026-01-08;RLT5J54;Marcos Silva (Empilhador);07:30;08:45;TMR Transferência Pátio;1;45000.00\n' +
-          '2026-01-22;QFG1259;Lucas Santos (Empilhador);09:00;10:20;TMR Entrada Carreta;1;38000.00\n' +
-          '2026-02-14;MAPA-0192;Roberto Alves (Empilhador);14:00;15:15;TMR Saída Carreta;1;52000.00\n';
-        break;
-
-      case 'picking':
-        csvHeader = 'DATA;CODIGO_PRODUTO;DESCRICAO_SKU;EMPILHADOR;HORA_INICIO;HORA_FIM;QUANTIDADE_CAIXAS;VALOR_RS\n';
-        csvRows = 
-          '2026-01-12;0009068;SKOL LATA 350ML;Lucas Santos (Empilhador);08:00;10:30;350;14000.00\n' +
-          '2026-01-25;0001010;SKOL 600ML;Roberto Alves (Empilhador);11:00;13:15;280;11200.00\n' +
-          '2026-02-10;0018836;CORONA 330ML;Marcos Silva (Empilhador);14:00;16:00;190;9500.00\n';
-        break;
-
       case 'despejo_repack':
+      case 'repack':
         csvHeader = 'DATA;COLABORADOR_AJUDANTE;PROCESSO_SKU;DESCRICAO;QUANTIDADE_CX_HL;VALOR_RS;HORA_INICIO;HORA_FIM;OBSERVACOES\n';
         csvRows = 
           '2026-01-05;Carlos Ajudante;SKU-982;Repack Garrafas 600ml;120;4800.00;08:00;11:30;Reembalagem efetuada com sucesso\n' +
           '2026-01-19;João Pedro Ajudante;SKU-504;Despejo Garrafas Avariadas;45;1800.00;13:00;14:45;Despejo em bombona homologada\n' +
           '2026-02-08;Carlos Ajudante;SKU-9068;Repack Cerveja Lata 350ml;85;3400.00;09:00;11:15;Montagem de fardos\n';
+        break;
+
+      case 'despejo':
+        csvHeader = 'DATA;COLABORADOR_AJUDANTE;PROCESSO_SKU;DESCRICAO;QUANTIDADE_HL;VALOR_RS;HORA_INICIO;HORA_FIM;OBSERVACOES\n';
+        csvRows = 
+          '2026-01-19;João Pedro Ajudante;SKU-504;Despejo Garrafas Avariadas;45;1800.00;13:00;14:45;Despejo em bombona homologada\n';
         break;
 
       case 'quebras':
@@ -329,7 +309,7 @@ export default function DadosRetroativosPanel({
     const file = e.target.files[0];
     const reader = new FileReader();
 
-    const targetMod = selectedModule === 'todos' ? 'validades' : selectedModule;
+    const targetMod: RetroactiveModule = selectedModule === 'todos' ? 'quebras' : selectedModule;
 
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -357,15 +337,7 @@ export default function DadosRetroativosPanel({
           let dataValidade = '';
           let localizacao = '';
 
-          if (targetMod === 'validades') {
-            codigoProduto = cols[1] || 'SKU-VAL';
-            descricao = cols[2] || 'Controle Validade Ano';
-            lote = cols[3] || 'LOTE-2026';
-            dataValidade = cols[4] || '2026-12-31';
-            quantidade = parseFloat((cols[5] || '100').replace(',', '.')) || 100;
-            localizacao = cols[6] || 'ARMAZEM CENTRAL';
-            valorFinanceiro = quantidade * 40;
-          } else if (targetMod === 'efc_efd') {
+          if (targetMod === 'efc_efd') {
             placa = cols[1] || 'RLT5J54';
             operador = cols[2] || 'Empilhador EFC';
             horaInicio = cols[3] || '08:00';
@@ -373,23 +345,7 @@ export default function DadosRetroativosPanel({
             descricao = cols[5] || `Operação EFC/EFD Carreta ${placa}`;
             quantidade = parseFloat((cols[6] || '100').replace(',', '.')) || 100;
             valorFinanceiro = parseFloat((cols[7] || '30000').replace('R$', '').replace('.', '').replace(',', '.')) || 30000;
-          } else if (targetMod === 'tmr_carretas') {
-            placa = cols[1] || 'CARRETA-TMR';
-            operador = cols[2] || 'Empilhador TMR';
-            horaInicio = cols[3] || '08:00';
-            horaFim = cols[4] || '09:30';
-            descricao = cols[5] || `Atendimento TMR Carreta ${placa}`;
-            quantidade = parseFloat((cols[6] || '1').replace(',', '.')) || 1;
-            valorFinanceiro = parseFloat((cols[7] || '40000').replace('R$', '').replace('.', '').replace(',', '.')) || 40000;
-          } else if (targetMod === 'picking') {
-            codigoProduto = cols[1] || 'SKU-PICKING';
-            descricao = cols[2] || `Separação/Picking ${codigoProduto}`;
-            operador = cols[3] || 'Empilhador Separador';
-            horaInicio = cols[4] || '08:00';
-            horaFim = cols[5] || '11:00';
-            quantidade = parseFloat((cols[6] || '200').replace(',', '.')) || 200;
-            valorFinanceiro = parseFloat((cols[7] || '8000').replace('R$', '').replace('.', '').replace(',', '.')) || 8000;
-          } else if (targetMod === 'despejo_repack') {
+          } else if (targetMod === 'despejo_repack' || targetMod === 'repack' || targetMod === 'despejo') {
             operador = cols[1] || 'Ajudante Armazém';
             codigoProduto = cols[2] || 'SKU-AJUDANTE';
             descricao = cols[3] || `Ajudante Operação ${codigoProduto}`;
@@ -418,7 +374,7 @@ export default function DadosRetroativosPanel({
             codigoProduto,
             descricao,
             quantidade,
-            unidade: targetMod === 'validades' || targetMod === 'quebras' ? 'CX' : 'HL',
+            unidade: targetMod === 'quebras' ? 'CX' : 'HL',
             valorFinanceiro,
             operador,
             setor: localizacao || 'Armazém Central',
@@ -533,7 +489,7 @@ export default function DadosRetroativosPanel({
             Registros Históricos & Importação Retroativa do Ano
           </h2>
           <p className="text-xs text-slate-300 font-medium mt-1 max-w-4xl">
-            Centralize e importe dados retroativos de todas as operações do ano: <strong>Validades / FEFO</strong> (SKU, Lote, Validade e Baia), <strong>EFC/EFD</strong> (Placa, Empilhador, Hora Início e Fim), <strong>TMR Carretas</strong>, <strong>Picking</strong>, <strong>Despejo & Repack</strong> (Registros de Ajudante). Baixe os arquivos de exemplo para importar facilmente suas planilhas.
+            Centralize e importe dados retroativos das operações: <strong>Volume Faturado & Absenteísmo (WLP)</strong>, <strong>Quebras & Avarias</strong>, <strong>Despejo</strong>, <strong>Repack</strong> e <strong>EFC & EFD (Empilhador)</strong>.
           </p>
         </div>
 
@@ -563,9 +519,6 @@ export default function DadosRetroativosPanel({
           {notification}
         </div>
       )}
-
-      {/* TEMPERATURE EXCEL BAR */}
-      <TemperaturaImportExportBar onDataChanged={loadData} />
 
       {/* NAVEGAÇÃO PRINCIPAL: IMPORTAÇÃO vs REGISTROS */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
@@ -608,7 +561,7 @@ export default function DadosRetroativosPanel({
                 Selecione o Módulo de Importação Retroativa
               </span>
               <span className="text-[11px] text-slate-400">
-                Lote de Quebras com formato JSON oficial integrado
+                Formatos JSON oficiais integrados
               </span>
             </div>
 
@@ -677,20 +630,6 @@ export default function DadosRetroativosPanel({
                 <span>EFC &amp; EFD (JSON)</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               </button>
-
-              {RETROACTIVE_MODULES_LIST.filter(m => m.id !== 'wlp_faturado' && m.id !== 'quebras' && m.id !== 'despejo' && m.id !== 'repack' && m.id !== 'despejo_repack' && m.id !== 'efc_efd').map(mod => (
-                <button
-                  key={mod.id}
-                  onClick={() => setImportModuleTab(mod.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    importModuleTab === mod.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <span>{mod.label}</span>
-                </button>
-              ))}
             </div>
           </div>
 
@@ -759,52 +698,6 @@ export default function DadosRetroativosPanel({
                 }
               }}
             />
-          )}
-
-          {/* RENDERIZAÇÃO PARA DEMAIS MÓDULOS */}
-          {importModuleTab !== 'wlp_faturado' && importModuleTab !== 'quebras' && importModuleTab !== 'despejo' && importModuleTab !== 'repack' && importModuleTab !== 'despejo_repack' && importModuleTab !== 'efc_efd' && (
-            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div>
-                  <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <FileSpreadsheet className="w-5 h-5 text-blue-500" />
-                    Importação Retroativa — {importModuleTab.toUpperCase()}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Baixe a planilha modelo correspondente ou carregue seus arquivos (.CSV / Excel) para preencher a base histórica.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleExportTemplateExample(importModuleTab)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Baixar Modelo CSV ({importModuleTab.toUpperCase()})</span>
-                  </button>
-
-                  <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Importar Arquivo</span>
-                    <input
-                      type="file"
-                      accept=".csv, .txt"
-                      onChange={handleCSVImport}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-400 space-y-2">
-                <span className="font-bold text-slate-300 block">Dica de Importação:</span>
-                <p>
-                  Para o módulo <strong>{importModuleTab.toUpperCase()}</strong>, certifique-se de manter as colunas correspondentes ao modelo padrão.
-                  Após o carregamento, todos os lançamentos estarão disponíveis na aba <em>"Visão Geral & Lançamentos Históricos"</em> e nos respectivos dashboards operacionais.
-                </p>
-              </div>
-            </div>
           )}
 
         </div>
@@ -1072,54 +965,7 @@ export default function DadosRetroativosPanel({
               </div>
 
               {/* MODULE SPECIFIC FIELDS */}
-              {modulo === 'validades' && (
-                <>
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Código SKU</label>
-                    <input
-                      type="text"
-                      value={codigoProduto}
-                      onChange={e => setCodigoProduto(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
-                      placeholder="0009068"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Lote do Produto</label>
-                    <input
-                      type="text"
-                      value={lote}
-                      onChange={e => setLote(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
-                      placeholder="LOTE-2026-001"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">Data de Validade</label>
-                    <input
-                      type="date"
-                      value={dataValidade}
-                      onChange={e => setDataValidade(e.target.value)}
-                      className="w-full px-3 py-2 bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-500/50 rounded-xl font-bold font-mono text-amber-800 dark:text-amber-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Localização / Baia</label>
-                    <input
-                      type="text"
-                      value={localizacao}
-                      onChange={e => setLocalizacao(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
-                      placeholder="RUA A / BL 02 / N1"
-                    />
-                  </div>
-                </>
-              )}
-
-              {(modulo === 'efc_efd' || modulo === 'tmr_carretas') && (
+              {modulo === 'efc_efd' && (
                 <>
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Placa / Veículo</label>
@@ -1145,10 +991,10 @@ export default function DadosRetroativosPanel({
                 </>
               )}
 
-              {modulo === 'picking' && (
+              {(modulo === 'quebras' || modulo === 'despejo' || modulo === 'repack') && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Código do Produto</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Código SKU / Produto</label>
                     <input
                       type="text"
                       value={codigoProduto}
@@ -1159,13 +1005,13 @@ export default function DadosRetroativosPanel({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Empilhador / Separador</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Operador / Responsável</label>
                     <input
                       type="text"
-                      value={empilhador}
-                      onChange={e => setEmpilhador(e.target.value)}
+                      value={operador}
+                      onChange={e => setOperador(e.target.value)}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
-                      placeholder="Nome do Operador"
+                      placeholder="Nome do Responsável"
                     />
                   </div>
                 </>
