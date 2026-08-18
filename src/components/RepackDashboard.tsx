@@ -15,6 +15,7 @@ import { SopManagerModal } from './SopManagerModal';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { useSystemTargets } from '../utils/useSystemTargets';
+import { buildOfficialRepackRows } from '../utils/repackDefaultData';
 import { 
   Box, 
   Clock, 
@@ -421,11 +422,14 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
 
   // Fetch Firestore entries
   useEffect(() => {
-    const rows = [...empresaData.repack];
+    let rows = [...empresaData.repack];
+    if (rows.length === 0) {
+      rows = buildOfficialRepackRows(empresa?.id || 'demo');
+    }
     rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
     setActualRepackRows(rows);
     setLoading(false);
-  }, [empresaData.repack]);
+  }, [empresaData.repack, empresa?.id]);
 
   // Fetch Action Plans
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { DespejoRow, RepackRow } from '../types';
 import { RetroactiveRecord } from './dadosRetroativosUtils';
 import { sanitizeData } from '../security/JsonSecuritySanitizer';
+import { OFFICIAL_REPACK_DATA_JSON } from './repackDefaultData';
 
 export interface RawRepackJsonItem {
   Data?: string;
@@ -102,60 +103,9 @@ export interface ParsedRepackResult {
 }
 
 /**
- * Exemplo padrão oficial para testes e modelo de importação de Repack
+ * Exemplo padrão oficial para testes e modelo de importação de Repack (Ano 2026)
  */
-export const SAMPLE_REPACK_JSON: RawRepackJsonItem[] = [
-  {
-    "Data": "2026-01-01",
-    "Embalagem": "PET 2,5L",
-    "Quantidade": 1,
-    "Inicio": "14:50:21",
-    "Fim": "14:57:12",
-    "Meta": "00:04:30",
-    "Resultado": "🔴 ACIMA DA META",
-    "Operador": "OZENILDO (G1137)"
-  },
-  {
-    "Data": "2026-01-01",
-    "Embalagem": "GARRAFA 600ML",
-    "Quantidade": 2,
-    "Inicio": "15:05:00",
-    "Fim": "15:08:45",
-    "Meta": "00:05:00",
-    "Resultado": "🟢 DENTRO DA META",
-    "Operador": "OZENILDO (G1137)"
-  },
-  {
-    "Data": "2026-01-02",
-    "Embalagem": "LATA 350ML",
-    "Quantidade": 3,
-    "Inicio": "09:10:15",
-    "Fim": "09:14:30",
-    "Meta": "00:05:30",
-    "Resultado": "🟢 DENTRO DA META",
-    "Operador": "CARLOS SILVA (G2040)"
-  },
-  {
-    "Data": "2026-01-02",
-    "Embalagem": "LONG NECK 330ML",
-    "Quantidade": 1,
-    "Inicio": "10:20:00",
-    "Fim": "10:28:10",
-    "Meta": "00:06:00",
-    "Resultado": "🔴 ACIMA DA META",
-    "Operador": "CARLOS SILVA (G2040)"
-  },
-  {
-    "Data": "2026-01-03",
-    "Embalagem": "PET 2,0L",
-    "Quantidade": 2,
-    "Inicio": "11:00:00",
-    "Fim": "11:04:15",
-    "Meta": "00:05:00",
-    "Resultado": "🟢 DENTRO DA META",
-    "Operador": "MARCOS SOUZA (G3102)"
-  }
-];
+export const SAMPLE_REPACK_JSON: RawRepackJsonItem[] = OFFICIAL_REPACK_DATA_JSON;
 
 /**
  * Converte string no formato HH:MM:SS ou MM:SS para segundos

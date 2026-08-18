@@ -1,4 +1,5 @@
 // Requirement 22: Central Historical & Retroactive Operations Data Manager
+import { buildOfficialRepackRetroactiveRecords } from './repackDefaultData';
 
 export type RetroactiveModule = 
   | 'efc_efd'
@@ -53,7 +54,7 @@ function generateInitialRetroactiveData(): RetroactiveRecord[] {
   const today = new Date().toISOString().split('T')[0];
   const dFmt = new Date().toLocaleDateString('pt-BR');
 
-  return [
+  const baseSeeds: RetroactiveRecord[] = [
     // EFC / EFD sample
     {
       id: 'retro-efc-1',
@@ -100,6 +101,9 @@ function generateInitialRetroactiveData(): RetroactiveRecord[] {
       criadoEm: new Date().toISOString()
     }
   ];
+
+  const repackSeeds = buildOfficialRepackRetroactiveRecords();
+  return [...baseSeeds, ...repackSeeds];
 }
 
 export function getRetroactiveRecords(moduleFilter?: RetroactiveModule | 'todos'): RetroactiveRecord[] {

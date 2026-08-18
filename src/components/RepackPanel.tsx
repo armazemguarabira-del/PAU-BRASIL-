@@ -10,6 +10,7 @@ import { TrendingUp, CheckCircle, Clock, Award, BarChart2, BookOpen, Users, File
 import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
+import { buildOfficialRepackRows } from '../utils/repackDefaultData';
 
 interface RepackPanelProps {
   user: Usuario;
@@ -190,7 +191,20 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     } else {
       const saved = localStorage.getItem(`repack_rows_${companyId}`);
       if (saved) {
-        try { setRepackRows(JSON.parse(saved)); } catch (e) {}
+        try { 
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRepackRows(parsed);
+          } else {
+            setRepackRows(buildOfficialRepackRows(companyId));
+          }
+        } catch (e) {
+          setRepackRows(buildOfficialRepackRows(companyId));
+        }
+      } else {
+        const fallback = buildOfficialRepackRows(companyId);
+        setRepackRows(fallback);
+        localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(fallback));
       }
     }
   }, [empresaData.repack, empresa?.id]);
