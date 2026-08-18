@@ -113,6 +113,37 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
 }
 
 /**
+ * Checks if two collaborator name references refer to the same person,
+ * supporting nicknames, first names, and full registered names.
+ * (e.g. "MARIVALDO" matches "MARIVALDO ARTUR ALVES")
+ */
+export function isSameCollaborator(
+  raw1?: string | null,
+  raw2?: string | null,
+  customColabs?: ColaboradorMaster[]
+): boolean {
+  if (!raw1 || !raw2) return false;
+  const clean1 = String(raw1).toUpperCase().trim();
+  const clean2 = String(raw2).toUpperCase().trim();
+  if (!clean1 || !clean2) return false;
+  if (clean1 === 'TODOS' || clean2 === 'TODOS') return true;
+  if (clean1 === clean2) return true;
+  if (clean1.includes(clean2) || clean2.includes(clean1)) return true;
+
+  const norm1 = normalizeCollaboratorName(clean1, customColabs).toUpperCase().trim();
+  const norm2 = normalizeCollaboratorName(clean2, customColabs).toUpperCase().trim();
+  if (norm1 && norm2) {
+    if (norm1 === norm2 || norm1.includes(norm2) || norm2.includes(norm1)) return true;
+  }
+
+  const first1 = clean1.split(' ')[0];
+  const first2 = clean2.split(' ')[0];
+  if (first1.length >= 3 && first2.length >= 3 && first1 === first2) return true;
+
+  return false;
+}
+
+/**
  * Normalizes all collaborator name fields inside a dataset of records.
  */
 export function normalizeCollaboratorNamesInRecords<T extends Record<string, any>>(

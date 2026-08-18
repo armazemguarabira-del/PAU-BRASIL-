@@ -24,6 +24,7 @@ import {
 import { saveAcoes, getAcoesAll, updateAcaoCorretiva, AcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
 import { add5PorquesDemand } from '../utils/fiveWhysManager';
+import { isSameCollaborator } from '../utils/colaboradorUtils';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
 import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
@@ -251,6 +252,35 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     setTasks(empresaData.tarefas || []);
     localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(empresaData.tarefas || []));
   }, [empresaData.tarefas, empresaId]);
+
+  // Real-time synchronization listeners for local and cross-tab events
+  useEffect(() => {
+    const reloadLocalTasks = () => {
+      try {
+        const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setTasks(parsed);
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('app_data_updated', reloadLocalTasks);
+    window.addEventListener('local_data_changed', reloadLocalTasks);
+    window.addEventListener('tasks_updated', reloadLocalTasks);
+    window.addEventListener('tarefas_updated', reloadLocalTasks);
+    window.addEventListener('storage', reloadLocalTasks);
+
+    return () => {
+      window.removeEventListener('app_data_updated', reloadLocalTasks);
+      window.removeEventListener('local_data_changed', reloadLocalTasks);
+      window.removeEventListener('tasks_updated', reloadLocalTasks);
+      window.removeEventListener('tarefas_updated', reloadLocalTasks);
+      window.removeEventListener('storage', reloadLocalTasks);
+    };
+  }, [empresaId]);
 
   // Helpers
   const triggerToast = (msg: string, err?: boolean) => {
@@ -658,30 +688,38 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   // --- Picking Tasks Actions ---
   const handleStartPickingTask = async (t: Tarefa) => {
     const nowISO = new Date().toISOString();
+    const updatedOperador = user.nome || operatorName;
     if (t._docId) {
       await TarefasRepository.update(t._docId, {
         status: 'in_progress',
         iniciadoEm: nowISO,
-        operador: user.nome || operatorName
+        operador: updatedOperador
       }, empresaId);
-    } else {
-      const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'in_progress' as const, iniciadoEm: nowISO, operador: user.nome || operatorName } : x);
-      setTasks(updated);
-      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(updated));
     }
+    const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'in_progress' as const, iniciadoEm: nowISO, operador: updatedOperador } : x);
+    setTasks(updated);
+    localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(updated));
+    localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(updated));
+
+    window.dispatchEvent(new CustomEvent('app_data_updated'));
+    window.dispatchEvent(new CustomEvent('local_data_changed'));
+    window.dispatchEvent(new CustomEvent('tasks_updated'));
+    window.dispatchEvent(new CustomEvent('tarefas_updated'));
+
     triggerToast(`Tarefa de picking #${t.id} INICIADA por ${user.nome || operatorName}`);
   };
 
   const handleFinishPickingTask = async (t: Tarefa) => {
     const nowISO = new Date().toISOString();
     const duration = Math.max(1, Math.round((new Date(nowISO).getTime() - new Date(t.iniciadoEm || nowISO).getTime()) / 60000));
+    const updatedOperador = user.nome || operatorName;
 
     if (t._docId) {
       await TarefasRepository.update(t._docId, {
         status: 'done',
         finalizadoEm: nowISO,
         duracaoMin: duration,
-        operador: user.nome || operatorName
+        operador: updatedOperador
       }, empresaId);
 
       await registrosRepo.create({
@@ -691,7 +729,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
         descricao: t.descricao,
         quantidade: t.quantidade,
         conferente: t.conferente,
-        operador: user.nome || operatorName,
+        operador: updatedOperador,
         criadoEm: t.criadoEm,
         iniciadoEm: t.iniciadoEm || nowISO,
         finalizadoEm: nowISO,
@@ -699,11 +737,18 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
         enviadoEm: nowISO,
         tipoOperacao: 'Ressuprimento de Picking'
       }, empresaId);
-    } else {
-      const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'done' as const, finalizadoEm: nowISO, duracaoMin: duration, operador: user.nome || operatorName } : x);
-      setTasks(updated);
-      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(updated));
     }
+
+    const updated = tasks.map(x => x.id === t.id ? { ...x, status: 'done' as const, finalizadoEm: nowISO, duracaoMin: duration, operador: updatedOperador } : x);
+    setTasks(updated);
+    localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(updated));
+    localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(updated));
+
+    window.dispatchEvent(new CustomEvent('app_data_updated'));
+    window.dispatchEvent(new CustomEvent('local_data_changed'));
+    window.dispatchEvent(new CustomEvent('tasks_updated'));
+    window.dispatchEvent(new CustomEvent('tarefas_updated'));
+
     triggerToast(`Picking #${t.id} CONCLUÍDO por ${user.nome || operatorName}! Duration: ${duration} min`);
   };
 
@@ -715,10 +760,10 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
   const myAssignedTasks = useMemo(() => {
     return tasks.filter(t => {
-      if (!t.operador || t.operador === 'TODOS') return true;
-      return t.operador.toUpperCase().includes(activeOperatorClean);
+      if (!t.operador || t.operador === 'TODOS' || t.operador.toUpperCase().includes('TODOS')) return true;
+      return isSameCollaborator(t.operador, activeOperatorClean, empresaData.colaboradores);
     });
-  }, [tasks, activeOperatorClean]);
+  }, [tasks, activeOperatorClean, empresaData.colaboradores]);
 
   const myAssignedTmr = useMemo(() => {
     return tmrDemands.filter(t => {
@@ -740,26 +785,15 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       if (isAdminOrSupervisor) return true;
       if (!t.operadorDesignado || t.operadorDesignado === 'TODOS' || t.operadorDesignado.toUpperCase().includes('TODOS')) return true;
 
-      const activeOp = activeOperatorClean;
-      const firstName = activeOp.split(' ')[0];
-
-      const desigUpper = (t.operadorDesignado || '').toUpperCase();
-      if (desigUpper.includes(activeOp) || (firstName.length >= 3 && desigUpper.includes(firstName))) return true;
+      if (isSameCollaborator(t.operadorDesignado, activeOperatorClean, empresaData.colaboradores)) return true;
 
       if (t.operadoresAtribuidos && Array.isArray(t.operadoresAtribuidos) && t.operadoresAtribuidos.length > 0) {
-        return t.operadoresAtribuidos.some(o => {
-          const oUpper = o.toUpperCase().trim();
-          const oFirstName = oUpper.split(' ')[0];
-          return activeOp.includes(oUpper) || 
-                 oUpper.includes(activeOp) || 
-                 (oFirstName.length >= 3 && activeOp.includes(oFirstName)) ||
-                 (firstName.length >= 3 && oUpper.includes(firstName));
-        });
+        return t.operadoresAtribuidos.some(o => isSameCollaborator(o, activeOperatorClean, empresaData.colaboradores));
       }
 
       return false;
     });
-  }, [tmrDemands, user, activeOperatorClean]);
+  }, [tmrDemands, user, activeOperatorClean, empresaData.colaboradores]);
 
   const myAssignedFefo = useMemo(() => {
     return fefoDemands.filter(t => {
@@ -774,22 +808,22 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     return efcVehicles.filter(v => 
       !(v.isRecarga || v.tipoCarga === 'Recarga') && 
       v.statusCarregamento === 'Finalizado' && 
-      (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
+      isSameCollaborator(v.operadorExecutorCarregamento, activeOperatorClean, empresaData.colaboradores)
     );
-  }, [efcVehicles, activeOperatorClean]);
+  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
   
   const myCompletedEfd = useMemo(() => {
     return efcVehicles.filter(v => 
       v.statusDescarregamento === 'Finalizado' && 
-      (v.operadorExecutorDescarregamento || '').toUpperCase().includes(activeOperatorClean)
+      isSameCollaborator(v.operadorExecutorDescarregamento, activeOperatorClean, empresaData.colaboradores)
     );
-  }, [efcVehicles, activeOperatorClean]);
+  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
 
   const completedRecargasEfc = useMemo(() => {
     return efcVehicles.filter(v => 
       (v.isRecarga || v.tipoCarga === 'Recarga') && 
       v.statusCarregamento === 'Finalizado' && 
-      (v.operadorExecutorCarregamento || '').toUpperCase().includes(activeOperatorClean)
+      isSameCollaborator(v.operadorExecutorCarregamento, activeOperatorClean, empresaData.colaboradores)
     ).map(v => ({
       id: v.id,
       carreta: v.placa || 'Recarga EFC',
@@ -797,22 +831,22 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       status: 'done' as const,
       duracaoMin: v.duracaoCarregamentoMin || 15
     }));
-  }, [efcVehicles, activeOperatorClean]);
+  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
 
   const myCompletedTmr = useMemo(() => {
     return [
-      ...tmrDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean)),
+      ...tmrDemands.filter(t => t.status === 'done' && isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores)),
       ...completedRecargasEfc
     ];
-  }, [tmrDemands, activeOperatorClean, completedRecargasEfc]);
+  }, [tmrDemands, activeOperatorClean, completedRecargasEfc, empresaData.colaboradores]);
 
   const myCompletedPicking = useMemo(() => {
-    return tasks.filter(t => t.status === 'done' && (t.operador || '').toUpperCase().includes(activeOperatorClean));
-  }, [tasks, activeOperatorClean]);
+    return tasks.filter(t => t.status === 'done' && isSameCollaborator(t.operador, activeOperatorClean, empresaData.colaboradores));
+  }, [tasks, activeOperatorClean, empresaData.colaboradores]);
 
   const myCompletedFefo = useMemo(() => {
-    return fefoDemands.filter(t => t.status === 'done' && (t.operadorExecutor || '').toUpperCase().includes(activeOperatorClean));
-  }, [fefoDemands, activeOperatorClean]);
+    return fefoDemands.filter(t => t.status === 'done' && isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores));
+  }, [fefoDemands, activeOperatorClean, empresaData.colaboradores]);
 
   // Total operations count
   const totalOpsCompleted = myCompletedEfc.length + myCompletedEfd.length + myCompletedTmr.length + myCompletedPicking.length + myCompletedFefo.length;

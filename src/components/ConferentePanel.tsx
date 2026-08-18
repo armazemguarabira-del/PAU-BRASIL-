@@ -1096,6 +1096,8 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
       window.dispatchEvent(new CustomEvent('app_data_updated'));
       window.dispatchEvent(new CustomEvent('local_data_changed'));
+      window.dispatchEvent(new CustomEvent('tasks_updated'));
+      window.dispatchEvent(new CustomEvent('tarefas_updated'));
 
       setSelectedProd(null);
       setSearchQuery('');
@@ -1119,6 +1121,13 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
       const remaining = tasks.filter(x => x.id !== t.id);
       setTasks(remaining);
       localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(remaining));
+      localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(remaining));
+
+      window.dispatchEvent(new CustomEvent('app_data_updated'));
+      window.dispatchEvent(new CustomEvent('local_data_changed'));
+      window.dispatchEvent(new CustomEvent('tasks_updated'));
+      window.dispatchEvent(new CustomEvent('tarefas_updated'));
+
       toast('Tarefa #' + t.id + ' removida com sucesso.');
     } catch (e) {
       console.error(e);
