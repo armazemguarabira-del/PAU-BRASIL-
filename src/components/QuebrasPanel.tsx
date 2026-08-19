@@ -12,6 +12,7 @@ import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { safeSetLocalStorage } from '../utils/safeLocalStorage';
 import { PaginationControls } from './common/PaginationControls';
+import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 
 interface QuebrasPanelProps {
   user: Usuario;
@@ -483,6 +484,19 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   // Sync with empresaData (scoped to company)
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
+    const refreshQuebras = () => {
+      const saved = localStorage.getItem(`quebras_${companyId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setQuebras(parsed);
+            return;
+          }
+        } catch (e) {}
+      }
+    };
+
     if (empresaData.quebras && empresaData.quebras.length > 0) {
       const rows = [...empresaData.quebras];
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
@@ -491,9 +505,29 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     } else {
       const saved = localStorage.getItem(`quebras_${companyId}`);
       if (saved) {
-        try { setQuebras(JSON.parse(saved)); } catch (e) {}
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setQuebras(parsed);
+            return;
+          }
+        } catch (e) {}
+      }
+      // Fallback para a base oficial embutida no código
+      const defaultRows = buildOfficialQuebrasRows(companyId);
+      if (defaultRows.length > 0) {
+        setQuebras(defaultRows);
       }
     }
+
+    const handleUpdated = () => {
+      refreshQuebras();
+    };
+
+    window.addEventListener('quebras-db-updated', handleUpdated);
+    return () => {
+      window.removeEventListener('quebras-db-updated', handleUpdated);
+    };
   }, [empresaData.quebras, empresa?.id]);
 
   const handleSelectProd = (p: { codigo: number, descricao: string }) => {

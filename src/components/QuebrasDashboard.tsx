@@ -35,6 +35,7 @@ import {
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
+import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 import A3BoardComponent from './A3BoardComponent';
 import CalendarFilter from './CalendarFilter';
 import WqiTab, { getItemHlInfo, getItemValorReal } from './WqiTab';
@@ -225,15 +226,37 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
 
   // Sync Quebras
   useEffect(() => {
-    if (!db || !empresa?.id) {
-      const saved = localStorage.getItem(`quebras_${empresa?.id || 'demo'}`);
-      if (saved) setActualQuebras(JSON.parse(saved));
-      return;
-    }
+    const companyId = empresa?.id || 'demo';
+    const refreshQuebras = () => {
+      let rows = [...(empresaData.quebras || [])];
+      if (rows.length === 0) {
+        const saved = localStorage.getItem(`quebras_${companyId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              rows = parsed;
+            }
+          } catch (_) {}
+        }
+      }
+      if (rows.length === 0) {
+        rows = buildOfficialQuebrasRows(companyId);
+      }
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setActualQuebras(rows);
+    };
 
-    const rows = [...empresaData.quebras];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-    setActualQuebras(rows);
+    refreshQuebras();
+
+    const handleUpdated = () => {
+      refreshQuebras();
+    };
+
+    window.addEventListener('quebras-db-updated', handleUpdated);
+    return () => {
+      window.removeEventListener('quebras-db-updated', handleUpdated);
+    };
   }, [empresaData.quebras, empresa?.id]);
 
   const availableMotivos = useMemo(() => {

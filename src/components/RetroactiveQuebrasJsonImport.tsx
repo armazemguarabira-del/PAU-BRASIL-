@@ -52,6 +52,7 @@ export default function RetroactiveQuebrasJsonImport({
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [parsedResult, setParsedResult] = useState<ParsedQuebrasResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [tornarPadraoOficial, setTornarPadraoOficial] = useState<boolean>(true);
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [saveResultModal, setSaveResultModal] = useState<SaveQuebrasRetroativasResult | null>(null);
   const [previewPage, setPreviewPage] = useState(1);
@@ -158,7 +159,8 @@ export default function RetroactiveQuebrasJsonImport({
       const result = await persistirQuebrasRetroativasNoBanco(
         parsedResult.quebraRows,
         parsedResult.retroactiveRecords,
-        empresaId
+        empresaId,
+        tornarPadraoOficial
       );
 
       setSaveResultModal(result);
@@ -445,14 +447,16 @@ export default function RetroactiveQuebrasJsonImport({
                 </h3>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Revise os totais estatísticos e a listagem antes de gravar no banco de dados.
+                Revise os totais estatísticos, a política de gravação e a listagem antes de gravar no banco de dados.
               </p>
             </div>
 
             <button
               onClick={handleSaveToDatabase}
               disabled={isSaving}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className={`px-6 py-2.5 ${
+                tornarPadraoOficial ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-blue-600 hover:bg-blue-500'
+              } disabled:bg-slate-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer shrink-0`}
             >
               {isSaving ? (
                 <>
@@ -462,10 +466,83 @@ export default function RetroactiveQuebrasJsonImport({
               ) : (
                 <>
                   <Database className="w-4 h-4" />
-                  <span>Gravar no Banco de Dados</span>
+                  <span>{tornarPadraoOficial ? 'Gravar como Padrão Oficial' : 'Mesclar no Banco de Dados'}</span>
                 </>
               )}
             </button>
+          </div>
+
+          {/* POLÍTICA DE GRAVAÇÃO: PADRÃO DA PLATAFORMA VS MESCLAGEM */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                Política de Gravação & Padrão da Plataforma
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {tornarPadraoOficial ? 'Modo: Padrão Oficial & Substituição Total' : 'Modo: Mesclagem Incremental'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* OPÇÃO 1: TORNAR PADRÃO OFICIAL */}
+              <div 
+                onClick={() => setTornarPadraoOficial(true)}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  tornarPadraoOficial 
+                    ? 'bg-amber-500/10 border-amber-500/50 shadow-md ring-1 ring-amber-500/30' 
+                    : 'bg-slate-800/40 border-slate-800 hover:bg-slate-800/70 hover:border-slate-700 opacity-70'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        tornarPadraoOficial ? 'border-amber-500 bg-amber-500' : 'border-slate-600'
+                      }`}>
+                        {tornarPadraoOficial && <Check className="w-2.5 h-2.5 text-slate-950 stroke-[3]" />}
+                      </div>
+                      <span className="text-xs font-black text-white">Tornar Padrão da Plataforma</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-500/30">
+                      Oficial & Expurgo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed mt-1">
+                    Define este arquivo como o padrão oficial da plataforma. Substitui os registros no Firebase, no banco local IndexedDB e no código. Registros divergentes serão excluídos.
+                  </p>
+                </div>
+              </div>
+
+              {/* OPÇÃO 2: MESCLAR DADOS */}
+              <div 
+                onClick={() => setTornarPadraoOficial(false)}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  !tornarPadraoOficial 
+                    ? 'bg-blue-500/10 border-blue-500/50 shadow-md ring-1 ring-blue-500/30' 
+                    : 'bg-slate-800/40 border-slate-800 hover:bg-slate-800/70 hover:border-slate-700 opacity-70'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        !tornarPadraoOficial ? 'border-blue-500 bg-blue-500' : 'border-slate-600'
+                      }`}>
+                        {!tornarPadraoOficial && <Check className="w-2.5 h-2.5 text-slate-950 stroke-[3]" />}
+                      </div>
+                      <span className="text-xs font-black text-white">Mesclar Dados (Incremental)</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-wider border border-blue-500/30">
+                      Preservar Base
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed mt-1">
+                    Mantém a base de quebras existente intacta e apenas adiciona ou atualiza os registros contidos neste lote JSON sem apagar os anteriores.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 4 CARDS DE INDICADORES DO LOTE */}

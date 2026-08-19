@@ -160,12 +160,36 @@ export async function persistirQuebrasRetroativasNoBanco(
       console.warn('Alerta ao salvar base retroativa local:', err);
     }
 
-    // Marca padrão oficial no localStorage
-    if (tornarPadraoOficial && typeof window !== 'undefined') {
-      localStorage.setItem(`af_padrao_oficial_quebras_${empresaId}`, JSON.stringify({
-        dataPadrao: timestamp,
-        totalItens: quebraRows.length
-      }));
+    // Marca padrão oficial ou mescla no localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        if (tornarPadraoOficial) {
+          localStorage.setItem(`quebras_${empresaId}`, JSON.stringify(quebraRows));
+          localStorage.setItem('quebras_demo', JSON.stringify(quebraRows));
+          localStorage.setItem(`af_padrao_oficial_quebras_${empresaId}`, JSON.stringify({
+            dataPadrao: timestamp,
+            totalItens: quebraRows.length
+          }));
+        } else {
+          const saved = localStorage.getItem(`quebras_${empresaId}`);
+          let merged: QuebraRow[] = [];
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) {
+                const map = new Map<string, QuebraRow>();
+                parsed.forEach(p => { if (p.id) map.set(String(p.id), p); });
+                quebraRows.forEach(q => { if (q.id) map.set(String(q.id), q); });
+                merged = Array.from(map.values());
+              }
+            } catch (_) {}
+          }
+          if (merged.length === 0) merged = [...quebraRows];
+          localStorage.setItem(`quebras_${empresaId}`, JSON.stringify(merged));
+        }
+      } catch (e) {
+        console.warn('Alerta ao atualizar localStorage de quebras:', e);
+      }
     }
 
     // 5. Invalidar cache para sincronização imediata
