@@ -9,6 +9,7 @@ import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { elaborarTemposIlustrativosOperacao } from '../utils/quebrasDespejoUtils';
 import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
+import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
 
 interface DespejoPanelProps {
   user: Usuario;
@@ -126,21 +127,30 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
   const empresaData = useEmpresaData();
 
-  // Sync with empresaData (scoped to company)
+  // Sync with official data and live manual entries
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    if (empresaData.despejo && empresaData.despejo.length > 0) {
-      const rows = [...empresaData.despejo];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-      setDespejoRows(rows);
-      localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
-    } else {
-      const saved = localStorage.getItem(`despejo_rows_${companyId}`);
-      if (saved) {
-        try { setDespejoRows(JSON.parse(saved)); } catch (e) {}
-      }
+    const officialRows = buildOfficialDespejoRows(companyId);
+
+    let customManualRows: DespejoRow[] = [];
+    const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          customManualRows = parsed.filter(r => 
+            !String(r.id || '').startsWith('retro_despejo_') && 
+            !String(r.id || '').startsWith('seed-despejo-')
+          );
+        }
+      } catch (e) {}
     }
-  }, [empresaData.despejo, empresa?.id]);
+
+    const rows = customManualRows.length > 0 ? [...customManualRows, ...officialRows] : [...officialRows];
+    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+    setDespejoRows(rows);
+    localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
+  }, [empresa?.id]);
 
   useEffect(() => {
     calcDuration();

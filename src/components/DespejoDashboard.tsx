@@ -69,6 +69,7 @@ import { SimuladorAgilidadeMeta } from './SimuladorAgilidadeMeta';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
 import A3BoardComponent from './A3BoardComponent';
 
 interface DespejoDashboardProps {
@@ -310,39 +311,28 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
     return () => clearInterval(interval);
   }, [isStopwatchRunning]);
 
-  // Comprehensive Data Loader (Context + JSON Table + Retroactive + LocalStorage + Seed)
+  // Comprehensive Data Loader (Strictly loads SAMPLE_DESPEJO_JSON 2.014 rows + live manual registrations)
   const reloadData = React.useCallback(async () => {
     const companyId = empresa?.id || 'demo';
     setLoading(true);
     try {
-      // 1. From context if available
-      let rows: DespejoRow[] = [...(empresaData.despejo || [])];
+      // 1. Base oficial definitiva vinculada no código (SAMPLE_DESPEJO_JSON - 2.014 registros)
+      const officialRows = buildOfficialDespejoRows(companyId);
 
-      // 2. Fallback to hybrid JSON table
-      if (rows.length === 0) {
-        const jsonTableRows = await getJsonTable<DespejoRow>(companyId, 'despejo');
-        if (jsonTableRows && jsonTableRows.length > 0) {
-          rows = jsonTableRows;
-        }
+      // 2. Coleta novos registros manuais criados pelo operador nesta empresa
+      let customManualRows: DespejoRow[] = [];
+      const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+      if (savedManual) {
+        try {
+          const parsed = JSON.parse(savedManual);
+          if (Array.isArray(parsed)) {
+            customManualRows = parsed;
+          }
+        } catch (e) {}
       }
 
-      // 3. Fallback to repository / local storage
-      if (rows.length === 0) {
-        const saved = localStorage.getItem(`despejo_rows_${companyId}`);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              rows = parsed;
-            }
-          } catch (e) {}
-        }
-      }
-
-      // 4. Seed fallback if empty
-      if (rows.length === 0) {
-        rows = generateSeedDespejoRows(companyId);
-      }
+      // Base total definitiva = Novos manuais + 2.014 oficiais do código
+      const rows: DespejoRow[] = customManualRows.length > 0 ? [...customManualRows, ...officialRows] : [...officialRows];
 
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
       setDespejoRows(rows);
@@ -352,11 +342,22 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
     } finally {
       setLoading(false);
     }
-  }, [empresa?.id, empresaData.despejo]);
+  }, [empresa?.id]);
 
   useEffect(() => {
+    // Auto-purga de cache antigo divergente (ex: 3.108 itens de versões anteriores)
+    const companyId = empresa?.id || 'demo';
+    const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 2050) {
+          localStorage.removeItem(`despejo_rows_${companyId}`);
+        }
+      } catch (e) {}
+    }
     reloadData();
-  }, [reloadData]);
+  }, [reloadData, empresa?.id]);
 
   // Live Listeners for DB and Import Events
   useEffect(() => {
@@ -638,17 +639,19 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   }), []);
 
   const totalHE = useMemo(() => {
-    const totalLiters = filteredRows.reduce((sum, r) => {
+    const total = filteredRows.reduce((sum, r) => {
+      let hl = 0;
       if (r.hlPerdido !== undefined && r.hlPerdido !== null && !isNaN(Number(r.hlPerdido))) {
-        return sum + (Number(r.hlPerdido) * 100);
+        hl = Number(r.hlPerdido);
+      } else if (r.hectolitroPerdido !== undefined && r.hectolitroPerdido !== null && !isNaN(Number(r.hectolitroPerdido))) {
+        hl = Number(r.hectolitroPerdido);
+      } else {
+        const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
+        hl = (factor * (Number(r.quantidade) || 0)) / 100;
       }
-      if (r.hectolitroPerdido !== undefined && r.hectolitroPerdido !== null && !isNaN(Number(r.hectolitroPerdido))) {
-        return sum + (Number(r.hectolitroPerdido) * 100);
-      }
-      const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
-      return sum + (factor * (Number(r.quantidade) || 0));
+      return sum + hl;
     }, 0);
-    return Math.round((totalLiters / 100) * 100) / 100;
+    return Math.round(total * 10000) / 10000;
   }, [filteredRows, EMBALAGENS_VOLUME]);
 
   const totalTempoEsperadoSec = useMemo(() => {
@@ -1278,7 +1281,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                 <div className="flex items-center gap-2 mt-1 text-xs text-blue-600 dark:text-blue-400 font-bold">
                   <span>{totalSkus.toLocaleString('pt-BR')} Unidades</span>
                   <span className="text-gray-300 dark:text-slate-700">•</span>
-                  <span>{totalHE.toFixed(2)} HL Perdido</span>
+                  <span>{totalHE < 10 ? totalHE.toFixed(4) : totalHE.toFixed(2)} HL Perdido</span>
                 </div>
               </div>
             </div>
@@ -1537,6 +1540,19 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                     className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500"
                   />
                 </div>
+
+                <button
+                  onClick={() => {
+                    const companyId = empresa?.id || 'demo';
+                    localStorage.removeItem(`despejo_rows_${companyId}`);
+                    reloadData();
+                  }}
+                  className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
+                  title="Sincronizar com a Base Oficial do Código (2.014 registros de SAMPLE_DESPEJO_JSON)"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="hidden sm:inline">Base Oficial (2.014)</span>
+                </button>
 
                 <button
                   onClick={reloadData}

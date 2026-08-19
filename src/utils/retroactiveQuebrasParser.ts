@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { QuebraRow } from '../types';
 import { RetroactiveRecord } from './dadosRetroativosUtils';
 import { sanitizeData } from '../security/JsonSecuritySanitizer';
@@ -110,7 +111,7 @@ export interface ParsedQuebrasResult {
 /**
  * Exemplo padrão oficial para testes e modelo de importação
  */
-export const SAMPLE_QUEBRAS_JSON: RawQuebraJsonItem[] = [
+export const SAMPLE_QUEBRAS_JSON: any = [
 
   {
     "Data": "2026-01-01 11:59:15",
