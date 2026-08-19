@@ -1177,75 +1177,176 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
             const todayLogs = tempLogs.filter(l => l.dataISO === todayISO);
 
             const slots = [
-              { time: '09:00', label: '1ª Medição Manhã' },
-              { time: '16:00', label: '2ª Medição Tarde' },
-              { time: '22:00', label: '3ª Medição Noite' }
+              { time: '09:00', label: '1ª Medição Manhã', period: 'Manhã' },
+              { time: '16:00', label: '2ª Medição Tarde', period: 'Tarde' },
+              { time: '22:00', label: '3ª Medição Noite', period: 'Noite' }
             ];
 
+            const completedCount = slots.filter(s => todayLogs.some(l => l.hora === s.time)).length;
+
             return (
-              <div className="bg-[#0b1222] border border-slate-800 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-black uppercase text-white tracking-wider">
-                      Status das 3 Aferições Obrigatórias de Hoje ({todayFormatted})
+              <div className={`border rounded-2xl p-4 md:p-5 space-y-4 shadow-sm transition-colors ${
+                theme === 'dark' ? 'bg-[#0f172a] border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'
+              }`}>
+                {/* Header */}
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3 ${
+                  theme === 'dark' ? 'border-slate-800/80' : 'border-slate-100'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                      theme === 'dark' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-200'
+                    }`}>
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs font-black uppercase tracking-wider ${
+                          theme === 'dark' ? 'text-slate-100' : 'text-slate-900'
+                        }`}>
+                          Status das 3 Aferições Obrigatórias de Hoje
+                        </span>
+                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border ${
+                          theme === 'dark' ? 'bg-slate-800 border-slate-700 text-blue-300' : 'bg-slate-100 border-slate-200 text-slate-700'
+                        }`}>
+                          {todayFormatted}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                        {completedCount === 3 
+                          ? '✅ Todas as 3 aferições regulamentares de hoje foram concluídas.' 
+                          : `${completedCount} de 3 aferições registradas. O alerta apaga automaticamente ao registrar.`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${
+                      completedCount === 3
+                        ? (theme === 'dark' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
+                        : (theme === 'dark' ? 'bg-amber-950/60 text-amber-300 border-amber-500/40' : 'bg-amber-50 text-amber-700 border-amber-200')
+                    }`}>
+                      {completedCount}/3 Concluídas
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400">
-                    O alerta do horário apaga automaticamente ao realizar a medição.
-                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* 3 Measurement Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                   {slots.map(s => {
                     const log = todayLogs.find(l => l.hora === s.time);
 
                     if (log) {
+                      const isCritical = log.temperatura > 28.0;
                       return (
-                        <div key={s.time} className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-xl flex items-center justify-between gap-3">
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                              <strong className="text-xs font-black text-white font-mono">{s.time}</strong>
-                              <span className="text-[10px] text-emerald-300 font-bold">({s.label})</span>
+                        <div 
+                          key={s.time} 
+                          className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 shadow-xs ${
+                            theme === 'dark' 
+                              ? 'bg-gradient-to-br from-emerald-950/25 to-slate-900/60 border-emerald-500/30 text-slate-100' 
+                              : 'bg-gradient-to-br from-emerald-50/70 to-white border-emerald-200 text-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2.5 py-1 rounded-lg font-mono font-black text-xs border ${
+                                theme === 'dark' 
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+                                  : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              }`}>
+                                {s.time}
+                              </span>
+                              <div>
+                                <strong className={`text-xs font-bold block ${
+                                  theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+                                }`}>
+                                  {s.label}
+                                </strong>
+                                <span className={`text-[10px] font-semibold flex items-center gap-1 mt-0.5 ${
+                                  theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'
+                                }`}>
+                                  <CheckCircle2 className="w-3 h-3" /> Aferição Realizada
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-[11px] text-slate-300 block mt-1">
-                              Conferente: <strong className="text-white">{log.conferenteNome}</strong>
-                            </span>
+
+                            {/* Temperature Badge */}
+                            <div className={`px-2.5 py-1 rounded-lg font-mono font-black text-sm border flex items-center gap-1 ${
+                              isCritical 
+                                ? (theme === 'dark' ? 'bg-rose-950/60 text-rose-300 border-rose-500/50' : 'bg-rose-100 text-rose-800 border-rose-300')
+                                : (theme === 'dark' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40' : 'bg-emerald-100 text-emerald-800 border-emerald-300')
+                            }`}>
+                              {log.temperatura.toFixed(1)}°C
+                            </div>
                           </div>
 
-                          <div className="text-right shrink-0">
-                            <span className={`text-base font-mono font-black ${log.temperatura > 28 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                              {log.temperatura}°C
-                            </span>
+                          <div className={`pt-2 border-t flex items-center justify-between text-[10px] ${
+                            theme === 'dark' ? 'border-slate-800 text-slate-400' : 'border-emerald-100 text-slate-500'
+                          }`}>
+                            <span>Conferente: <strong className={theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}>{log.conferenteNome}</strong></span>
+                            <span className="text-[9px] font-mono text-slate-400">Às {log.hora}h</span>
                           </div>
                         </div>
                       );
                     }
 
                     return (
-                      <div key={s.time} className="p-3 bg-rose-950/30 border-2 border-rose-500/60 rounded-xl flex items-center justify-between gap-3 animate-pulse">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <AlertTriangle className="w-4 h-4 text-rose-400" />
-                            <strong className="text-xs font-black text-rose-300 font-mono">{s.time}</strong>
-                            <span className="text-[10px] text-rose-300 font-bold">({s.label})</span>
+                      <div 
+                        key={s.time} 
+                        className={`p-3.5 rounded-xl border-2 transition-all flex flex-col justify-between gap-3 shadow-xs ${
+                          theme === 'dark' 
+                            ? 'bg-gradient-to-br from-amber-950/20 to-slate-900 border-amber-500/40 text-slate-100' 
+                            : 'bg-gradient-to-br from-amber-50/90 to-orange-50/30 border-amber-300 text-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-1 rounded-lg font-mono font-black text-xs border ${
+                              theme === 'dark' 
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
+                                : 'bg-amber-100 text-amber-900 border-amber-300'
+                            }`}>
+                              {s.time}
+                            </span>
+                            <div>
+                              <strong className={`text-xs font-bold block ${
+                                theme === 'dark' ? 'text-slate-200' : 'text-slate-800'
+                              }`}>
+                                {s.label}
+                              </strong>
+                              <span className={`text-[10px] font-bold flex items-center gap-1 mt-0.5 ${
+                                theme === 'dark' ? 'text-amber-400' : 'text-amber-700'
+                              }`}>
+                                <AlertTriangle className="w-3 h-3 text-amber-500" /> Pendente de Aferição
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-[10px] font-black uppercase text-rose-200 block mt-1">
-                            ⚠️ MEDIÇÃO PENDENTE DE AFERIÇÃO
-                          </span>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            setNewTempData(todayISO);
-                            setNewTempHora(s.time);
-                            setShowConferenteForm(true);
-                          }}
-                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all shadow"
-                        >
-                          Lançar {s.time}
-                        </button>
+                        <div className={`pt-2.5 border-t flex items-center justify-between gap-2 ${
+                          theme === 'dark' ? 'border-slate-800/80' : 'border-amber-200/60'
+                        }`}>
+                          <span className={`text-[10px] font-medium ${
+                            theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                          }`}>
+                            Horário regulamentar
+                          </span>
+
+                          <button
+                            onClick={() => {
+                              setNewTempData(todayISO);
+                              setNewTempHora(s.time);
+                              setShowConferenteForm(true);
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                              theme === 'dark'
+                                ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                                : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
+                            }`}
+                          >
+                            <Plus className="w-3 h-3 stroke-[3]" />
+                            Lançar {s.time}
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
