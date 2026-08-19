@@ -28,7 +28,8 @@ import {
   TrendingDown,
   Sparkles,
   Droplet,
-  BarChart3
+  BarChart3,
+  Thermometer
 } from 'lucide-react';
 import { 
   RetroactiveRecord, 
@@ -46,6 +47,7 @@ import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
 import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
 import RetroactiveWlpFaturadoJsonImport from './RetroactiveWlpFaturadoJsonImport';
 import RetroactiveEfcEfdJsonImport from './RetroactiveEfcEfdJsonImport';
+import RetroactiveTemperaturaJsonImport from './RetroactiveTemperaturaJsonImport';
 
 interface DadosRetroativosPanelProps {
   user: Usuario;
@@ -567,6 +569,19 @@ export default function DadosRetroativosPanel({
 
             <div className="flex flex-wrap items-center gap-2 pt-3">
               <button
+                onClick={() => setImportModuleTab('temperatura')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  importModuleTab === 'temperatura'
+                    ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Thermometer className="w-3.5 h-3.5 text-amber-300" />
+                <span>Temperatura (JSON / Excel)</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+
+              <button
                 onClick={() => setImportModuleTab('wlp_faturado')}
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                   importModuleTab === 'wlp_faturado'
@@ -632,6 +647,25 @@ export default function DadosRetroativosPanel({
               </button>
             </div>
           </div>
+
+          {/* RENDERIZAÇÃO DO IMPORTADOR DE TEMPERATURA RETROATIVA JSON / EXCEL */}
+          {importModuleTab === 'temperatura' && (
+            <RetroactiveTemperaturaJsonImport
+              user={user}
+              empresaId={user.empresaId || 'demo'}
+              onImportSuccess={() => {
+                loadData();
+                notify('Dados retroativos de Temperatura importados e sincronizados na plataforma!');
+              }}
+              onNavigateToQualidade={() => {
+                if (onNavigate) {
+                  onNavigate('qualidade');
+                } else {
+                  window.dispatchEvent(new CustomEvent('app_navigate', { detail: 'qualidade' }));
+                }
+              }}
+            />
+          )}
 
           {/* RENDERIZAÇÃO DO IMPORTADOR DE VOLUME FATURADO & WLP JSON */}
           {importModuleTab === 'wlp_faturado' && (

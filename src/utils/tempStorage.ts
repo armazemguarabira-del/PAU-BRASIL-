@@ -126,6 +126,15 @@ export function clearTempLogs(): void {
 }
 
 /**
+ * Restores/reloads the temperature database directly from baseTemperaturaCsv.ts.
+ */
+export function restoreBaseCsvData(): ArmazemTemperaturaLog[] {
+  const initial = parseBaseCsvData();
+  saveTempLogs(initial);
+  return initial;
+}
+
+/**
  * Exports the standard Excel template file (.xlsx) with required headers and example data.
  */
 export function exportarModeloExcelTemperatura(): void {

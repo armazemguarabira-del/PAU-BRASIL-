@@ -44,6 +44,7 @@ import {
 import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
 import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
 import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
+import RetroactiveTemperaturaJsonImport from './RetroactiveTemperaturaJsonImport';
 
 interface ExportarPanelProps {
   user: Usuario;
@@ -79,7 +80,7 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
 
   // ── SUB-TABS STATE ──
   const [activeMainSubTab, setActiveMainSubTab] = useState<'zerar-importar' | 'importar-retroativos-json' | 'exportar-relatorios'>('zerar-importar');
-  const [jsonImportModule, setJsonImportModule] = useState<'despejo' | 'repack' | 'quebras'>('despejo');
+  const [jsonImportModule, setJsonImportModule] = useState<'temperatura' | 'despejo' | 'repack' | 'quebras'>('temperatura');
 
   // ── APAGAR & IMPORTAR BASE DE OPERAÇÃO STATE ──
   const [opTargetToClear, setOpTargetToClear] = useState<string>('repack');
@@ -1139,6 +1140,16 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
             </span>
             <div className="flex flex-wrap items-center gap-2">
               <button
+                onClick={() => setJsonImportModule('temperatura')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  jsonImportModule === 'temperatura'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                Temperatura (JSON)
+              </button>
+              <button
                 onClick={() => setJsonImportModule('despejo')}
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                   jsonImportModule === 'despejo'
@@ -1170,6 +1181,23 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
               </button>
             </div>
           </div>
+
+          {jsonImportModule === 'temperatura' && (
+            <RetroactiveTemperaturaJsonImport 
+              user={user} 
+              empresaId={empresaId}
+              onImportSuccess={() => {
+                toast('Dados retroativos de Temperatura importados e sincronizados com sucesso!');
+              }}
+              onNavigateToQualidade={() => {
+                if (onNavigate) {
+                  onNavigate('qualidade');
+                } else {
+                  window.dispatchEvent(new CustomEvent('app_navigate', { detail: 'qualidade' }));
+                }
+              }}
+            />
+          )}
 
           {jsonImportModule === 'despejo' && (
             <RetroactiveDespejoJsonImport 

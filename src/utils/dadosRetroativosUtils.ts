@@ -8,9 +8,11 @@ export type RetroactiveModule =
   | 'repack'
   | 'despejo'
   | 'quebras'
-  | 'wlp_faturado';
+  | 'wlp_faturado'
+  | 'temperatura';
 
 export const RETROACTIVE_MODULES_LIST: { id: RetroactiveModule; label: string; iconName: string; desc: string }[] = [
+  { id: 'temperatura', label: 'Temperatura do Armazém (JSON / Excel)', iconName: 'Thermometer', desc: 'Aferições Térmicas Retroativas, Média Diária, Picos e Controle > 28°C' },
   { id: 'wlp_faturado', label: 'Volume Faturado & Absenteísmo (JSON)', iconName: 'BarChart3', desc: 'Volume Faturado Diário (HL), Jornadas de Ponto e Monitoramento de Absenteísmo' },
   { id: 'quebras', label: 'Quebras & Avarias', iconName: 'AlertCircle', desc: 'Lançamentos de Avarias e Quebras de Estoque' },
   { id: 'despejo', label: 'Despejo', iconName: 'Droplet', desc: 'Lançamentos de Despejo de Produtos e Hectolitros Perdidos' },

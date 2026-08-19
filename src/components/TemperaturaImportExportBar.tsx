@@ -6,13 +6,15 @@ import {
   Trash2, 
   AlertTriangle, 
   CheckCircle2, 
-  RefreshCw 
+  RefreshCw,
+  RotateCcw
 } from 'lucide-react';
 import { 
   exportarModeloExcelTemperatura, 
   importarPlanilhaTemperatura, 
   clearTempLogs, 
-  getStoredTempLogs 
+  getStoredTempLogs,
+  restoreBaseCsvData
 } from '../utils/tempStorage';
 
 interface TemperaturaImportExportBarProps {
@@ -76,6 +78,23 @@ export default function TemperaturaImportExportBar({ onDataChanged, compact = fa
     setTimeout(() => setStatusMsg(null), 5000);
   };
 
+  const handleRestoreFromCodeCsv = () => {
+    try {
+      const restored = restoreBaseCsvData();
+      setStatusMsg({
+        type: 'success',
+        text: `🔄 Base recarregada do arquivo CSV do código! ${restored.length} aferições processadas e atualizadas no gráfico e cards.`
+      });
+      if (onDataChanged) onDataChanged();
+      setTimeout(() => setStatusMsg(null), 5000);
+    } catch (e: any) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Erro ao recarregar base CSV do código: ' + (e?.message || 'Erro desconhecido')
+      });
+    }
+  };
+
   return (
     <div className={`bg-[#0d121c] border border-amber-500/30 rounded-xl ${compact ? 'p-3' : 'p-4'} space-y-3`}>
       {/* Hidden File Input */}
@@ -110,6 +129,17 @@ export default function TemperaturaImportExportBar({ onDataChanged, compact = fa
 
         {/* Right Buttons */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Reload from CSV Code */}
+          <button
+            type="button"
+            onClick={handleRestoreFromCodeCsv}
+            className="px-3.5 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs hover:text-white"
+            title="Recarregar e atualizar todos os dados retroativos diretamente do arquivo CSV (baseTemperaturaCsv.ts)"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-blue-400" />
+            Recarregar do Código (CSV)
+          </button>
+
           {/* Export Model */}
           <button
             type="button"
