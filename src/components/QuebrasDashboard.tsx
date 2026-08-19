@@ -296,7 +296,17 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
         const mot = (q.motivo || '').trim().toUpperCase();
         const filterUpper = filterMotivo.toUpperCase();
         
-        const match = cod === filterMotivo || mot === filterUpper || mot.includes(filterUpper) || `${cod} - ${q.motivo}`.toUpperCase().includes(filterUpper);
+        let match = false;
+        if (filterUpper.includes('-')) {
+          const filterCode = filterUpper.split('-')[0].trim();
+          if (/^\d+$/.test(filterCode) && cod) {
+            match = cod === filterCode;
+          } else {
+            match = `${cod} - ${mot}` === filterUpper || mot === filterUpper.split('-').slice(1).join('-').trim();
+          }
+        } else {
+          match = cod === filterUpper || mot === filterUpper;
+        }
         if (!match) return false;
       }
       
@@ -1028,14 +1038,28 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         cursor={{ fill: 'transparent' }}
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 9,
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13,
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a'
                         }}
-                        labelStyle={{ color: theme === 'dark' ? '#93c5fd' : '#032b5e', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#ef4444' }}
-                        formatter={(val: any) => [`${viewUnit === 'rs' ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}`, 'Valor']}
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800', 
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          borderBottom: theme === 'dark' ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                          paddingBottom: '3px'
+                        }}
+                        itemStyle={{ color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
+                        formatter={(val: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          viewUnit === 'rs' ? 'Valor' : viewUnit === 'hl' ? 'Volume' : 'Quantidade'
+                        ]}
                       />
                       <Bar 
                         dataKey="value" 
@@ -1135,14 +1159,28 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         cursor={{ fill: 'transparent' }}
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 10, 
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13, 
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a' 
                         }}
-                        labelStyle={{ color: theme === 'dark' ? '#38bdf8' : '#032b5e', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#38bdf8' }}
-                        formatter={(val: any) => [`${viewUnit === 'rs' ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}`, 'Volume']}
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800',
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          borderBottom: theme === 'dark' ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                          paddingBottom: '3px'
+                        }}
+                        itemStyle={{ color: '#38bdf8', fontSize: '13px', fontWeight: '700' }}
+                        formatter={(val: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          viewUnit === 'rs' ? 'Valor' : viewUnit === 'hl' ? 'Volume' : 'Quantidade'
+                        ]}
                       />
                       <Bar 
                         dataKey="value" 
@@ -1244,12 +1282,26 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 9,
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13,
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a'
                         }} 
-                        itemStyle={{ fontSize: 9 }} 
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800', 
+                          fontSize: '13px',
+                          marginBottom: '4px'
+                        }}
+                        itemStyle={{ fontSize: '13px', fontWeight: '700' }} 
+                        formatter={(val: any, name: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          name || (viewUnit === 'rs' ? 'Valor' : 'Volume')
+                        ]}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -1276,7 +1328,11 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                       <span className={`text-[8.5px] font-bold uppercase tracking-tight truncate ${
                         theme === 'dark' ? 'text-slate-300' : 'text-gray-600'
                       }`}>
-                        {entry.name}: <strong>{entry.value} u</strong>
+                        {entry.name}: <strong>
+                          {viewUnit === 'rs' 
+                            ? `R$ ${entry.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${entry.value.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}
+                        </strong>
                       </span>
                     </div>
                   );
@@ -1318,14 +1374,28 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 9,
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13,
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a'
                         }}
-                        labelStyle={{ color: theme === 'dark' ? '#93c5fd' : '#032b5e', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#ef4444' }}
-                        formatter={(val: any) => [`${viewUnit === 'rs' ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}`, 'Total Perda']}
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800', 
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          borderBottom: theme === 'dark' ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                          paddingBottom: '3px'
+                        }}
+                        itemStyle={{ color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
+                        formatter={(val: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          viewUnit === 'rs' ? 'Total Perda' : viewUnit === 'hl' ? 'Total (HL)' : 'Total (UN)'
+                        ]}
                       />
                       <Line 
                         type="monotone" 
@@ -1407,14 +1477,28 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         cursor={{ fill: 'transparent' }}
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 10, 
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13, 
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a' 
                         }}
-                        labelStyle={{ color: theme === 'dark' ? '#38bdf8' : '#032b5e', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#38bdf8' }}
-                        formatter={(val: any) => [`${viewUnit === 'rs' ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}`, 'Volume']}
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800', 
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          borderBottom: theme === 'dark' ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                          paddingBottom: '3px'
+                        }}
+                        itemStyle={{ color: '#38bdf8', fontSize: '13px', fontWeight: '700' }}
+                        formatter={(val: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          viewUnit === 'rs' ? 'Valor' : viewUnit === 'hl' ? 'Volume' : 'Quantidade'
+                        ]}
                       />
                       <Bar 
                         dataKey="value" 
@@ -1494,12 +1578,28 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         cursor={{ fill: 'transparent' }} 
                         contentStyle={{ 
                           backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
-                          border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
-                          borderRadius: '8px', 
-                          fontSize: 9,
+                          border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
+                          fontSize: 13,
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a'
                         }} 
-                        formatter={(val: any) => [`${viewUnit === 'rs' ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}`, 'Valor']}
+                        labelStyle={{ 
+                          color: theme === 'dark' ? '#38bdf8' : '#032b5e', 
+                          fontWeight: '800', 
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          borderBottom: theme === 'dark' ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                          paddingBottom: '3px'
+                        }}
+                        itemStyle={{ color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
+                        formatter={(val: any) => [
+                          viewUnit === 'rs' 
+                            ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                          viewUnit === 'rs' ? 'Valor' : viewUnit === 'hl' ? 'Volume' : 'Quantidade'
+                        ]}
                       />
                       <Bar 
                         dataKey="value" 

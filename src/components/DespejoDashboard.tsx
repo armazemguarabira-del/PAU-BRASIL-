@@ -1404,6 +1404,15 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                     <XAxis dataKey="dia" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#0f172a', 
+                        borderColor: '#334155', 
+                        borderRadius: '12px', 
+                        color: '#fff', 
+                        fontSize: '13px', 
+                        padding: '10px 14px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                      }}
                       formatter={(val: any, name: string) => [
                         `${val} reg/h`, 
                         name === 'realRegH' || name === 'realCxH' ? 'Produtividade Real' : 'Meta DPO'
@@ -1455,7 +1464,18 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                           <Cell key={`pie-cell-${idx}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(val: any) => [`${val} registros`, 'Contagem']} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#0f172a', 
+                          borderColor: '#334155', 
+                          borderRadius: '12px', 
+                          color: '#fff', 
+                          fontSize: '13px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                        }}
+                        formatter={(val: any) => [`${val} registros`, 'Contagem']} 
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -1504,7 +1524,18 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
                       <XAxis dataKey="dia" tick={{ fontSize: 10 }} />
                       <YAxis tick={{ fontSize: 10 }} />
-                      <Tooltip formatter={(val: any, name: string) => [val, name === 'registros' ? 'Registros (Ops)' : 'Hectolitros (HL)']} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#0f172a', 
+                          borderColor: '#334155', 
+                          borderRadius: '12px', 
+                          color: '#fff', 
+                          fontSize: '13px', 
+                          padding: '10px 14px',
+                          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                        }}
+                        formatter={(val: any, name: string) => [val, name === 'registros' ? 'Registros (Ops)' : 'Hectolitros (HL)']} 
+                      />
                       <Area type="monotone" dataKey="registros" stroke="#3b82f6" fillOpacity={1} fill="url(#colorReg)" name="registros" />
                       <Area type="monotone" dataKey="hl" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorHl)" name="hl" />
                     </AreaChart>
@@ -1910,7 +1941,18 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
                     <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip formatter={(val: any, name: string) => [val, name === 'registros' ? 'Registros (Ops)' : 'Hectolitros (HL)']} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#0f172a', 
+                        borderColor: '#334155', 
+                        borderRadius: '12px', 
+                        color: '#fff', 
+                        fontSize: '13px', 
+                        padding: '10px 14px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                      }}
+                      formatter={(val: any, name: string) => [val, name === 'registros' ? 'Registros (Ops)' : 'Hectolitros (HL)']} 
+                    />
                     <Bar dataKey="registros" fill="#3b82f6" name="registros" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="hl" fill="#8b5cf6" name="hl" radius={[4, 4, 0, 0]} />
                   </BarChart>

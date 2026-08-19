@@ -224,7 +224,29 @@ export const CrossFilterProvider: React.FC<{ children: React.ReactNode }> = ({ c
             const mot = String(obj.motivo || '').trim().toLowerCase();
             const combined = `${cod} - ${mot}`.toLowerCase();
             const tgt = String(targetVal).trim().toLowerCase();
-            return tgt === cod || tgt === mot || tgt === combined || combined.includes(tgt) || tgt.includes(mot) || tgt.includes(cod);
+
+            // 1. Exact match on combined string ("578 - vazamento")
+            if (tgt === combined) return true;
+            // 2. Exact match on code ("578")
+            if (tgt === cod) return true;
+
+            // 3. If target contains code prefix like "578 - VAZAMENTO"
+            if (tgt.includes('-')) {
+              const tgtParts = tgt.split('-');
+              const tgtCode = tgtParts[0].trim();
+              const tgtMot = tgtParts.slice(1).join('-').trim();
+              if (/^\d+$/.test(tgtCode) && cod) {
+                return cod === tgtCode;
+              }
+              if (tgtMot && mot) {
+                return mot === tgtMot;
+              }
+            }
+
+            // 4. Exact match on motivo
+            if (tgt === mot) return true;
+
+            return false;
           }
 
           if (field === 'grupo') {
