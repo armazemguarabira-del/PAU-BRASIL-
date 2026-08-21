@@ -2148,8 +2148,8 @@ export default function GestaoCapacidadeDashboard({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800 font-medium">
-                    {filteredItems.map((item) => (
-                      <tr key={item.cod} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    {filteredItems.map((item, idx) => (
+                      <tr key={`cap-item-${item.cod}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="p-3 font-mono font-bold text-amber-600">{item.cod}</td>
                         <td className="p-3 font-bold uppercase text-slate-900 dark:text-slate-100">{item.descricao}</td>
                         <td className="p-3 text-right font-mono">{item.fator}</td>

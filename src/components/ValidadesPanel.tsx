@@ -8,6 +8,7 @@ import { PRODUCTS } from '../planosData';
 import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { calcularQuebrasFefoEstoqueXEstoque, calcularQuebrasFefoEstoqueXPicking } from '../utils/matrizBlocos';
+import { getPackagingInfo, calcularTotalCaixas } from '../data/coletaPackagingData';
 import { 
   syncFefoDemandsFromValidades, 
   getStoredFefoDemands,
@@ -19,7 +20,7 @@ import StockAgeIndexTab from './StockAgeIndexTab';
 import FuturoShelfTab from './FuturoShelfTab';
 import GestaoEscoamentoTab from './GestaoEscoamentoTab';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
-import { getInitialDefaultValidades } from '../utils/fefoDefaultData';
+import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 
 interface ValidadesPanelProps {
   user: Usuario;
@@ -297,8 +298,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
       }
     }
 
-    // Exclude any repack validades so this panel ONLY shows conferente validades
-    let conferenteRows = rows.filter((r: any) => {
+    // Exclude any repack validades and legacy seed items so this panel ONLY shows conferente validades
+    let conferenteRows = removeLegacySeedValidades(rows.filter((r: any) => {
       const loc = String(r.localizacao || '').toLowerCase();
       const origem = String(r.origem || '').toLowerCase();
       const setor = String(r.setor || '').toLowerCase();
@@ -307,18 +308,14 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
         return false;
       }
       return true;
-    });
+    }));
 
-    if (conferenteRows.length === 0) {
-      conferenteRows = getInitialDefaultValidades(empresaId || 'demo');
-      try {
-        localStorage.setItem(`validades_${empresaId || 'demo'}`, JSON.stringify(conferenteRows));
-        localStorage.setItem(`armazem_validades_${empresaId || 'demo'}`, JSON.stringify(conferenteRows));
-      } catch (e) {}
-    }
+    try {
+      localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
+      localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(conferenteRows));
+    } catch (e) {}
 
     setValidadesList(conferenteRows);
-    localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
   }, [empresaData.validades, empresaId]);
 
   const getDaysRemaining = (expDate: string) => {
@@ -452,12 +449,19 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
     setRegistering(true);
 
+    const currentCode = selectedProd ? String(selectedProd.codigo) : editingRow?.codigo || '';
+    const currentDesc = selectedProd ? selectedProd.descricao : editingRow?.descricao || '';
+    const totalCalculado = calcularTotalCaixas(currentCode, palhete, lastro, caixa);
+
     const dataObj = {
-      codigo: selectedProd ? String(selectedProd.codigo) : editingRow?.codigo || '',
-      descricao: selectedProd ? selectedProd.descricao : editingRow?.descricao || '',
+      codigo: currentCode,
+      descricao: currentDesc,
       palhete,
       lastro,
       caixa,
+      quantidade: totalCalculado,
+      totalUnitiesRaw: totalCalculado,
+      totalUnities: totalCalculado,
       validade: isoDate,
       localizacao,
       bloco: (localizacao === 'pnc' || localizacao === 'picking') ? '' : bloco,
@@ -582,6 +586,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           if (cod && desc && iso) {
             const key = `${cod.toLowerCase()}_${loc}_${rua.toLowerCase()}`;
             importedKeys.add(key);
+            const totalImp = (pal > 0 || las > 0) ? calcularTotalCaixas(cod, pal, las, cx) : cx;
 
             newImportedRows.push({
               _docId: `imp_${Date.now()}_${idx}`,
@@ -592,6 +597,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
               palhete: pal,
               lastro: las,
               caixa: cx,
+              quantidade: totalImp,
+              totalUnitiesRaw: totalImp,
+              totalUnities: totalImp,
               validade: iso,
               localizacao: loc,
               bloco: rua,
@@ -683,7 +691,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
   };
 
   const handleClearAll = async () => {
-    if (!confirm('Excluir ABSOLUTAMENTE TODOS os registros de validade cadastrados?')) return;
+    if (!confirm('Deseja realmente ZERAR toda a lista de estoque e iniciar uma nova coleta de validades com o conferente? Todos os lotes atuais serão removidos.')) return;
     try {
       for (const item of validadesList) {
         const idToDel = item._docId || (item as any).id;
@@ -693,7 +701,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
       }
       setValidadesList([]);
       localStorage.setItem(`validades_${empresaId}`, JSON.stringify([]));
-      toast('Todos os registros excluídos!');
+      localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify([]));
+      localStorage.removeItem(`workstation_custom_quantities_${empresaId}`);
+      window.dispatchEvent(new Event('local_data_changed'));
+      toast('Lista de estoque zerada com sucesso!');
     } catch (e) {
       alert('Erro ao excluir registros: ' + e);
     }
@@ -832,55 +843,131 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
       {/* Standard Operating Procedure (POP / SOP) Banner for Operator */}
       <SopBannerViewer operation="fefo" operationName="FEFO / Validades" />
 
-      <div className="ptabs border-b border-[#222d3a] flex gap-2">
-        <button 
-          onClick={() => setActiveTab('form')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#8b5cf6] border-b-2 border-b-[#8b5cf6]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          {editingRow ? '✏️ Editar Lote' : '📝 Cadastrar Lote'}
-        </button>
-        <button 
-          onClick={() => setActiveTab('lista')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'lista' ? 'text-[#8b5cf6] border-b-2 border-b-[#8b5cf6]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📋 Lista do Estoque <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filterHistoryForUser(validadesList, user, getRegDateKey).length}</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('stock_age')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stock_age' ? 'text-purple-400 border-b-2 border-b-purple-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📊 Stock Age Index (%)
-        </button>
-        <button 
-          onClick={() => setActiveTab('futuro_shelf')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'futuro_shelf' ? 'text-amber-400 border-b-2 border-b-amber-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          ⚡ Futuro Shelf (Janela 30d)
-        </button>
-        <button 
-          onClick={() => setActiveTab('escoamento')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'escoamento' ? 'text-rose-400 border-b-2 border-b-rose-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📉 Gestão de Escoamento
-        </button>
-        <button 
-          onClick={() => setActiveTab('fefo_quadro')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'fefo_quadro' ? 'text-red-400 border-b-2 border-b-red-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          🚨 Quadro Alertas FEFO {(quebrasFefoPicking.length + quebrasFefoEstoque.length) > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-black">{quebrasFefoPicking.length + quebrasFefoEstoque.length}</span>}
-        </button>
-        <button 
-          onClick={() => setActiveTab('fefo_picking')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'fefo_picking' ? 'text-red-400 border-b-2 border-b-red-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          ⚡ Estoque x Picking {quebrasFefoPicking.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black">{quebrasFefoPicking.length}</span>}
-        </button>
-        <button 
-          onClick={() => setActiveTab('fefo_estoque')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'fefo_estoque' ? 'text-amber-400 border-b-2 border-b-amber-500 font-extrabold' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          🔍 Estoque x Estoque {quebrasFefoEstoque.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-black">{quebrasFefoEstoque.length}</span>}
-        </button>
+      {/* Navegação de Abas - 100% Responsivo no Celular (Todas as opções visíveis sem corte ou barra de rolagem horizontal) */}
+      <div className="bg-[#11151c] p-2 rounded-2xl border border-[#222d3a] shadow-inner">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2">
+          <button 
+            type="button"
+            onClick={() => setActiveTab('form')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'form' 
+                ? 'bg-[#8b5cf6] text-white shadow-md shadow-[#8b5cf6]/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-white hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            {editingRow ? '✏️ Editar Lote' : '📝 Cadastrar Lote'}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('lista')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'lista' 
+                ? 'bg-[#8b5cf6] text-white shadow-md shadow-[#8b5cf6]/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-white hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            <span>📋 Lista Estoque</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+              activeTab === 'lista' ? 'bg-white/20 text-white' : 'bg-[#0e1217] text-snow border border-[#222d3a]'
+            }`}>
+              {filterHistoryForUser(validadesList, user, getRegDateKey).length}
+            </span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('stock_age')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'stock_age' 
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-purple-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            📊 Stock Age Index
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('futuro_shelf')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'futuro_shelf' 
+                ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-amber-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            ⚡ Futuro Shelf (30d)
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('escoamento')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'escoamento' 
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-rose-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            📉 Escoamento
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('fefo_quadro')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'fefo_quadro' 
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-red-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            <span>🚨 Quadro Alertas</span>
+            {(quebrasFefoPicking.length + quebrasFefoEstoque.length) > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'fefo_quadro' ? 'bg-white/20 text-white' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+              }`}>
+                {quebrasFefoPicking.length + quebrasFefoEstoque.length}
+              </span>
+            )}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('fefo_picking')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'fefo_picking' 
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-red-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            <span>⚡ Estoque x Picking</span>
+            {quebrasFefoPicking.length > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'fefo_picking' ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
+              }`}>
+                {quebrasFefoPicking.length}
+              </span>
+            )}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('fefo_estoque')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'fefo_estoque' 
+                ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-amber-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            <span>🔍 Estoque x Estoque</span>
+            {quebrasFefoEstoque.length > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'fefo_estoque' ? 'bg-white/20 text-white' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              }`}>
+                {quebrasFefoEstoque.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {activeTab === 'form' ? (
@@ -962,38 +1049,85 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
           </div>
 
-          <div className="grid grid-cols-3 gap-3 p-4 bg-[#151b23]/50 border border-[#222d3a] rounded-xl">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92] text-center">Quant. Paletes</label>
-              <input 
-                type="number"
-                min={0}
-                value={palhete}
-                onChange={e => setPalhete(Math.max(0, parseInt(e.target.value) || 0))}
-                className="g-input text-center text-md font-bold text-snow"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92] text-center">Quant. Lastros</label>
-              <input 
-                type="number"
-                min={0}
-                value={lastro}
-                onChange={e => setLastro(Math.max(0, parseInt(e.target.value) || 0))}
-                className="g-input text-center text-md font-bold text-snow"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92] text-center">Quant. SKUs</label>
-              <input 
-                type="number"
-                min={0}
-                value={caixa}
-                onChange={e => setCaixa(Math.max(0, parseInt(e.target.value) || 0))}
-                className="g-input text-center text-md font-bold text-snow"
-              />
-            </div>
-          </div>
+          {/* Packaging calculation & Quantities Section */}
+          {(() => {
+            const currentCode = selectedProd ? selectedProd.codigo : editingRow?.codigo;
+            const pkgInfo = getPackagingInfo(currentCode);
+            const calculatedTotalCaixas = calcularTotalCaixas(currentCode, palhete, lastro, caixa);
+
+            return (
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-3 gap-3 p-4 bg-[#151b23]/50 border border-[#222d3a] rounded-xl">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92]">Quant. Paletes</label>
+                      <span className="text-[9px] font-mono font-bold text-amber-400/90 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                        {pkgInfo.caixasPallet} cx/pal
+                      </span>
+                    </div>
+                    <input 
+                      type="number"
+                      min={0}
+                      value={palhete}
+                      onChange={e => setPalhete(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="g-input text-center text-md font-bold text-snow"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92]">Quant. Lastros</label>
+                      <span className="text-[9px] font-mono font-bold text-cyan-400/90 bg-cyan-400/10 px-1.5 py-0.5 rounded">
+                        {pkgInfo.lastro} cx/las
+                      </span>
+                    </div>
+                    <input 
+                      type="number"
+                      min={0}
+                      value={lastro}
+                      onChange={e => setLastro(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="g-input text-center text-md font-bold text-snow"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold tracking-[1px] uppercase text-[#6a7d92]">Quant. SKUs</label>
+                      <span className="text-[9px] font-mono font-bold text-emerald-400/90 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                        Avulsas
+                      </span>
+                    </div>
+                    <input 
+                      type="number"
+                      min={0}
+                      value={caixa}
+                      onChange={e => setCaixa(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="g-input text-center text-md font-bold text-snow"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Box Calculation Banner */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-purple-950/40 via-[#151b23] to-[#151b23] border border-purple-500/30 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-xl shrink-0">
+                      🧮
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider">
+                        Cálculo Automático de Caixas:
+                      </span>
+                      <span className="text-xs font-mono text-gray-300">
+                        ({palhete} pal × {pkgInfo.caixasPallet}) + ({lastro} las × {pkgInfo.lastro}) + {caixa} av = <span className="text-emerald-400 font-bold">{calculatedTotalCaixas} caixas</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/40 px-3.5 py-2 rounded-lg">
+                    <span className="text-[10px] uppercase font-black text-purple-300">Total Caixa / SKUs:</span>
+                    <span className="text-lg font-black font-mono text-emerald-300">{calculatedTotalCaixas}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
@@ -1047,24 +1181,18 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                       <option value="A2">A2</option>
                       <option value="A3">A3</option>
                       <option value="A4">A4</option>
+                      <option value="A5">A5</option>
+                      <option value="A6">A6</option>
                     </optgroup>
                     <optgroup label="Bloco B">
                       <option value="B1">B1</option>
                       <option value="B2">B2</option>
                       <option value="B3">B3</option>
-                      <option value="B4">B4</option>
-                    </optgroup>
-                    <optgroup label="Bloco CB">
-                      <option value="CB1">CB1</option>
-                      <option value="CB2">CB2</option>
-                      <option value="CB3">CB3</option>
-                      <option value="CB4">CB4</option>
                     </optgroup>
                     <optgroup label="Bloco C">
                       <option value="C1">C1</option>
                       <option value="C2">C2</option>
                       <option value="C3">C3</option>
-                      <option value="C4">C4</option>
                     </optgroup>
                     <optgroup label="Outras Áreas">
                       <option value="Área Picking">Área Picking</option>
@@ -1126,24 +1254,18 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                   <option value="A2">Bloco A2</option>
                   <option value="A3">Bloco A3</option>
                   <option value="A4">Bloco A4</option>
+                  <option value="A5">Bloco A5</option>
+                  <option value="A6">Bloco A6</option>
                 </optgroup>
                 <optgroup label="Bloco B">
                   <option value="B1">Bloco B1</option>
                   <option value="B2">Bloco B2</option>
                   <option value="B3">Bloco B3</option>
-                  <option value="B4">Bloco B4</option>
-                </optgroup>
-                <optgroup label="Bloco CB">
-                  <option value="CB1">Bloco CB1</option>
-                  <option value="CB2">Bloco CB2</option>
-                  <option value="CB3">Bloco CB3</option>
-                  <option value="CB4">Bloco CB4</option>
                 </optgroup>
                 <optgroup label="Bloco C">
                   <option value="C1">Bloco C1</option>
                   <option value="C2">Bloco C2</option>
                   <option value="C3">Bloco C3</option>
-                  <option value="C4">Bloco C4</option>
                 </optgroup>
                 <optgroup label="Outras Áreas">
                   <option value="Área Picking">Área Picking</option>
@@ -1163,6 +1285,15 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                 <option value="asc">📅 Mais Próximos</option>
                 <option value="desc">📅 Mais Distantes</option>
               </select>
+
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="px-3 py-2 bg-red-600/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ml-auto"
+                title="Zerar toda a lista de estoque para iniciar uma nova coleta"
+              >
+                🗑️ Zerar Lista
+              </button>
             </div>
             
             <span className="text-[10px] uppercase font-bold text-[#6a7d92] tracking-wider">
@@ -1183,7 +1314,26 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
               const sortedRegDateKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
               if (sortedRegDateKeys.length === 0) {
-                return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum produto cadastrado que corresponda a estes filtros.</div>;
+                return (
+                  <div className="g-card p-12 text-center flex flex-col items-center justify-center gap-3">
+                    <div className="w-16 h-16 rounded-2xl bg-[#151b23] border border-[#222d3a] flex items-center justify-center text-3xl mb-1">
+                      📦
+                    </div>
+                    <h3 className="text-base font-bold text-snow">Estoque Zerado / Aguardando Coleta</h3>
+                    <p className="text-xs text-[#6a7d92] max-w-md">
+                      Nenhum lote registrado no momento. A lista de estoque, o painel FEFO e o Workstation CCO serão atualizados automaticamente a partir da coleta realizada pelo conferente.
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('form')}
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] text-white font-bold text-xs rounded-xl shadow-md hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2"
+                      >
+                        ➕ Cadastrar Novo Lote de Validade
+                      </button>
+                    </div>
+                  </div>
+                );
               }
 
               return sortedRegDateKeys.map(regDateKey => {
@@ -1264,11 +1414,34 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                                   </span>
                                 </div>
                                 <h4 className="text-sm font-bold text-snow truncate w-full text-center sm:text-left">{r.descricao}</h4>
-                                <div className="flex justify-center sm:justify-start gap-4 flex-wrap text-xs text-[#6a7d92] mt-2 font-mono font-semibold w-full">
-                                  {r.palhete > 0 && <span>🪵 {r.palhete} paletes</span>}
-                                  {r.lastro > 0 && <span>🗃 {r.lastro} lastros</span>}
-                                  {r.caixa > 0 && <span>📦 {r.caixa} SKUs</span>}
-                                </div>
+                                {(() => {
+                                  const pkg = getPackagingInfo(r.codigo);
+                                  const totalCx = r.quantidade !== undefined && r.quantidade > 0 
+                                    ? r.quantidade 
+                                    : calcularTotalCaixas(r.codigo, r.palhete, r.lastro, r.caixa);
+                                  return (
+                                    <div className="flex justify-center sm:justify-start gap-3 flex-wrap text-xs text-[#6a7d92] mt-2 font-mono font-semibold w-full items-center">
+                                      {r.palhete > 0 && (
+                                        <span className="bg-[#151b23] border border-[#222d3a] px-2 py-0.5 rounded text-amber-300">
+                                          🪵 {r.palhete} pal ({pkg.caixasPallet} cx/pal)
+                                        </span>
+                                      )}
+                                      {r.lastro > 0 && (
+                                        <span className="bg-[#151b23] border border-[#222d3a] px-2 py-0.5 rounded text-cyan-300">
+                                          🗃 {r.lastro} las ({pkg.lastro} cx/las)
+                                        </span>
+                                      )}
+                                      {r.caixa > 0 && (
+                                        <span className="bg-[#151b23] border border-[#222d3a] px-2 py-0.5 rounded text-emerald-300">
+                                          📦 {r.caixa} avulsas
+                                        </span>
+                                      )}
+                                      <span className="text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-500/40 px-2.5 py-0.5 rounded text-[11px]">
+                                        🔢 Total: {totalCx} {totalCx === 1 ? 'Caixa' : 'Caixas'}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                               
                               <div className="flex gap-2 self-end sm:self-auto">

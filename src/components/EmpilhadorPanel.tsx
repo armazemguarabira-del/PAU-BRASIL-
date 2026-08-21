@@ -179,10 +179,17 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     { id: 5, label: 'Iluminação de pátio adequada', desc: 'Visibilidade regular para empilhadeira atestada na zona operativa.', checked: false },
   ];
   const [checklist, setChecklist] = useState(defaultChecklist);
-  const [checklistDone, setChecklistDone] = useState<boolean>(false);
+  const checklistStorageKey = `empilhador_checklist_${user.uid || user.nome || 'demo'}_${new Date().toISOString().slice(0, 10)}`;
+  const [checklistDone, setChecklistDone] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(`empilhador_checklist_${user.uid || user.nome || 'demo'}_${new Date().toISOString().slice(0, 10)}`) === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
 
-  // Subtab for Demand Board: 8 main tabs ('carregamento' | 'descarregamento' | 'tmr' | 'rr' | 'realocacao_dedo' | '5s' | 'historico' | 'acoes')
-  const [demandTab, setDemandTab] = useState<'carregamento' | 'descarregamento' | 'tmr' | 'rr' | 'realocacao_dedo' | '5s' | 'historico' | 'acoes'>('carregamento');
+  // Subtab for Demand Board: 6 main operational tabs ('tmr' | 'rr' | 'realocacao_dedo' | '5s' | 'historico' | 'acoes')
+  const [demandTab, setDemandTab] = useState<'tmr' | 'rr' | 'realocacao_dedo' | '5s' | 'historico' | 'acoes'>('tmr');
   
   // Per-tab history toggle states
   const [efcHistoryView, setEfcHistoryView] = useState<boolean>(false);
@@ -441,13 +448,29 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     setChecklist(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
   };
 
+  const handleSelectAllChecklist = () => {
+    setChecklist(prev => prev.map(item => ({ ...item, checked: true })));
+  };
+
   const checklistCheckedCount = checklist.filter(c => c.checked).length;
   const isChecklistCompleted = checklistCheckedCount === checklist.length;
 
   const handleConfirmChecklist = () => {
     if (!isChecklistCompleted) return;
+    try {
+      localStorage.setItem(checklistStorageKey, 'true');
+    } catch (e) {}
     setChecklistDone(true);
     triggerToast('Checklist concluído! Quadro de demandas liberado para operação.');
+  };
+
+  const handleRedoChecklist = () => {
+    try {
+      localStorage.removeItem(checklistStorageKey);
+    } catch (e) {}
+    setChecklist(defaultChecklist);
+    setChecklistDone(false);
+    triggerToast('Checklist reiniciado para nova checagem de segurança.');
   };
 
   // --- EFC (Carregamento) Actions ---
@@ -941,12 +964,22 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
             ))}
           </div>
 
-          <div className="max-w-xl mx-auto w-full mt-2">
+          <div className="flex items-center justify-between max-w-xl mx-auto w-full mt-2">
+            <button
+              type="button"
+              onClick={handleSelectAllChecklist}
+              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+            >
+              ✓ Marcar todos como verificados
+            </button>
+            <div className="text-[10px] font-sans font-bold tracking-wider text-[#6a7d92] text-right">
+              {checklistCheckedCount} / {checklist.length} itens confirmados
+            </div>
+          </div>
+
+          <div className="max-w-xl mx-auto w-full">
             <div className="h-1.5 w-full bg-[#151b23] border border-[#222d3a] rounded-full overflow-hidden">
               <div className="h-full bg-[#22c55e] transition-all" style={{ width: `${(checklistCheckedCount / checklist.length) * 100}%` }}></div>
-            </div>
-            <div className="text-[10px] font-sans font-bold tracking-wider text-[#6a7d92] text-right mt-2">
-              {checklistCheckedCount} / {checklist.length} itens confirmados
             </div>
           </div>
 
@@ -954,7 +987,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
             <button 
               disabled={!isChecklistCompleted}
               onClick={handleConfirmChecklist}
-              className="btn-primary flex-1 py-4 text-xs font-bold tracking-widest bg-gradient-to-r from-[#f5a623] to-[#d4780a] text-[#07090d] rounded-xl text-center disabled:opacity-40 cursor-pointer shadow-md"
+              className="btn-primary flex-1 py-4 text-xs font-bold tracking-widest bg-gradient-to-r from-[#f5a623] to-[#d4780a] text-[#07090d] rounded-xl text-center disabled:opacity-40 cursor-pointer shadow-md transition-all active:scale-[0.99]"
             >
               ✅ REVISÃO FEITA — LIBERAR TAREFAS DO EMPILHADOR
             </button>
@@ -985,8 +1018,18 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Atribuição Automática de Registros</span>
+              <div className="flex flex-col items-start md:items-end gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Atribuição Automática</span>
+                  <button
+                    type="button"
+                    onClick={handleRedoChecklist}
+                    className="text-[10px] text-slate-400 hover:text-amber-300 font-bold bg-[#151b23] border border-[#222d3a] hover:border-amber-500/40 px-2 py-0.5 rounded cursor-pointer transition-all"
+                    title="Refazer checagem do checklist pré-operação"
+                  >
+                    ✓ Checklist Ativo (Refazer)
+                  </button>
+                </div>
                 <span className="text-xs font-semibold text-slate-300">
                   Todas as inicializações e conclusões serão registradas em seu nome.
                 </span>
@@ -1015,11 +1058,11 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
               <div className="p-3 bg-[#151b23] border border-[#222d3a] rounded-xl">
                 <div className="flex items-center justify-between text-slate-400 mb-1">
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Carros EFC/EFD</span>
-                  <Truck className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Realocações FEFO</span>
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
                 </div>
-                <span className="text-xl font-black text-blue-400 block">{myCompletedEfc.length + myCompletedEfd.length} veículos</span>
-                <span className="text-[9px] text-slate-400">{myCompletedEfc.length} EFC · {myCompletedEfd.length} EFD</span>
+                <span className="text-xl font-black text-red-400 block">{myCompletedFefo.length} concluídas</span>
+                <span className="text-[9px] text-slate-400">{myAssignedFefo.filter(t => t.status !== 'done').length} pendentes</span>
               </div>
 
               <div className="p-3 bg-[#151b23] border border-[#222d3a] rounded-xl">
@@ -1041,7 +1084,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                   <Activity className="w-4 h-4 text-amber-400" /> QUADRO DE DEMANDAS DO DIA DOS EMPILHADORES
                 </h4>
                 <p className="text-[10px] text-slate-400 font-medium">
-                  Ciclo Operacional Ativo: EFC (Carregamento) ➔ EFD (Descarregamento) ➔ Histórico de Conclusões ➔ Guia de Ações
+                  Ciclo Operacional Ativo: TMR (Recargas) ➔ Ressuprimento (RR) ➔ Realocação FEFO ➔ 5S & Ações
                 </p>
               </div>
 
@@ -1070,38 +1113,8 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
               </div>
             </div>
 
-            {/* TAB SELECTORS - 8 OPERATIONAL TABS */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 bg-[#151b23] border border-[#222d3a] p-2 rounded-xl w-full">
-              <button
-                onClick={() => setDemandTab('carregamento')}
-                className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  demandTab === 'carregamento'
-                    ? 'bg-amber-500 text-slate-950 font-black shadow'
-                    : 'text-slate-400 hover:text-white bg-transparent'
-                }`}
-              >
-                <Truck className="w-4 h-4 shrink-0" />
-                <span className="truncate">1. Carreg.</span>
-                <span className="bg-slate-900 text-amber-300 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
-                  {efcPendingVehicles.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setDemandTab('descarregamento')}
-                className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  demandTab === 'descarregamento'
-                    ? 'bg-emerald-600 text-white font-black shadow'
-                    : 'text-slate-400 hover:text-white bg-transparent'
-                }`}
-              >
-                <Clock className="w-4 h-4 shrink-0" />
-                <span className="truncate">2. Descarreg.</span>
-                <span className="bg-emerald-950 text-emerald-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
-                  {efdPendingVehicles.length}
-                </span>
-              </button>
-
+            {/* TAB SELECTORS - 6 OPERATIONAL TABS */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-[#151b23] border border-[#222d3a] p-2 rounded-xl w-full">
               <button
                 onClick={() => setDemandTab('tmr')}
                 className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
@@ -1111,7 +1124,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <Layers className="w-4 h-4 shrink-0" />
-                <span className="truncate">3. TMR</span>
+                <span className="truncate">1. TMR</span>
                 <span className="bg-purple-950 text-purple-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
                   {myAssignedTmr.filter(t => t.status !== 'done').length}
                 </span>
@@ -1126,7 +1139,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <Package className="w-4 h-4 shrink-0" />
-                <span className="truncate">4. Ressupr.</span>
+                <span className="truncate">2. Ressupr.</span>
                 <span className="bg-emerald-950 text-emerald-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
                   {myAssignedTasks.filter(t => t.status !== 'done').length}
                 </span>
@@ -1141,7 +1154,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-300" />
-                <span className="truncate">5. Realoc.</span>
+                <span className="truncate">3. Realoc.</span>
                 <span className="bg-red-950 text-red-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
                   {myAssignedFefo.filter(t => t.status !== 'done').length}
                 </span>
@@ -1156,7 +1169,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span className="truncate">6. 5S</span>
+                <span className="truncate">4. 5S</span>
               </button>
 
               <button
@@ -1168,7 +1181,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <History className="w-4 h-4 shrink-0" />
-                <span className="truncate">7. Histórico</span>
+                <span className="truncate">5. Histórico</span>
                 <span className="bg-cyan-950 text-cyan-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono shrink-0">
                   {totalOpsCompleted}
                 </span>
@@ -1183,225 +1196,9 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 }`}
               >
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span className="truncate">8. Guia Ações</span>
+                <span className="truncate">6. Guia Ações</span>
               </button>
             </div>
-
-            {/* ABA 1: CARREGAMENTO */}
-            {demandTab === 'carregamento' && (
-              <div className="flex flex-col gap-4">
-                <div className="p-3 bg-[#0d1218] border border-amber-500/30 rounded-xl flex items-center justify-between text-xs">
-                  <span className="text-amber-300 font-bold flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-amber-400" />
-                    CARREGAMENTO — Meta DPO: Conclusão total até às <strong className="font-mono text-white">06:30 AM</strong>
-                  </span>
-                  <span className="text-slate-400 text-[10px]">
-                    Ao concluir o carregamento, o veículo é direcionado automaticamente para a guia de <strong>Descarregamento</strong>.
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 max-h-[480px] overflow-y-auto">
-                  {efcPendingVehicles.length === 0 ? (
-                    <p className="text-xs text-slate-500 text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530]">
-                      Nenhum veículo pendente de carregamento atribuído para você no momento.
-                    </p>
-                  ) : (
-                    efcPendingVehicles.map(v => (
-                      <div 
-                        key={`efc_${v.id}`} 
-                        className={`p-4 bg-[#11151c] border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
-                          v.statusCarregamento === 'Em Carregamento' 
-                            ? 'border-blue-500/50 bg-blue-950/20' 
-                            : 'border-[#1c2530] hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-black font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
-                              {v.placa}
-                            </span>
-                            <span className="text-xs font-bold text-slate-300">
-                              Mapa: {v.mapa} · {v.tipoVeiculo}
-                            </span>
-                            <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-                              v.statusCarregamento === 'Em Carregamento'
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse'
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            }`}>
-                              {v.statusCarregamento}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1">
-                            <span className="font-mono text-amber-300 font-bold">{v.caixas?.toLocaleString('pt-BR')} cx</span>
-                            <span>·</span>
-                            <span>Entrega: {v.dataEntrega}</span>
-                            {v.operadorExecutorCarregamento && (
-                              <>
-                                <span>·</span>
-                                <span className="text-emerald-400 font-bold">Op: {v.operadorExecutorCarregamento}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* TIPO DE CARGA BADGE / TOGGLE & INICIAR/CONCLUIR BUTTONS */}
-                        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 border-[#222d3a] pt-3 md:pt-0">
-                          <button
-                            onClick={() => handleMarkRecarga(v.id)}
-                            className={`py-1.5 px-2.5 border font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer transition-all ${
-                              v.isRecarga || v.tipoCarga === 'Recarga'
-                                ? 'bg-purple-600/30 text-purple-300 border-purple-500/50'
-                                : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-purple-500/30'
-                            }`}
-                            title="Marcar / Desmarcar veículo como Recarga (TMR)"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            {v.isRecarga || v.tipoCarga === 'Recarga' ? 'Recarga Ativa' : 'Marcar Recarga'}
-                          </button>
-
-                          {v.statusCarregamento === 'Pendente' && (
-                            <button
-                              onClick={() => handleStartEfc(v.id)}
-                              className="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow"
-                            >
-                              <Play className="w-3.5 h-3.5" /> Iniciar
-                            </button>
-                          )}
-
-                          {v.statusCarregamento === 'Em Carregamento' && (
-                            <button
-                              onClick={() => handleFinishEfc(v.id)}
-                              className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Concluir
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ABA 2: DESCARREGAMENTO */}
-            {demandTab === 'descarregamento' && (
-              <div className="flex flex-col gap-4">
-                <div className="p-3 bg-[#0d1218] border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs">
-                  <span className="text-emerald-400 font-bold flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-emerald-400" />
-                    DESCARREGAMENTO — Meta DPO: Conclusão total até às <strong className="font-mono text-white">22:00 PM</strong>
-                  </span>
-                  <span className="text-slate-400 text-[10px]">
-                    Veículos concluídos no Carregamento passam para <strong>Aguardando Descarregamento</strong>. Pernoites possuem a marcação 🌙 D1.
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 max-h-[480px] overflow-y-auto">
-                  {efdPendingVehicles.length === 0 ? (
-                    <p className="text-xs text-slate-500 text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530]">
-                      Nenhum veículo liberado ou aguardando descarregamento no momento.
-                    </p>
-                  ) : (
-                    efdPendingVehicles.map(v => {
-                      const isPernoite = v.statusDescarregamento === 'Pernoite' || v.pernoiteMarked === true;
-                      const statusLabel = v.statusDescarregamento === 'Pendente' 
-                        ? 'Aguardando Descarregamento' 
-                        : (v.statusDescarregamento || 'Pendente');
-
-                      return (
-                        <div 
-                          key={`efd_${v.id}`} 
-                          className={`p-4 bg-[#11151c] border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
-                            isPernoite
-                              ? 'border-amber-500/50 bg-amber-950/20'
-                              : v.statusDescarregamento === 'Em Descarregamento'
-                              ? 'border-blue-500/50 bg-blue-950/20'
-                              : 'border-[#1c2530] hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-black font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
-                                {v.placa}
-                              </span>
-                              <span className="text-xs font-bold text-slate-300">
-                                Mapa: {v.mapa} · {v.tipoVeiculo}
-                              </span>
-                              
-                              {isPernoite && (
-                                <span className="text-[10px] font-black bg-amber-500 text-slate-950 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow">
-                                  <Moon className="w-3 h-3 fill-slate-950" /> {v.pernoiteStatus || 'D1'} PERNOITE
-                                </span>
-                              )}
-
-                              <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full ${
-                                v.statusDescarregamento === 'Em Descarregamento'
-                                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse'
-                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold'
-                              }`}>
-                                {statusLabel}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1">
-                              <span className="font-mono text-amber-300 font-bold">{v.caixas?.toLocaleString('pt-BR')} cx</span>
-                              {v.operadorExecutorDescarregamento && (
-                                <>
-                                  <span>·</span>
-                                  <span className="text-emerald-400 font-bold">Op: {v.operadorExecutorDescarregamento}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 border-[#222d3a] pt-3 md:pt-0">
-                            {(v.statusDescarregamento === 'Pendente' || v.statusDescarregamento === 'Pernoite') && (
-                              <>
-                                <button
-                                  onClick={() => handleStartEfd(v.id)}
-                                  className="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow"
-                                >
-                                  <Play className="w-3.5 h-3.5" /> Iniciar
-                                </button>
-                                <button
-                                  onClick={() => handleMarkRecarga(v.id)}
-                                  className={`py-2 px-3 border font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer transition-all ${
-                                    v.isRecarga || v.tipoCarga === 'Recarga'
-                                      ? 'bg-purple-600/30 text-purple-300 border-purple-500/50'
-                                      : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-purple-500/30'
-                                  }`}
-                                  title="Marcar / Desmarcar veículo como Recarga (TMR)"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                  {v.isRecarga || v.tipoCarga === 'Recarga' ? 'Recarga Ativa' : 'Marcar Recarga'}
-                                </button>
-                                <button
-                                  onClick={() => handleMarkPernoite(v.id)}
-                                  className="py-2 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer"
-                                >
-                                  <Moon className="w-3.5 h-3.5" /> {v.pernoiteMarked ? `Pernoite (${v.pernoiteStatus || 'D1'})` : 'Pernoite D1'}
-                                </button>
-                              </>
-                            )}
-
-                            {v.statusDescarregamento === 'Em Descarregamento' && (
-                              <button
-                                onClick={() => handleFinishEfd(v.id)}
-                                className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Concluir
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* ABA 2: TMR REVENDAS / DELEGADAS PELO CONFERENTE */}
             {demandTab === 'tmr' && (

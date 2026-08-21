@@ -643,8 +643,8 @@ export default function ImportacaoContagensPanel({ user, onDataUpdated }: Import
                     </td>
                   </tr>
                 ) : (
-                  filteredContagens.slice(0, 100).map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/80 transition-all">
+                  filteredContagens.slice(0, 100).map((row, idx) => (
+                    <tr key={`contagem-row-${row.id || idx}-${idx}`} className="hover:bg-slate-50/80 transition-all">
                       <td className="py-2.5 px-4 font-mono font-bold text-slate-900">{row.codigo}</td>
                       <td className="py-2.5 px-4 font-bold text-slate-800">{row.produto}</td>
                       <td className="py-2.5 px-4">
@@ -721,8 +721,8 @@ export default function ImportacaoContagensPanel({ user, onDataUpdated }: Import
                     </td>
                   </tr>
                 ) : (
-                  logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50 transition-all">
+                  logs.map((log, idx) => (
+                    <tr key={`import-log-${log.id || idx}-${idx}`} className="hover:bg-slate-50 transition-all">
                       <td className="py-3 px-4 font-mono text-slate-600 font-semibold">{log.dataHora}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${

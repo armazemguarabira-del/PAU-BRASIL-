@@ -54,11 +54,12 @@ import {
   PieChart as PieIcon,
   Tag,
   Download,
-  FileText
+  FileText,
+  ClipboardCheck
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import { Usuario, Empresa, DespejoRow } from '../types';
+import { Usuario, Empresa, DespejoRow, QuebraRow } from '../types';
 import { DespejoRepository } from '../db';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { useSystemTargets } from '../utils/useSystemTargets';
@@ -70,6 +71,8 @@ import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
+import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
+import { getItemHlInfo, getEmbalagemName } from './WqiTab';
 import A3BoardComponent from './A3BoardComponent';
 
 interface DespejoDashboardProps {
@@ -225,10 +228,18 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   const { targets, updateTarget } = useSystemTargets();
   const metaProdutividadeCxH = targets.despejo_produtividade ?? 10;
 
-  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'skus' | 'boarda3'>('produtividade');
+  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3'>('produtividade');
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);
+  const [actualQuebras, setActualQuebras] = useState<QuebraRow[]>([]);
   const [loading, setLoading] = useState(false);
   const empresaData = useEmpresaData();
+
+  // Shelf Life (Produtos Vencidos na Operação) state
+  const [shelfSearch, setShelfSearch] = useState('');
+  const [shelfFilterCausa, setShelfFilterCausa] = useState('todos');
+  const [shelfFilterEmbalagem, setShelfFilterEmbalagem] = useState('todos');
+  const [shelfPage, setShelfPage] = useState(1);
+  const shelfItemsPerPage = 10;
 
   // Packaging Configs from localStorage with fallback
   const [embalagensConfig, setEmbalagensConfig] = useState<Record<string, { metaSec: number; label: string }>>(() => {
@@ -379,6 +390,49 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
       window.removeEventListener('storage', handleDbUpdated);
     };
   }, [reloadData]);
+
+  // Sync Quebras em tempo real para Varredura de Shelf Life (Produtos Vencidos)
+  useEffect(() => {
+    const companyId = empresa?.id || 'demo';
+    const refreshQuebras = () => {
+      let rows = [...(empresaData.quebras || [])];
+      if (rows.length === 0) {
+        const saved = localStorage.getItem(`quebras_${companyId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              rows = parsed;
+            }
+          } catch (_) {}
+        }
+      }
+      if (rows.length === 0) {
+        rows = buildOfficialQuebrasRows(companyId);
+      }
+      setActualQuebras(rows);
+    };
+
+    refreshQuebras();
+
+    const handleUpdated = () => {
+      refreshQuebras();
+    };
+
+    window.addEventListener('quebras-db-updated', handleUpdated);
+    window.addEventListener('quebras-updated', handleUpdated);
+    window.addEventListener('retroactive-data-updated', handleUpdated);
+    window.addEventListener('empresa-data-reload', handleUpdated);
+    window.addEventListener('storage', handleUpdated);
+
+    return () => {
+      window.removeEventListener('quebras-db-updated', handleUpdated);
+      window.removeEventListener('quebras-updated', handleUpdated);
+      window.removeEventListener('retroactive-data-updated', handleUpdated);
+      window.removeEventListener('empresa-data-reload', handleUpdated);
+      window.removeEventListener('storage', handleUpdated);
+    };
+  }, [empresaData.quebras, empresa?.id]);
 
   // Helpers
   const pad2 = (num: number) => String(num).padStart(2, '0');
@@ -818,6 +872,288 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
     return Array.from(dayMap.values()).slice(-14);
   }, [filteredRows, EMBALAGENS_VOLUME]);
 
+  // Helper para identificar se uma quebra ocorreu especificamente por prazo de validade expirado / produto vencido
+  const isQuebraMotivoVencido = (q: Partial<QuebraRow>): boolean => {
+    if (!q) return false;
+    const anyQ = q as any;
+    const mot = `${q.motivo || ''} ${anyQ.tipoAvaria || ''} ${anyQ.observacao || ''} ${q.descricao || ''} ${anyQ.origem || ''}`.toUpperCase();
+    const cod = String(q.codQuebra || '').trim();
+
+    // Códigos DPO específicos de produto vencido / validade
+    const codigosVencimento = ['533', '554', '573', '585'];
+    if (codigosVencimento.includes(cod)) return true;
+
+    // Verificação textual estrita no motivo ou observações
+    if (
+      mot.includes('VENCID') ||
+      mot.includes('VENCIMENTO') ||
+      mot.includes('VALIDADE') ||
+      mot.includes('SHELF') ||
+      mot.includes('EXPIRAD') ||
+      mot.includes('FORA DO PRAZO') ||
+      mot.includes('PRAZO VENCIDO') ||
+      mot.includes('DATA VENCIDA')
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Helper para classificar a causa raiz DPO de vencimento a partir dos dados da Quebra
+  const getShelfCausaInfoFromQuebra = (q: Partial<QuebraRow>) => {
+    const anyQ = q as any;
+    const text = `${q.motivo || ''} ${anyQ.observacao || ''} ${q.area || ''} ${anyQ.tipoAvaria || ''}`.toLowerCase();
+    
+    if (text.includes('fefo') || text.includes('inversão') || text.includes('inversao') || text.includes('giro') || text.includes('puxada')) {
+      return { causa: 'Falha de Giro / FEFO Invertido', cor: '#f43f5e', bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' };
+    }
+    if (text.includes('rota') || text.includes('cliente') || text.includes('devolu') || text.includes('retorno') || text.includes('entrega')) {
+      return { causa: 'Retorno de Rota Vencido', cor: '#eab308', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' };
+    }
+    if (text.includes('avaria') || text.includes('vazamento') || text.includes('quebra') || text.includes('danificado')) {
+      return { causa: 'Avaria com Perda de Validade', cor: '#a855f7', bg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' };
+    }
+    if (text.includes('excesso') || text.includes('estoque') || text.includes('lento')) {
+      return { causa: 'Giro Lento / Excesso de Estoque', cor: '#f97316', bg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' };
+    }
+    if (text.includes('armazém') || text.includes('armazem') || text.includes('picking') || text.includes('bloco') || text.includes('pulmão') || text.includes('pulmao')) {
+      return { causa: 'Validade Expirada no Armazém', cor: '#3b82f6', bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' };
+    }
+
+    const motivoFormatado = q.motivo ? q.motivo.trim() : 'Produto Vencido na Operação';
+    return { causa: motivoFormatado, cor: '#f97316', bg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' };
+  };
+
+  // Varredura estrita nas quebras: alimenta o dashboard APENAS se o motivo for produto vencido
+  const rawShelfQuebras = useMemo(() => {
+    return actualQuebras.filter(q => isQuebraMotivoVencido(q));
+  }, [actualQuebras]);
+
+  // Dataset Completo de Shelf Life (Produtos Vencidos vindos exclusivamente de Quebras)
+  const shelfRows = useMemo(() => {
+    return rawShelfQuebras.map(q => {
+      const anyQ = q as any;
+      const causaInfo = getShelfCausaInfoFromQuebra(q);
+      const cx = Number(q.quantidade || q.caixas) || 0;
+      
+      // Cálculo volumétrico oficial em Hectolitros (HL)
+      let hl = Number(anyQ.hectolitroPerdido || q.hlPerdido || 0);
+      if (!hl || hl <= 0) {
+        const hlInfo = getItemHlInfo(q);
+        hl = hlInfo.totalHl || (cx * 0.084);
+      }
+      hl = Math.round(hl * 10000) / 10000;
+
+      const embName = q.embalagem || getEmbalagemName(q.descricao || '') || 'Outros';
+
+      return {
+        _docId: q._docId || q.id || `q_shelf_${Math.random()}`,
+        data: q.data || (q.dataISO ? q.dataISO.split('T')[0] : '—'),
+        dataISO: q.dataISO,
+        mes: q.mes || (q.dataISO ? q.dataISO.slice(0, 7) : 'Geral'),
+        codProduto: q.codProduto || q.codQuebra || '—',
+        descricao: q.descricao || anyQ.produto || 'Produto Vencido',
+        embalagem: embName,
+        unidades: cx,
+        hlCalculado: hl,
+        causaRaiz: causaInfo.causa,
+        causaCor: causaInfo.cor,
+        causaBg: causaInfo.bg,
+        operador: q.responsavel || anyQ.operador || q.colaboradorQuebrou || anyQ.colaborador || anyQ.criadoPor || 'Operador Não Informado',
+        area: q.area || 'Armazém',
+        motivo: q.motivo || 'Produto Vencido',
+        observacao: anyQ.observacao || anyQ.obs || '—',
+        origem: 'Varredura Módulo Quebras (Vencido)'
+      };
+    });
+  }, [rawShelfQuebras]);
+
+  // Linhas Filtradas na aba Shelf Life
+  const filteredShelfRows = useMemo(() => {
+    return shelfRows.filter(r => {
+      if (shelfFilterCausa !== 'todos' && r.causaRaiz !== shelfFilterCausa) return false;
+      if (shelfFilterEmbalagem !== 'todos' && r.embalagem !== shelfFilterEmbalagem) return false;
+      if (shelfSearch.trim()) {
+        const q = shelfSearch.toLowerCase();
+        const cod = String(r.codProduto || '').toLowerCase();
+        const desc = (r.descricao || '').toLowerCase();
+        const op = (r.operador || '').toLowerCase();
+        const causa = (r.causaRaiz || '').toLowerCase();
+        const area = (r.area || '').toLowerCase();
+        if (!cod.includes(q) && !desc.includes(q) && !op.includes(q) && !causa.includes(q) && !area.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [shelfRows, shelfFilterCausa, shelfFilterEmbalagem, shelfSearch]);
+
+  const totalShelfHL = useMemo(() => {
+    return Math.round(filteredShelfRows.reduce((sum, r) => sum + r.hlCalculado, 0) * 10000) / 10000;
+  }, [filteredShelfRows]);
+
+  const totalShelfUnidades = useMemo(() => {
+    return filteredShelfRows.reduce((sum, r) => sum + r.unidades, 0);
+  }, [filteredShelfRows]);
+
+  const totalShelfRegistros = filteredShelfRows.length;
+
+  // Ranking de SKUs Vencidos na Operação (Top 10)
+  const rankingSkusVencidos = useMemo(() => {
+    const map = new Map<string, { cod: string; desc: string; emb: string; registros: number; caixas: number; hl: number; causas: Record<string, number> }>();
+    filteredShelfRows.forEach(r => {
+      const cod = String(r.codProduto || '—');
+      const desc = r.descricao || r.embalagem || 'Produto Não Especificado';
+      const key = `${cod}_${desc}`;
+      const prev = map.get(key) || { cod, desc, emb: r.embalagem, registros: 0, caixas: 0, hl: 0, causas: {} };
+      prev.causas[r.causaRaiz] = (prev.causas[r.causaRaiz] || 0) + 1;
+      map.set(key, {
+        cod,
+        desc,
+        emb: r.embalagem,
+        registros: prev.registros + 1,
+        caixas: prev.caixas + r.unidades,
+        hl: prev.hl + r.hlCalculado,
+        causas: prev.causas
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => b.hl - a.hl).slice(0, 10);
+  }, [filteredShelfRows]);
+
+  // Distribuição de Causas Raiz de Vencimento
+  const chartCausasVencimento = useMemo(() => {
+    const map = new Map<string, { count: number; hl: number }>();
+    filteredShelfRows.forEach(r => {
+      const c = r.causaRaiz;
+      const prev = map.get(c) || { count: 0, hl: 0 };
+      map.set(c, { count: prev.count + 1, hl: prev.hl + r.hlCalculado });
+    });
+    const colors: Record<string, string> = {
+      'Giro Lento / Excesso de Estoque': '#f97316',
+      'Falha de Giro / FEFO Invertido': '#f43f5e',
+      'Retorno de Rota Vencido': '#eab308',
+      'Validade Expirada no Armazém': '#3b82f6',
+      'Avaria com Perda de Validade': '#a855f7'
+    };
+    return Array.from(map.entries()).map(([name, data]) => ({
+      name,
+      registros: data.count,
+      hl: Math.round(data.hl * 10000) / 10000,
+      color: colors[name] || '#64748b'
+    }));
+  }, [filteredShelfRows]);
+
+  // Evolução Mensal de Perdas por Vencimento (HL e Registros)
+  const chartShelfMensal = useMemo(() => {
+    const map = new Map<string, { mes: string; registros: number; caixas: number; hl: number }>();
+    filteredShelfRows.forEach(r => {
+      const m = r.mes || (r.dataISO ? r.dataISO.slice(0, 7) : 'Geral');
+      const prev = map.get(m) || { mes: m, registros: 0, caixas: 0, hl: 0 };
+      map.set(m, {
+        mes: m,
+        registros: prev.registros + 1,
+        caixas: prev.caixas + r.unidades,
+        hl: Math.round((prev.hl + r.hlCalculado) * 10000) / 10000
+      });
+    });
+    return Array.from(map.values());
+  }, [filteredShelfRows]);
+
+  // Perdas por Embalagem no Shelf Life
+  const chartShelfEmbalagens = useMemo(() => {
+    const map = new Map<string, { count: number; hl: number; caixas: number }>();
+    filteredShelfRows.forEach(r => {
+      const emb = r.embalagem || 'Outros';
+      const prev = map.get(emb) || { count: 0, hl: 0, caixas: 0 };
+      map.set(emb, {
+        count: prev.count + 1,
+        hl: prev.hl + r.hlCalculado,
+        caixas: prev.caixas + r.unidades
+      });
+    });
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        registros: data.count,
+        caixas: data.caixas,
+        hl: Math.round(data.hl * 10000) / 10000
+      }))
+      .sort((a, b) => b.hl - a.hl);
+  }, [filteredShelfRows]);
+
+  // Exportar Relatório Shelf Life para Excel
+  const handleExportShelfXLSX = () => {
+    try {
+      if (filteredShelfRows.length === 0) {
+        alert('Nenhum produto vencido identificado nas Quebras para exportação.');
+        return;
+      }
+      const dataToExport = filteredShelfRows.map(r => ({
+        'Data': r.data,
+        'Mês': r.mes,
+        'Código Produto': r.codProduto,
+        'Descrição': r.descricao,
+        'Embalagem': r.embalagem,
+        'Quantidade (UN/CX)': r.unidades,
+        'Volume Perdido (HL)': r.hlCalculado.toFixed(4),
+        'Causa / Motivo da Quebra': r.causaRaiz,
+        'Área': r.area,
+        'Responsável': r.operador,
+        'Observação': r.observacao || '—',
+        'Origem': r.origem
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Varredura_Shelf_Vencidos');
+      XLSX.writeFile(wb, `Varredura_Shelf_Life_Quebras_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao exportar relatório de Shelf Life.');
+    }
+  };
+
+  // Exportar Relatório Shelf Life para PDF
+  const handleExportShelfPDF = () => {
+    try {
+      if (filteredShelfRows.length === 0) {
+        alert('Nenhum produto vencido identificado nas Quebras para exportação.');
+        return;
+      }
+      const doc = new jsPDF('p', 'pt', 'a4');
+      doc.setFontSize(16);
+      doc.setTextColor(3, 43, 94);
+      doc.text('RELATÓRIO DPO - PRODUTOS VENCIDOS EM QUEBRAS (SHELF LIFE)', 40, 50);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, 40, 70);
+      doc.text(`Fonte: Varredura de Quebras (Motivo: Vencido) | Total Registros: ${totalShelfRegistros} | Caixas/UN: ${totalShelfUnidades} | Volume: ${totalShelfHL.toFixed(4)} HL`, 40, 85);
+
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('PRODUTOS VENCIDOS IDENTIFICADOS NA VARREDURA (HL):', 40, 115);
+
+      let y = 135;
+      rankingSkusVencidos.slice(0, 15).forEach((item, idx) => {
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
+        doc.setFontSize(9);
+        doc.setTextColor(30, 41, 59);
+        doc.text(`${idx + 1}. [Cód: ${item.cod}] ${item.desc} (${item.emb})`, 40, y);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`${item.caixas} UN | ${item.hl.toFixed(4)} HL | ${item.registros} quebras`, 420, y);
+        y += 18;
+      });
+
+      doc.save(`Relatorio_DPO_Shelf_Life_Quebras_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao exportar PDF de Shelf Life.');
+    }
+  };
+
   // Paginated Rows
   const searchedRows = useMemo(() => {
     if (!tableSearch.trim()) return filteredRows;
@@ -1068,6 +1404,19 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
         <div className="flex flex-wrap items-center gap-2.5">
           <DespejoHeaderClock />
 
+          {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (DESPEJO) */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'despejo' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'despejo' } }));
+            }}
+            className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all border border-purple-400/40 hover:scale-[1.02] active:scale-95 cursor-pointer"
+            title="Abrir Diagnóstico DTO Operacional de Despejo"
+          >
+            <ClipboardCheck className="w-4 h-4 text-purple-200" />
+            <span>DTO Despejo</span>
+          </button>
+
           <button
             onClick={() => reloadData()}
             disabled={loading}
@@ -1113,15 +1462,15 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
               Produtividade & BI
             </button>
             <button 
-              onClick={() => setActiveSubTab('skus')}
+              onClick={() => setActiveSubTab('shelf')}
               className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                activeSubTab === 'skus' 
+                activeSubTab === 'shelf' 
                   ? 'bg-[#032b5e] dark:bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 dark:text-slate-400 hover:text-[#032b5e]'
               }`}
             >
-              <Tag className="w-3.5 h-3.5" />
-              <span>Unidades & Hectolitros (HL)</span>
+              <Calendar className="w-3.5 h-3.5" />
+              <span>SHELF</span>
             </button>
             <button 
               onClick={() => setActiveSubTab('boarda3')}
@@ -1638,8 +1987,8 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                       </td>
                     </tr>
                   ) : (
-                    paginatedRows.map((row) => {
-                      const docId = (row as any)._docId || row.id || '';
+                    paginatedRows.map((row, rIdx) => {
+                      const docId = (row as any)._docId || row.id || `row-${rIdx}`;
                       const config = embalagensConfig[row.embalagem] || { metaSec: 270 };
                       const expectedSec = config.metaSec * (Number(row.quantidade) || 1);
                       const actualSec = getRowDurationSec(row);
@@ -1649,7 +1998,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
 
                       return (
                         <tr 
-                          key={docId} 
+                          key={`despejo-row-${docId}-${rIdx}`} 
                           onClick={() => setSelectedRowId(selectedRowId === docId ? null : docId)}
                           className={`hover:bg-blue-50/50 dark:hover:bg-blue-950/20 cursor-pointer transition-colors ${
                             selectedRowId === docId ? 'bg-blue-50/80 dark:bg-blue-950/40' : ''
@@ -1793,151 +2142,390 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
         </div>
       )}
 
-      {/* SUB TAB: PRODUTOS & HECTOLITROS (HL) */}
-      {activeSubTab === 'skus' && (
+      {/* SUB TAB: SHELF (ANÁLISE DE PRODUTOS VENCIDOS NA OPERAÇÃO) */}
+      {activeSubTab === 'shelf' && (
         <div className="space-y-6 animate-fade-in">
           
-          {/* TOP PRODUTOS & OPERADORES GRIDS */}
+          {/* BANNER PRINCIPAL SHELF LIFE */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black shadow-md shadow-orange-500/20">
+                <Calendar className="w-6 h-6 text-slate-950" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+                    Gestão de Shelf Life & Análise de Produtos Vencidos
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+                    PADRÃO DPO AMBEV
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-2xl font-medium leading-relaxed">
+                  Monitoramento técnico de produtos descartados por término de validade na operação, diagnóstico de causa raiz (falha de giro FEFO, excesso de estoque, retorno de rota) e volume em Hectolitros (HL) perdidos.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start md:self-auto">
+              <button
+                onClick={handleExportShelfXLSX}
+                className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all"
+                title="Exportar dados para Excel"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <span>Exportar Excel</span>
+              </button>
+              <button
+                onClick={handleExportShelfPDF}
+                className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all"
+                title="Exportar Relatório PDF"
+              >
+                <Download className="w-4 h-4" />
+                <span>Relatório PDF</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 CARDS KPIS DE SHELF LIFE */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* KPI 1: Volume Vencido (HL) */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Volume Vencido Perdido
+                </span>
+                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                  <Droplet className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-purple-600 dark:text-purple-400">
+                  {totalShelfHL.toFixed(4)}
+                </span>
+                <span className="text-xs font-bold text-slate-500 uppercase">HL</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Representa o volume total descartado por vencimento
+              </p>
+            </div>
+
+            {/* KPI 2: Total Unidades / Caixas */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Total de Unidades Vencidas
+                </span>
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Package className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
+                  {totalShelfUnidades.toLocaleString('pt-BR')}
+                </span>
+                <span className="text-xs font-bold text-slate-500 uppercase">UN / CX</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Soma física de caixas e unidades descartadas
+              </p>
+            </div>
+
+            {/* KPI 3: Lotes / Registros de Despejo */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Lotes / Ocorrências
+                </span>
+                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <Calendar className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
+                  {totalShelfRegistros}
+                </span>
+                <span className="text-xs font-bold text-slate-500 uppercase">Lotes</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Operações de descarte registradas no sistema
+              </p>
+            </div>
+
+            {/* KPI 4: SKU Mais Impactado */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  SKU Mais Impactado
+                </span>
+                <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="truncate">
+                <span className="text-sm font-black text-slate-900 dark:text-slate-100 truncate block">
+                  {rankingSkusVencidos[0]?.desc || 'Nenhum'}
+                </span>
+                <span className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+                  {rankingSkusVencidos[0] ? `${rankingSkusVencidos[0].hl.toFixed(4)} HL (${rankingSkusVencidos[0].caixas} UN)` : '—'}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1 truncate">
+                {rankingSkusVencidos[0] ? `Cód: ${rankingSkusVencidos[0].cod} • ${rankingSkusVencidos[0].emb}` : 'Sem ocorrências'}
+              </p>
+            </div>
+
+          </div>
+
+          {/* BARRA DE FILTROS DA GUIA SHELF */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              
+              {/* Busca por SKU / Causa */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar produto por nome, código, causa raiz ou operador..."
+                  value={shelfSearch}
+                  onChange={e => {
+                    setShelfSearch(e.target.value);
+                    setShelfPage(1);
+                  }}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium outline-none focus:border-amber-500 dark:text-white"
+                />
+              </div>
+
+              {/* Filtros Dropdowns */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Filtro Causa Raiz */}
+                <select
+                  value={shelfFilterCausa}
+                  onChange={e => {
+                    setShelfFilterCausa(e.target.value);
+                    setShelfPage(1);
+                  }}
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none cursor-pointer text-slate-700 dark:text-slate-300"
+                >
+                  <option value="todos">Todas as Causas de Vencimento</option>
+                  <option value="Giro Lento / Excesso de Estoque">Giro Lento / Excesso de Estoque</option>
+                  <option value="Falha de Giro / FEFO Invertido">Falha de Giro / FEFO Invertido</option>
+                  <option value="Retorno de Rota Vencido">Retorno de Rota Vencido</option>
+                  <option value="Validade Expirada no Armazém">Validade Expirada no Armazém</option>
+                  <option value="Avaria com Perda de Validade">Avaria com Perda de Validade</option>
+                </select>
+
+                {/* Filtro Embalagem */}
+                <select
+                  value={shelfFilterEmbalagem}
+                  onChange={e => {
+                    setShelfFilterEmbalagem(e.target.value);
+                    setShelfPage(1);
+                  }}
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none cursor-pointer text-slate-700 dark:text-slate-300"
+                >
+                  <option value="todos">Todas as Embalagens</option>
+                  {Object.keys(DEFAULT_EMBALAGENS_CONFIG).map(emb => (
+                    <option key={emb} value={emb}>{emb}</option>
+                  ))}
+                </select>
+
+                {(shelfSearch || shelfFilterCausa !== 'todos' || shelfFilterEmbalagem !== 'todos') && (
+                  <button
+                    onClick={() => {
+                      setShelfSearch('');
+                      setShelfFilterCausa('todos');
+                      setShelfFilterEmbalagem('todos');
+                      setShelfPage(1);
+                    }}
+                    className="px-2.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900 transition-colors"
+                  >
+                    Limpar Filtros
+                  </button>
+                )}
+              </div>
+
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-gray-100 dark:border-slate-800">
+              <span>Exibindo <strong>{filteredShelfRows.length}</strong> registros analisados de produtos vencidos</span>
+              <span>Volume acumulado filtrado: <strong className="text-purple-600 dark:text-purple-400">{totalShelfHL.toFixed(4)} HL</strong> ({totalShelfUnidades} UN)</span>
+            </div>
+          </div>
+
+          {/* GRIDS DE ANÁLISE VISUAL (PARETO DE SKUS + CAUSA RAIZ) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* CARD 1: TOP PRODUTOS DESPEJADOS */}
+            {/* GRÁFICO 1: PARETO DOS SKUS MAIS VENCIDOS */}
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                    <Tag className="w-5 h-5" />
+                  <div className="p-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                    <TrendingUp className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                      Top Produtos Despejados (Registros e HL)
+                      Top SKUs Vencidos na Operação (Pareto HL)
                     </h3>
-                    <p className="text-[11px] text-gray-500 dark:text-slate-400">Produtos com maior frequência de operações de descarte</p>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400">Produtos com maior perda volumétrica por prazo expirado</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-full border border-purple-200 dark:border-purple-800">
-                  Ranking
+                <span className="text-xs font-bold text-orange-600 bg-orange-50 dark:bg-orange-950/40 px-2.5 py-1 rounded-full border border-orange-200 dark:border-orange-800">
+                  Ranking DPO
                 </span>
               </div>
 
-              {topProdutosDespejados.length === 0 ? (
+              {rankingSkusVencidos.length === 0 ? (
                 <div className="p-8 text-center text-xs text-gray-400">
-                  Nenhum produto registrado ainda.
+                  Nenhum produto vencido encontrado com os filtros atuais.
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {topProdutosDespejados.map((item, idx) => (
-                    <div 
-                      key={idx} 
-                      className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700/60 flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center">
-                          #{idx + 1}
-                        </span>
-                        <div>
-                          <div className="font-bold text-slate-900 dark:text-slate-100">
-                            {item.desc}
+                <div className="space-y-3">
+                  {rankingSkusVencidos.slice(0, 6).map((item, idx) => {
+                    const pctVolume = totalShelfHL > 0 ? (item.hl / totalShelfHL) * 100 : 0;
+                    return (
+                      <div 
+                        key={idx} 
+                        className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700/60 space-y-2"
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-6 h-6 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-black text-xs flex items-center justify-center">
+                              #{idx + 1}
+                            </span>
+                            <div>
+                              <div className="font-bold text-slate-900 dark:text-slate-100">
+                                {item.desc}
+                              </div>
+                              <div className="text-[10px] text-gray-500 dark:text-slate-400 flex items-center gap-2">
+                                <span>Cód: {item.cod}</span>
+                                <span>•</span>
+                                <span>{item.emb}</span>
+                                <span>•</span>
+                                <span>{item.registros} descartes</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-[10px] text-gray-500 dark:text-slate-400 flex items-center gap-2">
-                            <span>Cód: {item.cod}</span>
-                            <span>•</span>
-                            <span>{item.emb}</span>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="text-right font-mono">
-                        <div className="font-bold text-slate-900 dark:text-white">
-                          {item.registros} registros
+                          <div className="text-right font-mono">
+                            <div className="font-black text-purple-600 dark:text-purple-400">
+                              {item.hl.toFixed(4)} HL
+                            </div>
+                            <div className="text-[10px] text-gray-400 font-bold">
+                              {item.caixas} UN ({pctVolume.toFixed(1)}% das perdas)
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[10px] text-gray-400">
-                          {item.caixas} UN • <span className="text-purple-600 dark:text-purple-400 font-bold">{item.hl.toFixed(4)} HL</span>
+
+                        {/* Barra de Progresso Pareto */}
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all"
+                            style={{ width: `${Math.min(100, Math.max(8, pctVolume))}%` }}
+                          />
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* CARD 2: PERFORMANCE POR OPERADOR */}
+            {/* GRÁFICO 2: DISTRIBUIÇÃO POR CAUSA RAIZ DE VENCIMENTO */}
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                    <Award className="w-5 h-5" />
+                  <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                    <PieIcon className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                      Produtividade e Conformidade por Operador
+                      Causas Raiz de Vencimento
                     </h3>
-                    <p className="text-[11px] text-gray-500 dark:text-slate-400">Registros processados e cumprimento das metas DPO</p>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400">Diagnóstico de fatores operacionais que levaram ao descarte</p>
                   </div>
                 </div>
               </div>
 
-              {performanceOperadores.length === 0 ? (
+              {chartCausasVencimento.length === 0 ? (
                 <div className="p-8 text-center text-xs text-gray-400">
-                  Nenhum operador registrado no período.
+                  Nenhum dado para exibir no gráfico.
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {performanceOperadores.map((op, idx) => (
-                    <div 
-                      key={idx} 
-                      className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700/60 flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center font-black">
-                          {op.nome.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-900 dark:text-slate-100">{op.nome}</div>
-                          <div className="text-[10px] text-gray-500 dark:text-slate-400">
-                            {op.totalRegistros} registros ({op.totalCx} un • {op.totalOps} lotes)
-                          </div>
-                        </div>
-                      </div>
+                <div className="space-y-4">
+                  <div className="h-44 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#0f172a', 
+                            borderColor: '#334155', 
+                            borderRadius: '12px', 
+                            color: '#fff', 
+                            fontSize: '12px', 
+                            padding: '8px 12px' 
+                          }}
+                          formatter={(val: any, name: string) => [`${val} registros`, name]}
+                        />
+                        <Pie
+                          data={chartCausasVencimento}
+                          dataKey="registros"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={70}
+                          paddingAngle={3}
+                        >
+                          {chartCausasVencimento.map((entry, idx) => (
+                            <Cell key={`cell-${idx}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
 
-                      <div className="flex items-center gap-3 text-right">
-                        <div>
-                          <div className="font-mono font-black text-amber-500 text-xs">
-                            {op.regHora} reg/h
+                  {/* Legenda Detalhada das Causas */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+                    {chartCausasVencimento.map((c, idx) => {
+                      const pct = totalShelfRegistros > 0 ? ((c.registros / totalShelfRegistros) * 100).toFixed(1) : '0';
+                      return (
+                        <div key={idx} className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                            <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{c.name}</span>
                           </div>
-                          <div className="text-[10px] text-gray-400">Velocidade</div>
-                        </div>
-
-                        <div className="min-w-[65px]">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            op.pctMeta >= 80 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'
-                          }`}>
-                            {op.pctMeta}% META
+                          <span className="font-mono font-black text-slate-900 dark:text-slate-100 shrink-0 ml-2">
+                            {pct}% ({c.hl.toFixed(1)} HL)
                           </span>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
 
           </div>
 
-          {/* CHART: EVOLUÇÃO MENSAL DE DESPEJO */}
-          {chartVolumeMensal.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+          {/* GRÁFICO 3: EVOLUÇÃO MENSAL E IMPACTO POR EMBALAGEM */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* EVOLUÇÃO MENSAL DE DESCARTE POR VALIDADE (2 COLS) */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <BarChart2 className="w-5 h-5 text-indigo-600" />
+                  <BarChart2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Consolidado Mensal de Despejo (Registros e Hectolitros Perdidos)
+                    Evolução Mensal de Vencimento (Registros e Hectolitros)
                   </h3>
                 </div>
               </div>
 
-              <div className="h-64 w-full">
+              <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartVolumeMensal} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={chartShelfMensal} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
                     <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
@@ -1947,19 +2535,211 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                         borderColor: '#334155', 
                         borderRadius: '12px', 
                         color: '#fff', 
-                        fontSize: '13px', 
-                        padding: '10px 14px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                        fontSize: '12px', 
+                        padding: '10px 14px'
                       }}
-                      formatter={(val: any, name: string) => [val, name === 'registros' ? 'Registros (Ops)' : 'Hectolitros (HL)']} 
+                      formatter={(val: any, name: string) => [val, name === 'registros' ? 'Lotes Vencidos' : 'Volume (HL)']} 
                     />
-                    <Bar dataKey="registros" fill="#3b82f6" name="registros" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="registros" fill="#f97316" name="registros" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="hl" fill="#8b5cf6" name="hl" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
-          )}
+
+            {/* PERDAS POR TIPO DE EMBALAGEM (1 COL) */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <Box className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                  Perdas por Embalagem
+                </h3>
+              </div>
+
+              <div className="space-y-2">
+                {chartShelfEmbalagens.slice(0, 5).map((emb, idx) => (
+                  <div key={idx} className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700/60 flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-bold text-slate-900 dark:text-slate-100">{emb.name}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-slate-400">{emb.registros} descartes ({emb.caixas} UN)</div>
+                    </div>
+                    <span className="font-mono font-black text-purple-600 dark:text-purple-400">
+                      {emb.hl.toFixed(4)} HL
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* TABELA ANALÍTICA DE PRODUTOS VENCIDOS */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                  Registros Detalhados de Vencimento no Despejo
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400">Histórico completo de auditoria e tratativas de lotes vencidos</p>
+              </div>
+              <span className="text-xs font-bold text-slate-500">
+                Página {shelfPage} de {Math.max(1, Math.ceil(filteredShelfRows.length / shelfItemsPerPage))}
+              </span>
+            </div>
+
+            {filteredShelfRows.length === 0 ? (
+              <div className="p-12 text-center text-xs text-gray-400">
+                Nenhum registro de vencimento encontrado com os parâmetros informados.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-slate-800/70 border-b border-gray-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+                    <tr>
+                      <th className="p-3">Data / Mês</th>
+                      <th className="p-3">Código</th>
+                      <th className="p-3">Descrição do Produto</th>
+                      <th className="p-3">Embalagem</th>
+                      <th className="p-3 text-right">Qtd (UN)</th>
+                      <th className="p-3 text-right">Volume (HL)</th>
+                      <th className="p-3">Causa / Motivo</th>
+                      <th className="p-3">Área / Origem</th>
+                      <th className="p-3">Responsável</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 font-medium text-slate-700 dark:text-slate-300">
+                    {filteredShelfRows
+                      .slice((shelfPage - 1) * shelfItemsPerPage, shelfPage * shelfItemsPerPage)
+                      .map((r, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3 font-mono text-[11px]">
+                            <div>{r.data}</div>
+                            <div className="text-[9px] text-gray-400">{r.mes}</div>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-slate-900 dark:text-slate-100">
+                            {r.codProduto || '—'}
+                          </td>
+                          <td className="p-3 font-bold text-slate-900 dark:text-slate-100 max-w-[220px] truncate" title={r.descricao}>
+                            <div>{r.descricao}</div>
+                            {r.observacao && r.observacao !== '—' && (
+                              <div className="text-[10px] text-slate-400 font-normal truncate">{r.observacao}</div>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">
+                              {r.embalagem}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-amber-600 dark:text-amber-400">
+                            {r.unidades}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {r.hlCalculado.toFixed(4)} HL
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${r.causaBg}`}>
+                              {r.causaRaiz}
+                            </span>
+                          </td>
+                          <td className="p-3 text-xs text-slate-800 dark:text-slate-200">
+                            <div className="font-semibold">{r.area}</div>
+                            <div className="text-[9px] text-gray-400">Módulo Quebras</div>
+                          </td>
+                          <td className="p-3 text-xs text-slate-700 dark:text-slate-300">
+                            {r.operador || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Paginação */}
+            {filteredShelfRows.length > shelfItemsPerPage && (
+              <div className="p-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Mostrando {((shelfPage - 1) * shelfItemsPerPage) + 1} até {Math.min(shelfPage * shelfItemsPerPage, filteredShelfRows.length)} de {filteredShelfRows.length} registros
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShelfPage(p => Math.max(1, p - 1))}
+                    disabled={shelfPage === 1}
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-xs font-bold font-mono px-2">
+                    {shelfPage} / {Math.ceil(filteredShelfRows.length / shelfItemsPerPage)}
+                  </span>
+                  <button
+                    onClick={() => setShelfPage(p => Math.min(Math.ceil(filteredShelfRows.length / shelfItemsPerPage), p + 1))}
+                    disabled={shelfPage === Math.ceil(filteredShelfRows.length / shelfItemsPerPage)}
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* MATRIZ DE PLANO DE CONTENÇÃO & AÇÕES PREVENTIVAS DPO */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                  Plano DPO de Prevenção e Redução de Vencimentos (Shelf Life)
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400">Diretrizes operacionais padronizadas para mitigar descartes por validade</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              
+              <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 space-y-2">
+                <div className="flex items-center gap-2 font-black text-xs text-blue-700 dark:text-blue-400 uppercase">
+                  <span>1. Auditoria Diária de FEFO</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Conferência física diária de 100% dos lotes no picking e pulmão aéreo para garantir giro do lote mais antigo primeiro.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 space-y-2">
+                <div className="flex items-center gap-2 font-black text-xs text-amber-700 dark:text-amber-400 uppercase">
+                  <span>2. Escoamento Crítico (&lt;45d)</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Acionamento preventivo da equipe comercial e trade para priorização de vendas e campanhas de escoamento acelerado.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/20 space-y-2">
+                <div className="flex items-center gap-2 font-black text-xs text-purple-700 dark:text-purple-400 uppercase">
+                  <span>3. Gestão Visual de Lotes</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Etiquetagem com tarja colorida em paletes com shelf reduzido para alertar operadores e empilhadores na puxada.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-2">
+                <div className="flex items-center gap-2 font-black text-xs text-emerald-700 dark:text-emerald-400 uppercase">
+                  <span>4. Tratativa Ágil de Rotas</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Triagem e reendereçamento imediato de produtos retornados de rota no mesmo dia do desembarque.
+                </p>
+              </div>
+
+            </div>
+          </div>
 
         </div>
       )}

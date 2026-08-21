@@ -18,19 +18,6 @@ export interface OperationalReminderConfig {
 
 export const DEFAULT_OPERATIONAL_REMINDERS: OperationalReminderConfig[] = [
   {
-    id: 'rem_placas_09h',
-    titulo: '🚚 Lembrete 09:00 — Importação de Placas (Relatório 03.11.49.02)',
-    paraQuem: 'conferente',
-    horario: '09:00',
-    mensagem: 'Atenção Conferente: Lembrete de rotina das 09h00 para importar o relatório oficial 03.11.49.02 e atribuir o pátio.',
-    popupOverlay: true,
-    actionPanel: 'conferente',
-    actionTab: 'despacho',
-    actionLabel: 'Importar Placas Agora',
-    ativo: true,
-    prioridade: 'alta'
-  },
-  {
     id: 'rem_temp_10h',
     titulo: '🌡️ Lembrete 10:00 — Registro Matutino de Temperatura',
     paraQuem: 'qualidade',
@@ -66,7 +53,12 @@ export function getStoredReminders(): OperationalReminderConfig[] {
     if (!raw) return [...DEFAULT_OPERATIONAL_REMINDERS];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      // Filter out removed legacy reminders like rem_placas_09h
+      const filtered = parsed.filter(r => r.id !== 'rem_placas_09h' && !r.titulo.toLowerCase().includes('03.11.49.02') && !r.titulo.toLowerCase().includes('importação de placas'));
+      if (filtered.length !== parsed.length) {
+        saveStoredReminders(filtered);
+      }
+      return filtered;
     }
   } catch (e) {
     console.error('Erro ao ler lembretes cadastrados:', e);

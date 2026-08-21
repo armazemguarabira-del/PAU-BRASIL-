@@ -30,7 +30,8 @@ import {
   BookOpen,
   ShieldCheck,
   BarChart2,
-  CheckCircle2
+  CheckCircle2,
+  ClipboardCheck
 } from 'lucide-react';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
@@ -42,6 +43,7 @@ import WqiTab, { getItemHlInfo, getItemValorReal } from './WqiTab';
 import { CrossFilterProvider, useCrossFilter, ActiveCrossFiltersBar } from '../context/CrossFilterContext';
 import { CrosstabMatrix } from './CrosstabMatrix';
 import ArvoreMotivosTree from './ArvoreMotivosTree';
+import LossHierarchyTree from './LossHierarchyTree';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { Checklist5SModal } from './Checklist5SModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
@@ -200,6 +202,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('dashboard_theme') as 'light' | 'dark') || 'light';
   });
+  const [treeViewMode, setTreeViewMode] = useState<'diagram' | 'classic'>('diagram');
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -628,6 +631,19 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
               Quadro de Ações
             </button>
           </div>
+
+          {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (QUEBRAS) */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'quebras' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'quebras' } }));
+            }}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional de Quebras"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" />
+            <span>DTO Quebras</span>
+          </button>
 
           {/* POP & 5S BUTTONS */}
           <button 
@@ -1668,9 +1684,53 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
 
 
 
-          {/* REQUISITO 23: ÁRVORE DE MOTIVOS TOTALMENTE EXPANSÍVEL */}
-          <div className="w-full mt-4">
-            <ArvoreMotivosTree data={crossFilteredData} viewUnit={viewUnit} theme={theme} />
+          {/* REQUISITO 23: ÁRVORE DE MOTIVOS E HIERARQUIA DE PERDAS */}
+          <div className="w-full mt-4 space-y-3">
+            <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+              theme === 'dark' ? 'bg-[#111a30] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div>
+                <h3 className={`font-sans font-black text-xs uppercase tracking-wider flex items-center gap-2 ${
+                  theme === 'dark' ? 'text-amber-300' : 'text-amber-700'
+                }`}>
+                  🌳 ÁRVORE DE HIERARQUIA E DECOMPOSIÇÃO DE PERDAS (LOSS TREE)
+                </h3>
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  Navegue visualmente pelos 5 níveis hierárquicos (Total → Mês → Família → Embalagem → SKU) com conectores dinâmicos.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 p-1 bg-slate-800/80 dark:bg-slate-900/90 rounded-lg border border-slate-700 self-stretch sm:self-auto justify-center">
+                <button
+                  type="button"
+                  onClick={() => setTreeViewMode('diagram')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                    treeViewMode === 'diagram'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ✨ Diagrama Visual (5 Níveis)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTreeViewMode('classic')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                    treeViewMode === 'classic'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📁 Lista em Pastas (Clássica)
+                </button>
+              </div>
+            </div>
+
+            {treeViewMode === 'diagram' ? (
+              <LossHierarchyTree quebras={crossFilteredData} />
+            ) : (
+              <ArvoreMotivosTree data={crossFilteredData} viewUnit={viewUnit} theme={theme} />
+            )}
           </div>
 
           {/* DETAILED SKU RANKING TABLE (FULL WIDTH HORIZONTAL) */}
@@ -1719,7 +1779,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         const filterLabel = (item.cod && item.cod !== 'S/C') ? `SKU ${item.cod} - ${item.desc}` : item.desc;
                         return (
                           <tr 
-                            key={item.cod} 
+                            key={`sku-row-${item.cod}-${item.desc}-${index}`} 
                             onClick={() => toggleFilter('produto', filterVal, 'Produto')}
                             title={`Filtrar por ${filterLabel}`}
                             className={`cursor-pointer transition-colors ${

@@ -9,7 +9,8 @@ import { jsPDF } from 'jspdf';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
 import { calculateStockAgeIndex } from '../utils/calculateStockAgeIndex';
-import { getInitialDefaultValidades } from '../utils/fefoDefaultData';
+import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
+import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { 
   TrendingDown, 
   CheckCircle2, 
@@ -125,16 +126,7 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     const todayObj = new Date();
     todayObj.setHours(0, 0, 0, 0);
 
-    let sourceList = validadesList && validadesList.length > 0 ? validadesList : [];
-    const hasWindowItems = sourceList.some(item => {
-      if (!item.validade) return false;
-      const calc = calculateStockAgeIndex({ codigo: item.codigo, descricao: item.descricao, validade: item.validade });
-      return calc.diasRestantes <= 45;
-    });
-
-    if (!hasWindowItems) {
-      sourceList = getInitialDefaultValidades(empresa?.id || 'demo');
-    }
+    const sourceList = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
 
     const map = new Map<string, EscoamentoItem>();
 
@@ -142,7 +134,11 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
       const codigo = String(item.codigo || '0000').trim();
       const descricao = String(item.descricao || 'Produto sem descrição').trim();
       const validadeStr = item.validade || todayISO;
-      const qtdInicial = (item as any).quantidade || (Number(item.palhete || 1) * Number(item.lastro || 1) * Number(item.caixa || 1)) || Number(item.caixa || 1);
+      const p = Number(item.palhete) || 0;
+      const l = Number(item.lastro) || 0;
+      const c = Number(item.caixa) || 0;
+      const q = Number((item as any).quantidade) || 0;
+      const qtdInicial = q > 0 ? q : (p > 0 || l > 0 || c > 0) ? calcularTotalCaixas(codigo, p, l, c) : (c > 0 ? c : 1);
       
       // Unified key: same codigo and validadeStr
       const key = `${codigo}_${validadeStr}`;
@@ -983,8 +979,8 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
                         Histórico de Contagens Recentes:
                       </span>
                       <div className="max-h-24 overflow-y-auto divide-y divide-slate-800/60 bg-[#16202c]/50 rounded-lg p-2 text-[11px] font-mono">
-                        {item.logs.slice(0, 3).map(log => (
-                          <div key={log.id} className="py-1 flex items-center justify-between text-slate-300">
+                        {item.logs.slice(0, 3).map((log, lIdx) => (
+                          <div key={`log-${log.id || lIdx}-${lIdx}`} className="py-1 flex items-center justify-between text-slate-300">
                             <span>{formatDateBR(log.dataCount)} — {log.responsavel}:</span>
                             <span className="font-bold text-amber-300">
                               {log.qtdAnterior} cx <ArrowRight className="w-3 h-3 inline text-slate-500" /> {log.qtdAtual} cx ({log.qtdEscoada > 0 ? `-${log.qtdEscoada} cx` : 'Sem alteração'})

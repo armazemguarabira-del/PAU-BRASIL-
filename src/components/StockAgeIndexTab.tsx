@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
+import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { 
   calculateStockAgeIndex, 
   calculateStockAgeSummary, 
@@ -88,7 +89,11 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
       const validadeStr = item.validade || todayISO;
       const key = `${codigo}_${validadeStr}`;
 
-      const quantidade = Number((item as any).quantidade) || (Number(item.palhete || 1) * Number(item.lastro || 1) * Number(item.caixa || 1)) || Number(item.caixa || 1);
+      const p = Number(item.palhete) || 0;
+      const l = Number(item.lastro) || 0;
+      const c = Number(item.caixa) || 0;
+      const q = Number((item as any).quantidade) || 0;
+      const quantidade = q > 0 ? q : (p > 0 || l > 0 || c > 0) ? calcularTotalCaixas(codigo, p, l, c) : (c > 0 ? c : 1);
       const descricao = String(item.descricao || 'Produto sem descrição').trim();
 
       // Product price

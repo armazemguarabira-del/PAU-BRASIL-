@@ -42,7 +42,8 @@ import {
   Check,
   Droplet,
   AlertTriangle,
-  BarChart2
+  BarChart2,
+  ClipboardCheck
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -424,6 +425,9 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     const refreshRepackRows = () => {
+      const officialRows = buildOfficialRepackRows(companyId);
+      const officialIds = new Set(officialRows.map(r => r.id || r._docId));
+
       let rows = [...(empresaData.repack || [])];
       if (rows.length === 0) {
         const saved = localStorage.getItem(`repack_rows_${companyId}`);
@@ -431,14 +435,23 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
           try {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              rows = parsed;
+              const userCustomRows = parsed.filter((r: any) => !r._docId?.startsWith('seed-') && !officialIds.has(r.id) && !officialIds.has(r._docId));
+              rows = [...userCustomRows, ...officialRows];
             }
           } catch (_) {}
         }
       }
+
       if (rows.length === 0) {
-        rows = buildOfficialRepackRows(companyId);
+        rows = officialRows;
+      } else {
+        const currentIds = new Set(rows.map(r => r.id || r._docId));
+        const missingOfficial = officialRows.filter(r => !currentIds.has(r.id) && !currentIds.has(r._docId));
+        if (missingOfficial.length > 0) {
+          rows = [...rows, ...missingOfficial];
+        }
       }
+
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
       setActualRepackRows(rows);
       setLoading(false);
@@ -563,6 +576,15 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     return Array.from(ops).sort();
   }, [repackRows]);
 
+  const distinctEmbalagens = useMemo(() => {
+    const set = new Set<string>();
+    Object.keys(embalagensConfig).forEach(k => set.add(k.toUpperCase()));
+    repackRows.forEach(r => {
+      if (r.embalagem) set.add(r.embalagem.trim().toUpperCase());
+    });
+    return Array.from(set).sort();
+  }, [embalagensConfig, repackRows]);
+
   // Active filtered rows
   const filteredRows = useMemo(() => {
     return repackRows.filter(row => {
@@ -574,7 +596,11 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
       }
 
       // 2. Embalagem
-      if (activeEmbalagem !== 'todos' && row.embalagem !== activeEmbalagem) return false;
+      if (activeEmbalagem !== 'todos') {
+        const rowEmb = (row.embalagem || '').trim().toUpperCase();
+        const filterEmb = activeEmbalagem.trim().toUpperCase();
+        if (rowEmb !== filterEmb && !rowEmb.includes(filterEmb) && !filterEmb.includes(rowEmb)) return false;
+      }
 
       // 3. Período (Calendário)
       const rowDate = (row.data ? row.data.split('/').reverse().map(p => p.padStart(2, '0')).join('-') : '') || row.dataISO || '';
@@ -1667,6 +1693,19 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (REPACK) */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'repack' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'repack' } }));
+            }}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs rounded-lg shadow-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional do Repack"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" />
+            <span>DTO Repack</span>
+          </button>
+
           <button
             onClick={() => setIsPopModalOpen(true)}
             className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs rounded-lg shadow-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
@@ -1754,7 +1793,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
                   className="w-full bg-white border border-gray-200 text-[#032b5e] font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all hover:border-blue-400 focus:border-[#032b5e]"
                 >
                   <option value="todos">Todas</option>
-                  {Object.keys(embalagensConfig).map(k => (
+                  {distinctEmbalagens.map(k => (
                     <option key={k} value={k}>{k}</option>
                   ))}
                 </select>
@@ -2488,7 +2527,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {paginatedRows.map(row => {
+                    {paginatedRows.map((row, rIdx) => {
                       const unitMeta = embalagensConfig[row.embalagem]?.metaSec || 240;
                       const expectedSec = unitMeta * (Number(row.quantidade) || 1);
                       const spentSec = timeToSec(row.duracao);
@@ -2496,7 +2535,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
 
                       return (
                         <tr 
-                          key={row._docId} 
+                          key={`repack-row-${row._docId || rIdx}-${rIdx}`} 
                           onClick={() => setSelectedRowId(row._docId || null)}
                           className={`hover:bg-slate-50/50 cursor-pointer transition-colors group ${selectedRowId === row._docId ? 'bg-blue-500/10 border-l-2 border-l-[#1e56f0]' : ''}`}
                         >
@@ -2661,8 +2700,8 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
                   className="bg-[#f8fafc] border border-gray-200 text-[#032b5e] font-sans font-bold text-xs rounded-xl px-3 py-2 focus:border-[#032b5e] outline-none min-w-[200px] max-w-full"
                 >
                   <option value="seed-board-1">💡 Exemplo: {fallbackSeedBoard.titulo}</option>
-                  {boards.map(b => (
-                    <option key={b._docId} value={b._docId}>
+                  {boards.map((b, bIdx) => (
+                    <option key={`repack-board-opt-${b._docId || bIdx}-${bIdx}`} value={b._docId}>
                       📋 {b.titulo}
                     </option>
                   ))}

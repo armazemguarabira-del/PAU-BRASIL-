@@ -52,7 +52,8 @@ import {
   Users,
   AlertCircle,
   Search,
-  CheckSquare
+  CheckSquare,
+  ClipboardCheck
 } from 'lucide-react';
 import { Usuario, Empresa, ValidadeRow } from '../types';
 import { isCustomFirebaseConnected } from '../firebase';
@@ -65,7 +66,7 @@ import StockAgeIndexTab from './StockAgeIndexTab';
 import FuturoShelfTab from './FuturoShelfTab';
 import GestaoEscoamentoTab from './GestaoEscoamentoTab';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
-import { getInitialDefaultValidades } from '../utils/fefoDefaultData';
+import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 import { triggerAutoAcaoCorretiva, triggerAutoAcaoMelhoriaPreventiva } from '../utils/simulacaoAcoesUtils';
 import html2canvas from 'html2canvas';
 import { syncFefoDemandsFromValidades, getStoredFefoDemands, updateFefoDemandStatus } from '../utils/fefoDemandManager';
@@ -500,14 +501,11 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
       }
     });
 
-    let combinedValidades = Array.from(map.values());
-    if (combinedValidades.length === 0) {
-      combinedValidades = getInitialDefaultValidades(companyId);
-      try {
-        localStorage.setItem(`validades_${companyId}`, JSON.stringify(combinedValidades));
-        localStorage.setItem(`armazem_validades_${companyId}`, JSON.stringify(combinedValidades));
-      } catch (e) {}
-    }
+    const combinedValidades = removeLegacySeedValidades(Array.from(map.values()));
+    try {
+      localStorage.setItem(`validades_${companyId}`, JSON.stringify(combinedValidades));
+      localStorage.setItem(`armazem_validades_${companyId}`, JSON.stringify(combinedValidades));
+    } catch (e) {}
 
     setActualValidades(combinedValidades);
     syncFefoDemandsFromValidades(companyId, combinedValidades);
@@ -1603,8 +1601,22 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
             </div>
           </div>
 
-          {/* Unit Selector Toggle & SOP Button */}
+          {/* Unit Selector Toggle, DTO Shortcut & SOP Button */}
           <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+            {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (FEFO / VALIDADES) */}
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'validades' } }));
+                window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'validades' } }));
+              }}
+              className="px-3.5 py-2 rounded-xl font-black text-xs uppercase bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+              title="Abrir Diagnóstico DTO Operacional de Gestão de Validades & FEFO"
+            >
+              <ClipboardCheck className="w-4 h-4 text-purple-200" />
+              <span>DTO FEFO</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setShowSopViewer(true)}
@@ -1647,62 +1659,64 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
           </div>
         </div>
 
-        {/* Tab/Page navigation */}
-        <div className="flex flex-wrap items-center bg-gray-100/90 p-1.5 rounded-2xl border border-gray-200/80 gap-1.5 overflow-x-auto w-full">
-          <button 
-            onClick={() => setActiveTab('validades')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'validades' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            📋 Validades
-          </button>
-          <button 
-            onClick={() => setActiveTab('stock-age')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'stock-age' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            📊 Stock Age Index
-          </button>
-          <button 
-            onClick={() => setActiveTab('futuro-shelf')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'futuro-shelf' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            ⚡ Futuro Shelf
-          </button>
-          <button 
-            onClick={() => setActiveTab('escoamento')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'escoamento' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            🚚 Gestão Escoamento
-          </button>
-          <button 
-            onClick={() => setActiveTab('estoque-estoque')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'estoque-estoque' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            🔍 Estoque x Estoque
-          </button>
-          <button 
-            onClick={() => setActiveTab('estoque-picking')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'estoque-picking' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            ⚡ Estoque x Picking
-          </button>
-          <button 
-            onClick={() => setActiveTab('boarda3')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'boarda3' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            🚨 Quadro de Ações
-          </button>
-          <button 
-            onClick={() => setActiveTab('fefo-empilhador')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'fefo-empilhador' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            🚜 Operação Empilhador
-          </button>
-          <button 
-            onClick={() => setActiveTab('executiva')}
-            className={`px-3 py-2 rounded-xl font-sans font-extrabold text-xs uppercase tracking-wider transition-all border-none cursor-pointer whitespace-nowrap ${activeTab === 'executiva' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] bg-transparent'}`}
-          >
-            📈 Visão Executiva
-          </button>
+        {/* Tab/Page navigation - Totalmente responsivo no celular */}
+        <div className="bg-gray-100/90 p-1.5 rounded-2xl border border-gray-200/80 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-1.5">
+            <button 
+              onClick={() => setActiveTab('validades')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'validades' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              📋 Validades
+            </button>
+            <button 
+              onClick={() => setActiveTab('stock-age')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'stock-age' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              📊 Stock Age
+            </button>
+            <button 
+              onClick={() => setActiveTab('futuro-shelf')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'futuro-shelf' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              ⚡ Futuro Shelf
+            </button>
+            <button 
+              onClick={() => setActiveTab('escoamento')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'escoamento' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              🚚 Escoamento
+            </button>
+            <button 
+              onClick={() => setActiveTab('estoque-estoque')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'estoque-estoque' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              🔍 Est. x Est.
+            </button>
+            <button 
+              onClick={() => setActiveTab('estoque-picking')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'estoque-picking' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              ⚡ Est. x Pick.
+            </button>
+            <button 
+              onClick={() => setActiveTab('boarda3')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'boarda3' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              🚨 Quadro Ações
+            </button>
+            <button 
+              onClick={() => setActiveTab('fefo-empilhador')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'fefo-empilhador' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              🚜 Empilhador
+            </button>
+            <button 
+              onClick={() => setActiveTab('executiva')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center col-span-2 sm:col-span-1 ${activeTab === 'executiva' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+            >
+              📈 Executiva
+            </button>
+          </div>
         </div>
       </div>
 

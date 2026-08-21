@@ -1518,8 +1518,8 @@ export default function DashboardOverview({
                   </span>
                 </div>
                 <ul className="space-y-1.5 pt-1">
-                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Força').slice(0, 3).map(f => (
-                    <li key={f.id} className="text-xs text-slate-300 flex items-start gap-1.5">
+                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Força').slice(0, 3).map((f, idx) => (
+                    <li key={`swot-f-forca-${f.id}-${idx}`} className="text-xs text-slate-300 flex items-start gap-1.5">
                       <span className="text-emerald-400 font-bold">•</span>
                       <span>{f.item}</span>
                     </li>
@@ -1538,8 +1538,8 @@ export default function DashboardOverview({
                   </span>
                 </div>
                 <ul className="space-y-1.5 pt-1">
-                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Fraqueza').slice(0, 3).map(f => (
-                    <li key={f.id} className="text-xs text-slate-300 flex items-start gap-1.5">
+                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Fraqueza').slice(0, 3).map((f, idx) => (
+                    <li key={`swot-f-fraqueza-${f.id}-${idx}`} className="text-xs text-slate-300 flex items-start gap-1.5">
                       <span className="text-rose-400 font-bold">•</span>
                       <span>{f.item}</span>
                     </li>
@@ -1558,8 +1558,8 @@ export default function DashboardOverview({
                   </span>
                 </div>
                 <ul className="space-y-1.5 pt-1">
-                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Oportunidade').slice(0, 3).map(f => (
-                    <li key={f.id} className="text-xs text-slate-300 flex items-start gap-1.5">
+                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Oportunidade').slice(0, 3).map((f, idx) => (
+                    <li key={`swot-f-oportunidade-${f.id}-${idx}`} className="text-xs text-slate-300 flex items-start gap-1.5">
                       <span className="text-sky-400 font-bold">•</span>
                       <span>{f.item}</span>
                     </li>
@@ -1578,8 +1578,8 @@ export default function DashboardOverview({
                   </span>
                 </div>
                 <ul className="space-y-1.5 pt-1">
-                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Ameaça').slice(0, 3).map(f => (
-                    <li key={f.id} className="text-xs text-slate-300 flex items-start gap-1.5">
+                  {SWOT_FACTORS_2026.filter(f => f.tipo === 'Ameaça').slice(0, 3).map((f, idx) => (
+                    <li key={`swot-f-ameaca-${f.id}-${idx}`} className="text-xs text-slate-300 flex items-start gap-1.5">
                       <span className="text-amber-400 font-bold">•</span>
                       <span>{f.item}</span>
                     </li>

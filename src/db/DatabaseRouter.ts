@@ -693,7 +693,8 @@ export class DatabaseRouter {
   }
 
   /**
-   * Operação em lote (Batch)
+   * Operação em lote (Batch) com particionamento automático (chunks de 450 itens para respeitar o limite de 500 do Firestore)
+   * Garante que qualquer importação (seja via Studio IA, GitHub ou produção) persista diretamente no Firestore.
    */
   public async batchUpsert<T extends { id?: string | number; _docId?: string | number }>(
     collectionName: string,
@@ -704,31 +705,40 @@ export class DatabaseRouter {
 
     const sanitizedItems = sanitizeData(items);
 
-    try {
-      const batch = writeBatch(db);
-      for (const item of sanitizedItems) {
-        const id = item.id || item._docId;
-        if (id) {
-          const docRef = doc(db, collectionName, String(id));
-          batch.set(docRef, {
-            ...item,
-            empresaId: (item as any).empresaId || empresaId,
-            atualizadoEm: serverTimestamp()
-          }, { merge: true });
+    // Particionamento em chunks de 450 para respeitar o limite de 500 do Firestore
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < sanitizedItems.length; i += CHUNK_SIZE) {
+      const chunk = sanitizedItems.slice(i, i + CHUNK_SIZE);
+      try {
+        const batch = writeBatch(db);
+        for (const item of chunk) {
+          const id = item.id || item._docId;
+          if (id) {
+            const docRef = doc(db, collectionName, String(id));
+            batch.set(docRef, {
+              ...item,
+              empresaId: (item as any).empresaId || empresaId,
+              atualizadoEm: serverTimestamp()
+            }, { merge: true });
+          }
         }
+        await batch.commit();
+      } catch (e) {
+        console.warn(`[DatabaseRouter] Erro no batch Firestore (chunk ${i / CHUNK_SIZE + 1}) para ${collectionName}:`, e);
       }
-      await batch.commit();
-    } catch (e) {
-      console.warn(`[DatabaseRouter] Erro no batch Firestore para ${collectionName}:`, e);
     }
 
-    // Atualiza tabela JSON
-    const current = await getJsonTable<T>(empresaId, collectionName);
-    const map = new Map<string, T>();
-    current.forEach(c => map.set(String(c.id || c._docId)!, c));
-    sanitizedItems.forEach(i => map.set(String(i.id || i._docId)!, i));
-    await saveJsonTable(empresaId, collectionName, Array.from(map.values()));
-    await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
+    // Atualiza tabela JSON e invalida cache
+    try {
+      const current = await getJsonTable<T>(empresaId, collectionName);
+      const map = new Map<string, T>();
+      current.forEach(c => map.set(String(c.id || c._docId)!, c));
+      sanitizedItems.forEach(i => map.set(String(i.id || i._docId)!, i));
+      await saveJsonTable(empresaId, collectionName, Array.from(map.values()));
+      await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
+    } catch (e) {
+      console.warn(`[DatabaseRouter] Erro ao atualizar tabela local para ${collectionName}:`, e);
+    }
   }
 
   /**

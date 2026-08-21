@@ -219,14 +219,14 @@ function AuditHistoryDetails({ audit }: { audit: AuditSession }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-700">
-                    {audit.assets.map(asset => {
+                    {audit.assets.map((asset, aIdx) => {
                       const phys = asset.rePhysicalQty !== undefined ? asset.rePhysicalQty : asset.physicalQty;
                       const fisc = asset.fiscalQty ?? 0;
                       const comodato = asset.comodatoQty ?? 0;
                       const recolha = asset.recolhaQty ?? 0;
                       const diff = phys - fisc + comodato - recolha;
                       return (
-                        <tr key={asset.assetId} className="hover:bg-slate-100/30">
+                        <tr key={`fiscal-asset-${asset.assetId || aIdx}-${aIdx}`} className="hover:bg-slate-100/30">
                           <td className="p-2 font-medium">{asset.assetName || asset.assetId}</td>
                           <td className="p-2 text-center font-mono">{phys}</td>
                           <td className="p-2 text-center font-mono">{fisc}</td>
@@ -3423,14 +3423,14 @@ export default function FiscalView({
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 text-slate-700">
-                                {selectedHistoryAudit.assets.map(asset => {
+                                {selectedHistoryAudit.assets.map((asset, aIdx) => {
                                   const phys = asset.rePhysicalQty !== undefined ? asset.rePhysicalQty : asset.physicalQty;
                                   const fisc = asset.fiscalQty ?? 0;
                                   const comodato = asset.comodatoQty ?? 0;
                                   const recolha = asset.recolhaQty ?? 0;
                                   const diff = phys - fisc + comodato - recolha;
                                   return (
-                                    <tr key={asset.assetId} className="hover:bg-slate-50/50">
+                                    <tr key={`hist-asset-${asset.assetId || aIdx}-${aIdx}`} className="hover:bg-slate-50/50">
                                       <td className="p-2.5 font-medium">{asset.assetName || asset.assetId}</td>
                                       <td className="p-2.5 text-center font-mono">{phys}</td>
                                       <td className="p-2.5 text-center font-mono">{fisc}</td>
@@ -5764,7 +5764,7 @@ export default function FiscalView({
                       if (isNumB) return 1;
                       return codeA.localeCompare(codeB);
                     });
-                    return sortedAssets.map((asset) => {
+                    return sortedAssets.map((asset, aIdx) => {
                       const physical = asset.rePhysicalQty !== undefined ? asset.rePhysicalQty : asset.physicalQty;
                       const fiscal = asset.fiscalQty ?? 0;
                       const comodato = asset.comodatoQty ?? 0;
@@ -5785,7 +5785,7 @@ export default function FiscalView({
                       const canonicalName = getAssetCanonicalName(mappedCode) || asset.assetName;
 
                       return (
-                        <div key={asset.assetId} className="p-4 rounded-lg border border-slate-150 bg-slate-50/50 grid grid-cols-1 sm:grid-cols-12 sm:items-center gap-4 hover:bg-slate-50 transition">
+                        <div key={`sorted-asset-${asset.assetId || aIdx}-${aIdx}`} className="p-4 rounded-lg border border-slate-150 bg-slate-50/50 grid grid-cols-1 sm:grid-cols-12 sm:items-center gap-4 hover:bg-slate-50 transition">
                           <div className="space-y-1 sm:col-span-4">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {mappedCode && (
@@ -6913,7 +6913,7 @@ export default function FiscalView({
                               </tr>
                             </thead>
                             <tbody>
-                              {audit.assets.map(asset => {
+                              {audit.assets.map((asset, aIdx) => {
                                 const physical = asset.rePhysicalQty !== undefined ? asset.rePhysicalQty : asset.physicalQty;
                                 const fiscal = asset.fiscalQty ?? 0;
                                 const comodato = asset.comodatoQty ?? 0;
@@ -6925,7 +6925,7 @@ export default function FiscalView({
                                                    asset.assetName?.toUpperCase().includes('CHAPATEX');
 
                                 return (
-                                  <tr key={asset.assetId} className="border-b border-slate-100 last:border-0">
+                                  <tr key={`print-asset-${asset.assetId || aIdx}-${aIdx}`} className="border-b border-slate-100 last:border-0">
                                     <td className="p-2">
                                       <div className="font-medium text-slate-800 uppercase text-[11px]">{asset.assetName}</div>
                                       <div className="font-mono text-[9px] text-slate-400">{asset.assetId}</div>

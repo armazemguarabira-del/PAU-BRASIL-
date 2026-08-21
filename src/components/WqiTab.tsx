@@ -13,7 +13,8 @@ import {
   Cell,
   PieChart,
   Pie,
-  LabelList
+  LabelList,
+  Legend
 } from 'recharts';
 import { 
   AlertTriangle, 
@@ -35,7 +36,12 @@ import {
   Pencil,
   Check,
   X,
-  Sliders
+  Sliders,
+  UserCheck,
+  Briefcase,
+  ShieldAlert,
+  ChevronRight,
+  Database
 } from 'lucide-react';
 import { QuebraRow } from '../types';
 import CalendarFilter from './CalendarFilter';
@@ -44,6 +50,8 @@ import { PRODUCT_MASTER_DATA, PRODUCT_MASTER_MAP, findProductMaster } from '../d
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { COLABORADORES_QUEBRA } from './QuebrasPanel';
 import { normalizeCollaboratorName } from '../utils/colaboradorUtils';
+import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
+import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 
 interface WqiTabProps {
   empresaId: string;
@@ -55,6 +63,158 @@ interface WqiTabProps {
 }
 
 const COLORS = ['#032b5e', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
+
+// Helper to resolve collaborator and function
+export interface CollaboratorResolvedInfo {
+  nome: string;
+  funcao: string;
+  badgeClass: string;
+}
+
+export function resolveCollaboratorAndFunction(q: Partial<QuebraRow>): CollaboratorResolvedInfo {
+  const rawColab = (q.colaboradorQuebrou || q.responsavel || (q as any).colaborador || (q as any).operador || (q as any).ajudante || (q as any).empilhador || '').trim();
+  const normName = normalizeCollaboratorName(rawColab);
+  const hasColab = Boolean(normName && normName !== 'NÃO INFORMADO' && normName !== 'NÃO IDENTIFICADO' && normName !== '—');
+  
+  let rawFunc = (q.funcao || (q as any).cargo || '').trim().toUpperCase();
+
+  // 1. Check against official master roster
+  if (hasColab && (!rawFunc || rawFunc === 'OPERADOR' || rawFunc === 'NÃO INFORMADO')) {
+    const match = LISTA_COLABORADORES_OFICIAIS.find(c => {
+      const cNorm = normalizeCollaboratorName(c.nome);
+      return cNorm === normName || c.nome.toUpperCase() === normName || (normName && c.nome.toUpperCase().includes(normName));
+    });
+    if (match && match.cargo) {
+      rawFunc = match.cargo.toUpperCase();
+    }
+  }
+
+  // 2. Infer from operational area or motive code if collaborator is present
+  if (!rawFunc || rawFunc === 'OPERADOR') {
+    const areaUpper = (q.area || '').toUpperCase();
+    const motUpper = (q.motivo || '').toUpperCase();
+    const cod = String(q.codQuebra || '').trim();
+    if (!hasColab) {
+      rawFunc = 'NÃO INFORMADO';
+    } else if (areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || cod === '539' || motUpper.includes('EMPILHA')) {
+      rawFunc = 'EMPILHADOR';
+    } else if (areaUpper === 'ENTREGA' || areaUpper === 'ROTA' || cod === '557' || motUpper.includes('ENTREGA')) {
+      rawFunc = 'AJUDANTE';
+    } else if (areaUpper === 'PUXADA' || areaUpper === 'TRANSF' || cod === '589') {
+      rawFunc = 'CONFERENTE';
+    } else if (areaUpper === 'PICKING' || cod === '537') {
+      rawFunc = 'SEPARADOR';
+    } else {
+      rawFunc = 'OPERADOR DE ARMAZÉM';
+    }
+  }
+
+  let badgeClass = 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800';
+  if (rawFunc.includes('EMPILHADOR')) {
+    badgeClass = 'bg-indigo-100 text-indigo-900 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800';
+  } else if (rawFunc.includes('AJUDANTE')) {
+    badgeClass = 'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800';
+  } else if (rawFunc.includes('CONFERENTE')) {
+    badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800';
+  } else if (rawFunc.includes('ADMIN') || rawFunc.includes('SUPERV')) {
+    badgeClass = 'bg-purple-100 text-purple-900 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800';
+  } else if (rawFunc.includes('SEPARADOR') || rawFunc.includes('PICKING')) {
+    badgeClass = 'bg-teal-100 text-teal-900 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800';
+  } else if (rawFunc === 'NÃO INFORMADO' || rawFunc === 'NÃO IDENTIFICADO') {
+    badgeClass = 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+  }
+
+  return {
+    nome: hasColab ? normName : 'NÃO INFORMADO',
+    funcao: rawFunc,
+    badgeClass
+  };
+}
+
+// Motives that NEVER count as WQI (shortages, inventory discrepancies, theft, expiration, quality deviations)
+export const isWqiExclusion = (q: Partial<QuebraRow>): boolean => {
+  const cod = String(q.codQuebra || '').trim();
+  const motivoUpper = (q.motivo || '').toUpperCase();
+
+  // Codes for shortage / inventory discrepancy / theft / expiration / quality
+  if (['524', '546', '564', '576'].includes(cod)) return true; // FALTA NO PALETE
+  if (['538', '540', '536', '542', '560', '520'].includes(cod)) return true; // DIFERENÇA DE ESTOQUE / INVENTÁRIO / INVERSÃO
+  if (['528', '550', '568', '580'].includes(cod)) return true; // FURTO
+  if (['533', '554', '573', '585'].includes(cod)) return true; // VENCIDO
+  if (['531', '552', '571', '583'].includes(cod)) return true; // SEM GÁS
+  if (['534', '555', '574'].includes(cod)) return true; // SEM TAMPA
+  if (['527', '549', '567', '579'].includes(cod)) return true; // IMPUREZA
+  if (['532', '553', '572', '584'].includes(cod)) return true; // MAL CHEIO
+  if (['529', '569', '581'].includes(cod)) return true; // TROCA
+
+  // String keywords to exclude (e.g. FALTA NO PALETE never enters WQI)
+  if (
+    motivoUpper.includes('FALTA NO PALETE') ||
+    motivoUpper.includes('FALTA NO PALLET') ||
+    motivoUpper.includes('FALTA DE PRODUTO') ||
+    motivoUpper.includes('FALTA') ||
+    motivoUpper.includes('INVENTÁRIO') ||
+    motivoUpper.includes('INVENTARIO') ||
+    motivoUpper.includes('DIFERENÇA') ||
+    motivoUpper.includes('DIFERENCA') ||
+    motivoUpper.includes('FURTO') ||
+    motivoUpper.includes('VENCID') ||
+    motivoUpper.includes('VALIDADE') ||
+    motivoUpper.includes('CONSUMO') ||
+    motivoUpper.includes('SEM GAS') ||
+    motivoUpper.includes('SEM GÁS') ||
+    motivoUpper.includes('IMPUREZA') ||
+    motivoUpper.includes('MAL CHEIO') ||
+    motivoUpper.includes('SEM TAMPA') ||
+    motivoUpper.includes('TROCA')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+// Helper to classify Quebra por Movimentação no Armazém (Strict DPO WQI Warehouse Movement)
+export const isQuebraMovimentacaoArmazem = (q: QuebraRow): boolean => {
+  // 1. Strict exclusions (e.g. Falta no Palete, Vencido, Inventário)
+  if (isWqiExclusion(q)) return false;
+
+  const cod = String(q.codQuebra || '').trim();
+  const motivoUpper = (q.motivo || '').toUpperCase();
+  const areaUpper = (q.area || '').toUpperCase();
+
+  // Strictly warehouse area (not entrega, not rota, not mercado, not puxada externa)
+  if (areaUpper === 'ENTREGA' || areaUpper === 'ROTA' || areaUpper === 'MERCADO' || areaUpper === 'PUXADA' || areaUpper === 'TRANSF') {
+    return false;
+  }
+
+  const isArmazemArea = areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || areaUpper === '' || areaUpper === 'DEPÓSITO' || areaUpper === 'DEPOSITO' || areaUpper === 'PICKING';
+
+  // DPO specific codes for warehouse movement breakages (539 = Quebra com Movimentação Armazém, 537 = Quebra Picking, 525 = Quebrada, 521 = Acidente, 535 = Mal Chapeada)
+  if (['539', '537', '525', '521', '535'].includes(cod)) return true;
+
+  // Motive strings containing warehouse movement keywords
+  if (
+    motivoUpper.includes('MOVIMENTA') || 
+    motivoUpper.includes('MANUSEIO') || 
+    motivoUpper.includes('CHOQUE') || 
+    motivoUpper.includes('TOMBADA') ||
+    motivoUpper.includes('QUEDA') ||
+    motivoUpper.includes('EMPILHADEIRA') ||
+    motivoUpper.includes('PICKING')
+  ) {
+    return true;
+  }
+
+  // If area is Armazém and has general breakage classification
+  if (isArmazemArea) {
+    if (motivoUpper.includes('QUEBRADA') || motivoUpper.includes('QUEBRA') || motivoUpper.includes('AVARIA')) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 // Helper to classify embalagem
 export const getEmbalagemName = (desc: string): string => {
@@ -231,27 +391,26 @@ export function getValorPorUnidade(q: Partial<QuebraRow>, viewUnit: 'rs' | 'hl' 
   return getItemValorReal(q);
 }
 
-// Helper to classify Quebra por Movimentação
+// Helper to classify Quebra por Movimentação (General movement across all areas, excluding shortages)
 export const isQuebraMovimentacao = (q: QuebraRow): boolean => {
+  if (isWqiExclusion(q)) return false;
+
   const cod = String(q.codQuebra || '').trim();
   const motivoUpper = (q.motivo || '').toUpperCase();
-  const resp = (q.colaboradorQuebrou || q.responsavel || '').trim();
 
-  // DPO specific codes for movement breakages (539 = Armazém, 557 = Entrega, 589 = Puxada)
-  if (['539', '557', '589'].includes(cod)) return true;
+  // DPO specific codes for movement breakages (539 = Armazém, 557 = Entrega, 589 = Puxada, 537 = Picking)
+  if (['539', '557', '589', '537', '525'].includes(cod)) return true;
 
   // Motive strings containing movement / handling keywords
   if (
     motivoUpper.includes('MOVIMENTA') || 
     motivoUpper.includes('MANUSEIO') || 
     motivoUpper.includes('PICKING') || 
-    motivoUpper.includes('TOMBADA')
+    motivoUpper.includes('TOMBADA') ||
+    motivoUpper.includes('CHOQUE') ||
+    motivoUpper.includes('QUEDA') ||
+    motivoUpper.includes('EMPILHADEIRA')
   ) {
-    return true;
-  }
-
-  // Explicit WQI flag or assigned collaborator
-  if (q.wqi === 'sim' || q.wqi === 'true' || (resp !== '' && resp !== '—' && resp.toUpperCase() !== 'NÃO INFORMADO')) {
     return true;
   }
 
@@ -283,31 +442,89 @@ export default function WqiTab({
   const [loading, setLoading] = useState<boolean>(true);
   const [filterArea, setFilterArea] = useState<string>('TODAS');
   const [filterEmbalagem, setFilterEmbalagem] = useState<string>('TODAS');
-  const [filterTipoQuebra, setFilterTipoQuebra] = useState<string>('MOVIMENTACAO');
+  const [filterTipoQuebra, setFilterTipoQuebra] = useState<string>('MOVIMENTACAO_ARMAZEM');
   const [filterMotivo, setFilterMotivo] = useState<string>('TODOS');
-  const [filterAjudante, setFilterAjudante] = useState<string>('TODOS');
+  const [filterFuncao, setFilterFuncao] = useState<string>('TODAS');
+  const [filterColaborador, setFilterColaborador] = useState<string>('TODOS');
 
   // State for Dedicated Records Card (Card 6)
   const [recordsSearchQuery, setRecordsSearchQuery] = useState<string>('');
   const [recordsFilterProduto, setRecordsFilterProduto] = useState<string>('TODOS');
   const [recordsFilterEmbalagem, setRecordsFilterEmbalagem] = useState<string>('TODAS');
+  const [recordsFilterFuncao, setRecordsFilterFuncao] = useState<string>('TODAS');
 
   const empresaData = useEmpresaData();
 
+  // Sweeper: Full scan across Firestore Context, LocalStorage & Official Pre-loaded Datasets
   const fetchWqiData = () => {
     setLoading(true);
+    const map = new Map<string, QuebraRow>();
+
+    // 1. Primary source: Firestore context rows
     if (empresaData.quebras && empresaData.quebras.length > 0) {
-      const rows = [...empresaData.quebras];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-      setData(rows);
-    } else {
-      const localSaved = localStorage.getItem(`quebras_${empresaId || 'demo'}`);
-      if (localSaved) {
-        setData(JSON.parse(localSaved));
-      } else {
-        setData([]);
-      }
+      empresaData.quebras.forEach(q => {
+        const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
+        map.set(id, q);
+      });
     }
+
+    // 2. Scan LocalStorage for saved quebras and retroactive datasets
+    try {
+      const keysToScan = [
+        `quebras_${empresaId || 'demo'}`,
+        `local_quebras_${empresaId || 'demo'}`,
+        'quebras_demo',
+        'quebras_oficiais_2026'
+      ];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('dados_retroativos_quebras') || k.startsWith('quebras_') || k.startsWith('local_quebras_'))) {
+          if (!keysToScan.includes(k)) keysToScan.push(k);
+        }
+      }
+
+      keysToScan.forEach(k => {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((q: QuebraRow) => {
+                const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
+                if (!map.has(id)) {
+                  map.set(id, q);
+                }
+              });
+            }
+          } catch (_) {}
+        }
+      });
+    } catch (_) {}
+
+    // 3. Fallback / guarantee official embedded dataset is merged if empty
+    if (map.size === 0) {
+      const official = buildOfficialQuebrasRows(empresaId || 'demo');
+      official.forEach(q => {
+        const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
+        if (!map.has(id)) {
+          map.set(id, q);
+        }
+      });
+    }
+
+    // 4. Enrich every single row with resolved collaborator & function
+    const allRows = Array.from(map.values()).map(q => {
+      const colabInfo = resolveCollaboratorAndFunction(q);
+      return {
+        ...q,
+        colaboradorQuebrou: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.colaboradorQuebrou || q.responsavel || ''),
+        responsavel: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.responsavel || q.colaboradorQuebrou || ''),
+        funcao: colabInfo.funcao
+      };
+    });
+
+    allRows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+    setData(allRows);
     setLoading(false);
   };
 
@@ -340,34 +557,71 @@ export default function WqiTab({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [data]);
 
-  const availableAjudantes = useMemo(() => {
-    const set = new Set<string>();
+  // Distinct Collaborators with their Functions
+  const availableColaboradoresList = useMemo(() => {
+    const map = new Map<string, { nome: string; funcao: string }>();
+    
+    // Official list baseline
+    LISTA_COLABORADORES_OFICIAIS.forEach(c => {
+      const norm = normalizeCollaboratorName(c.nome);
+      map.set(norm, { nome: norm, funcao: (c.cargo || 'OPERADOR').toUpperCase() });
+    });
+
     if (Array.isArray(COLABORADORES_QUEBRA)) {
       COLABORADORES_QUEBRA.forEach(c => {
-        if (c && c.trim()) set.add(normalizeCollaboratorName(c));
+        if (c && c.trim()) {
+          const norm = normalizeCollaboratorName(c);
+          if (!map.has(norm)) {
+            const info = resolveCollaboratorAndFunction({ responsavel: norm });
+            map.set(norm, { nome: norm, funcao: info.funcao });
+          }
+        }
       });
     }
+
     data.forEach(q => {
-      const colab = (q.colaboradorQuebrou || q.responsavel || (q as any).ajudante || '').trim();
-      if (colab) set.add(normalizeCollaboratorName(colab));
+      const info = resolveCollaboratorAndFunction(q);
+      if (info.nome && info.nome !== 'NÃO INFORMADO') {
+        map.set(info.nome, { nome: info.nome, funcao: info.funcao });
+      }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+
+    return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
   }, [data]);
 
-  // Client-side filtering by Date, Area, Embalagem, Motivo, Ajudante (Always strictly Quebra por Movimentação in WQI)
+  // Distinct Functions list
+  const availableFuncoesList = useMemo(() => {
+    const set = new Set<string>();
+    availableColaboradoresList.forEach(c => {
+      if (c.funcao) set.add(c.funcao);
+    });
+    set.add('EMPILHADOR');
+    set.add('AJUDANTE');
+    set.add('CONFERENTE');
+    set.add('SEPARADOR');
+    set.add('ADMINISTRATIVO');
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [availableColaboradoresList]);
+
+  // Client-side filtering by Date, Context, Area, Embalagem, Motivo, Função, Colaborador
   const filteredData = useMemo(() => {
     return data.filter(q => {
-      // WQI focus: Strictly Quebra por Movimentação
-      if (!isQuebraMovimentacao(q)) return false;
+      // 1. Tipo de Quebra / Context Filter
+      if (filterTipoQuebra === 'MOVIMENTACAO_ARMAZEM') {
+        if (!isQuebraMovimentacaoArmazem(q)) return false;
+      } else if (filterTipoQuebra === 'MOVIMENTACAO_TODAS') {
+        if (!isQuebraMovimentacao(q)) return false;
+      }
+      // if 'TODAS_QUEBRAS', allows all
 
-      // Area filter
+      // 2. Area filter
       if (filterArea !== 'TODAS' && q.area !== filterArea) return false;
 
-      // Embalagem filter
+      // 3. Embalagem filter
       const embName = q.embalagem || getEmbalagemName(q.descricao);
       if (filterEmbalagem !== 'TODAS' && embName !== filterEmbalagem) return false;
 
-      // Motivo filter
+      // 4. Motivo filter
       if (filterMotivo !== 'TODOS') {
         const cod = String(q.codQuebra || '').trim();
         const mot = (q.motivo || '').trim().toUpperCase();
@@ -377,15 +631,19 @@ export default function WqiTab({
         if (!match) return false;
       }
 
-      // Ajudante / Colaborador filter with normalization
-      if (filterAjudante !== 'TODOS') {
-        const colabRaw = (q.colaboradorQuebrou || q.responsavel || (q as any).ajudante || '').trim();
-        const colabNormalized = normalizeCollaboratorName(colabRaw);
-        const filterNormalized = normalizeCollaboratorName(filterAjudante);
-        if (colabNormalized !== filterNormalized && colabRaw.toUpperCase() !== filterAjudante.trim().toUpperCase()) return false;
+      // 5. Função / Cargo filter
+      const colabInfo = resolveCollaboratorAndFunction(q);
+      if (filterFuncao !== 'TODAS') {
+        if (!colabInfo.funcao.includes(filterFuncao.toUpperCase())) return false;
       }
 
-      // Date range filter
+      // 6. Colaborador (Quem Quebrou) filter
+      if (filterColaborador !== 'TODOS') {
+        const filterNorm = normalizeCollaboratorName(filterColaborador);
+        if (colabInfo.nome !== filterNorm) return false;
+      }
+
+      // 7. Date range filter
       if (startDate || endDate) {
         let rowISO = '';
         if (q.dataISO) {
@@ -399,30 +657,130 @@ export default function WqiTab({
       }
       return true;
     });
-  }, [data, startDate, endDate, filterArea, filterEmbalagem, filterTipoQuebra, filterMotivo, filterAjudante]);
+  }, [data, startDate, endDate, filterTipoQuebra, filterArea, filterEmbalagem, filterMotivo, filterFuncao, filterColaborador]);
+
+  // Statistical aggregation of operators who broke items (Quem Quebrou e Função)
+  const collaboratorAnalysis = useMemo(() => {
+    const map = new Map<string, {
+      nome: string;
+      funcao: string;
+      badgeClass: string;
+      ocorrencias: number;
+      valorTotal: number;
+      volumeHl: number;
+      totalUnidades: number;
+      motivosCount: Record<string, number>;
+      areaPredominante: string;
+      areasCount: Record<string, number>;
+    }>();
+
+    filteredData.forEach(q => {
+      const info = resolveCollaboratorAndFunction(q);
+      const name = info.nome !== 'NÃO INFORMADO' ? info.nome : 'NÃO IDENTIFICADO';
+      const valor = getItemValorReal(q);
+      const hl = getItemHlInfo(q).totalHl;
+      const qtd = Number(q.quantidade) || 0;
+      const mot = q.motivo || `Cód. ${q.codQuebra || '539'}`;
+      const area = q.area || 'ARMAZÉM';
+
+      let entry = map.get(name);
+      if (!entry) {
+        entry = {
+          nome: name,
+          funcao: info.funcao,
+          badgeClass: info.badgeClass,
+          ocorrencias: 0,
+          valorTotal: 0,
+          volumeHl: 0,
+          totalUnidades: 0,
+          motivosCount: {},
+          areaPredominante: area,
+          areasCount: {}
+        };
+        map.set(name, entry);
+      }
+
+      entry.ocorrencias += 1;
+      entry.valorTotal += valor;
+      entry.volumeHl += hl;
+      entry.totalUnidades += qtd;
+      entry.motivosCount[mot] = (entry.motivosCount[mot] || 0) + 1;
+      entry.areasCount[area] = (entry.areasCount[area] || 0) + 1;
+    });
+
+    // Compute predominant motive & area
+    const list = Array.from(map.values()).map(item => {
+      let topMot = 'Diversos';
+      let maxMot = 0;
+      Object.entries(item.motivosCount).forEach(([m, c]) => {
+        if (c > maxMot) {
+          maxMot = c;
+          topMot = m;
+        }
+      });
+
+      let topArea = 'Armazém';
+      let maxArea = 0;
+      Object.entries(item.areasCount).forEach(([a, c]) => {
+        if (c > maxArea) {
+          maxArea = c;
+          topArea = a;
+        }
+      });
+
+      return {
+        ...item,
+        topMotivo: topMot,
+        areaPredominante: topArea
+      };
+    });
+
+    list.sort((a, b) => b.ocorrencias - a.ocorrencias || b.valorTotal - a.valorTotal);
+    return list;
+  }, [filteredData]);
+
+  // Breakdown of functions count
+  const functionBreakdownStats = useMemo(() => {
+    let empilhadores = 0;
+    let ajudantes = 0;
+    let conferentes = 0;
+    let outros = 0;
+
+    collaboratorAnalysis.forEach(c => {
+      if (c.funcao.includes('EMPILHADOR')) empilhadores += 1;
+      else if (c.funcao.includes('AJUDANTE')) ajudantes += 1;
+      else if (c.funcao.includes('CONFERENTE')) conferentes += 1;
+      else outros += 1;
+    });
+
+    return { empilhadores, ajudantes, conferentes, outros, total: collaboratorAnalysis.length };
+  }, [collaboratorAnalysis]);
 
   // Detailed records filter for Card 6 (Card de Registros Individuais)
   const detailedRecordsRows = useMemo(() => {
     return filteredData.filter(q => {
       const desc = q.descricao || 'PRODUTO NÃO IDENTIFICADO';
       const embName = q.embalagem || getEmbalagemName(q.descricao);
+      const colabInfo = resolveCollaboratorAndFunction(q);
 
       if (recordsFilterProduto !== 'TODOS' && desc !== recordsFilterProduto) return false;
       if (recordsFilterEmbalagem !== 'TODAS' && embName !== recordsFilterEmbalagem) return false;
+      if (recordsFilterFuncao !== 'TODAS' && !colabInfo.funcao.includes(recordsFilterFuncao.toUpperCase())) return false;
 
       if (recordsSearchQuery.trim()) {
         const queryStr = recordsSearchQuery.toLowerCase();
         const sku = (q.codProduto || '').toLowerCase();
         const pDesc = (q.descricao || '').toLowerCase();
-        const resp = (q.colaboradorQuebrou || q.responsavel || '').toLowerCase();
+        const resp = (colabInfo.nome || '').toLowerCase();
+        const func = (colabInfo.funcao || '').toLowerCase();
         const mot = (q.motivo || '').toLowerCase();
         const cod = (q.codQuebra || '').toLowerCase();
         const area = (q.area || '').toLowerCase();
-        return sku.includes(queryStr) || pDesc.includes(queryStr) || resp.includes(queryStr) || mot.includes(queryStr) || cod.includes(queryStr) || area.includes(queryStr);
+        return sku.includes(queryStr) || pDesc.includes(queryStr) || resp.includes(queryStr) || func.includes(queryStr) || mot.includes(queryStr) || cod.includes(queryStr) || area.includes(queryStr);
       }
       return true;
     });
-  }, [filteredData, recordsFilterProduto, recordsFilterEmbalagem, recordsSearchQuery]);
+  }, [filteredData, recordsFilterProduto, recordsFilterEmbalagem, recordsFilterFuncao, recordsSearchQuery]);
 
   // States for editable WQI matrix
   const [hlFaturadoMap, setHlFaturadoMap] = useState<Record<number, number | null>>(() => {
@@ -643,9 +1001,20 @@ export default function WqiTab({
   };
 
   // -------------------------------------------------------------
-  // CHART 1: Quantidade de Ocorrências (Evolução Mensal)
+  // CHART 1: Quantidade de Ocorrências (Evolução Mensal - Empilhador vs Ajudante)
   // -------------------------------------------------------------
-  const monthlyOccurrencesMap: Record<string, { monthKey: string; monthLabel: string; count: number; volume: number }> = {};
+  const monthlyOccurrencesMap: Record<string, { 
+    monthKey: string; 
+    monthLabel: string; 
+    count: number; 
+    empilhador: number;
+    ajudante: number;
+    conferente: number;
+    outros: number;
+    volume: number;
+    volumeEmpilhador: number;
+    volumeAjudante: number;
+  }> = {};
 
   filteredData.forEach(q => {
     const rawDate = q.dataISO || q.data || '';
@@ -662,11 +1031,34 @@ export default function WqiTab({
         monthKey: yearMonth,
         monthLabel: getMonthLabel(rawDate),
         count: 0,
-        volume: 0
+        empilhador: 0,
+        ajudante: 0,
+        conferente: 0,
+        outros: 0,
+        volume: 0,
+        volumeEmpilhador: 0,
+        volumeAjudante: 0,
       };
     }
+
+    const colabInfo = resolveCollaboratorAndFunction(q);
+    const funcUpper = colabInfo.funcao.toUpperCase();
+    const vol = getValorPorUnidade(q, viewUnit);
+
     monthlyOccurrencesMap[yearMonth].count += 1;
-    monthlyOccurrencesMap[yearMonth].volume += getValorPorUnidade(q, viewUnit);
+    monthlyOccurrencesMap[yearMonth].volume += vol;
+
+    if (funcUpper.includes('EMPILHADOR')) {
+      monthlyOccurrencesMap[yearMonth].empilhador += 1;
+      monthlyOccurrencesMap[yearMonth].volumeEmpilhador += vol;
+    } else if (funcUpper.includes('AJUDANTE')) {
+      monthlyOccurrencesMap[yearMonth].ajudante += 1;
+      monthlyOccurrencesMap[yearMonth].volumeAjudante += vol;
+    } else if (funcUpper.includes('CONFERENTE')) {
+      monthlyOccurrencesMap[yearMonth].conferente += 1;
+    } else {
+      monthlyOccurrencesMap[yearMonth].outros += 1;
+    }
   });
 
   const monthlyChartData = Object.values(monthlyOccurrencesMap)
@@ -681,16 +1073,12 @@ export default function WqiTab({
   const ajudantesMap: Record<string, number> = {};
 
   filteredData.forEach(q => {
-    const funcUpper = (q.funcao || '').toUpperCase();
-    const areaUpper = (q.area || '').toUpperCase();
-    const resp = (q.responsavel || q.colaboradorQuebrou || '').trim();
+    const info = resolveCollaboratorAndFunction(q);
+    const funcUpper = info.funcao.toUpperCase();
+    const resp = info.nome;
 
-    // Check if function is AJUDANTE or if area is ENTREGA/ROTA or if explicitly declared
-    const isAjudante = funcUpper.includes('AJUDANTE') || 
-                      (!q.funcao && (areaUpper === 'ENTREGA' || areaUpper === 'ROTA' || resp.includes('AJUDANTE')));
-
-    if (isAjudante) {
-      const name = resp ? normalizeCollaboratorName(resp) : 'Não Informado';
+    if (funcUpper.includes('AJUDANTE')) {
+      const name = resp && resp !== 'NÃO IDENTIFICADO' ? resp : 'Não Informado';
       ajudantesMap[name] = (ajudantesMap[name] || 0) + 1;
     }
   });
@@ -706,16 +1094,12 @@ export default function WqiTab({
   const empilhadoresMap: Record<string, number> = {};
 
   filteredData.forEach(q => {
-    const funcUpper = (q.funcao || '').toUpperCase();
-    const areaUpper = (q.area || '').toUpperCase();
-    const resp = (q.responsavel || q.colaboradorQuebrou || '').trim();
+    const info = resolveCollaboratorAndFunction(q);
+    const funcUpper = info.funcao.toUpperCase();
+    const resp = info.nome;
 
-    // Check if function is EMPILHADOR or if area is ARMAZEM or explicitly declared
-    const isEmpilhador = funcUpper.includes('EMPILHADOR') || 
-                         (!q.funcao && (areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || resp.includes('EMPILHADOR')));
-
-    if (isEmpilhador) {
-      const name = resp ? normalizeCollaboratorName(resp) : 'Não Informado';
+    if (funcUpper.includes('EMPILHADOR')) {
+      const name = resp && resp !== 'NÃO IDENTIFICADO' ? resp : 'Não Informado';
       empilhadoresMap[name] = (empilhadoresMap[name] || 0) + 1;
     }
   });
@@ -752,7 +1136,7 @@ export default function WqiTab({
 
   const produtoChartData = Object.entries(produtoOccurrencesMap)
     .map(([name, count]) => ({ 
-      name: name.length > 25 ? name.substring(0, 25) + '...' : name, 
+      name: name.length > 22 ? name.substring(0, 22) + '...' : name, 
       fullName: name,
       count 
     }))
@@ -760,42 +1144,88 @@ export default function WqiTab({
     .slice(0, 12);
 
   // -------------------------------------------------------------
-  // CHART 6: Total de DQI, WQI e Puxada
+  // CHART 6: TOTAL WQI - EMPILHADOR VS AJUDANTE (APENAS WQI)
   // -------------------------------------------------------------
-  const setorOccurrencesMap: Record<string, { value: number; volume: number }> = {
-    'WQI (ARMAZÉM)': { value: 0, volume: 0 },
-    'DQI (ENTREGA)': { value: 0, volume: 0 },
-    'PUXADA (TRANSF)': { value: 0, volume: 0 }
-  };
+  const wqiRoleStats = useMemo(() => {
+    let empCount = 0;
+    let empVol = 0;
+    let ajudCount = 0;
+    let ajudVol = 0;
+    let confCount = 0;
+    let confVol = 0;
+    let outrosCount = 0;
+    let outrosVol = 0;
 
-  filteredData.forEach(q => {
-    const rawArea = (q.area || 'ARMAZÉM').toUpperCase();
-    const qty = Number(q.quantidade) || 0;
-    let areaKey = 'WQI (ARMAZÉM)';
-    if (rawArea.includes('ENTREGA') || rawArea.includes('ROTA') || rawArea.includes('MERCADO')) {
-      areaKey = 'DQI (ENTREGA)';
-    } else if (rawArea.includes('PUXADA') || rawArea.includes('TRANSF') || rawArea.includes('TRANS')) {
-      areaKey = 'PUXADA (TRANSF)';
-    } else {
-      areaKey = 'WQI (ARMAZÉM)';
+    filteredData.forEach(q => {
+      const info = resolveCollaboratorAndFunction(q);
+      const func = info.funcao.toUpperCase();
+      const vol = getValorPorUnidade(q, viewUnit);
+
+      if (func.includes('EMPILHADOR')) {
+        empCount += 1;
+        empVol += vol;
+      } else if (func.includes('AJUDANTE')) {
+        ajudCount += 1;
+        ajudVol += vol;
+      } else if (func.includes('CONFERENTE')) {
+        confCount += 1;
+        confVol += vol;
+      } else {
+        outrosCount += 1;
+        outrosVol += vol;
+      }
+    });
+
+    const items = [
+      {
+        name: 'EMPILHADOR',
+        label: '🚜 Empilhadores',
+        count: empCount,
+        volume: empVol,
+        color: '#3b82f6',
+        badge: isDark ? 'bg-blue-950/60 text-blue-300 border-blue-800' : 'bg-blue-50 text-blue-700 border-blue-200'
+      },
+      {
+        name: 'AJUDANTE',
+        label: '🚚 Ajudantes',
+        count: ajudCount,
+        volume: ajudVol,
+        color: '#f59e0b',
+        badge: isDark ? 'bg-amber-950/60 text-amber-300 border-amber-800' : 'bg-amber-50 text-amber-700 border-amber-200'
+      }
+    ];
+
+    if (confCount > 0) {
+      items.push({
+        name: 'CONFERENTE',
+        label: '📋 Conferentes',
+        count: confCount,
+        volume: confVol,
+        color: '#10b981',
+        badge: isDark ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      });
     }
-    setorOccurrencesMap[areaKey].value += 1;
-    setorOccurrencesMap[areaKey].volume += getValorPorUnidade(q, viewUnit);
-  });
 
-  const categoryColors: Record<string, string> = {
-    'WQI (ARMAZÉM)': '#2563eb',
-    'DQI (ENTREGA)': '#ef4444',
-    'PUXADA (TRANSF)': '#f59e0b'
-  };
+    if (outrosCount > 0) {
+      items.push({
+        name: 'OUTROS',
+        label: '📦 Outros / Não Ident.',
+        count: outrosCount,
+        volume: outrosVol,
+        color: '#64748b',
+        badge: isDark ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-slate-100 text-slate-700 border-slate-200'
+      });
+    }
 
-  const setorChartData = Object.entries(setorOccurrencesMap)
-    .map(([name, data]) => ({ 
-      name, 
-      value: data.value, 
-      volume: data.volume,
-      color: categoryColors[name] || '#3b82f6'
-    }));
+    return {
+      items,
+      empCount,
+      ajudCount,
+      confCount,
+      outrosCount,
+      totalCount: empCount + ajudCount + confCount + outrosCount
+    };
+  }, [filteredData, viewUnit, isDark]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -816,24 +1246,66 @@ export default function WqiTab({
             />
           </div>
 
-          {/* Tipo de Quebra Filter (Locked strictly to Quebra por Movimentação) */}
-          <div className="flex flex-col gap-1 w-[185px]">
-            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Tipo de Quebra</span>
+          {/* Tipo de Quebra / Context Filter */}
+          <div className="flex flex-col gap-1 min-w-[200px]">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Filtro WQI (Varredura)</span>
             <select 
-              value="MOVIMENTACAO" 
-              disabled
-              className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[32px] cursor-not-allowed opacity-90 transition-colors ${
+              value={filterTipoQuebra} 
+              onChange={e => setFilterTipoQuebra(e.target.value)}
+              className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[32px] cursor-pointer transition-colors ${
                 isDark 
-                  ? 'bg-[#1e2942] border border-slate-600 text-blue-300' 
-                  : 'bg-slate-50 border border-gray-200 text-[#032b5e]'
+                  ? 'bg-[#1e2942] border border-blue-500/50 text-blue-300 hover:border-blue-400' 
+                  : 'bg-blue-50/60 border border-blue-200 text-[#032b5e] hover:border-blue-400'
               }`}
             >
-              <option value="MOVIMENTACAO">Quebra por Movimentação</option>
+              <option value="MOVIMENTACAO_ARMAZEM">🎯 Movimentação no Armazém (WQI)</option>
+              <option value="MOVIMENTACAO_TODAS">🚚 Todas Movimentações (Geral)</option>
+              <option value="TODAS_QUEBRAS">📦 Todos os Tipos de Quebra</option>
+            </select>
+          </div>
+
+          {/* Função / Cargo Filter */}
+          <div className="flex flex-col gap-1 min-w-[150px]">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Função / Cargo</span>
+            <select 
+              value={filterFuncao} 
+              onChange={e => setFilterFuncao(e.target.value)} 
+              className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[32px] cursor-pointer transition-colors ${
+                isDark 
+                  ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                  : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+              }`}
+            >
+              <option value="TODAS">Todas as Funções</option>
+              <option value="EMPILHADOR">🚜 Empilhadores</option>
+              <option value="AJUDANTE">🚚 Ajudantes</option>
+              <option value="CONFERENTE">📋 Conferentes</option>
+              <option value="SEPARADOR">📦 Separadores</option>
+              <option value="ADMINISTRATIVO">🏢 Administrativo</option>
+            </select>
+          </div>
+
+          {/* Quem Quebrou (Colaborador) Filter */}
+          <div className="flex flex-col gap-1 min-w-[180px]">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Quem Quebrou (Responsável)</span>
+            <select 
+              value={filterColaborador} 
+              onChange={e => setFilterColaborador(e.target.value)} 
+              className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[32px] cursor-pointer transition-colors ${
+                isDark 
+                  ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                  : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+              }`}
+            >
+              <option value="TODOS">Todos os Colaboradores ({availableColaboradoresList.length})</option>
+              {availableColaboradoresList.map(c => (
+                <option key={c.nome} value={c.nome}>{c.nome} ({c.funcao})</option>
+              ))}
             </select>
           </div>
 
           {/* Area Filter */}
-          <div className="flex flex-col gap-1 w-[150px]">
+          <div className="flex flex-col gap-1 w-[130px]">
             <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Setor / Área</span>
             <select 
               value={filterArea} 
@@ -852,7 +1324,7 @@ export default function WqiTab({
           </div>
 
           {/* Embalagem Filter */}
-          <div className="flex flex-col gap-1 w-[160px]">
+          <div className="flex flex-col gap-1 w-[150px]">
             <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Embalagem</span>
             <select 
               value={filterEmbalagem} 
@@ -876,7 +1348,7 @@ export default function WqiTab({
           </div>
 
           {/* Motivo Filter */}
-          <div className="flex flex-col gap-1 w-[170px]">
+          <div className="flex flex-col gap-1 w-[160px]">
             <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Motivo da Quebra</span>
             <select 
               value={filterMotivo} 
@@ -890,25 +1362,6 @@ export default function WqiTab({
               <option value="TODOS">Todos os Motivos</option>
               {availableWqiMotivos.map(m => (
                 <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Ajudante / Colaborador Filter */}
-          <div className="flex flex-col gap-1 w-[180px]">
-            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Ajudante / Colaborador</span>
-            <select 
-              value={filterAjudante} 
-              onChange={e => setFilterAjudante(e.target.value)} 
-              className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[32px] cursor-pointer transition-colors ${
-                isDark 
-                  ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
-                  : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
-              }`}
-            >
-              <option value="TODOS">Todos os Ajudantes</option>
-              {availableAjudantes.map(name => (
-                <option key={name} value={name}>{name}</option>
               ))}
             </select>
           </div>
@@ -939,19 +1392,21 @@ export default function WqiTab({
       </div>
 
       {/* KPI SUMMARY CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1 */}
         <div className={`p-4.5 rounded-xl border shadow-sm flex items-center justify-between transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
-            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Total de Ocorrências</span>
+            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Total de Ocorrências WQI</span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className={`text-2xl font-black font-mono ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
                 {totalOcorrencias.toLocaleString('pt-BR')}
               </span>
               <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>registros</span>
             </div>
-            <span className="text-[9px] text-slate-400 mt-0.5 block font-semibold">No período selecionado</span>
+            <span className="text-[9px] text-blue-500 mt-0.5 block font-bold">
+              {filterTipoQuebra === 'MOVIMENTACAO_ARMAZEM' ? 'Varredura Armazém (WQI)' : 'Filtro Selecionado'}
+            </span>
           </div>
           <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-950/60 text-blue-400' : 'bg-blue-50 text-[#032b5e]'}`}>
             <BarChart2 className="w-6 h-6" />
@@ -968,73 +1423,160 @@ export default function WqiTab({
               </span>
               <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{viewUnit === 'rs' ? 'R$' : viewUnit === 'hl' ? 'HL' : 'unidades'}</span>
             </div>
-            <span className="text-[9px] text-slate-400 mt-0.5 block font-semibold">Volume acumulado de descartes</span>
+            <span className="text-[9px] text-slate-400 mt-0.5 block font-semibold">Volume acumulado descartes</span>
           </div>
           <div className={`p-3 rounded-xl ${isDark ? 'bg-red-950/60 text-red-400' : 'bg-red-50 text-[#ef4444]'}`}>
             <TrendingUp className="w-6 h-6" />
           </div>
         </div>
 
-        {/* KPI 3 */}
+        {/* KPI 3: Empilhadores */}
         <div className={`p-4.5 rounded-xl border shadow-sm flex items-center justify-between transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
-            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Ajudantes & Empilhadores</span>
+            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Total WQI Empilhadores</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black font-mono text-emerald-500">
-                {ajudantesChartData.length + empilhadoresChartData.length}
+              <span className="text-2xl font-black font-mono text-blue-500">
+                {wqiRoleStats.empCount}
               </span>
-              <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>colaboradores envolvidos</span>
+              <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>quebras</span>
             </div>
-            <span className="text-[9px] text-slate-400 mt-0.5 block font-semibold">Análise individualizada WQI</span>
+            <span className="text-[9px] text-blue-400 mt-0.5 block font-semibold">{functionBreakdownStats.empilhadores} operadores ativos</span>
           </div>
-          <div className={`p-3 rounded-xl ${isDark ? 'bg-emerald-950/60 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+          <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-950/60 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
             <Users className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* KPI 4: Ajudantes */}
+        <div className={`p-4.5 rounded-xl border shadow-sm flex items-center justify-between transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
+          <div>
+            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Total WQI Ajudantes</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-black font-mono text-amber-500">
+                {wqiRoleStats.ajudCount}
+              </span>
+              <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>quebras</span>
+            </div>
+            <span className="text-[9px] text-amber-400 mt-0.5 block font-semibold">{functionBreakdownStats.ajudantes} ajudantes identificados</span>
+          </div>
+          <div className={`p-3 rounded-xl ${isDark ? 'bg-amber-950/60 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
+            <Truck className="w-6 h-6" />
           </div>
         </div>
 
       </div>
 
-
-
-      {/* CHARTS GRID 1: QUANTIDADE DE OCORRÊNCIAS (EVOLUÇÃO MENSAL) & SETOR */}
+      {/* CHARTS GRID 1: QUANTIDADE DE OCORRÊNCIAS (EVOLUÇÃO MENSAL: EMPILHADOR VS AJUDANTE) & TOTAL WQI (FUNÇÃO) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
-        {/* CHART 1: Quantidade de Ocorrências (Evolução Mensal) */}
-        <div className={`lg:col-span-2 p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[340px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
+        {/* CHART 1: Quantidade de Ocorrências (Evolução Mensal - Empilhador vs Ajudante) */}
+        <div className={`lg:col-span-2 p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[360px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
             <div className="flex items-center justify-between">
               <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
                 <BarChart2 className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-[#032b5e]'}`} /> 1. QUANTIDADE DE OCORRÊNCIAS (EVOLUÇÃO MENSAL)
               </h3>
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-slate-300 bg-slate-800' : 'text-slate-500 bg-slate-100'}`}>
-                Total: {totalOcorrencias} registros
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-slate-300 bg-slate-800' : 'text-slate-600 bg-slate-100'}`}>
+                  Total: {totalOcorrencias} quebras
+                </span>
+              </div>
             </div>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Evolução do número de registros de quebra {filterTipoQuebra === 'MOVIMENTACAO' ? 'por movimentação ' : ''}por mês no período
+              Análise comparativa mensal por cargo: Coluna Empilhador vs Coluna Ajudante por mês
             </span>
           </div>
 
-          <div className="h-56 w-full my-3">
+          <div className="h-64 w-full my-3">
             {monthlyChartData.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
                 Nenhum registro encontrado no período selecionado.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyChartData} margin={{ top: 15, right: 20, left: 0, bottom: 5 }}>
+                <BarChart data={monthlyChartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                   <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
                   <XAxis dataKey="monthLabel" stroke={isDark ? '#94a3b8' : '#475569'} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} />
-                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 11, color: '#fff' }}
+                    labelStyle={{ color: '#38bdf8', fontWeight: 'bold' }}
+                    formatter={(val: any, name: any) => [`${val} ocorrências`, name]}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: 11, fontWeight: 700, paddingTop: 6 }} 
+                    iconType="circle"
+                  />
+                  <Bar dataKey="empilhador" name="🚜 Empilhador" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                    <LabelList dataKey="empilhador" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#93c5fd' : '#1d4ed8'} formatter={(v: any) => v > 0 ? v : ''} />
+                  </Bar>
+                  <Bar dataKey="ajudante" name="🚚 Ajudante" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                    <LabelList dataKey="ajudante" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#fcd34d' : '#d97706'} formatter={(v: any) => v > 0 ? v : ''} />
+                  </Bar>
+                  {monthlyChartData.some(m => m.outros > 0) && (
+                    <Bar dataKey="outros" name="📦 Outros / Não Ident." fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                      <LabelList dataKey="outros" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#cbd5e1' : '#64748b'} formatter={(v: any) => v > 0 ? v : ''} />
+                    </Bar>
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className={`text-[9px] font-semibold border-t pt-1.5 flex flex-wrap items-center justify-between gap-2 ${isDark ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
+            <span>Volume total acumulado: {viewUnit === 'rs' ? `R$ ${totalVolume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${totalVolume.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}</span>
+            <div className="flex items-center gap-3 font-mono font-bold">
+              <span className="text-blue-500">🚜 Empilhadores: {wqiRoleStats.empCount}</span>
+              <span className="text-amber-500">🚚 Ajudantes: {wqiRoleStats.ajudCount}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CHART 6: TOTAL DE WQI - EMPILHADOR VS AJUDANTE (APENAS WQI) */}
+        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[360px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
+          <div>
+            <div className="flex items-center justify-between">
+              <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
+                <Users className="w-4 h-4 text-[#3b82f6]" /> 6. TOTAL WQI POR FUNÇÃO
+              </h3>
+              <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded ${isDark ? 'text-emerald-300 bg-emerald-950/60' : 'text-emerald-700 bg-emerald-50'}`}>
+                Apenas WQI
+              </span>
+            </div>
+            <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
+              Distribuição total de quebras: Total Empilhador vs Total Ajudante
+            </span>
+          </div>
+
+          <div className="h-56 w-full my-2">
+            {wqiRoleStats.items.length === 0 || wqiRoleStats.totalCount === 0 ? (
+              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
+                Sem dados de funções no período.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={wqiRoleStats.items} margin={{ top: 20, right: 15, left: -15, bottom: 15 }}>
+                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
+                  <XAxis 
+                    dataKey="label" 
+                    stroke={isDark ? '#94a3b8' : '#475569'} 
+                    fontSize={10} 
+                    fontWeight={700}
+                    tickLine={false} 
+                    axisLine={false}
+                  />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
-                    labelStyle={{ color: '#38bdf8', fontWeight: 'bold' }}
-                    formatter={(val: any) => [`${val} ocorrências`, 'Ocorrências']}
+                    formatter={(val: any, _, item: any) => [
+                      `${val} ocorrências (${viewUnit === 'rs' ? `R$ ${item.payload.volume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.payload.volume.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`})`, 
+                      'Total Quebras'
+                    ]}
                   />
-                  <Bar dataKey="count" fill={isDark ? '#3b82f6' : '#032b5e'} radius={[6, 6, 0, 0]} barSize={28}>
-                    <LabelList dataKey="count" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#93c5fd' : '#032b5e'} />
-                    {monthlyChartData.map((_, index) => (
-                      <Cell key={`cell-m-${index}`} fill={index % 2 === 0 ? (isDark ? '#3b82f6' : '#032b5e') : (isDark ? '#60a5fa' : '#3b82f6')} />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    <LabelList dataKey="count" position="top" fontSize={11} fontWeight={800} fill={isDark ? '#e2e8f0' : '#1e293b'} />
+                    {wqiRoleStats.items.map((entry, index) => (
+                      <Cell key={`cell-role-wqi-${index}`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -1042,66 +1584,18 @@ export default function WqiTab({
             )}
           </div>
 
-          <div className={`text-[9px] font-semibold border-t pt-1.5 flex items-center justify-between ${isDark ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
-            <span>Volume total acumulado: {viewUnit === 'rs' ? `R$ ${totalVolume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${totalVolume.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}</span>
-            <span className={`font-mono font-bold ${isDark ? 'text-blue-400' : 'text-[#032b5e]'}`}>Contagem de registros</span>
-          </div>
-        </div>
-
-        {/* CHART 6: Total de DQI, WQI e Puxada */}
-        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[340px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
-          <div>
-            <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
-              <PieIcon className="w-4 h-4 text-[#10b981]" /> 6. TOTAL DE DQI, WQI E PUXADA
-            </h3>
-            <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Distribuição de ocorrências e volumetria por categoria (DQI / WQI / Puxada)
-            </span>
-          </div>
-
-          <div className="h-52 w-full my-2 flex items-center justify-center">
-            {setorChartData.every(s => s.value === 0) ? (
-              <div className="text-xs text-gray-400 font-bold">Sem dados de categorias</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={setorChartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={75}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {setorChartData.map((entry, index) => (
-                      <Cell key={`cell-setor-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
-                    formatter={(val: any, name: any, item: any) => [
-                      `${val} ocorrências (${viewUnit === 'rs' ? `R$ ${item.payload.volume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.payload.volume.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`})`, 
-                      'Total'
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
           <div className={`flex flex-col gap-1.5 border-t pt-2 ${isDark ? 'border-slate-800' : 'border-gray-100'}`}>
-            {setorChartData.map((item) => {
-              const pct = totalOcorrencias > 0 ? Math.round((item.value / totalOcorrencias) * 100) : 0;
+            {wqiRoleStats.items.map((item) => {
+              const pct = wqiRoleStats.totalCount > 0 ? Math.round((item.count / wqiRoleStats.totalCount) * 100) : 0;
               return (
-                <div key={item.name} className="flex items-center justify-between text-[9px] font-bold">
+                <div key={item.name} className="flex items-center justify-between text-[9.5px] font-bold">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: item.color }}></span>
-                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>{item.name}</span>
+                    <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2 font-mono">
-                    <span className={isDark ? 'text-slate-300' : 'text-slate-800'}>{item.value} ocorrências ({pct}%)</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[8px] ${isDark ? 'bg-slate-800 text-blue-300' : 'bg-slate-100 text-[#032b5e]'}`}>
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-800'}>{item.count} ocorrências ({pct}%)</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-bold ${isDark ? 'bg-slate-800 text-blue-300' : 'bg-slate-100 text-[#032b5e]'}`}>
                       {viewUnit === 'rs' ? `R$ ${item.volume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.volume.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`}
                     </span>
                   </div>
@@ -1113,53 +1607,55 @@ export default function WqiTab({
 
       </div>
 
-      {/* CHARTS GRID 2: OCORRÊNCIAS POR AJUDANTES & EMPILHADORES */}
+      {/* CHARTS GRID 2: OCORRÊNCIAS POR AJUDANTES & EMPILHADORES (VERTICAL COLUMN CHARTS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* CHART 2: Ocorrência por Ajudantes */}
-        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[350px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
+        {/* CHART 2: Ocorrência por Ajudantes (Coluna Vertical) */}
+        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[380px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
             <div className="flex items-center justify-between">
               <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
-                <Truck className="w-4 h-4 text-[#ef4444]" /> 2. OCORRÊNCIA POR AJUDANTES
+                <Truck className="w-4 h-4 text-[#f59e0b]" /> 2. OCORRÊNCIA POR AJUDANTES
               </h3>
-              <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-red-400 bg-red-950/60' : 'text-red-600 bg-red-50'}`}>
-                Ranking Ajudantes
+              <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-amber-400 bg-amber-950/60' : 'text-amber-700 bg-amber-50'}`}>
+                Colunas Verticais
               </span>
             </div>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Contagem de registros de quebra atribuídos a Ajudantes de Entrega/Rota
+              Contagem de quebras por ajudante de entrega e movimentação
             </span>
           </div>
 
-          <div className="h-60 w-full my-2">
+          <div className="h-68 w-full my-2">
             {ajudantesChartData.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
                 Sem registros atribuídos a Ajudantes.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={ajudantesChartData} layout="vertical" margin={{ top: 5, right: 35, left: 10, bottom: 5 }}>
-                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} horizontal={false} />
-                  <XAxis type="number" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis 
-                    type="category" 
+                <BarChart data={ajudantesChartData} margin={{ top: 20, right: 15, left: -15, bottom: 45 }}>
+                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
+                  <XAxis 
                     dataKey="name" 
-                    stroke={isDark ? '#cbd5e1' : '#334155'} 
+                    stroke={isDark ? '#94a3b8' : '#475569'} 
                     fontSize={9} 
                     fontWeight={700}
                     tickLine={false} 
-                    axisLine={false} 
-                    width={110}
+                    axisLine={false}
+                    interval={0}
+                    angle={-25}
+                    textAnchor="end"
+                    height={45}
                   />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
                     formatter={(val: any) => [`${val} ocorrências`, 'Quebras']}
                   />
-                  <Bar dataKey="count" fill="#ef4444" radius={[0, 6, 6, 0]} barSize={16}>
-                    <LabelList dataKey="count" position="right" fontSize={9} fontWeight={800} fill={isDark ? '#f87171' : '#ef4444'} />
+                  <Bar dataKey="count" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={38}>
+                    <LabelList dataKey="count" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#fcd34d' : '#d97706'} />
                     {ajudantesChartData.map((_, index) => (
-                      <Cell key={`cell-aj-${index}`} fill={index === 0 ? '#ef4444' : index === 1 ? '#f97316' : '#3b82f6'} />
+                      <Cell key={`cell-aj-${index}`} fill={index === 0 ? '#f59e0b' : index === 1 ? '#f97316' : '#fbbf24'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -1168,53 +1664,55 @@ export default function WqiTab({
           </div>
 
           <div className={`text-[9px] font-semibold border-t pt-1.5 flex items-center justify-between ${isDark ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
-            <span>Identificação por responsável / colaborador</span>
-            <span className="font-mono font-bold text-red-500">Top {ajudantesChartData.length} Ajudantes</span>
+            <span>Identificação nominal do ajudante</span>
+            <span className="font-mono font-bold text-amber-500">Top {ajudantesChartData.length} Ajudantes</span>
           </div>
         </div>
 
-        {/* CHART 3: Ocorrência por Empilhadores */}
-        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[350px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
+        {/* CHART 3: Ocorrência por Empilhadores (Coluna Vertical) */}
+        <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[380px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
             <div className="flex items-center justify-between">
               <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
                 <Users className="w-4 h-4 text-[#3b82f6]" /> 3. OCORRÊNCIA POR EMPILHADORES
               </h3>
               <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-blue-300 bg-blue-950/60' : 'text-blue-600 bg-blue-50'}`}>
-                Ranking Empilhadores
+                Colunas Verticais
               </span>
             </div>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Contagem de registros de quebra em operações de Armazém / Movimentação
+              Contagem de registros de quebra de operadores de empilhadeira
             </span>
           </div>
 
-          <div className="h-60 w-full my-2">
+          <div className="h-68 w-full my-2">
             {empilhadoresChartData.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
                 Sem registros atribuídos a Empilhadores.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={empilhadoresChartData} layout="vertical" margin={{ top: 5, right: 35, left: 10, bottom: 5 }}>
-                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} horizontal={false} />
-                  <XAxis type="number" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis 
-                    type="category" 
+                <BarChart data={empilhadoresChartData} margin={{ top: 20, right: 15, left: -15, bottom: 45 }}>
+                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
+                  <XAxis 
                     dataKey="name" 
-                    stroke={isDark ? '#cbd5e1' : '#334155'} 
+                    stroke={isDark ? '#94a3b8' : '#475569'} 
                     fontSize={9} 
                     fontWeight={700}
                     tickLine={false} 
-                    axisLine={false} 
-                    width={110}
+                    axisLine={false}
+                    interval={0}
+                    angle={-25}
+                    textAnchor="end"
+                    height={45}
                   />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
                     formatter={(val: any) => [`${val} ocorrências`, 'Quebras']}
                   />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={16}>
-                    <LabelList dataKey="count" position="right" fontSize={9} fontWeight={800} fill={isDark ? '#60a5fa' : '#3b82f6'} />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={38}>
+                    <LabelList dataKey="count" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#60a5fa' : '#3b82f6'} />
                     {empilhadoresChartData.map((_, index) => (
                       <Cell key={`cell-[#3b82f6]-${index}`} fill={index === 0 ? (isDark ? '#3b82f6' : '#032b5e') : index === 1 ? '#2563eb' : '#60a5fa'} />
                     ))}
@@ -1232,17 +1730,17 @@ export default function WqiTab({
 
       </div>
 
-      {/* CHARTS GRID 3: OCORRÊNCIAS POR EMBALAGEM & POR PRODUTO */}
+      {/* CHARTS GRID 3: OCORRÊNCIAS POR EMBALAGEM & POR PRODUTO (VERTICAL COLUMN CHARTS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* CARD 4: Ocorrência por Embalagens */}
+        {/* CARD 4: Ocorrência por Embalagens (Coluna Vertical) */}
         <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[380px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
             <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
               <Package className="w-4 h-4 text-[#8b5cf6]" /> 4. OCORRÊNCIA POR EMBALAGENS
             </h3>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Top embalagens com registros de quebra identificados
+              Top embalagens com registros de quebra identificados (colunas verticais)
             </span>
           </div>
 
@@ -1253,25 +1751,27 @@ export default function WqiTab({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={embalagemChartData} layout="vertical" margin={{ top: 5, right: 35, left: 10, bottom: 5 }}>
-                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} horizontal={false} />
-                  <XAxis type="number" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis 
-                    type="category" 
+                <BarChart data={embalagemChartData} margin={{ top: 20, right: 15, left: -15, bottom: 45 }}>
+                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
+                  <XAxis 
                     dataKey="name" 
-                    stroke={isDark ? '#cbd5e1' : '#334155'} 
+                    stroke={isDark ? '#94a3b8' : '#475569'} 
                     fontSize={9} 
                     fontWeight={700}
                     tickLine={false} 
-                    axisLine={false} 
-                    width={110}
+                    axisLine={false}
+                    interval={0}
+                    angle={-20}
+                    textAnchor="end"
+                    height={45}
                   />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
                     formatter={(val: any) => [`${val} ocorrências`, 'Ocorrências']}
                   />
-                  <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={16}>
-                    <LabelList dataKey="count" position="right" fontSize={9} fontWeight={800} fill={isDark ? '#a78bfa' : '#8b5cf6'} />
+                  <Bar dataKey="count" fill="#8b5cf6" radius={[6, 6, 0, 0]} maxBarSize={38}>
+                    <LabelList dataKey="count" position="top" fontSize={10} fontWeight={800} fill={isDark ? '#a78bfa' : '#8b5cf6'} />
                     {embalagemChartData.map((entry, index) => (
                       <Cell 
                         key={`cell-emb-wqi-${index}`} 
@@ -1296,14 +1796,14 @@ export default function WqiTab({
           </div>
         </div>
 
-        {/* CARD 5: Ocorrência por Produto */}
+        {/* CARD 5: Ocorrência por Produto (Coluna Vertical) */}
         <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col justify-between min-h-[380px] transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
             <h3 className={`font-sans font-black text-[12px] uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-blue-300' : 'text-[#032b5e]'}`}>
               <Award className="w-4 h-4 text-[#f59e0b]" /> 5. OCORRÊNCIA POR PRODUTO
             </h3>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Top produtos (SKUs) com mais ocorrências no período
+              Top produtos (SKUs) com mais ocorrências no período (colunas verticais)
             </span>
           </div>
 
@@ -1314,26 +1814,28 @@ export default function WqiTab({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={produtoChartData} layout="vertical" margin={{ top: 5, right: 35, left: 10, bottom: 5 }}>
-                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} horizontal={false} />
-                  <XAxis type="number" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis 
-                    type="category" 
+                <BarChart data={produtoChartData} margin={{ top: 20, right: 15, left: -15, bottom: 65 }}>
+                  <CartesianGrid stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
+                  <XAxis 
                     dataKey="name" 
-                    stroke={isDark ? '#cbd5e1' : '#334155'} 
+                    stroke={isDark ? '#94a3b8' : '#475569'} 
                     fontSize={8.5} 
                     fontWeight={700}
                     tickLine={false} 
                     axisLine={false} 
-                    width={130}
+                    interval={0}
+                    angle={-35}
+                    textAnchor="end"
+                    height={65}
                   />
+                  <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: isDark ? '#030712' : '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: 10, color: '#fff' }}
                     labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName || ''}
                     formatter={(val: any) => [`${val} ocorrências`, 'Total Ocorrências']}
                   />
-                  <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={14}>
-                    <LabelList dataKey="count" position="right" fontSize={9} fontWeight={800} fill={isDark ? '#fbbf24' : '#d97706'} />
+                  <Bar dataKey="count" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={32}>
+                    <LabelList dataKey="count" position="top" fontSize={9} fontWeight={800} fill={isDark ? '#fbbf24' : '#d97706'} />
                     {produtoChartData.map((entry, index) => (
                       <Cell 
                         key={`cell-[#f59e0b]-${index}`} 
@@ -1614,13 +2116,13 @@ export default function WqiTab({
           </div>
 
           {/* Controls Bar for Card 6 */}
-          <div className="my-3 grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          <div className="my-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             {/* Search query input */}
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar SKU, produto, operador, motivo..."
+                placeholder="Buscar SKU, produto, operador, função, motivo..."
                 value={recordsSearchQuery}
                 onChange={e => setRecordsSearchQuery(e.target.value)}
                 className={`w-full pl-8 pr-2.5 py-1.5 text-[11px] font-semibold rounded-lg border outline-none ${
@@ -1656,10 +2158,26 @@ export default function WqiTab({
                 <option key={e.name} value={e.name}>{e.name} ({e.count})</option>
               ))}
             </select>
+
+            {/* Filter by Função select */}
+            <select
+              value={recordsFilterFuncao}
+              onChange={e => setRecordsFilterFuncao(e.target.value)}
+              className={`px-2.5 py-1.5 text-[11px] font-bold rounded-lg border outline-none truncate ${
+                isDark ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-slate-50 border-gray-200 text-slate-800'
+              }`}
+            >
+              <option value="TODAS">Todas as Funções</option>
+              <option value="EMPILHADOR">🚜 Empilhadores</option>
+              <option value="AJUDANTE">🚚 Ajudantes</option>
+              <option value="CONFERENTE">📋 Conferentes</option>
+              <option value="SEPARADOR">📦 Separadores</option>
+              <option value="ADMINISTRATIVO">🏢 Administrativo</option>
+            </select>
           </div>
 
           {/* Table Container */}
-          <div className={`max-h-[340px] overflow-y-auto rounded-lg border text-[11px] ${isDark ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-gray-50/50'}`}>
+          <div className={`max-h-[360px] overflow-y-auto rounded-lg border text-[11px] ${isDark ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-gray-50/50'}`}>
             <table className="w-full text-left border-collapse">
               <thead className={`sticky top-0 font-bold uppercase text-[9.5px] ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                 <tr>
@@ -1672,24 +2190,26 @@ export default function WqiTab({
                   <th className="py-2.5 px-2 text-center">Vol Total (HL)</th>
                   <th className="py-2.5 px-3">Motivo / Código DPO</th>
                   <th className="py-2.5 px-2">Setor</th>
-                  <th className="py-2.5 px-3">Responsável</th>
+                  <th className="py-2.5 px-3">Quem Quebrou</th>
+                  <th className="py-2.5 px-3">Função / Cargo</th>
                 </tr>
               </thead>
               <tbody className={`divide-y font-medium ${isDark ? 'divide-slate-800 text-slate-200' : 'divide-gray-100 text-slate-700'}`}>
                 {detailedRecordsRows.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="text-center py-8 text-gray-400 font-bold">
+                    <td colSpan={11} className="text-center py-8 text-gray-400 font-bold">
                       Nenhum registro de quebra encontrado com os critérios de busca selecionados.
                     </td>
                   </tr>
                 ) : (
                   detailedRecordsRows.map((r, idx) => {
                     const hlInfo = getItemHlInfo(r);
+                    const colabInfo = resolveCollaboratorAndFunction(r);
                     return (
                       <tr key={r._docId || idx} className={isDark ? 'hover:bg-slate-800/50' : 'hover:bg-white'}>
                         <td className="py-2 px-3 font-mono whitespace-nowrap">{r.data || r.dataISO || '—'}</td>
                         <td className="py-2 px-2 font-mono font-bold text-amber-500 whitespace-nowrap">{r.codProduto || '—'}</td>
-                        <td className="py-2 px-3 max-w-[200px] truncate font-semibold" title={r.descricao}>{r.descricao || '—'}</td>
+                        <td className="py-2 px-3 max-w-[190px] truncate font-semibold" title={r.descricao}>{r.descricao || '—'}</td>
                         <td className="py-2 px-2 whitespace-nowrap">{r.embalagem || getEmbalagemName(r.descricao)}</td>
                         <td className="py-2 px-2 text-center font-bold text-red-500 font-mono whitespace-nowrap">{r.quantidade || 0} un</td>
                         <td className="py-2 px-2 text-center font-mono font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" title={`${hlInfo.fatorHlStr} HL por unidade`}>
@@ -1698,13 +2218,20 @@ export default function WqiTab({
                         <td className="py-2 px-2 text-center font-mono font-extrabold text-amber-500 whitespace-nowrap" title={`${hlInfo.totalHlStr} Hectolitros acumulados`}>
                           {hlInfo.totalHlStr} HL
                         </td>
-                        <td className="py-2 px-3 max-w-[170px] truncate" title={`[${r.codQuebra || '539'}] ${r.motivo || 'QUEBRA'}`}>
+                        <td className="py-2 px-3 max-w-[160px] truncate" title={`[${r.codQuebra || '539'}] ${r.motivo || 'QUEBRA'}`}>
                           <span className="font-mono text-amber-500 font-bold mr-1">[{r.codQuebra || '539'}]</span>
                           {r.motivo || 'QUEBRA'}
                         </td>
                         <td className="py-2 px-2 whitespace-nowrap">{r.area || '—'}</td>
-                        <td className="py-2 px-3 whitespace-nowrap text-slate-500 dark:text-slate-400">
-                          {normalizeCollaboratorName(r.colaboradorQuebrou || r.responsavel || '') || '—'}
+                        <td className="py-2 px-3 whitespace-nowrap font-bold">
+                          <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>
+                            {colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (normalizeCollaboratorName(r.colaboradorQuebrou || r.responsavel || '') || '—')}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black font-mono border ${colabInfo.badgeClass}`}>
+                            {colabInfo.funcao}
+                          </span>
                         </td>
                       </tr>
                     );

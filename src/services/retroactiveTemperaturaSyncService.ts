@@ -1,6 +1,7 @@
 // Sync and Persistence Service for Retroactive Temperature Data
 import { ArmazemTemperaturaLog } from '../types';
 import { saveTempLogs, sortTempLogsDescending, TEMP_STORAGE_KEY } from '../utils/tempStorage';
+import { TemperaturaLogsRepository } from '../db/repositories';
 
 export interface SaveTemperaturaRetroativaOptions {
   logs: ArmazemTemperaturaLog[];
@@ -23,13 +24,13 @@ export interface SaveTemperaturaRetroativasResult {
 }
 
 /**
- * Persists retroactive temperature logs into the platform storage,
+ * Persists retroactive temperature logs into the platform storage and Firestore Cloud Database,
  * dispatches storage events to automatically update charts and widgets in real-time.
  */
 export async function persistirTemperaturaRetroativaNoBanco(
   options: SaveTemperaturaRetroativaOptions
 ): Promise<SaveTemperaturaRetroativasResult> {
-  const { logs, tornarPadraoOficial = true, userNome = 'Usuário' } = options;
+  const { logs, tornarPadraoOficial = true, empresaId = 'demo', userNome = 'Usuário' } = options;
 
   if (!logs || logs.length === 0) {
     throw new Error('Nenhum registro válido de temperatura fornecido para persistência.');
@@ -37,10 +38,21 @@ export async function persistirTemperaturaRetroativaNoBanco(
 
   const sortedLogs = sortTempLogsDescending(logs);
 
-  // 1. Persist to LocalStorage (Primary client-side source of truth for temperature)
+  // 1. Persist to Firestore Cloud Database Repository
+  try {
+    const recordsToSave = sortedLogs.map(log => ({
+      ...log,
+      id: log.id || `temp_${log.dataISO}_${(log.hora || '00:00').replace(/[:\s]/g, '')}_${log.setor || 'armazem'}`
+    }));
+    await TemperaturaLogsRepository.batchUpsert(recordsToSave, empresaId);
+  } catch (err) {
+    console.warn('Alerta ao persistir temperatura no Firestore:', err);
+  }
+
+  // 2. Persist to LocalStorage (Immediate client-side fast cache for temperature)
   saveTempLogs(sortedLogs);
 
-  // 2. Persist audit metadata
+  // 3. Persist audit metadata
   try {
     const meta = {
       importedAt: new Date().toISOString(),
@@ -53,7 +65,7 @@ export async function persistirTemperaturaRetroativaNoBanco(
     console.warn('Não foi possível salvar os metadados de temperatura:', e);
   }
 
-  // 3. Dispatch reactive events
+  // 4. Dispatch reactive events
   window.dispatchEvent(new CustomEvent('armazem_temp_logs_updated', { detail: sortedLogs }));
   window.dispatchEvent(new Event('storage'));
 
@@ -66,7 +78,7 @@ export async function persistirTemperaturaRetroativaNoBanco(
   return {
     success: true,
     importedCount: sortedLogs.length,
-    message: `Base de temperatura retroativa sincronizada com sucesso! ${sortedLogs.length} aferições processadas.`,
+    message: `Base de temperatura retroativa sincronizada com sucesso! ${sortedLogs.length} aferições salvas no Banco de Dados.`,
     details: {
       totalRegistros: sortedLogs.length,
       diasAbrangidos: uniqueDays,

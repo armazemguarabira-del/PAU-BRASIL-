@@ -47752,9 +47752,15 @@ export function parseQuebrasJson(
       item.CodQuebra || item.codQuebra || lookup['codquebra'] || lookup['cod quebra'] || lookup['codigoquebra'] || '524'
     ).trim();
 
-    const motivo = String(
+    // Normalização e unificação de motivos (remove pontos finais "VAZAMENTO." -> "VAZAMENTO" e corrige "ESTUDADO." -> "ESTUFADO")
+    let rawMotivo = String(
       item.Motivo || item.motivo || lookup['motivo'] || lookup['motivo quebra'] || 'FALTA NO PALETE'
-    ).trim().toUpperCase();
+    ).trim().replace(/[\.\s]+$/, '').toUpperCase();
+
+    if (rawMotivo === 'ESTUDADO') {
+      rawMotivo = 'ESTUFADO';
+    }
+    const motivo = rawMotivo;
 
     const colaborador = String(
       item.Colaborador || item.colaborador || lookup['colaborador'] || lookup['colaborador quebrou'] || lookup['responsavel'] || ''

@@ -119,9 +119,9 @@ export default function Sidebar({
       id: 'cat-ferramentas-gestao',
       label: 'Ferramentas de Gestão',
       subtitle: 'Governança, DPO & Inventários',
-      icon: <Sliders className="w-5 h-5 text-purple-400" />,
+      icon: <Sliders className="w-5 h-5 text-blue-400" />,
       subItems: [
-        'plataformas-externas', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
+        'dto-diagnostico', 'dto', 'plataformas-externas', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
         'contagem-inventario', 'gestao-ativos', 'qualidade-puxada', 
         'ciclo-carretas', 'politica-estoque', 'simulador-ressuprimento', 'importacao-contagens', 
         'venda-media', 'area-contingencia', 'padronizacao-processos', 'simulacao-acoes', 

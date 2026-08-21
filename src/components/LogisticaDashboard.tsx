@@ -47,7 +47,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Trophy
+  Trophy,
+  ClipboardCheck
 } from 'lucide-react';
 import { ChartTooltipExplainer } from './ChartTooltipExplainer';
 import { Usuario, Empresa, ArmazemRow } from '../types';
@@ -2232,6 +2233,27 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
               className="px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border border-emerald-500/30 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-600 hover:text-white cursor-pointer flex items-center gap-1.5 shadow-sm"
             >
               📋 Padrão Operacional (POP EFC/EFD)
+            </button>
+            {/* ATALHOS DTO EFC E EFD */}
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'efc' } }));
+                window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'efc' } }));
+              }}
+              className="px-3.5 py-1.5 rounded-lg font-sans font-black text-[10px] uppercase tracking-wider transition-all border border-purple-400/40 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-[1.02] active:scale-95"
+              title="Abrir Diagnóstico DTO Operacional de Eficiência no Carregamento (EFC)"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" /> DTO EFC
+            </button>
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'efd' } }));
+                window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'efd' } }));
+              }}
+              className="px-3.5 py-1.5 rounded-lg font-sans font-black text-[10px] uppercase tracking-wider transition-all border border-indigo-400/40 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-[1.02] active:scale-95"
+              title="Abrir Diagnóstico DTO Operacional de Eficiência no Descarregamento (EFD)"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 text-indigo-200" /> DTO EFD
             </button>
             {selectedDrilldownMetric && (
               <button 

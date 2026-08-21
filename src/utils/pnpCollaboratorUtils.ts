@@ -688,6 +688,13 @@ export function getAllCollaboratorsPnpSummary(
 
   _cachedPnpSummaryKey = cacheKey;
   _cachedPnpSummaryResult = results;
+  
+  // Prime individual map
+  for (const item of results) {
+    const k = `${normalizeCollaboratorName(item.nome)}_${empresaId}_${repackList.length}_${despejoList.length}_${quebrasList.length}`;
+    _cachedIndividualPnpMap.set(k, item);
+  }
+
   return results;
 }
 

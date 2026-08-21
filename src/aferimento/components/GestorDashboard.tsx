@@ -4230,19 +4230,19 @@ export default function GestorDashboard({
                                   </div>
 
                                   <div className="space-y-1">
-                                    {surplusProducts.map(i => {
+                                    {surplusProducts.map((i, iIdx) => {
                                       const diff = (i.rePhysicalQty !== undefined ? i.rePhysicalQty : i.physicalQty) - (i.fiscalQty ?? 0);
                                       return (
-                                        <div key={i.productCode} className="flex justify-between text-xs text-amber-950 font-medium">
+                                        <div key={`surplus-prod-${i.productCode || iIdx}-${iIdx}`} className="flex justify-between text-xs text-amber-950 font-medium">
                                           <span>{i.productDescription}</span>
                                           <span className="font-bold font-mono">+{diff} cx (Sobra)</span>
                                         </div>
                                       );
                                     })}
-                                    {surplusAssets.map(a => {
+                                    {surplusAssets.map((a, aIdx) => {
                                       const diff = (a.rePhysicalQty !== undefined ? a.rePhysicalQty : a.physicalQty) - (a.fiscalQty ?? 0);
                                       return (
-                                        <div key={a.assetId} className="flex justify-between text-xs text-blue-900 font-medium">
+                                        <div key={`surplus-asset-${a.assetId || aIdx}-${aIdx}`} className="flex justify-between text-xs text-blue-900 font-medium">
                                           <span>{a.assetName}</span>
                                           <span className="font-bold font-mono">+{diff} un (Ativo)</span>
                                         </div>
@@ -4531,19 +4531,19 @@ export default function GestorDashboard({
                                   </div>
 
                                   <div className="space-y-1">
-                                    {missingProducts.map(i => {
+                                    {missingProducts.map((i, iIdx) => {
                                       const diff = (i.fiscalQty ?? 0) - (i.rePhysicalQty !== undefined ? i.rePhysicalQty : i.physicalQty);
                                       return (
-                                        <div key={i.productCode} className="flex justify-between text-xs text-red-950 font-semibold">
+                                        <div key={`missing-prod-${i.productCode || iIdx}-${iIdx}`} className="flex justify-between text-xs text-red-950 font-semibold">
                                           <span>{i.productDescription}</span>
                                           <span className="font-bold font-mono">-{diff} cx (Falta)</span>
                                         </div>
                                       );
                                     })}
-                                    {missingAssets.map(a => {
+                                    {missingAssets.map((a, aIdx) => {
                                       const diff = (a.fiscalQty ?? 0) - (a.rePhysicalQty !== undefined ? a.rePhysicalQty : a.physicalQty);
                                       return (
-                                        <div key={a.assetId} className="flex justify-between text-xs text-red-900 font-semibold">
+                                        <div key={`missing-asset-${a.assetId || aIdx}-${aIdx}`} className="flex justify-between text-xs text-red-900 font-semibold">
                                           <span>{a.assetName}</span>
                                           <span className="font-bold font-mono">-{diff} un (Ativo)</span>
                                         </div>
@@ -5122,7 +5122,7 @@ export default function GestorDashboard({
                     .sort((a, b) => b[1] - a[1])[0];
 
                   return (
-                    <div key={asset.assetId} className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition flex items-start justify-between gap-3">
+                    <div key={`ranked-asset-${asset.assetId || idx}-${idx}`} className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <span className="bg-slate-100 text-slate-700 font-bold text-xxs px-2 py-0.5 rounded-md font-mono">#{idx + 1}</span>
@@ -6061,12 +6061,12 @@ export default function GestorDashboard({
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-slate-700">
-                            {selectedHistoryAudit.assets.map(asset => {
+                            {selectedHistoryAudit.assets.map((asset, aIdx) => {
                               const phys = asset.rePhysicalQty !== undefined ? asset.rePhysicalQty : asset.physicalQty;
                               const fisc = asset.fiscalQty ?? 0;
                               const diff = phys - fisc;
                               return (
-                                <tr key={asset.assetId} className="hover:bg-slate-50/50">
+                                <tr key={`hist-asset-row-${asset.assetId || aIdx}-${aIdx}`} className="hover:bg-slate-50/50">
                                   <td className="p-2.5 font-medium">{asset.assetName || asset.assetId}</td>
                                   <td className="p-2.5 text-center font-mono">{phys}</td>
                                   <td className="p-2.5 text-center font-mono">{fisc}</td>

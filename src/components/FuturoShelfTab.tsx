@@ -21,6 +21,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { getVendaMediaItens } from '../utils/estoqueStorage';
+import { calcularTotalCaixas } from '../data/coletaPackagingData';
 
 interface FuturoShelfTabProps {
   validadesList: ValidadeRow[];
@@ -96,7 +97,11 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       const codigo = String(item.codigo || '0000').trim();
       const descricao = String(item.descricao || 'Produto sem descrição').trim();
       const validadeStr = item.validade || currentDateStr;
-      const quantidade = (item as any).quantidade || (Number(item.palhete || 1) * Number(item.lastro || 1) * Number(item.caixa || 1)) || Number(item.caixa || 1);
+      const p = Number(item.palhete) || 0;
+      const l = Number(item.lastro) || 0;
+      const c = Number(item.caixa) || 0;
+      const q = Number((item as any).quantidade) || 0;
+      const quantidade = q > 0 ? q : (p > 0 || l > 0 || c > 0) ? calcularTotalCaixas(codigo, p, l, c) : (c > 0 ? c : 1);
       const lote = (item as any).lote || `LOT-${codigo}-${validadeStr.replace(/-/g, '')}`;
 
       // Venda Média & Previsão de Escoamento

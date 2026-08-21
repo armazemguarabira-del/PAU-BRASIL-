@@ -48,7 +48,7 @@ interface ConferentePanelProps {
   user: Usuario;
   empresa: Empresa | null;
   theme?: 'light' | 'dark';
-  initialTab?: 'import_placas' | 'rr' | 'tmr' | 'validade' | 'retorno_rota' | 'refugo';
+  initialTab?: 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes' | 'refugo';
 }
 
 export default function ConferentePanel({ user, empresa, initialTab, theme = 'dark' }: ConferentePanelProps) {
@@ -56,46 +56,56 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
   const draftKey = `conferente_draft_${empresaId}_${user.nome || 'guest'}`;
   const empresaData = useEmpresaData();
 
-  // Helper to load safe initial state
-  const getDraftValue = (key: string, defaultValue: any) => {
+  // Load draft safely once
+  const initialDraft = React.useMemo(() => {
     try {
       const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed[key] !== undefined) return parsed[key];
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return defaultValue;
-  };
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {};
+  }, [draftKey]);
 
-  const [conferente, setConferente] = useState<string>(() => getDraftValue('conferente', ''));
-  const [conferentes, setConferentes] = useState<string[]>(['GILSON ROSA DA SILVA', 'MATHEUS']);
+  const [conferente, setConferente] = useState<string>(() => initialDraft.conferente || '');
+  const [conferentes, setConferentes] = useState<string[]>(() => {
+    try {
+      const cached = localStorage.getItem(`conferente_state_${empresaId}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed.conferentes) && parsed.conferentes.length > 0) return parsed.conferentes;
+      }
+    } catch (e) {}
+    const list = empresaData.colaboradores || [];
+    const confs = list
+      .filter((c: any) => (c.funcao || '').toLowerCase() === 'conferente')
+      .map((c: any) => c.nome.toUpperCase());
+    return confs.length > 0 ? confs : ['GILSON ROSA DA SILVA', 'MATHEUS'];
+  });
   const [newConfName, setNewConfName] = useState('');
 
-  const [searchQuery, setSearchQuery] = useState<string>(() => getDraftValue('searchQuery', ''));
-  const [selectedProd, setSelectedProd] = useState<{ codigo: number, descricao: string } | null>(() => getDraftValue('selectedProd', null));
+  const [searchQuery, setSearchQuery] = useState<string>(() => initialDraft.searchQuery || '');
+  const [selectedProd, setSelectedProd] = useState<{ codigo: number, descricao: string } | null>(() => initialDraft.selectedProd || null);
   const [quantidade, setQuantidade] = useState<number | ''>(() => {
-    const val = getDraftValue('quantidade', '');
+    const val = initialDraft.quantidade;
     return val === 1 ? '' : (val || '');
   });
-  const [operator, setOperator] = useState<string>(() => getDraftValue('operator', ''));
+  const [operator, setOperator] = useState<string>(() => initialDraft.operator || '');
   const [operators, setOperators] = useState<string[]>(['MARIVALDO', 'RONILDO', 'PAULO PEREIRA']);
 
   // Tasks lists
-  const [tasks, setTasks] = useState<Tarefa[]>([]);
+  const [tasks, setTasks] = useState<Tarefa[]>(() => {
+    const rows = [...(empresaData.tarefas || [])];
+    if (rows.length === 0) {
+      try {
+        const saved = localStorage.getItem(`tasks_${empresaId}`);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+  });
   const [activeTab, setActiveTab] = useState<'open' | 'done'>('open');
   const [creating, setCreating] = useState(false);
   const [draftRestored, setDraftRestored] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return !!(parsed.searchQuery || parsed.selectedProd || (parsed.quantidade && parsed.quantidade !== 1) || parsed.operator);
-      }
-    } catch (e) {}
-    return false;
+    return !!(initialDraft.searchQuery || initialDraft.selectedProd || (initialDraft.quantidade && initialDraft.quantidade !== 1) || initialDraft.operator);
   });
 
   // Dispatch Category State: 'picking' | 'tmr'
@@ -400,9 +410,9 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     setShowAddAvulsaModal(false);
   };
 
-  // Subtab navigation: 'import_placas' | 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes'
-  const [panelTab, setPanelTab] = useState<'import_placas' | 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes'>(
-    initialTab === 'refugo' ? 'retorno_rota' : (initialTab as any) || 'import_placas'
+  // Subtab navigation: 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes'
+  const [panelTab, setPanelTab] = useState<'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes'>(
+    initialTab === 'refugo' ? 'retorno_rota' : (initialTab as any) || 'rr'
   );
 
   useEffect(() => {
@@ -987,62 +997,28 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     localStorage.setItem(draftKey, JSON.stringify(draftData));
   }, [conferente, searchQuery, selectedProd, quantidade, operator, draftKey]);
 
-  // Sync with prop updates / user changing
+  // Sync with Tasks (when tasks from context change)
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setConferente(parsed.conferente || '');
-        setSearchQuery(parsed.searchQuery || '');
-        setSelectedProd(parsed.selectedProd || null);
-        setQuantidade(parsed.quantidade === 1 ? '' : (parsed.quantidade || ''));
-        setOperator(parsed.operator || '');
-        setDraftRestored(!!(parsed.searchQuery || parsed.selectedProd || (parsed.quantidade && parsed.quantidade !== 1) || parsed.operator));
-      } else {
-        setConferente('');
-        setSearchQuery('');
-        setSelectedProd(null);
-        setQuantidade('');
-        setOperator('');
-        setDraftRestored(false);
-      }
-    } catch (e) {
-      console.error(e);
+    if (empresaData.tarefas && empresaData.tarefas.length > 0) {
+      const rows = [...empresaData.tarefas];
+      rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+      setTasks(rows);
+      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(rows));
     }
-  }, [draftKey]);
-
-  // Read config list and user states from local storage (recovery)
-  useEffect(() => {
-    const cached = localStorage.getItem(`conferente_state_${empresaId}`);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (parsed.conferentes) setConferentes(parsed.conferentes);
-        if (parsed.conferente) setConferente(parsed.conferente);
-        setOperators(['MARIVALDO', 'RONILDO', 'PAULO PEREIRA']);
-      } catch (e) {}
-    }
-  }, [empresaId]);
-
-  // Sync with Tasks (scoped to company)
-  useEffect(() => {
-    const rows = [...(empresaData.tarefas || [])];
-    rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-    setTasks(rows);
-    localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(rows));
   }, [empresaData.tarefas, empresaId]);
 
   // Sync colaboradores to use as operators and conferentes
   useEffect(() => {
-    const allowedOps = ['MARIVALDO', 'RONILDO', 'PAULO PEREIRA'];
-    setOperators(allowedOps);
-
     const list = empresaData.colaboradores || [];
     const confs = list
       .filter((c: any) => (c.funcao || '').toLowerCase() === 'conferente')
       .map((c: any) => c.nome.toUpperCase());
-    if (confs.length > 0) setConferentes(confs);
+    if (confs.length > 0) {
+      setConferentes(prev => {
+        const merged = Array.from(new Set([...prev, ...confs]));
+        return merged.length !== prev.length ? merged : prev;
+      });
+    }
   }, [empresaData.colaboradores, empresaId]);
 
   const persistState = (extra: Record<string, any> = {}) => {
@@ -1153,7 +1129,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         <div>
           <span className="font-sans font-black text-sm tracking-widest text-[#f5a623] uppercase flex items-center gap-2">
             <Truck className="w-4 h-4 text-amber-400" /> CONFERENTE / ADM & GESTÃO EFC / EFD
-            <OperationalNotificationBell user={user} userRole="conferente" onNavigate={(panel, tab) => { if (tab) setActiveTab(tab as any); }} />
+            <OperationalNotificationBell user={user} userRole="conferente" onNavigate={(panel, tab) => { if (tab) setPanelTab(tab as any); }} />
           </span>
           <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
             Despacho de Pátio, Importação do Relatório 03.11.49.02 e Controle de Pernoites (D1–D4)
@@ -1236,32 +1212,12 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 bg-[#151b23] border border-sky-500/30 rounded-xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">EFC Pendentes</span>
-            <span className="text-xl font-black text-white font-mono mt-0.5 block">
-              {efcVehicles.filter(v => v.statusCarregamento !== 'Finalizado').length}
-            </span>
-          </div>
-          <Truck className="w-5 h-5 text-sky-400" />
-        </div>
-
-        <div className="p-3.5 bg-[#151b23] border border-emerald-500/30 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">EFD Pendentes</span>
-            <span className="text-xl font-black text-white font-mono mt-0.5 block">
-              {efcVehicles.filter(v => (v.statusCarregamento === 'Finalizado' || v.pernoiteMarked || v.statusDescarregamento === 'Pernoite') && v.statusDescarregamento !== 'Finalizado').length}
-            </span>
-          </div>
-          <Clock className="w-5 h-5 text-emerald-400" />
-        </div>
-
-        <div className="p-3.5 bg-[#151b23] border border-amber-500/30 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">R&R Pendentes</span>
+            <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">R&R Pendentes</span>
             <span className="text-xl font-black text-white font-mono mt-0.5 block">
               {openTasksList.length}
             </span>
           </div>
-          <CheckCircle2 className="w-5 h-5 text-amber-400" />
+          <Clock className="w-5 h-5 text-sky-400" />
         </div>
 
         <div className="p-3.5 bg-[#151b23] border border-purple-500/30 rounded-xl flex items-center justify-between">
@@ -1273,25 +1229,30 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           </div>
           <FileSpreadsheet className="w-5 h-5 text-purple-400" />
         </div>
+
+        <div className="p-3.5 bg-[#151b23] border border-emerald-500/30 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">TMR Concluídas</span>
+            <span className="text-xl font-black text-white font-mono mt-0.5 block">
+              {tmrDemands.filter(t => t.status === 'done').length}
+            </span>
+          </div>
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+        </div>
+
+        <div className="p-3.5 bg-[#151b23] border border-amber-500/30 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Leituras Temp.</span>
+            <span className="text-xl font-black text-white font-mono mt-0.5 block">
+              {tempLogs.length}
+            </span>
+          </div>
+          <Thermometer className="w-5 h-5 text-amber-400" />
+        </div>
       </div>
 
-      {/* NAV TABS: Importar Placas (03.11.49.02) | R&R | TMR | Validade | Temp | WLP | 5S | Retorno de Rota */}
+      {/* NAV TABS: R&R | TMR | Validades | Temperatura | WLP | 5S | Retorno Rota | Guia Ações */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 bg-[#151b23] border border-[#222d3a] p-2 rounded-xl w-full">
-        <button
-          onClick={() => setPanelTab('import_placas')}
-          className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
-            panelTab === 'import_placas'
-              ? 'bg-amber-500 text-slate-950 font-black shadow-md'
-              : 'text-[#6a7d92] hover:text-white bg-transparent'
-          }`}
-        >
-          <Truck className="w-4 h-4 shrink-0" />
-          <span className="truncate">1. Placas</span>
-          <span className="bg-slate-900 text-amber-300 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
-            {efcVehicles.length}
-          </span>
-        </button>
-
         <button
           onClick={() => setPanelTab('rr')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
@@ -1301,7 +1262,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <Clock className="w-4 h-4 shrink-0" />
-          <span className="truncate">2. R&R</span>
+          <span className="truncate">1. R&R</span>
           <span className="bg-sky-950 text-sky-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
             {openTasksList.length}
           </span>
@@ -1316,7 +1277,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <FileSpreadsheet className="w-4 h-4 shrink-0" />
-          <span className="truncate">3. TMR</span>
+          <span className="truncate">2. TMR</span>
           <span className="bg-purple-950 text-purple-200 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">
             {tmrDemands.filter(t => t.status !== 'done').length}
           </span>
@@ -1331,7 +1292,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <Calendar className="w-4 h-4 shrink-0" />
-          <span className="truncate">4. Validades</span>
+          <span className="truncate">3. Validades</span>
         </button>
 
         <button
@@ -1343,7 +1304,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <Thermometer className="w-4 h-4 shrink-0" />
-          <span className="truncate">5. Temperatura</span>
+          <span className="truncate">4. Temperatura</span>
         </button>
 
         <button
@@ -1355,7 +1316,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <Clock className="w-4 h-4 shrink-0 text-slate-900" />
-          <span className="truncate">6. WLP & Turno</span>
+          <span className="truncate">5. WLP & Turno</span>
         </button>
 
         <button
@@ -1367,7 +1328,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span className="truncate">7. Realização 5S</span>
+          <span className="truncate">6. Realização 5S</span>
         </button>
 
         <button
@@ -1379,7 +1340,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <Truck className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span className="truncate">8. Retorno Rota</span>
+          <span className="truncate">7. Retorno Rota</span>
         </button>
 
         <button
@@ -1391,7 +1352,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           }`}
         >
           <ShieldCheck className="w-4 h-4 shrink-0" />
-          <span className="truncate">9. Guia Ações</span>
+          <span className="truncate">8. Guia Ações</span>
         </button>
       </div>
 
@@ -2222,406 +2183,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           )}
         </div>
       </div>
-      )}
-
-      {/* ── TAB: IMPORTAR PLACAS (03.11.49.02) UNIFICADO ── */}
-      {panelTab === 'import_placas' && (
-        <div className="flex flex-col gap-6">
-          <div className="g-card p-6 flex flex-col gap-5">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#222d3a] pb-4">
-              <div>
-                <h3 className="font-sans font-black text-sm uppercase tracking-wider text-[#f5a623] flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-amber-400" />
-                  Importar Placas — Relatório 03.11.49.02 (EFC Expedição & EFD Descarregamento)
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Importação unificada da frota diária. As placas importadas hoje para expedição (EFC) transitam automaticamente para a fila de descarregamento (EFD) e ciclo de pernoites D1–D4 sem necessidade de reimportação.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddAvulsaModal(true)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2 shadow-md transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Adicionar Placa Avulsa</span>
-                </button>
-
-                <label className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2 shadow-md transition-all">
-                  <Upload className="w-4 h-4" />
-                  <span>Importar Placas (03.11.49.02)</span>
-                  <input type="file" accept=".csv,.txt" onChange={handleFileUpload} className="hidden" />
-                </label>
-
-                <label className="bg-sky-600 hover:bg-sky-500 text-white font-black text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2 shadow-md transition-all">
-                  <Upload className="w-4 h-4 text-sky-200" />
-                  <span>Importar Placas Apenas para EFD (Descarregamento)</span>
-                  <input type="file" accept=".csv,.txt" onChange={handleFileUploadEFD} className="hidden" />
-                </label>
-
-                <button
-                  type="button"
-                  onClick={handleLoadSampleCSV}
-                  className="bg-[#151b23] hover:bg-[#1c2530] text-amber-400 border border-amber-500/30 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2 transition-all"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Carregar Exemplo Pau Brasil Guarabira</span>
-                </button>
-              </div>
-            </div>
-
-            {/* KPI METRICS OVERVIEW */}
-            {(() => {
-              const efcMetrics = calculateEfcMetrics(efcVehicles);
-              const efdMetrics = calculateEfdMetrics(efcVehicles);
-              return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-xl bg-[#151b23] border border-[#222d3a] flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Placas Importadas</span>
-                    <span className="text-2xl font-black text-white mt-1">{efcVehicles.length} <span className="text-xs font-normal text-slate-400">veículos</span></span>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#151b23] border border-amber-500/30 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Índice EFC Realizado (≤ 06:30)</span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className={`text-2xl font-black ${(efcMetrics?.efcReal ?? 100) >= 96 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {(efcMetrics?.efcReal ?? 100).toFixed(1)}%
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold">Meta: ≥ 96.0%</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#151b23] border border-emerald-500/30 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Índice EFD Realizado (≤ 22:00)</span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className={`text-2xl font-black ${(efdMetrics?.efdReal ?? 100) >= 90 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {(efdMetrics?.efdReal ?? 100).toFixed(1)}%
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold">Meta: ≥ 90.0%</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[#151b23] border border-[#222d3a] flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Placas em Pernoite (D1–D4)</span>
-                    <span className="text-2xl font-black text-amber-300 mt-1">{efdMetrics.pernoites} <span className="text-xs font-normal text-slate-400">isentas</span></span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* FILTER BAR */}
-            <div className="p-3.5 bg-[#0d1218] border border-amber-500/30 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2 w-full">
-                <span className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5 mr-2">
-                  <Filter className="w-3.5 h-3.5" /> Visão / Filtro:
-                </span>
-                {(['Todos', 'EFC', 'EFD', 'Pernoites'] as const).map(f => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setImportTableFilter(f)}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase transition-all cursor-pointer ${
-                      importTableFilter === f
-                        ? 'bg-amber-500 text-slate-950 shadow-sm'
-                        : 'bg-[#151b23] text-slate-400 hover:text-white border border-[#222d3a]'
-                    }`}
-                  >
-                    {f === 'Todos' ? 'Todas as Placas' : f === 'EFC' ? 'Expedição (EFC)' : f === 'EFD' ? 'Descarregamento (EFD)' : 'Pernoites (D1-D4)'}
-                  </button>
-                ))}
-                <input
-                  type="text"
-                  placeholder="Buscar placa/mapa..."
-                  value={placaSearchFilter}
-                  onChange={e => setPlacaSearchFilter(e.target.value)}
-                  className="bg-[#151b23] border border-[#222d3a] text-white text-xs px-3 py-1.5 rounded-lg ml-auto focus:border-amber-400 font-mono w-full sm:w-56"
-                />
-              </div>
-            </div>
-
-            {/* DYNAMIC TABLE OF IMPORTED VEHICLES */}
-            <div className="overflow-x-auto border border-[#222d3a] rounded-xl">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-[#11151c] text-[#f5a623] uppercase text-[10px] font-black tracking-wider border-b border-[#222d3a]">
-                  {importTableFilter === 'EFC' ? (
-                    <tr>
-                      <th className="p-3">Placa / Veículo</th>
-                      <th className="p-3">Data / Mapa</th>
-                      <th className="p-3 text-center">Classificação (Rota / Recarga)</th>
-                      <th className="p-3 text-center">Status EFC (≤ 06:30)</th>
-                      <th className="p-3 text-right">Ações</th>
-                    </tr>
-                  ) : importTableFilter === 'EFD' ? (
-                    <tr>
-                      <th className="p-3">Placa / Veículo</th>
-                      <th className="p-3">Data / Mapa</th>
-                      <th className="p-3 text-center">Classificação Pernoite</th>
-                      <th className="p-3 text-center">Status EFD (≤ 22:00)</th>
-                      <th className="p-3 text-right">Ações</th>
-                    </tr>
-                  ) : importTableFilter === 'Pernoites' ? (
-                    <tr>
-                      <th className="p-3">Placa / Veículo</th>
-                      <th className="p-3">Data / Mapa</th>
-                      <th className="p-3 text-center">Classificação Pernoite</th>
-                      <th className="p-3 text-center">Status Pernoite / EFD</th>
-                      <th className="p-3 text-right">Ações</th>
-                    </tr>
-                  ) : (
-                    <tr>
-                      <th className="p-3">Placa / Veículo</th>
-                      <th className="p-3">Data / Mapa</th>
-                      <th className="p-3 text-center">Classificação Recarga</th>
-                      <th className="p-3 text-center">Classificação Pernoite</th>
-                      <th className="p-3 text-center">Status EFC (≤ 06:30)</th>
-                      <th className="p-3 text-center">Status EFD (≤ 22:00)</th>
-                      <th className="p-3 text-right">Ações</th>
-                    </tr>
-                  )}
-                </thead>
-                <tbody className="divide-y divide-[#222d3a]/60 bg-[#151b23]/40">
-                  {efcVehicles.length === 0 ? (
-                    <tr>
-                      <td colSpan={importTableFilter === 'Todos' ? 7 : 5} className="p-8 text-center text-slate-500 font-medium">
-                        Nenhum veículo importado na base. Clique em "Adicionar Placa Avulsa", "Importar Placas (03.11.49.02)" ou "Carregar Exemplo Pau Brasil Guarabira".
-                      </td>
-                    </tr>
-                  ) : (
-                    efcVehicles
-                      .filter(v => {
-                        if (placaSearchFilter) {
-                          const q = placaSearchFilter.trim().toUpperCase();
-                          const matchesPlaca = v.placa.toUpperCase().includes(q);
-                          const matchesMapa = v.mapa.toUpperCase().includes(q);
-                          const matchesMotorista = (v.motorista || '').toUpperCase().includes(q);
-                          if (!matchesPlaca && !matchesMapa && !matchesMotorista) return false;
-                        }
-                        if (importTableFilter === 'EFC') {
-                          return !(v.isRecarga || v.tipoCarga === 'Recarga');
-                        }
-                        if (importTableFilter === 'EFD') {
-                          return !v.pernoiteMarked && v.statusDescarregamento !== 'Pernoite';
-                        }
-                        if (importTableFilter === 'Pernoites') {
-                          return v.pernoiteMarked || v.statusDescarregamento === 'Pernoite';
-                        }
-                        return true;
-                      })
-                      .map(v => (
-                        <tr key={`placa_conf_${v.id}`} className="hover:bg-[#1c2530]/50 transition-colors">
-                          <td className="p-3 font-mono font-black text-amber-300 text-sm">
-                            {v.placa}
-                            <span className="block text-[10px] font-sans font-normal text-slate-400">{v.tipoVeiculo}</span>
-                          </td>
-                          <td className="p-3">
-                            <span className="text-slate-200 block font-medium">{v.dataEntrega}</span>
-                            <span className="text-[10px] text-slate-500 font-mono">Mapa: {v.mapa}</span>
-                          </td>
-
-                          {/* EFC VIEW SPECIFIC COLUMNS */}
-                          {importTableFilter === 'EFC' && (
-                            <>
-                              <td className="p-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleRecarga(v.id)}
-                                  className={`px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 mx-auto cursor-pointer transition-all ${
-                                    v.isRecarga || v.tipoCarga === 'Recarga'
-                                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-xs'
-                                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                                  }`}
-                                >
-                                  {v.isRecarga || v.tipoCarga === 'Recarga' ? '🔄 Recarga' : '🚚 Rota Regular'}
-                                </button>
-                              </td>
-                              <td className="p-3 text-center">
-                                {v.isRecarga ? (
-                                  <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                                    Isento EFC
-                                  </span>
-                                ) : v.statusCarregamento === 'Finalizado' ? (
-                                  v.efcCompliant ? (
-                                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ✅ No Prazo
-                                    </span>
-                                  ) : (
-                                    <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ❌ Fora Prazo
-                                    </span>
-                                  )
-                                ) : (
-                                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    {v.statusCarregamento}
-                                  </span>
-                                )}
-                              </td>
-                            </>
-                          )}
-
-                          {/* EFD VIEW SPECIFIC COLUMNS */}
-                          {importTableFilter === 'EFD' && (
-                            <>
-                              <td className="p-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleTogglePernoite(v.id)}
-                                  className={`px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 mx-auto cursor-pointer transition-all ${
-                                    v.pernoiteMarked
-                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
-                                      : 'bg-[#151b23] text-slate-400 border border-[#222d3a] hover:text-white'
-                                  }`}
-                                >
-                                  🌙 {v.pernoiteMarked ? `Pernoite (${v.pernoiteStatus || 'D1'})` : 'Classificar Pernoite'}
-                                </button>
-                              </td>
-                              <td className="p-3 text-center">
-                                {v.statusDescarregamento === 'Finalizado' ? (
-                                  v.efdCompliant ? (
-                                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ✅ No Prazo
-                                    </span>
-                                  ) : (
-                                    <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ❌ Atrasado
-                                    </span>
-                                  )
-                                ) : v.pernoiteMarked || v.statusDescarregamento === 'Pernoite' ? (
-                                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    🌙 Transita ({v.pernoiteStatus || 'D1'})
-                                  </span>
-                                ) : (
-                                  <span className="bg-slate-700/50 text-slate-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    {v.statusDescarregamento}
-                                  </span>
-                                )}
-                              </td>
-                            </>
-                          )}
-
-                          {/* PERNOITES VIEW SPECIFIC COLUMNS */}
-                          {importTableFilter === 'Pernoites' && (
-                            <>
-                              <td className="p-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleTogglePernoite(v.id)}
-                                  className="px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 mx-auto cursor-pointer transition-all bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs"
-                                >
-                                  🌙 Pernoite ({v.pernoiteStatus || 'D1'})
-                                </button>
-                              </td>
-                              <td className="p-3 text-center">
-                                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                  🌙 Pernoite ({v.pernoiteStatus || 'D1'})
-                                </span>
-                              </td>
-                            </>
-                          )}
-
-                          {/* TODOS VIEW COLUMNS */}
-                          {importTableFilter === 'Todos' && (
-                            <>
-                              <td className="p-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleRecarga(v.id)}
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 mx-auto cursor-pointer transition-all ${
-                                    v.isRecarga || v.tipoCarga === 'Recarga'
-                                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-xs'
-                                      : 'bg-[#151b23] text-slate-400 border border-[#222d3a] hover:text-white'
-                                  }`}
-                                >
-                                  🔄 {v.isRecarga || v.tipoCarga === 'Recarga' ? 'Recarga Ativa' : 'Recarga'}
-                                </button>
-                              </td>
-                              <td className="p-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleTogglePernoite(v.id)}
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 mx-auto cursor-pointer transition-all ${
-                                    v.pernoiteMarked
-                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
-                                      : 'bg-[#151b23] text-slate-400 border border-[#222d3a] hover:text-white'
-                                  }`}
-                                >
-                                  🌙 {v.pernoiteMarked ? `Pernoite (${v.pernoiteStatus || 'D1'})` : 'Pernoite'}
-                                </button>
-                              </td>
-                              <td className="p-3 text-center">
-                                {v.isRecarga ? (
-                                  <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                                    Isento EFC
-                                  </span>
-                                ) : v.statusCarregamento === 'Finalizado' ? (
-                                  v.efcCompliant ? (
-                                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ✅ No Prazo
-                                    </span>
-                                  ) : (
-                                    <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ❌ Fora Prazo
-                                    </span>
-                                  )
-                                ) : (
-                                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    {v.statusCarregamento}
-                                  </span>
-                                )}
-                              </td>
-                              <td className="p-3 text-center">
-                                {v.statusDescarregamento === 'Finalizado' ? (
-                                  v.efdCompliant ? (
-                                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ✅ No Prazo
-                                    </span>
-                                  ) : (
-                                    <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                                      ❌ Atrasado
-                                    </span>
-                                  )
-                                ) : v.pernoiteMarked || v.statusDescarregamento === 'Pernoite' ? (
-                                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    🌙 Transita ({v.pernoiteStatus || 'D1'})
-                                  </span>
-                                ) : (
-                                  <span className="bg-slate-700/50 text-slate-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                    {v.statusDescarregamento}
-                                  </span>
-                                )}
-                              </td>
-                            </>
-                          )}
-
-                          <td className="p-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleStartEditVehicle(v)}
-                                className="p-1.5 text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg bg-transparent border-none cursor-pointer transition-all"
-                                title="Editar Dados da Placa"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteVehicle(v.id, v.placa)}
-                                className="p-1.5 text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg bg-transparent border-none cursor-pointer transition-all"
-                                title="Excluir Placa Importada"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Modal Editar Placa */}

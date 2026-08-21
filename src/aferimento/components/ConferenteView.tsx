@@ -3479,7 +3479,7 @@ export default function ConferenteView({
                 </div>
 
                 <div className="space-y-4">
-                  {activeSession.assets.map((asset) => {
+                  {activeSession.assets.map((asset, aIdx) => {
                     const isGarrafeira = asset.assetName.includes('GARRAFEIRA');
                     const isPallet = asset.assetName.includes('PALETE') || asset.assetName.includes('CHAPATEX');
                     
@@ -3492,7 +3492,7 @@ export default function ConferenteView({
 
                     return (
                       <div 
-                        key={asset.assetId} 
+                        key={`session-asset-${asset.assetId || aIdx}-${aIdx}`} 
                         className={`flex items-center justify-between p-3 rounded-lg border border-slate-150 hover:bg-slate-50 transition-all ${
                           activeSession.status === 'reconferencia' ? 'bg-red-50/10' : ''
                         }`}
@@ -3577,7 +3577,7 @@ export default function ConferenteView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {activeSession.assets.map((asset) => {
+                        {activeSession.assets.map((asset, aIdx) => {
                           const mappedCode = getAssetCode(asset.assetId, asset.assetName);
                           const canonicalName = getAssetCanonicalName(mappedCode) || asset.assetName;
                           
@@ -3587,7 +3587,7 @@ export default function ConferenteView({
                           const currentReason = refugoEntry ? refugoEntry.reason : 'BICADA EXTERNA';
                           
                           return (
-                            <tr key={asset.assetId} className="hover:bg-slate-100/50 transition-colors">
+                            <tr key={`session-refugo-${asset.assetId || aIdx}-${aIdx}`} className="hover:bg-slate-100/50 transition-colors">
                               <td className="py-2.5">
                                 <span className="font-sans font-semibold text-slate-800 text-xs block">
                                   {canonicalName}

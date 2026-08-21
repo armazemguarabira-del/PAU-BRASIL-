@@ -221,7 +221,9 @@ export function isPanelAllowedForUser(
     panelId === 'plataformas-externas' ||
     panelId === 'reunioes' ||
     panelId === 'semana-qualidade' ||
-    panelId === 'armazem-facil-padrao-02'
+    panelId === 'armazem-facil-padrao-02' ||
+    panelId === 'dto-diagnostico' ||
+    panelId === 'dto'
   ) {
     return true;
   }

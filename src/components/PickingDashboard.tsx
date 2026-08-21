@@ -45,7 +45,8 @@ import {
   ChevronRight,
   ChevronDown,
   BookOpen,
-  ShieldCheck
+  ShieldCheck,
+  ClipboardCheck
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -1383,6 +1384,20 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
           >
             📋 Planos de Ação
           </button>
+
+          {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (OPERADORES) */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'efc' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'efc' } }));
+            }}
+            className="px-3.5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional de Operadores (EFC/EFD)"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" />
+            DTO Operadores
+          </button>
         </div>
       </div>
 
@@ -1457,6 +1472,29 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
               Quadro de Ações A3
             </button>
           </div>
+
+          {/* ATALHOS DTO DIAGNÓSTICO */}
+          <button 
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'efc' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'efc' } }));
+            }}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional de Operadores (EFC/EFD)"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" /> DTO Operadores
+          </button>
+
+          <button 
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'montagem' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'montagem' } }));
+            }}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-indigo-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional de Montagem"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-indigo-200" /> DTO Montagem
+          </button>
 
           <button 
             onClick={() => setIsPopModalOpen(true)}

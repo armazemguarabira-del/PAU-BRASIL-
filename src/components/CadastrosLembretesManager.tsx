@@ -320,7 +320,7 @@ export function CadastrosLembretesManager() {
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Lembrete 09:00 — Importação de Placas (03.11.49.02)"
+                  placeholder="Ex: Lembrete 09:00 — Validação de Validades FEFO e R&R"
                   value={formData.titulo}
                   onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                   className="w-full bg-[#0d1218] border border-slate-700 focus:border-amber-400 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 font-bold focus:outline-none"

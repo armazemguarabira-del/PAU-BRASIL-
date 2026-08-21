@@ -640,8 +640,8 @@ export default function A3BoardComponent({ user, empresa, dashboard }: A3BoardCo
               {activeBoard._docId && activeBoard._docId.startsWith('seed-board-') && (
                 <option value={activeBoard._docId}>💡 Exemplo: {fallbackSeedBoard.titulo}</option>
               )}
-              {boards.map(b => (
-                <option key={b._docId} value={b._docId}>
+              {boards.map((b, bIdx) => (
+                <option key={`board-opt-${b._docId || bIdx}-${bIdx}`} value={b._docId}>
                   📋 {b.titulo}
                 </option>
               ))}

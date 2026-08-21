@@ -687,21 +687,21 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
     <div className={`p-4 sm:p-6 space-y-6 ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* 🚀 HEADER PRINCIPAL DE MATRIZ SDPO */}
-      <div className="p-6 bg-gradient-to-r from-slate-950 via-indigo-950 to-blue-950 text-white rounded-3xl shadow-2xl border border-indigo-500/30 relative overflow-hidden space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2">
+      <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-950 via-indigo-950 to-blue-950 text-white rounded-3xl shadow-2xl border border-indigo-500/30 relative space-y-5">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="space-y-3 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> Pilar Armazém — DPO Revendas
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1.5 whitespace-nowrap">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" /> Pilar Armazém — DPO Revendas
               </span>
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Matriz SDPO Organizada por 5 Blocos
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1.5 whitespace-nowrap">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Matriz SDPO Organizada por 5 Blocos
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
-              <Layers3 className="w-8 h-8 text-sky-400 shrink-0" />
-              Matriz SDPO & Auditoria de Processos (5 Blocos)
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight flex items-center gap-2.5 sm:gap-3 flex-wrap">
+              <Layers3 className="w-7 h-7 sm:w-8 sm:h-8 text-sky-400 shrink-0" />
+              <span>Matriz SDPO & Auditoria de Processos (5 Blocos)</span>
             </h1>
 
             <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
@@ -710,19 +710,19 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
           </div>
 
           {/* PAINEL DE ADERÊNCIA E PONTUAÇÃO */}
-          <div className="grid grid-cols-2 gap-3 shrink-0">
-            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/10 space-y-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0 w-full xl:w-auto">
+            <div className="bg-white/10 p-3.5 sm:p-4 rounded-2xl backdrop-blur-md border border-white/10 space-y-1 min-w-[190px]">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 block">Checklist de Aderência</span>
-              <span className="text-xl font-black text-emerald-400 block font-mono">
+              <span className="text-lg sm:text-xl font-black text-emerald-400 block font-mono">
                 {checklistStats.implementedCount} / {checklistStats.total} ({checklistStats.percentImplemented.toFixed(0)}%)
               </span>
               <span className="text-[10px] text-slate-300 font-bold block">Requisitos Implementados</span>
             </div>
 
-            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/10 space-y-1">
+            <div className="bg-white/10 p-3.5 sm:p-4 rounded-2xl backdrop-blur-md border border-white/10 space-y-1 min-w-[210px]">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 block">Auditoria Oficial</span>
-              <span className="text-xl font-black text-amber-300 block font-mono">
-                {overallStats.percent.toFixed(0)}% ({overallStats.nivel})
+              <span className="text-base sm:text-lg lg:text-xl font-black text-amber-300 block font-mono leading-tight">
+                {overallStats.percent.toFixed(0)}% <span className="text-xs sm:text-sm text-amber-200">({overallStats.nivel})</span>
               </span>
               <span className="text-[10px] text-amber-200/80 font-bold block">{overallStats.totalAchieved} de {overallStats.totalMax} pts</span>
             </div>
@@ -730,28 +730,28 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
         </div>
 
         {/* METADADOS & BOTÃO SALVAR */}
-        <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 bg-[#0b1222]/80 px-3 py-1.5 rounded-xl border border-slate-800">
-              <Calendar className="w-4 h-4 text-sky-400" />
-              <span className="text-[11px] font-bold text-slate-400">Data da Auditoria:</span>
+        <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-[#0b1222]/80 px-3 py-1.5 rounded-xl border border-slate-800 flex-1 sm:flex-none min-w-[200px]">
+              <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">Data da Auditoria:</span>
               <input 
                 type="date"
                 value={dataAuditoria}
                 onChange={e => setDataAuditoria(e.target.value)}
-                className="bg-transparent text-xs font-mono font-bold text-white outline-none"
+                className="bg-transparent text-xs font-mono font-bold text-white outline-none w-full"
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-[#0b1222]/80 px-3 py-1.5 rounded-xl border border-slate-800">
-              <User className="w-4 h-4 text-emerald-400" />
-              <span className="text-[11px] font-bold text-slate-400">Auditor Responsável:</span>
+            <div className="flex items-center gap-2 bg-[#0b1222]/80 px-3 py-1.5 rounded-xl border border-slate-800 flex-1 sm:flex-none min-w-[220px]">
+              <User className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">Auditor:</span>
               <input 
                 type="text"
                 value={auditor}
                 onChange={e => setAuditor(e.target.value)}
                 placeholder="Nome do Auditor"
-                className="bg-transparent text-xs font-bold text-white outline-none w-36 sm:w-48"
+                className="bg-transparent text-xs font-bold text-white outline-none w-full"
               />
             </div>
           </div>
@@ -759,7 +759,7 @@ export default function AuditoriaDpoPanel({ user, empresa, theme = 'light', onNa
           <button
             onClick={handleSaveAuditoria}
             disabled={saving}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer uppercase tracking-wider"
+            className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider shrink-0"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Gravando...' : 'Salvar Auditoria DPO'}

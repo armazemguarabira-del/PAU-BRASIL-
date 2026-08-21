@@ -35,6 +35,7 @@ import SimuladorRessuprimentoPanel from './components/SimuladorRessuprimentoPane
 import RankingModule from './components/RankingModule';
 import EficienciaMontagemPanel from './components/EficienciaMontagemPanel';
 import TreeKpiViewer from './components/TreeKpiViewer';
+import LossHierarchyTree from './components/LossHierarchyTree';
 import CadastrosPanel from './components/CadastrosPanel';
 import QualidadePanel from './components/QualidadePanel';
 import SemanaQualidadePanel from './components/SemanaQualidadePanel';
@@ -43,6 +44,7 @@ import AuditoriaDpoPanel from './components/AuditoriaDpoPanel';
 import CategoryIndexPanel from './components/CategoryIndexPanel';
 import PlataformasExternasPanel from './components/PlataformasExternasPanel';
 import ArmazemFacilPadrao02 from './components/ArmazemFacilPadrao02';
+import DtoDiagnosticoPanel from './components/DtoDiagnosticoPanel';
 import { TreinamentosQualidadePanel, 
   BloqueioArmazemPanel, 
   DevolucaoPanel, 
@@ -228,6 +230,7 @@ export default function App() {
 
   const [isMelhoriaModalOpen, setIsMelhoriaModalOpen] = useState(false);
   const [melhoriaModalData, setMelhoriaModalData] = useState<any>(null);
+  const [dtoInitialOperacao, setDtoInitialOperacao] = useState<string>('repack');
 
   // Listeners globais para abertura dos modais de qualquer ponto do sistema e navegação
   useEffect(() => {
@@ -240,19 +243,33 @@ export default function App() {
       setIsMelhoriaModalOpen(true);
     };
     const handleGlobalNavigate = (e: any) => {
-      if (e.detail) {
+      if (typeof e.detail === 'string') {
         navigateToPanel(e.detail);
+      } else if (e.detail && typeof e.detail === 'object') {
+        if (e.detail.operacao) {
+          setDtoInitialOperacao(e.detail.operacao);
+        }
+        if (e.detail.panel) {
+          navigateToPanel(e.detail.panel);
+        }
       }
+    };
+    const handleOpenDto = (e: any) => {
+      const op = e.detail?.operacao || e.detail || 'repack';
+      setDtoInitialOperacao(op);
+      navigateToPanel('dto-diagnostico');
     };
 
     window.addEventListener('abrir-modal-acao-desvio', handleOpenDesvio);
     window.addEventListener('abrir-modal-acao-melhoria', handleOpenMelhoria);
     window.addEventListener('app_navigate', handleGlobalNavigate);
+    window.addEventListener('open_dto_operacao', handleOpenDto);
 
     return () => {
       window.removeEventListener('abrir-modal-acao-desvio', handleOpenDesvio);
       window.removeEventListener('abrir-modal-acao-melhoria', handleOpenMelhoria);
       window.removeEventListener('app_navigate', handleGlobalNavigate);
+      window.removeEventListener('open_dto_operacao', handleOpenDto);
     };
   }, [historyIndex, activePanel]);
 
@@ -660,8 +677,8 @@ export default function App() {
 
           <div className="w-full text-left bg-slate-50 border border-slate-100 rounded-xl p-4.5 mb-6 flex flex-col gap-3">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Ação(ões) Pendente(s) Excedida(s):</span>
-            {blockedActions.map(action => (
-              <div key={action.id} className="p-3 bg-white rounded-lg border border-red-100 flex flex-col gap-1 shadow-xs">
+            {blockedActions.map((action, idx) => (
+              <div key={`blocked-act-${action.id || idx}-${idx}`} className="p-3 bg-white rounded-lg border border-red-100 flex flex-col gap-1 shadow-xs">
                 <span className="font-bold text-slate-850 text-xs">{action.titulo}</span>
                 <p className="text-[11px] text-slate-500 mt-1">{action.descricao}</p>
                 <div className="flex justify-between items-center mt-2.5 pt-2.5 border-t border-slate-100 text-[10px] text-slate-400 font-medium">
@@ -786,6 +803,17 @@ export default function App() {
         return <EstoqueHub user={user} initialTab="area-contingencia" />;
       case 'venda-media':
         return <EstoqueHub user={user} initialTab="venda-media" />;
+      case 'dto-diagnostico':
+      case 'dto':
+        return (
+          <DtoDiagnosticoPanel 
+            user={user} 
+            empresa={empresa} 
+            theme={theme} 
+            initialOperacaoId={dtoInitialOperacao as any} 
+            onNavigate={navigateToPanel} 
+          />
+        );
       case 'plataformas-externas':
         return <PlataformasExternasPanel user={user} theme={theme} />;
       case 'auditoria-dpo':
@@ -891,6 +919,9 @@ export default function App() {
             }}
           />
         );
+      case 'loss-tree':
+      case 'arvore-perdas':
+        return <LossHierarchyTree />;
     }
   };
 
@@ -1219,6 +1250,67 @@ export default function App() {
           <span className="text-[10px] text-[#6b7280] dark:text-[#94a3b8] uppercase tracking-[2px] mt-1.5 font-bold">Carregando Unidade Guarabira...</span>
         </motion.div>
       </div>
+    );
+  }
+
+  // Check if standalone view requested via URL (e.g. ?view=loss-tree or ?standalone=loss-tree)
+  const isStandaloneLossTree = typeof window !== 'undefined' && (
+    window.location.search.includes('view=loss-tree') || 
+    window.location.search.includes('standalone=loss-tree') ||
+    window.location.search.includes('arvore-perdas')
+  );
+
+  if (isStandaloneLossTree) {
+    return (
+      <EmpresaDataProvider empresaId={empresa?.id || user?.empresaId || null}>
+        <div 
+          style={{
+            backgroundColor: '#dbeafe',
+            backgroundImage: `
+              radial-gradient(ellipse 60% 55% at -5% -5%, rgba(29, 78, 216, 0.70) 0%, rgba(37, 99, 235, 0.45) 35%, transparent 75%),
+              radial-gradient(ellipse 55% 50% at 105% -5%, rgba(30, 58, 138, 0.65) 0%, rgba(37, 99, 235, 0.45) 35%, transparent 75%),
+              radial-gradient(ellipse 65% 60% at 105% 105%, rgba(30, 58, 138, 0.90) 0%, rgba(29, 78, 216, 0.70) 30%, rgba(59, 130, 246, 0.40) 60%, transparent 85%),
+              radial-gradient(ellipse 55% 50% at -5% 105%, rgba(37, 99, 235, 0.60) 0%, rgba(96, 165, 250, 0.40) 40%, transparent 75%),
+              radial-gradient(ellipse 90% 80% at 50% 50%, #e2eeff 0%, #cee3fe 45%, #b9d7fd 100%)
+            `,
+            backgroundAttachment: 'fixed',
+            backgroundSize: 'cover'
+          }}
+          className="min-h-screen w-full flex flex-col p-3 md:p-5 font-sans text-slate-900"
+        >
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-blue-300/70 bg-white/80 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-xs shrink-0">
+            <div className="flex items-center gap-3">
+              <BrandLogo size="sm" />
+              <div>
+                <h1 className="text-xs sm:text-sm font-black uppercase tracking-wider text-blue-950 flex items-center gap-2">
+                  Árvore de Decomposição de Perdas
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-900 border border-amber-300">
+                    Página Exclusiva (5 Níveis)
+                  </span>
+                </h1>
+                <p className="text-[11px] text-blue-900/70">
+                  Visualização dedicada em tela cheia com navegação de ponta a ponta
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (window.opener) {
+                  window.close();
+                } else {
+                  window.location.href = window.location.origin + window.location.pathname;
+                }
+              }}
+              className="px-3.5 py-1.5 bg-blue-900 hover:bg-blue-950 text-white rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+            >
+              Voltar ao Sistema
+            </button>
+          </div>
+          <div className="flex-1 w-full overflow-auto">
+            <LossHierarchyTree isModal={false} />
+          </div>
+        </div>
+      </EmpresaDataProvider>
     );
   }
 

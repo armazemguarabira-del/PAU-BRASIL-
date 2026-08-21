@@ -44,28 +44,21 @@ export interface RegraBlocoLayout {
 export const MATRIZ_BLOCOS_CONFIG: Record<string, RegraBlocoLayout> = {
   'A': {
     bloco: 'Bloco A',
-    ruas: ['A1', 'A2', 'A3', 'A4'],
+    ruas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'],
     curvaIdeal: 'A',
     descricaoGiro: 'Alta Rotatividade / Curva A',
-    posicaoArmazem: 'Mais próximo do Picking (Entrada A1 é a mais próxima, A4 a mais distante do Bloco A)'
+    posicaoArmazem: 'Mais próximo do Picking (Entrada A1 é a mais próxima, A6 no Bloco A)'
   },
   'B': {
     bloco: 'Bloco B',
-    ruas: ['B1', 'B2', 'B3', 'B4'],
+    ruas: ['B1', 'B2', 'B3'],
     curvaIdeal: 'B',
     descricaoGiro: 'Médio Giro / Curva B',
     posicaoArmazem: 'Centro do Armazém'
   },
-  'CB': {
-    bloco: 'Bloco CB',
-    ruas: ['CB1', 'CB2', 'CB3', 'CB4'],
-    curvaIdeal: 'B',
-    descricaoGiro: 'Intermediário / Transição',
-    posicaoArmazem: 'Centro-Fundo do Armazém'
-  },
   'C': {
     bloco: 'Bloco C',
-    ruas: ['C1', 'C2', 'C3', 'C4'],
+    ruas: ['C1', 'C2', 'C3'],
     curvaIdeal: 'C',
     descricaoGiro: 'Menor Giro / Curva C',
     posicaoArmazem: 'Final do Armazém (Mais distante do Picking)'
@@ -82,33 +75,35 @@ export function getDistanciaPickingScore(blocoRua: string): number {
 
   if (clean.includes('PICKING')) return 0;
 
-  // Ruas Bloco A (mais próximo)
+  // Ruas Bloco A (mais próximo: A1 a A6)
   if (clean === 'A1') return 1; // Mais próxima da entrada do Picking
   if (clean === 'A2') return 2;
   if (clean === 'A3') return 3;
   if (clean === 'A4') return 4;
-  if (clean === 'A') return 2.5;
+  if (clean === 'A5') return 5;
+  if (clean === 'A6') return 6;
+  if (clean === 'A') return 3.5;
 
-  // Ruas Bloco B (centro)
-  if (clean === 'B1') return 5;
-  if (clean === 'B2') return 6;
-  if (clean === 'B3') return 7;
-  if (clean === 'B4') return 8;
-  if (clean === 'B') return 6.5;
+  // Ruas Bloco B (centro: B1 a B3)
+  if (clean === 'B1') return 7;
+  if (clean === 'B2') return 8;
+  if (clean === 'B3') return 9;
+  if (clean === 'B4') return 10;
+  if (clean === 'B') return 8;
 
-  // Ruas Bloco CB (transição)
-  if (clean === 'CB1') return 9;
-  if (clean === 'CB2') return 10;
-  if (clean === 'CB3') return 11;
-  if (clean === 'CB4') return 12;
-  if (clean === 'CB') return 10.5;
+  // Ruas Bloco CB (compatibilidade histórica)
+  if (clean === 'CB1') return 11;
+  if (clean === 'CB2') return 12;
+  if (clean === 'CB3') return 13;
+  if (clean === 'CB4') return 14;
+  if (clean === 'CB') return 12.5;
 
-  // Ruas Bloco C (final do armazém)
-  if (clean === 'C1') return 13;
-  if (clean === 'C2') return 14;
-  if (clean === 'C3') return 15;
-  if (clean === 'C4') return 16;
-  if (clean === 'C') return 14.5;
+  // Ruas Bloco C (final do armazém: C1 a C3)
+  if (clean === 'C1') return 15;
+  if (clean === 'C2') return 16;
+  if (clean === 'C3') return 17;
+  if (clean === 'C4') return 18;
+  if (clean === 'C') return 16;
 
   if (clean.includes('MARKETPLACE')) return 20;
   if (clean.includes('CONTINGÊNCIA') || clean.includes('CONTINGENCIA')) return 25;

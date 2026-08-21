@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Database,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  ClipboardCheck
 } from 'lucide-react';
 import { Usuario } from '../types';
 
@@ -254,7 +255,21 @@ export default function EficienciaMontagemPanel({ user }: { user: Usuario }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (MONTAGEM) */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'montagem' } }));
+              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'montagem' } }));
+            }}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider px-4 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2 cursor-pointer shrink-0 border border-purple-400/40 hover:scale-[1.02] active:scale-95"
+            title="Abrir Diagnóstico DTO Operacional de Montagem de Cargas"
+          >
+            <ClipboardCheck className="w-4 h-4 text-purple-200" />
+            <span>DTO Montagem</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setIsActionModalOpen(true)}

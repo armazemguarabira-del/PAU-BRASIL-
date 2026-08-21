@@ -10954,28 +10954,52 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
  * Converte o dataset oficial de Repack em RepackRow formatadas para a plataforma
  */
 export function buildOfficialRepackRows(empresaId: string = 'demo'): RepackRow[] {
+  const parseSec = (hms: string) => {
+    if (!hms) return 0;
+    const parts = hms.split(':').map(Number);
+    if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+    if (parts.length === 2) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60;
+    return 0;
+  };
+
+  const formatHMS = (totalSec: number) => {
+    totalSec = Math.max(0, Math.floor(totalSec));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+  };
+
   return OFFICIAL_REPACK_DATA_JSON.map((item, idx) => {
     const dataISO = item.Data || '2026-01-01';
     const dataFormatada = new Date(dataISO + 'T00:00:00').toLocaleDateString('pt-BR');
-    
+    const ini = item.Inicio || '08:00:00';
+    const fim = item.Fim || '08:30:00';
+    const rawDiff = parseSec(fim) - parseSec(ini);
+    const durSec = rawDiff < 0 ? rawDiff + 86400 : rawDiff;
+    const duracao = durSec > 0 ? formatHMS(durSec) : '00:15:00';
+
+    const rawRes = (item.Resultado || '').toUpperCase();
+    const isDentro = rawRes.includes('BATIDA') || rawRes.includes('DENTRO') || rawRes.includes('🟢');
+
     return {
       _docId: `repack_official_${dataISO.replace(/-/g, '')}_${idx}`,
       id: `repack_official_${dataISO.replace(/-/g, '')}_${idx}`,
       empresaId: empresaId,
       data: dataFormatada,
       dataISO: dataISO,
-      hora: item.Inicio || '08:00',
-      embalagem: item.Embalagem || 'LATA 350ML',
+      hora: ini,
+      embalagem: item.Embalagem ? item.Embalagem.trim().toUpperCase() : 'LATA 350',
       quantidade: Number(item.Quantidade) || 1,
       caixas: Number(item.Quantidade) || 1,
       caixasReembaladas: Number(item.Quantidade) || 1,
-      inicio: item.Inicio || '08:00:00',
-      fim: item.Fim || '09:00:00',
-      duracao: item.Fim && item.Inicio ? '01:00:00' : '00:45:00',
-      meta: String(item.Meta || '01:00:00'),
-      resultado: item.Resultado?.includes('DENTRO') ? 'Dentro da Meta' : 'Fora da Meta',
-      operador: item.Operador || 'OZENILDO (G1137)',
-      _criadoEm: `${dataISO}T${item.Inicio || '08:00:00'}.000Z`
+      inicio: ini,
+      fim: fim,
+      duracao: duracao,
+      meta: String(item.Meta || '00:05:00'),
+      resultado: isDentro ? 'Dentro da Meta' : 'Fora da Meta',
+      operador: item.Operador ? item.Operador.trim() : 'Ozenildo Silva',
+      _criadoEm: `${dataISO}T${ini}.000Z`
     };
   });
 }

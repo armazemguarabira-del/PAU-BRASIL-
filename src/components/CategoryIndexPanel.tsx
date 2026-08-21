@@ -202,9 +202,17 @@ export const CATEGORY_DEFINITIONS: Record<
   'cat-ferramentas-gestao': {
     title: 'Ferramentas de Gestão',
     subtitle: 'Sistemas de governança, auditoria DPO, inventários e padronização',
-    icon: <Sliders className="w-6 h-6 text-purple-600 dark:text-purple-400" />,
-    color: 'from-purple-500/10 via-purple-500/5 to-transparent dark:from-purple-500/20 dark:via-purple-500/5 dark:to-transparent',
+    icon: <Sliders className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
+    color: 'from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-500/20 dark:via-blue-500/5 dark:to-transparent',
     items: [
+      {
+        id: 'dto-diagnostico',
+        label: 'DTO (Diagnóstico do Trabalho Operacional)',
+        description: 'Diagnóstico aplicado quando não se bate a meta nas 9 frentes operacionais (Repack, Despejo, Quebras, EFC, EFD, Montagem, Validades, Blitz Puxada e Blitz Refugo).',
+        icon: <ClipboardCheck className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
+        badge: 'DTO DPO',
+        color: 'border-blue-500/40 bg-blue-500/10 hover:border-blue-500/70 shadow-sm'
+      },
       {
         id: 'plataformas-externas',
         label: 'Plataforma Retorno de Rota, Trocas & Reposições',
