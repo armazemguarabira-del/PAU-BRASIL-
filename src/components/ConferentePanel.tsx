@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { TarefasRepository } from '../db';
 import { Usuario, Empresa, Tarefa, ArmazemTemperaturaLog, TmrDemand } from '../types';
+import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
@@ -93,14 +94,16 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
   // Tasks lists
   const [tasks, setTasks] = useState<Tarefa[]>(() => {
-    const rows = [...(empresaData.tarefas || [])];
+    let rows = [...(empresaData.tarefas || [])];
     if (rows.length === 0) {
       try {
         const saved = localStorage.getItem(`tasks_${empresaId}`);
-        if (saved) return JSON.parse(saved);
+        if (saved) rows = JSON.parse(saved);
       } catch (e) {}
     }
-    return rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+    // Filter out expired open tasks (> 5h) & remove duplicates
+    const { activeTasks } = filterExpiredOpenTasks(rows, 5);
+    return deduplicateTasks(activeTasks).sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
   });
   const [activeTab, setActiveTab] = useState<'open' | 'done'>('open');
   const [creating, setCreating] = useState(false);
@@ -997,15 +1000,43 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     localStorage.setItem(draftKey, JSON.stringify(draftData));
   }, [conferente, searchQuery, selectedProd, quantidade, operator, draftKey]);
 
-  // Sync with Tasks (when tasks from context change)
+  // Sync with Tasks (when tasks from context change) + Auto-Purge expired tasks (> 5h) + Deduplicate
   useEffect(() => {
+    let rows: Tarefa[] = [];
     if (empresaData.tarefas && empresaData.tarefas.length > 0) {
-      const rows = [...empresaData.tarefas];
-      rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-      setTasks(rows);
-      localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(rows));
+      rows = [...empresaData.tarefas];
+    } else {
+      try {
+        const saved = localStorage.getItem(`tasks_${empresaId}`);
+        if (saved) rows = JSON.parse(saved);
+      } catch (e) {}
+    }
+
+    if (rows.length > 0) {
+      purgeExpiredOpenTasks(empresaId, rows, 5).then((cleaned) => {
+        const deduped = deduplicateTasks(cleaned);
+        const sorted = [...deduped].sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+        setTasks(sorted);
+      });
     }
   }, [empresaData.tarefas, empresaId]);
+
+  // Periodic check to auto-purge tasks that reach 5 hours
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTasks((prev) => {
+        const deduped = deduplicateTasks(prev);
+        const { activeTasks, expiredTasks } = filterExpiredOpenTasks(deduped, 5);
+        if (expiredTasks.length > 0 || deduped.length !== prev.length) {
+          purgeExpiredOpenTasks(empresaId, prev, 5);
+          return activeTasks;
+        }
+        return prev;
+      });
+    }, 60000); // Checa a cada 1 minuto
+
+    return () => clearInterval(timer);
+  }, [empresaId]);
 
   // Sync colaboradores to use as operators and conferentes
   useEffect(() => {
@@ -1065,7 +1096,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
     try {
       const added = await TarefasRepository.create(newRow, empresaId);
-      const current = [...tasks, { _docId: added._docId || added.id, ...newRow }];
+      const current = deduplicateTasks([...tasks, { _docId: added._docId || added.id, ...newRow }]);
       setTasks(current);
       localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(current));
       localStorage.setItem(`tarefas_rows_${empresaId}`, JSON.stringify(current));
@@ -1117,9 +1148,10 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     return !q || String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
   }).slice(0, 10);
 
-  // Sync data lists
-  const openTasksList = tasks.filter(t => t.status !== 'done');
-  const doneTasksList = filterHistoryForUser<Tarefa>(tasks.filter(t => t.status === 'done'), user, (item: Tarefa) => item.finalizadoEm ? item.finalizadoEm.split('T')[0] : (item.criadoEm ? item.criadoEm.split('T')[0] : ''));
+  // Sync data lists (filtering out tasks that exceeded 5h execution/creation limit + deduplicate)
+  const cleanTasks = deduplicateTasks(tasks);
+  const openTasksList = cleanTasks.filter(t => t.status !== 'done' && !isTaskExpired(t, 5));
+  const doneTasksList = filterHistoryForUser<Tarefa>(cleanTasks.filter(t => t.status === 'done'), user, (item: Tarefa) => item.finalizadoEm ? item.finalizadoEm.split('T')[0] : (item.criadoEm ? item.criadoEm.split('T')[0] : ''));
 
   return (
     <div className="flex flex-col gap-6">
@@ -1503,7 +1535,12 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
           {/* Relatório de Atividades Diárias (R&R) */}
           <div className="g-card p-6">
-            <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-[#6a7d92] mb-4">Relatório de Atividades Diárias (R&R)</h4>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-[#6a7d92]">Relatório de Atividades Diárias (R&R)</h4>
+              <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 flex items-center gap-1.5 w-fit">
+                <Clock className="w-3.5 h-3.5" /> Auto-remoção ativa após 5h de execução/abertura
+              </span>
+            </div>
             
             <div className="flex gap-2 border-b border-[#222d3a] mb-4">
               <button 
@@ -1525,38 +1562,56 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                 {openTasksList.length === 0 ? (
                   <p className="text-xs text-[#6a7d92] text-center p-6">Nenhuma tarefa operativa em andamento ou pendente.</p>
                 ) : (
-                  openTasksList.map((t, i) => (
-                    <div key={t._docId || i} className={`p-4 bg-[#151b23]/50 border border-[#222d3a] rounded-xl border-l-[3px] ${t.status === 'in_progress' ? 'border-l-[#3b82f6]' : 'border-l-[#f5a623]'}`}>
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <span className="text-[10px] font-sans font-bold text-[#f5a623] font-mono leading-none">TAREFA #{t.id} · SKU {t.codigo}</span>
-                          <h5 className="text-xs font-bold text-snow leading-tight mt-1">{t.descricao}</h5>
+                  openTasksList.map((t, i) => {
+                    const refDateStr = t.iniciadoEm || t.criadoEm;
+                    let elapsedMins = 0;
+                    if (refDateStr) {
+                      const ms = Date.now() - new Date(refDateStr).getTime();
+                      if (!isNaN(ms) && ms > 0) elapsedMins = Math.floor(ms / 60000);
+                    }
+                    const elapsedHours = Math.floor(elapsedMins / 60);
+                    const elapsedMinsRest = elapsedMins % 60;
+                    const elapsedText = elapsedHours > 0 ? `${elapsedHours}h ${elapsedMinsRest}m` : `${elapsedMins}m`;
+
+                    return (
+                      <div key={t._docId || i} className={`p-4 bg-[#151b23]/50 border border-[#222d3a] rounded-xl border-l-[3px] ${t.status === 'in_progress' ? 'border-l-[#3b82f6]' : 'border-l-[#f5a623]'}`}>
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[10px] font-sans font-bold text-[#f5a623] font-mono leading-none">TAREFA #{t.id} · SKU {t.codigo}</span>
+                              <span className="text-[9px] text-slate-400 font-mono bg-slate-800/60 px-1.5 py-0.5 rounded">
+                                Aberta há {elapsedText} (limite 5h)
+                              </span>
+                            </div>
+                            <h5 className="text-xs font-bold text-snow leading-tight mt-1">{t.descricao}</h5>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-2xl font-black text-snow leading-none block">{t.quantidade}</span>
+                            <span className="text-[8px] font-sans tracking-wider text-[#6a7d92] uppercase font-bold">Paletes</span>
+                          </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <span className="text-2xl font-black text-snow leading-none block">{t.quantidade}</span>
-                          <span className="text-[8px] font-sans tracking-wider text-[#6a7d92] uppercase font-bold">Paletes</span>
+                        
+                        <div className="flex justify-between items-center text-[10px] text-[#6a7d92] border-t border-[#222d3a]/50 pt-2 mt-3 flex-wrap gap-2">
+                          <div>
+                            <span>Atribuída para: <strong className="text-[#3b82f6] font-extrabold">{t.operador}</strong> </span>
+                            {t.iniciadoEm && <span>· Iniciada às {new Date(t.iniciadoEm).toLocaleTimeString()}</span>}
+                          </div>
+                          <div className="flex gap-2">
+                            <span className={`px-2 py-0.5 rounded font-black uppercase text-[8px] tracking-[0.5px] ${t.status === 'in_progress' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20' : 'bg-[#f5a623]/10 text-[#f5a623] border border-[#f5a623]/20'}`}>
+                              {t.status === 'in_progress' ? 'Em andamento' : 'Aguardando Operador'}
+                            </span>
+                            <button 
+                              onClick={() => handleDeleteTask(t)}
+                              className="text-[9px] font-black text-[#6a7d92] hover:text-[#ef4444] bg-transparent border-none cursor-pointer"
+                              title="Excluir antecipadamente antes das 5 horas"
+                            >
+                              Excluir
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex justify-between items-center text-[10px] text-[#6a7d92] border-t border-[#222d3a]/50 pt-2 mt-3 flex-wrap gap-2">
-                        <div>
-                          <span>Atribuída para: <strong className="text-[#3b82f6] font-extrabold">{t.operador}</strong> </span>
-                          {t.iniciadoEm && <span>· Iniciada às {new Date(t.iniciadoEm).toLocaleTimeString()}</span>}
-                        </div>
-                        <div className="flex gap-2">
-                          <span className={`px-2 py-0.5 rounded font-black uppercase text-[8px] tracking-[0.5px] ${t.status === 'in_progress' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20' : 'bg-[#f5a623]/10 text-[#f5a623] border border-[#f5a623]/20'}`}>
-                            {t.status === 'in_progress' ? 'Em andamento' : 'Aguardando Operador'}
-                          </span>
-                          <button 
-                            onClick={() => handleDeleteTask(t)}
-                            className="text-[9px] font-black text-[#6a7d92] hover:text-[#ef4444] bg-transparent border-none cursor-pointer"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             ) : (

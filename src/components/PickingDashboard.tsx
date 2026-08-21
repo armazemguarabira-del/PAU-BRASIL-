@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { AcoesGeraisRepository, TarefasRepository } from '../db';
 import { Usuario, Empresa, Tarefa } from '../types';
+import { filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
 import A3BoardComponent from './A3BoardComponent';
@@ -194,17 +195,28 @@ export default function PickingDashboard({ user, empresa, onBack, theme = 'dark'
     return actualTasks;
   }, [actualTasks]);
 
-  // Synchronize tasks from empresaData or cache
+  // Synchronize tasks from empresaData or cache + filter expired open tasks (> 5h) + deduplicate
   useEffect(() => {
+    let rows: Tarefa[] = [];
     if (empresaData.tarefas && empresaData.tarefas.length > 0) {
-      const rows = [...empresaData.tarefas];
-      rows.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-      setActualTasks(rows);
+      rows = [...empresaData.tarefas];
     } else {
       const savedTasks = localStorage.getItem(`tasks_${empresaId}`);
       if (savedTasks) {
-        try { setActualTasks(JSON.parse(savedTasks)); } catch (e) {}
+        try { rows = JSON.parse(savedTasks); } catch (e) {}
       }
+    }
+
+    if (rows.length > 0) {
+      const deduped = deduplicateTasks(rows);
+      const { activeTasks, expiredTasks } = filterExpiredOpenTasks(deduped, 5);
+      if (expiredTasks.length > 0 || deduped.length !== rows.length) {
+        purgeExpiredOpenTasks(empresaId, rows, 5);
+      }
+      activeTasks.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+      setActualTasks(activeTasks);
+    } else {
+      setActualTasks([]);
     }
     setLoading(false);
   }, [empresaData.tarefas, empresaId]);

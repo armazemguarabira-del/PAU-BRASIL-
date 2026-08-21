@@ -25,6 +25,7 @@ import { saveAcoes, getAcoesAll, updateAcaoCorretiva, AcaoCorretiva } from '../u
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
 import { add5PorquesDemand } from '../utils/fiveWhysManager';
 import { isSameCollaborator } from '../utils/colaboradorUtils';
+import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
 import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
@@ -254,11 +255,43 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     };
   }, [empresaId]);
 
-  // Sync tasks
+  // Sync tasks + Auto-Purge expired tasks (> 5h) + Deduplicate
   useEffect(() => {
-    setTasks(empresaData.tarefas || []);
-    localStorage.setItem(`tasks_${empresaId}`, JSON.stringify(empresaData.tarefas || []));
+    let rows: Tarefa[] = [];
+    if (empresaData.tarefas && empresaData.tarefas.length > 0) {
+      rows = [...empresaData.tarefas];
+    } else {
+      try {
+        const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
+        if (saved) rows = JSON.parse(saved);
+      } catch (e) {}
+    }
+
+    if (rows.length > 0) {
+      purgeExpiredOpenTasks(empresaId, rows, 5).then((cleaned) => {
+        setTasks(deduplicateTasks(cleaned));
+      });
+    } else {
+      setTasks([]);
+    }
   }, [empresaData.tarefas, empresaId]);
+
+  // Periodic check to auto-purge tasks that reach 5 hours
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTasks((prev) => {
+        const deduped = deduplicateTasks(prev);
+        const { activeTasks, expiredTasks } = filterExpiredOpenTasks(deduped, 5);
+        if (expiredTasks.length > 0 || deduped.length !== prev.length) {
+          purgeExpiredOpenTasks(empresaId, prev, 5);
+          return activeTasks;
+        }
+        return prev;
+      });
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [empresaId]);
 
   // Real-time synchronization listeners for local and cross-tab events
   useEffect(() => {
@@ -268,7 +301,8 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
-            setTasks(parsed);
+            const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
+            setTasks(activeTasks);
           }
         }
       } catch (e) {}
@@ -783,6 +817,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
   const myAssignedTasks = useMemo(() => {
     return tasks.filter(t => {
+      if (isTaskExpired(t, 5)) return false;
       if (!t.operador || t.operador === 'TODOS' || t.operador.toUpperCase().includes('TODOS')) return true;
       return isSameCollaborator(t.operador, activeOperatorClean, empresaData.colaboradores);
     });

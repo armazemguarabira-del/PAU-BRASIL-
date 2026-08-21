@@ -24,6 +24,7 @@ import {
   calculateStockAgeSummary, 
   StockAgeStatus 
 } from '../utils/calculateStockAgeIndex';
+import { useVendaMedia030519 } from '../utils/vendaMedia030519';
 
 interface StockAgeIndexTabProps {
   validadesList: ValidadeRow[];
@@ -50,12 +51,20 @@ export interface CalculatedStockAgeRow {
   localizacao: string;
   bloco?: string;
   setor: 'Bloco A' | 'Bloco B' | 'Bloco CB' | 'Bloco C' | 'Picking' | 'Marketplace' | 'Contingência';
+  vendaMediaDiaria: number;
+  is030519: boolean;
+  curvaAbc: 'A' | 'B' | 'C';
+  diasCobertura: number;
+  riscoSobra: boolean;
+  sobraEstimadaCx: number;
 }
 
 export default function StockAgeIndexTab({ validadesList, user, empresa, onRefresh }: StockAgeIndexTabProps) {
   const empresaData = useEmpresaData();
+  const { getItem: get030519Item, activeQuarterInfo } = useVendaMedia030519();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'todos' | 'Crítico' | 'Atenção' | 'OK' | 'sem_idade'>('todos');
+  const [statusFilter, setStatusFilter] = useState<'todos' | 'Crítico' | 'Atenção' | 'OK' | 'sem_idade' | 'risco_sobra'>('todos');
+  const [curvaFilter, setCurvaFilter] = useState<'todos' | 'Curva A' | 'Curva B' | 'Curva C'>('todos');
   const [faixaVencFilter, setFaixaVencFilter] = useState<string>('todos');
   const [loteFilter, setLoteFilter] = useState<string>('todos');
   const [setorFilter, setSetorFilter] = useState<string>('todos');
@@ -80,7 +89,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
     return 'Bloco A';
   };
 
-  // 1. Unifica itens de mesmo código e validade e calcula Stock Age Index oficial
+  // 1. Unifica itens de mesmo código e validade e calcula Stock Age Index oficial + Venda Média 03.05.19
   const processedRows = useMemo(() => {
     const map = new Map<string, CalculatedStockAgeRow>();
 
@@ -111,11 +120,24 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
       const setor = getSetor(item.bloco, item.localizacao);
 
+      // Venda Média 03.05.19 integration
+      const item030519 = get030519Item(codigo);
+      const vendaMediaDiaria = item030519.vendaMediaDiaria;
+      const is030519 = item030519.source === '030519';
+      const curvaAbc = item030519.curvaAbc || 'B';
+
+      const diasCobertura = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
+      const riscoSobra = calcResult.diasRestantes > 0 && diasCobertura > calcResult.diasRestantes;
+      const sobraEstimadaCx = riscoSobra ? Math.max(0, Math.round(quantidade - (vendaMediaDiaria * calcResult.diasRestantes))) : 0;
+
       if (map.has(key)) {
         const existing = map.get(key)!;
         existing.quantidade += quantidade;
         existing.valorTotal += valorTotal;
         existing.lote = '-';
+        existing.diasCobertura = Math.max(1, Math.ceil(existing.quantidade / Math.max(0.1, existing.vendaMediaDiaria)));
+        existing.riscoSobra = existing.diasRestantes > 0 && existing.diasCobertura > existing.diasRestantes;
+        existing.sobraEstimadaCx = existing.riscoSobra ? Math.max(0, Math.round(existing.quantidade - (existing.vendaMediaDiaria * existing.diasRestantes))) : 0;
       } else {
         let cleanedLote = (item as any).lote || '';
         if (!cleanedLote || cleanedLote.startsWith('L-') || cleanedLote.startsWith(`L-${codigo}`)) {
@@ -139,13 +161,19 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           valorTotal,
           localizacao: item.localizacao || 'central',
           bloco: item.bloco,
-          setor
+          setor,
+          vendaMediaDiaria,
+          is030519,
+          curvaAbc,
+          diasCobertura,
+          riscoSobra,
+          sobraEstimadaCx
         } as CalculatedStockAgeRow);
       }
     });
 
     return Array.from(map.values());
-  }, [validadesList, todayISO, empresaData?.produtos]);
+  }, [validadesList, todayISO, empresaData?.produtos, get030519Item]);
 
   const allRows = useMemo(() => {
     return [...processedRows, ...customRows];
@@ -289,7 +317,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
     }).sort((a, b) => b.totalValor - a.totalValor);
   }, [allRows, productMetaMap]);
 
-  // 4. Card Agregado por Curva ABC
+  // 4. Card Agregado por Curva ABC (Alimentado pela 03.05.19)
   const curvaAggrStats = useMemo(() => {
     const map: Record<string, { count: number; totalQty: number; totalValor: number; sumIndex: number; validCount: number; criticoCount: number }> = {
       'Curva A': { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 },
@@ -298,9 +326,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
     };
 
     allRows.forEach(r => {
-      const meta = productMetaMap.get(r.codigo);
-      const rawCurva = meta?.curva || 'B';
-      const cKey = rawCurva.toUpperCase().includes('A') ? 'Curva A' : rawCurva.toUpperCase().includes('C') ? 'Curva C' : 'Curva B';
+      const cKey = r.curvaAbc === 'A' ? 'Curva A' : r.curvaAbc === 'C' ? 'Curva C' : 'Curva B';
       map[cKey].count++;
       map[cKey].totalQty += r.quantidade;
       map[cKey].totalValor += r.valorTotal || 0;
@@ -328,7 +354,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
         status
       };
     });
-  }, [allRows, productMetaMap]);
+  }, [allRows]);
 
   // 5. Card Agregado por Meses (Histórico dos últimos 12 meses)
   const mesesAggrStats = useMemo(() => {
@@ -398,8 +424,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
       if (statusFilter === 'sem_idade') {
         if (!r.idadeMissing) return false;
+      } else if (statusFilter === 'risco_sobra') {
+        if (!r.riscoSobra) return false;
       } else if (statusFilter !== 'todos' && r.status !== statusFilter) {
         return false;
+      }
+
+      if (curvaFilter !== 'todos') {
+        const expected = curvaFilter === 'Curva A' ? 'A' : curvaFilter === 'Curva B' ? 'B' : 'C';
+        if (r.curvaAbc !== expected) return false;
       }
 
       if (setorFilter !== 'todos' && r.setor !== setorFilter) {
@@ -630,25 +663,25 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
   return (
     <div className="space-y-6">
-      
       {/* HEADER PRINCIPAL DA GUIA STOCK AGE INDEX */}
-      <div className="bg-[#111822] p-5 rounded-2xl border border-[#222d3a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-black text-white tracking-wide uppercase flex items-center gap-2">
-              📊 Stock Age Index (Fórmula Oficial)
+      <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-xl font-black text-white tracking-wide uppercase flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">📊</span>
+              <span>Stock Age Index (Fórmula Oficial)</span>
             </h2>
-            <span className="bg-[#1b2533] text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full text-xs font-mono font-extrabold">
+            <span className="bg-purple-950/60 text-purple-300 border border-purple-500/40 px-3.5 py-1 rounded-full text-xs font-mono font-extrabold shadow-sm">
               {allRows.length} SKUs Únicos
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Maturidade de estoque calculada por: <strong className="text-purple-300">Dias Restantes ÷ Idade Cadastrada no Produto × 100</strong>.
+          <p className="text-xs text-slate-300">
+            Maturidade de estoque calculada por: <strong className="text-purple-300 font-bold bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/20">Dias Restantes ÷ Idade Cadastrada no Produto × 100</strong>.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          <label className="bg-[#16202c] hover:bg-[#202d3e] text-slate-200 border border-[#283648] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors">
+          <label className="bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700/80 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-95">
             <Upload className="w-4 h-4 text-purple-400" />
             <span>{isImporting ? 'Importando...' : 'Importar Planilha'}</span>
             <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="hidden" disabled={isImporting} />
@@ -656,7 +689,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
           <button
             onClick={handleExportExcel}
-            className="bg-[#16202c] hover:bg-[#202d3e] text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+            className="bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Download className="w-4 h-4" />
             <span>Exportar Excel</span>
@@ -664,7 +697,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
           <button
             onClick={handleExportPDF}
-            className="bg-[#16202c] hover:bg-[#202d3e] text-purple-400 border border-purple-500/30 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+            className="bg-purple-950/40 hover:bg-purple-900/60 text-purple-300 border border-purple-500/40 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Download className="w-4 h-4" />
             <span>Exportar Relatório</span>
@@ -674,98 +707,162 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
       {/* ALERT SE HOUVER ITENS SEM IDADE CADASTRADA */}
       {stats.missingIdadeCount > 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/40 p-4 rounded-2xl flex items-center justify-between text-amber-300 text-xs font-bold gap-3">
-          <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+        <div className="bg-amber-950/40 border border-amber-500/50 p-4.5 rounded-2xl flex items-center justify-between text-amber-200 text-xs font-bold gap-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/30">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            </div>
             <div>
-              <span className="font-extrabold uppercase block text-amber-200">
+              <span className="font-extrabold uppercase block text-amber-300 text-sm">
                 ⚠ {stats.missingIdadeCount} produto(s) na base de validades sem &quot;Idade&quot; cadastrada!
               </span>
-              <span className="text-[11px] text-amber-300/80 font-normal">
+              <span className="text-xs text-amber-200/90 font-normal">
                 Estes itens foram excluídos do cálculo médio geral de Stock Age Index. Cadastre a vida útil em dias no Cadastro de Produtos para incluir na média.
               </span>
             </div>
           </div>
           <button
             onClick={() => setStatusFilter('sem_idade')}
-            className="bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 border border-amber-500/40 px-3 py-1.5 rounded-xl text-[11px] uppercase tracking-wider font-extrabold shrink-0 cursor-pointer"
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs uppercase tracking-wider font-black shrink-0 cursor-pointer shadow-md transition-all active:scale-95"
           >
             Ver {stats.missingIdadeCount} Itens
           </button>
         </div>
       )}
 
+      {/* BANNER INTEGRAÇÃO 03.05.19 & ALERTA DE RISCO DE SOBRA */}
+      <div className="bg-gradient-to-r from-blue-950/40 via-slate-900 to-indigo-950/40 border border-blue-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <TrendingDown className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/15 px-2.5 py-0.5 rounded-full border border-blue-500/30">
+                Integração 03.05.19 Ativa
+              </span>
+              <span className="text-xs font-bold text-slate-200">
+                Venda Média Diária alimentada pelo Quarter <strong className="text-blue-300">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs na base)
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              A Curva ABC e a projeção de cobertura de estoque são sincronizadas com a 03.05.19 para detectar riscos de sobra antes do vencimento.
+            </p>
+          </div>
+        </div>
+
+        {allRows.filter(r => r.riscoSobra).length > 0 && (
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'risco_sobra' ? 'todos' : 'risco_sobra')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${
+              statusFilter === 'risco_sobra'
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg font-black'
+                : 'bg-amber-950/50 text-amber-300 border-amber-500/40 hover:bg-amber-900/60'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <span>{allRows.filter(r => r.riscoSobra).length} com Risco de Sobra</span>
+          </button>
+        )}
+      </div>
+
       {/* CARDS RESUMO DE CLASSIFICAÇÃO */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#111822] p-4 rounded-2xl border border-red-500/20 bg-gradient-to-b from-red-500/5 to-transparent flex flex-col justify-between">
+        {/* Card Crítico */}
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
           <div className="flex items-center justify-between text-red-400 text-xs font-bold">
-            <span className="flex items-center gap-1">🔴 Crítico (≤30d ou &lt;60%)</span>
-            <ShieldAlert className="w-4 h-4 text-red-400" />
+            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-red-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+              Crítico (≤30d ou &lt;60%)
+            </span>
+            <ShieldAlert className="w-5 h-5 text-red-400" />
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-red-400 font-mono">{stats.criticoCount}</span>
-            <span className="text-sm font-bold text-red-400/90">{stats.criticoPct}%</span>
+          <div className="mt-4 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-black text-red-400 font-mono tracking-tight">{stats.criticoCount}</span>
+              <span className="text-xs text-red-300 font-bold uppercase">SKUs</span>
+            </div>
+            <span className="text-base font-black text-red-300 bg-red-950/60 px-2.5 py-0.5 rounded-lg border border-red-500/30 font-mono">{stats.criticoPct}%</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
-            <div className="bg-red-500 h-full rounded-full transition-all" style={{ width: `${stats.criticoPct}%` }} />
+          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
+            <div className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-full transition-all" style={{ width: `${stats.criticoPct}%` }} />
           </div>
         </div>
 
-        <div className="bg-[#111822] p-4 rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/5 to-transparent flex flex-col justify-between">
+        {/* Card Atenção */}
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
           <div className="flex items-center justify-between text-amber-400 text-xs font-bold">
-            <span className="flex items-center gap-1">🟡 Atenção (60% - 75%)</span>
-            <Clock className="w-4 h-4 text-amber-400" />
+            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-amber-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              Atenção (60% - 75%)
+            </span>
+            <Clock className="w-5 h-5 text-amber-400" />
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-amber-400 font-mono">{stats.atencaoCount}</span>
-            <span className="text-sm font-bold text-amber-400/90">{stats.atencaoPct}%</span>
+          <div className="mt-4 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-black text-amber-400 font-mono tracking-tight">{stats.atencaoCount}</span>
+              <span className="text-xs text-amber-300 font-bold uppercase">SKUs</span>
+            </div>
+            <span className="text-base font-black text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-mono">{stats.atencaoPct}%</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
-            <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: `${stats.atencaoPct}%` }} />
+          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
+            <div className="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all" style={{ width: `${stats.atencaoPct}%` }} />
           </div>
         </div>
 
-        <div className="bg-[#111822] p-4 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent flex flex-col justify-between">
+        {/* Card OK */}
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
           <div className="flex items-center justify-between text-emerald-400 text-xs font-bold">
-            <span className="flex items-center gap-1">🟢 OK (&gt; 75%)</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-emerald-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              OK (&gt; 75%)
+            </span>
+            <ShieldCheck className="w-5 h-5 text-emerald-400" />
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-400 font-mono">{stats.okCount}</span>
-            <span className="text-sm font-bold text-emerald-400/90">{stats.okPct}%</span>
+          <div className="mt-4 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-black text-emerald-400 font-mono tracking-tight">{stats.okCount}</span>
+              <span className="text-xs text-emerald-300 font-bold uppercase">SKUs</span>
+            </div>
+            <span className="text-base font-black text-emerald-300 bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-500/30 font-mono">{stats.okPct}%</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full transition-all" style={{ width: `${stats.okPct}%` }} />
+          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
+            <div className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full transition-all" style={{ width: `${stats.okPct}%` }} />
           </div>
         </div>
 
-        <div className="bg-[#111822] p-4 rounded-2xl border border-purple-500/20 bg-gradient-to-b from-purple-500/5 to-transparent flex flex-col justify-between">
+        {/* Card Médio Geral */}
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-purple-500/30 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
           <div className="flex items-center justify-between text-purple-400 text-xs font-bold">
-            <span>Stock Age Médio Geral</span>
-            <span className="text-[10px] text-purple-300 font-mono font-bold">R$ {stats.totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="uppercase tracking-wider font-extrabold text-purple-200">Stock Age Médio Geral</span>
+            <span className="text-[11px] text-purple-200 font-mono font-bold bg-purple-950/60 px-2 py-0.5 rounded border border-purple-500/30">
+              R$ {stats.totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-purple-300 font-mono">{stats.avgIndex}%</span>
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${
-              stats.avgIndex < 60 ? 'bg-red-500/20 text-red-400' : stats.avgIndex <= 75 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+          <div className="mt-4 flex items-baseline justify-between">
+            <span className="text-3xl font-black text-purple-300 font-mono tracking-tight">{stats.avgIndex}%</span>
+            <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-lg border ${
+              stats.avgIndex < 60 ? 'bg-red-950/60 text-red-300 border-red-500/40' : stats.avgIndex <= 75 ? 'bg-amber-950/60 text-amber-300 border-amber-500/40' : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
             }`}>
               {stats.avgIndex < 60 ? 'Crítico' : stats.avgIndex <= 75 ? 'Atenção' : 'Excelente'}
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-2">Validade média de giro das validades ativas</p>
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">Validade média ponderada do estoque ativo</p>
         </div>
       </div>
 
       {/* VISÃO AGREGADA POR SETOR */}
-      <div className="bg-[#111822] p-5 rounded-2xl border border-[#222d3a] flex flex-col gap-4">
-        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#1f2b3a] pb-3">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-amber-400" />
+      <div className="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 flex flex-col gap-5 shadow-2xl">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <Building2 className="w-5 h-5 text-amber-400" />
+            </div>
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
+              <h3 className="text-base font-black text-white uppercase tracking-wider">
                 Visão Agregada por Setor (Média Stock Age Index)
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-300">
                 Resumo da saúde de validades consolidado por setor do armazém.
               </p>
             </div>
@@ -773,14 +870,14 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           {setorFilter !== 'todos' && (
             <button
               onClick={() => setSetorFilter('todos')}
-              className="text-xs text-amber-400 hover:text-amber-300 underline font-bold cursor-pointer"
+              className="text-xs text-amber-400 hover:text-amber-300 underline font-bold cursor-pointer bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-xl transition-colors"
             >
-              Remover Filtro ({setorFilter})
+              Limpar Filtro ({setorFilter})
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3.5">
           {sectorAggrStats.map((st) => {
             const isSelected = setorFilter === st.setor;
             const isCrit = st.status === 'Crítico';
@@ -790,45 +887,45 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
               <div
                 key={st.setor}
                 onClick={() => setSetorFilter(isSelected ? 'todos' : st.setor)}
-                className={`p-3.5 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
+                className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
                   isSelected 
-                    ? 'border-purple-500 bg-purple-950/30 shadow-lg scale-[1.02]' 
+                    ? 'border-purple-400 bg-purple-950/60 shadow-xl ring-2 ring-purple-500/40 scale-[1.03]' 
                     : isCrit
-                    ? 'border-red-500/30 bg-red-950/10 hover:border-red-500/60'
+                    ? 'border-red-500/40 bg-slate-800/90 hover:border-red-500/80 hover:bg-red-950/20 shadow-md'
                     : isAten
-                    ? 'border-amber-500/30 bg-amber-950/10 hover:border-amber-500/60'
-                    : 'border-[#222d3a] bg-[#16202c] hover:border-slate-700'
+                    ? 'border-amber-500/40 bg-slate-800/90 hover:border-amber-500/80 hover:bg-amber-950/20 shadow-md'
+                    : 'border-slate-700 bg-slate-800/90 hover:border-slate-500 hover:bg-slate-700/60 shadow-md'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1 mb-2">
-                  <span className="text-xs font-extrabold text-white truncate" title={st.setor}>
+                <div className="flex items-center justify-between gap-1 mb-3">
+                  <span className="text-sm font-extrabold text-white truncate" title={st.setor}>
                     {st.setor}
                   </span>
-                  <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                    isCrit ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                    isAten ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                    'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg font-mono ${
+                    isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
+                    isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
+                    'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
                   }`}>
                     {st.avgStockAgeIndex}%
                   </span>
                 </div>
 
-                <div className="space-y-1 my-1">
-                  <div className="flex justify-between text-[10px] text-slate-400">
-                    <span>SKUs:</span>
-                    <strong className="text-slate-200 font-mono">{st.lotesCount}</strong>
+                <div className="space-y-1.5 my-1.5 bg-slate-900/60 p-2.5 rounded-lg border border-slate-750">
+                  <div className="flex justify-between text-xs text-slate-300">
+                    <span className="text-slate-400">SKUs:</span>
+                    <strong className="text-white font-mono">{st.lotesCount}</strong>
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-400">
-                    <span>Volume:</span>
-                    <strong className="text-slate-200 font-mono">{st.totalCaixas} cx</strong>
+                  <div className="flex justify-between text-xs text-slate-300">
+                    <span className="text-slate-400">Volume:</span>
+                    <strong className="text-white font-mono">{st.totalCaixas} cx</strong>
                   </div>
-                  <div className="flex justify-between text-[10px] text-purple-300 font-bold">
-                    <span>Valoração:</span>
-                    <strong className="font-mono">R$ {Math.round(st.totalValor).toLocaleString('pt-BR')}</strong>
+                  <div className="flex justify-between text-xs text-purple-300 font-bold">
+                    <span className="text-slate-400 font-normal">Valoração:</span>
+                    <strong className="font-mono text-purple-200">R$ {Math.round(st.totalValor).toLocaleString('pt-BR')}</strong>
                   </div>
                 </div>
 
-                <div className="w-full bg-slate-800 rounded-full h-1 mt-2 overflow-hidden">
+                <div className="w-full bg-slate-950 rounded-full h-1.5 mt-3 overflow-hidden">
                   <div 
                     className={`h-full rounded-full ${
                       isCrit ? 'bg-red-500' : isAten ? 'bg-amber-500' : 'bg-emerald-500'
@@ -845,15 +942,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
       {/* ESTRATIFICAÇÕES: POR GRUPO, POR CURVA ABC E POR MÊS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* CARD POR GRUPO DE PRODUTO */}
-        <div className="bg-[#111822] p-5 rounded-2xl border border-[#222d3a] shadow-xl flex flex-col justify-between space-y-4">
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm" />
               <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
                 Estratificação por Grupo de Produto
               </h3>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-xs text-slate-300 font-medium">
               Índice médio, volume, valoração R$ e SKUs críticos por família.
             </p>
           </div>
@@ -863,22 +960,22 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
               const isCrit = grp.status === 'Crítico';
               const isAten = grp.status === 'Atenção';
               return (
-                <div key={grp.grupo} className="bg-[#16202c] p-3 rounded-xl border border-[#222d3a] flex flex-col gap-1.5">
+                <div key={grp.grupo} className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-slate-700/80 flex flex-col gap-1.5 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-slate-200">{grp.grupo}</span>
+                    <span className="text-xs font-black text-slate-100">{grp.grupo}</span>
                     <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded ${
-                      isCrit ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                      isAten ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
+                      isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
+                      'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
                     }`}>
                       {grp.avgStockAgeIndex}%
                     </span>
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                    <span>Vol: {grp.totalQty.toLocaleString('pt-BR')} cx</span>
+                  <div className="flex justify-between text-xs text-slate-300 font-mono">
+                    <span className="text-slate-400">Vol: <strong className="text-white">{grp.totalQty.toLocaleString('pt-BR')} cx</strong></span>
                     <span className="text-purple-300 font-bold">R$ {Math.round(grp.totalValor).toLocaleString('pt-BR')}</span>
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                  <div className="flex justify-between text-[11px] text-slate-400 font-mono">
                     <span>{grp.count} SKUs</span>
                     {grp.criticoCount > 0 && <strong className="text-red-400">({grp.criticoCount} críticos)</strong>}
                   </div>
@@ -889,15 +986,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
         </div>
 
         {/* CARD POR CURVA ABC */}
-        <div className="bg-[#111822] p-5 rounded-2xl border border-[#222d3a] shadow-xl flex flex-col justify-between space-y-4">
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm" />
               <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
                 Estratificação por Curva (A / B / C)
               </h3>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-xs text-slate-300 font-medium">
               Acompanhamento do indicador para produtos de alto, médio e baixo giro.
             </p>
           </div>
@@ -906,36 +1003,36 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
             {curvaAggrStats.map((crv) => {
               const isCrit = crv.status === 'Crítico';
               const isAten = crv.status === 'Atenção';
-              const colorBadge = crv.curva === 'Curva A' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
-                                 crv.curva === 'Curva B' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' :
-                                 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+              const colorBadge = crv.curva === 'Curva A' ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40' :
+                                 crv.curva === 'Curva B' ? 'bg-sky-950/80 text-sky-300 border-sky-500/40' :
+                                 'bg-amber-950/80 text-amber-300 border-amber-500/40';
 
               return (
-                <div key={crv.curva} className="bg-[#16202c] p-3 rounded-xl border border-[#222d3a] space-y-2">
+                <div key={crv.curva} className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border ${colorBadge}`}>
+                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-lg border ${colorBadge}`}>
                       {crv.curva}
                     </span>
-                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded ${
-                      isCrit ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                      isAten ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    <span className={`text-xs font-mono font-black px-2.5 py-0.5 rounded-lg ${
+                      isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
+                      isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
+                      'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
                     }`}>
                       {crv.avgStockAgeIndex}%
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-[11px] text-slate-300 font-mono">
+                  <div className="flex justify-between text-xs text-slate-300 font-mono">
                     <span>Estoque: <strong className="text-white">{crv.totalQty.toLocaleString('pt-BR')} cx</strong></span>
                     <span className="text-purple-300 font-bold">R$ {Math.round(crv.totalValor).toLocaleString('pt-BR')}</span>
                   </div>
 
-                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                  <div className="flex justify-between text-[11px] text-slate-400 font-mono">
                     <span>SKUs: <strong className="text-white">{crv.count}</strong></span>
-                    {crv.criticoCount > 0 && <span className="text-red-400 font-bold">{crv.criticoCount} críticos</span>}
+                    {crv.criticoCount > 0 && <span className="text-red-400 font-bold">({crv.criticoCount} críticos)</span>}
                   </div>
 
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${
                         isCrit ? 'bg-red-500' : isAten ? 'bg-amber-500' : 'bg-emerald-500'
@@ -950,15 +1047,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
         </div>
 
         {/* CARD POR MÊS DE VENCIMENTO */}
-        <div className="bg-[#111822] p-5 rounded-2xl border border-[#222d3a] shadow-xl flex flex-col justify-between space-y-4">
+        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" />
               <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
                 Estratificação por Mês de Vencimento
               </h3>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-xs text-slate-300 font-medium">
               Tendência e evolução do Stock Age Index ao longo dos meses de validade.
             </p>
           </div>
@@ -968,18 +1065,18 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
               const isCrit = ms.status === 'Crítico';
               const isAten = ms.status === 'Atenção';
               return (
-                <div key={ms.key} className="bg-[#16202c] p-2.5 rounded-xl border border-[#222d3a] flex items-center justify-between gap-2">
+                <div key={ms.key} className="bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/80 flex items-center justify-between gap-2 transition-colors">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-200">{ms.label}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-xs font-bold text-slate-100">{ms.label}</span>
+                    <span className="text-[11px] text-slate-300 font-mono">
                       {ms.totalQty.toLocaleString('pt-BR')} cx | R$ {Math.round(ms.totalValor).toLocaleString('pt-BR')}
                     </span>
                   </div>
 
-                  <span className={`text-xs font-mono font-black px-2.5 py-1 rounded ${
-                    isCrit ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                    isAten ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                    'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  <span className={`text-xs font-mono font-black px-2.5 py-1 rounded-lg ${
+                    isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
+                    isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
+                    'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
                   }`}>
                     {ms.avgStockAgeIndex}%
                   </span>
@@ -991,15 +1088,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
       </div>
 
       {/* FILTROS E PESQUISA */}
-      <div className="bg-[#111822] p-4 rounded-2xl border border-[#222d3a] flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3.5 shadow-2xl">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
             placeholder="Buscar por produto, código ou lote..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-[#16202c] border border-[#283648] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors shadow-inner"
           />
         </div>
 
@@ -1007,7 +1104,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           <select
             value={setorFilter}
             onChange={e => setSetorFilter(e.target.value)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
+            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
           >
             <option value="todos">🏬 Todos os Setores</option>
             <option value="Bloco A">Bloco A</option>
@@ -1022,19 +1119,31 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
+            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
           >
             <option value="todos">🎯 Todos os Status</option>
             <option value="Crítico">🔴 Crítico (≤30d / &lt;60%)</option>
             <option value="Atenção">🟡 Atenção (60% - 75%)</option>
             <option value="OK">🟢 OK (&gt; 75%)</option>
             <option value="sem_idade">⚠ Sem Idade Cadastrada</option>
+            <option value="risco_sobra">⚠️ Risco de Sobra (Cobertura &gt; Validade)</option>
+          </select>
+
+          <select
+            value={curvaFilter}
+            onChange={e => setCurvaFilter(e.target.value as any)}
+            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+          >
+            <option value="todos">📊 Curva ABC (03.05.19)</option>
+            <option value="Curva A">Curva A (80% Faturamento)</option>
+            <option value="Curva B">Curva B (15% Faturamento)</option>
+            <option value="Curva C">Curva C (5% Faturamento)</option>
           </select>
 
           <select
             value={faixaVencFilter}
             onChange={e => setFaixaVencFilter(e.target.value)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
+            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
           >
             <option value="todos">📅 Todas as Faixas</option>
             <option value="vencidos">⚠️ Já Vencidos</option>
@@ -1048,7 +1157,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
             <select
               value={loteFilter}
               onChange={e => setLoteFilter(e.target.value)}
-              className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 max-w-[150px] truncate"
+              className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 max-w-[150px] truncate cursor-pointer"
             >
               <option value="todos">📦 Todos os Lotes</option>
               {uniqueLotes.map(l => (
@@ -1059,50 +1168,55 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
           <button
             onClick={() => setSortAsc(!sortAsc)}
-            className="bg-[#16202c] hover:bg-[#202d3e] border border-[#283648] text-xs text-slate-300 font-medium rounded-xl px-3 py-2 flex items-center gap-1.5 cursor-pointer"
+            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 font-bold rounded-xl px-3.5 py-2.5 flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95"
             title="Alterar ordenação do Stock Age Index"
           >
-            <TrendingDown className={`w-3.5 h-3.5 transition-transform ${sortAsc ? '' : 'rotate-180'}`} />
+            <TrendingDown className={`w-3.5 h-3.5 text-purple-400 transition-transform ${sortAsc ? '' : 'rotate-180'}`} />
             <span>{sortAsc ? 'Menor Age Index' : 'Maior Age Index'}</span>
           </button>
         </div>
       </div>
 
       {/* TABELA DE PRODUTOS / LOTES */}
-      <div className="bg-[#111822] rounded-2xl border border-[#222d3a] overflow-hidden shadow-xl">
-        <div className="px-5 py-3.5 bg-[#16202c] border-b border-[#222d3a] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Boxes className="w-4 h-4 text-purple-400" />
+      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+        <div className="px-6 py-4 bg-slate-850 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+              <Boxes className="w-4 h-4 text-purple-400" />
+            </div>
             <h4 className="text-xs font-black text-white uppercase tracking-wider">
               Tabela Stock Age Index por Lote / Validade ({filteredAndSortedRows.length} registros únicos)
             </h4>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-400 font-mono">
             Unificado por Código + Validade | Derivado do Cadastro de Produtos
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center border-collapse min-w-[950px]">
+          <table className="w-full text-center border-collapse min-w-[980px]">
             <thead>
-              <tr className="bg-[#111822] border-b border-[#222d3a] text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <th className="py-3.5 px-4 text-center">Produto / Descrição</th>
-                <th className="py-3.5 px-3 text-center">Código</th>
-                <th className="py-3.5 px-3 text-center">Lote</th>
-                <th className="py-3.5 px-3 text-center">Setor / Local</th>
-                <th className="py-3.5 px-3 text-center">Quantidade</th>
-                <th className="py-3.5 px-3 text-center">Valoração</th>
-                <th className="py-3.5 px-3 text-center">Data Vencimento</th>
-                <th className="py-3.5 px-3 text-center">Idade Cadastrada</th>
-                <th className="py-3.5 px-3 text-center">Dias Restantes</th>
-                <th className="py-3.5 px-3 text-center">Stock Age Index (%)</th>
-                <th className="py-3.5 px-4 text-center">Classificação</th>
+              <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-black text-slate-300 uppercase tracking-wider">
+                <th className="py-4 px-4 text-center">Produto / Descrição</th>
+                <th className="py-4 px-3 text-center">Código</th>
+                <th className="py-4 px-2 text-center">Curva (03.05.19)</th>
+                <th className="py-4 px-3 text-center">Lote</th>
+                <th className="py-4 px-3 text-center">Setor / Local</th>
+                <th className="py-4 px-3 text-center">Quantidade</th>
+                <th className="py-4 px-3 text-center">V. Média / Dia</th>
+                <th className="py-4 px-3 text-center">Cobertura</th>
+                <th className="py-4 px-3 text-center">Valoração</th>
+                <th className="py-4 px-3 text-center">Data Vencimento</th>
+                <th className="py-4 px-3 text-center">Idade Cadastrada</th>
+                <th className="py-4 px-3 text-center">Dias Restantes</th>
+                <th className="py-4 px-3 text-center">Stock Age Index (%)</th>
+                <th className="py-4 px-4 text-center">Classificação</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e293b] text-xs text-center">
+            <tbody className="divide-y divide-slate-800/80 text-xs text-center">
               {filteredAndSortedRows.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-500 font-medium">
+                  <td colSpan={14} className="py-14 text-center text-slate-400 font-semibold text-sm">
                     Nenhum lote encontrado com os filtros selecionados.
                   </td>
                 </tr>
@@ -1111,49 +1225,89 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
                   const isCritico = row.status === 'Crítico' || row.idadeMissing;
                   const isAtencao = row.status === 'Atenção' && !row.idadeMissing;
 
-                  let rowStyle = 'hover:bg-[#1a2536] transition-colors';
+                  let rowStyle = 'hover:bg-slate-800/60 transition-colors';
                   if (row.idadeMissing) {
-                    rowStyle = 'bg-amber-500/10 hover:bg-amber-500/15 border-l-4 border-l-amber-500';
+                    rowStyle = 'bg-amber-950/20 hover:bg-amber-950/40 border-l-4 border-l-amber-500';
                   } else if (isCritico) {
-                    rowStyle = 'bg-red-500/5 hover:bg-red-500/10 border-l-4 border-l-red-500';
+                    rowStyle = 'bg-red-950/20 hover:bg-red-950/40 border-l-4 border-l-red-500';
                   } else if (isAtencao) {
-                    rowStyle = 'bg-amber-500/5 hover:bg-amber-500/10 border-l-4 border-l-amber-500';
+                    rowStyle = 'bg-amber-950/15 hover:bg-amber-950/30 border-l-4 border-l-amber-400';
                   } else {
-                    rowStyle = 'bg-emerald-500/5 hover:bg-emerald-500/10 border-l-4 border-l-emerald-500';
+                    rowStyle = 'hover:bg-slate-800/60 border-l-4 border-l-emerald-500/40';
                   }
 
                   return (
                     <tr key={row._docId || row.id || idx} className={rowStyle}>
                       
                       {/* PRODUTO */}
-                      <td className="py-3 px-4 text-center font-semibold text-white">
+                      <td className="py-3 px-4 text-center font-bold text-white">
                         <div className="flex flex-col items-center justify-center">
-                          <span className="truncate max-w-[240px]" title={row.descricao}>
+                          <span className="truncate max-w-[220px]" title={row.descricao}>
                             {row.descricao}
                           </span>
                         </div>
                       </td>
 
                       {/* CÓDIGO */}
-                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-300">
+                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-200">
                         {row.codigo}
                       </td>
 
+                      {/* CURVA ABC (03.05.19) */}
+                      <td className="py-3 px-2 text-center">
+                        <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-black font-mono border ${
+                          row.curvaAbc === 'A'
+                            ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                            : row.curvaAbc === 'C'
+                            ? 'bg-purple-950/80 text-purple-300 border-purple-500/40'
+                            : 'bg-blue-950/80 text-blue-300 border-blue-500/40'
+                        }`}>
+                          Curva {row.curvaAbc}
+                        </span>
+                      </td>
+
                       {/* LOTE */}
-                      <td className="py-3 px-3 text-center font-mono text-purple-300 font-semibold">
+                      <td className="py-3 px-3 text-center font-mono text-purple-300 font-bold">
                         {row.lote}
                       </td>
 
                       {/* SETOR / LOCAL */}
                       <td className="py-3 px-3 text-center">
-                        <span className="bg-[#1b2533] text-slate-300 border border-slate-700 px-2 py-0.5 rounded text-[10px] font-bold inline-block">
+                        <span className="bg-slate-800 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-md text-[10px] font-bold inline-block shadow-sm">
                           {row.setor} ({row.localizacao})
                         </span>
                       </td>
 
                       {/* QUANTIDADE */}
-                      <td className="py-3 px-3 text-center font-bold text-slate-200">
+                      <td className="py-3 px-3 text-center font-bold text-slate-100">
                         {row.quantidade} <span className="text-[10px] text-slate-400 font-normal">cx</span>
+                      </td>
+
+                      {/* VENDA MÉDIA / DIA (03.05.19) */}
+                      <td className="py-3 px-3 text-center font-mono text-xs font-bold text-blue-300">
+                        {row.vendaMediaDiaria.toFixed(1)} <span className="text-[10px] text-slate-400 font-normal">cx/d</span>
+                        {row.is030519 && (
+                          <span className="block text-[9px] text-blue-400/80 font-mono">03.05.19</span>
+                        )}
+                      </td>
+
+                      {/* COBERTURA / GIRO */}
+                      <td className="py-3 px-3 text-center">
+                        {row.riscoSobra ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-[11px] font-black text-amber-400 font-mono bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 inline-flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3 text-amber-400" />
+                              {row.diasCobertura}d
+                            </span>
+                            <span className="text-[9px] text-amber-300/80 font-mono mt-0.5">
+                              sobra ~{row.sobraEstimadaCx} cx
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-300 font-mono text-xs font-semibold">
+                            {row.diasCobertura}d
+                          </span>
+                        )}
                       </td>
 
                       {/* VALORAÇÃO */}
@@ -1162,14 +1316,14 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
                       </td>
 
                       {/* DATA VENCIMENTO */}
-                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-200">
+                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-100">
                         {formatDateBR(row.dataVencimento)}
                       </td>
 
                       {/* IDADE CADASTRADA */}
                       <td className="py-3 px-3 text-center font-mono font-bold">
                         {row.idadeMissing ? (
-                          <span className="text-amber-400 text-[10px] bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">
+                          <span className="text-amber-300 text-[10px] bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/40">
                             ⚠ Não Cadastrada
                           </span>
                         ) : (
@@ -1181,7 +1335,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
 
                       {/* DIAS RESTANTES */}
                       <td className={`py-3 px-3 text-center font-bold font-mono ${
-                        row.diasRestantes < 0 ? 'text-red-400' : row.diasRestantes <= 30 ? 'text-amber-400' : 'text-slate-200'
+                        row.diasRestantes < 0 ? 'text-red-400' : row.diasRestantes <= 30 ? 'text-amber-400' : 'text-slate-100'
                       }`}>
                         {row.diasRestantes < 0 ? `${row.diasRestantes}d (Vencido)` : `${row.diasRestantes}d`}
                       </td>
@@ -1197,7 +1351,7 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
                             }`}>
                               {row.stockAgeIndex}%
                             </span>
-                            <div className="w-16 bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+                            <div className="w-16 bg-slate-950 rounded-full h-1.5 mt-1 overflow-hidden p-0.5 border border-slate-800">
                               <div 
                                 className={`h-full rounded-full ${
                                   isCritico ? 'bg-red-500' : isAtencao ? 'bg-amber-500' : 'bg-emerald-500'
@@ -1212,17 +1366,17 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
                       {/* STATUS BADGE */}
                       <td className="py-3 px-4 text-center">
                         {row.idadeMissing ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-950/80 text-amber-300 border border-amber-500/40">
                             <AlertTriangle className="w-3 h-3 text-amber-400" />
                             ⚠ Idade não cadastrada
                           </span>
                         ) : (
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase border ${
                             isCritico 
-                              ? 'bg-red-500/10 text-red-400 border-red-500/30' 
+                              ? 'bg-red-950/80 text-red-300 border-red-500/40' 
                               : isAtencao 
-                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
-                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              ? 'bg-amber-950/80 text-amber-300 border-amber-500/40' 
+                              : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
                           }`}>
                             {isCritico && <ShieldAlert className="w-3 h-3" />}
                             {isAtencao && <Clock className="w-3 h-3" />}
@@ -1240,14 +1394,14 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           </table>
         </div>
 
-        <div className="bg-[#16202c] p-3 px-4 border-t border-[#222d3a] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
+        <div className="bg-slate-950/80 p-4 px-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 gap-2">
           <div>
             Exibindo <strong className="text-white">{filteredAndSortedRows.length}</strong> de <strong className="text-white">{allRows.length}</strong> lotes cadastrados
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Crítico (≤30d / &lt;60%)</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Atenção (60-75%)</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> OK (&gt;75%)</span>
+          <div className="flex items-center gap-4 text-[11px] font-semibold">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span> Crítico (≤30d / &lt;60%)</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Atenção (60-75%)</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> OK (&gt;75%)</span>
           </div>
         </div>
       </div>

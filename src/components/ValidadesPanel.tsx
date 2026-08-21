@@ -19,6 +19,8 @@ import {
 import StockAgeIndexTab from './StockAgeIndexTab';
 import FuturoShelfTab from './FuturoShelfTab';
 import GestaoEscoamentoTab from './GestaoEscoamentoTab';
+import CurvaAbcTrimestralTab from './CurvaAbcTrimestralTab';
+import { useVendaMedia030519 } from '../utils/vendaMedia030519';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
 import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 
@@ -90,7 +92,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
   const [localizacao, setLocalizacao] = useState<string>(() => getDraftValue('localizacao', 'central'));
   const [bloco, setBloco] = useState<string>(() => getDraftValue('bloco', ''));
 
-  const [activeTab, setActiveTab] = useState<'form' | 'lista' | 'stock_age' | 'futuro_shelf' | 'escoamento' | 'fefo_quadro' | 'fefo_picking' | 'fefo_estoque'>('form');
+  const [activeTab, setActiveTab] = useState<'form' | 'lista' | 'stock_age' | 'futuro_shelf' | 'escoamento' | 'fefo_quadro' | 'fefo_picking' | 'fefo_estoque' | 'curva_abc_030519'>('form');
+  const { activeQuarterInfo } = useVendaMedia030519();
   const [validadesList, setValidadesList] = useState<ValidadeRow[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -792,10 +795,33 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full gap-3">
-        <span className="font-sans font-black text-sm tracking-widest text-[#8b5cf6] uppercase">🏷 CONTROLE DE VALIDADES — GESTÃO FEFO</span>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="font-sans font-black text-sm tracking-widest text-[#8b5cf6] uppercase">🏷 CONTROLE DE VALIDADES — GESTÃO FEFO</span>
+          {activeQuarterInfo.skusCount > 0 ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 border border-blue-500/30 text-blue-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              03.05.19 Ativa ({activeQuarterInfo.quarter}): {activeQuarterInfo.skusCount} SKUs
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300">
+              ⚠️ 03.05.19 Pendente (Usando Médias Padrão)
+            </span>
+          )}
+        </div>
+        <div className="flex gap-2 items-center flex-wrap">
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('curva_abc_030519')}
+            className={`py-1 px-3 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'curva_abc_030519' 
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' 
+                : 'bg-blue-600/15 border border-blue-500/30 text-blue-300 hover:bg-blue-600 hover:text-white'
+            }`}
+          >
+            📈 03.05.19 Venda Média
+          </button>
           <label className="py-1 px-3 bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 hover:bg-[#8b5cf6] text-[#c4b5fd] hover:text-white rounded-lg text-[10px] font-bold tracking-wide uppercase transition-colors cursor-pointer flex items-center gap-1">
-            📥 Importar Planilha
+            📥 Importar Validades
             <input type="file" accept=".xlsx, .xls, .csv" onChange={handleImportExcel} className="hidden" />
           </label>
           <button onClick={handleDeleteAllValidades} className="py-1 px-3 bg-[#ef4444]/15 border border-[#ef4444]/30 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded-lg text-[10px] font-bold tracking-wide uppercase transition-colors cursor-pointer">
@@ -885,6 +911,25 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             }`}
           >
             📊 Stock Age Index
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setActiveTab('curva_abc_030519')}
+            className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
+              activeTab === 'curva_abc_030519' 
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 font-black' 
+                : 'bg-[#151b23] text-[#8fa0b5] hover:text-blue-300 hover:bg-[#1f2733] border border-[#222d3a]'
+            }`}
+          >
+            <span>📈 03.05.19 (Venda Média)</span>
+            {activeQuarterInfo.skusCount > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'curva_abc_030519' ? 'bg-white/20 text-white' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+              }`}>
+                {activeQuarterInfo.skusCount}
+              </span>
+            )}
           </button>
 
           <button 
@@ -1476,6 +1521,28 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           user={user} 
           empresa={empresa} 
         />
+      ) : activeTab === 'curva_abc_030519' ? (
+        <div className="space-y-4">
+          <div className="bg-slate-900/90 p-4 rounded-2xl border border-blue-500/30 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                Alimentação de Venda Média Diária
+              </span>
+              <h2 className="text-base font-black text-white mt-1">
+                Relatório 03.05.19 (Venda Trimestral & Curva ABC)
+              </h2>
+              <p className="text-xs text-slate-300">
+                A importação da 03.05.19 atualiza automaticamente a Venda Média Diária que alimenta o <strong>Stock Age Index</strong>, <strong>Futuro Shelf</strong> e a <strong>Gestão de Escoamento</strong>.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+                Quarter Ativo: <strong className="text-blue-400">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs)
+              </span>
+            </div>
+          </div>
+          <CurvaAbcTrimestralTab />
+        </div>
       ) : activeTab === 'futuro_shelf' ? (
         <FuturoShelfTab 
           validadesList={validadesList} 

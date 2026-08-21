@@ -56,12 +56,46 @@ export function syncIncremental({
 
   const notify = () => {
     if (!isUnsubscribed) {
-      const records = Array.from(docsMap.values());
+      const rawRecords = Array.from(docsMap.values());
+      const seen = new Set<string>();
+      const records: any[] = [];
+
+      for (const item of rawRecords) {
+        if (!item) continue;
+        const key1 = item._docId ? `doc:${item._docId}` : null;
+        const key2 = (item.id !== undefined && item.id !== null) ? `id:${item.id}` : null;
+        
+        if ((key1 && seen.has(key1)) || (key2 && seen.has(key2))) {
+          continue;
+        }
+        if (key1) seen.add(key1);
+        if (key2) seen.add(key2);
+        if (!key1 && !key2) {
+          const fp = typeof item === 'object' ? JSON.stringify(item) : String(item);
+          if (seen.has(fp)) continue;
+          seen.add(fp);
+        }
+        records.push(item);
+      }
+
       onData(records);
       // Salva em background no JSON Database e no Cache L2
       setHybridCacheCollection(cacheKey, records, 1000 * 60 * 60 * 24).catch(() => {});
       saveJsonTable(empresaId, collectionName, records).catch(() => {});
     }
+  };
+
+  const storeDoc = (docId: string, data: any) => {
+    const rawData = typeof data === 'object' && data !== null ? data : {};
+    const businessId = rawData.id !== undefined && rawData.id !== null ? rawData.id : docId;
+    const docItem = { _docId: docId, id: businessId, ...rawData };
+    
+    // Remove qualquer entrada anterior que estivesse indexada pelo ID numérico/negócio
+    if (rawData.id !== undefined && rawData.id !== null) {
+      docsMap.delete(rawData.id);
+      docsMap.delete(String(rawData.id));
+    }
+    docsMap.set(docId, docItem);
   };
 
   const runSync = async () => {
@@ -70,8 +104,8 @@ export function syncIncremental({
       const cached = await getHybridCacheCollection<any>(cacheKey, true);
       if (cached && cached.data && cached.data.length > 0) {
         cached.data.forEach((item: any) => {
-          const id = item.id || item._docId;
-          if (id) docsMap.set(id, item);
+          const id = item._docId || item.id;
+          if (id) docsMap.set(String(id), item);
         });
         notify();
       } else {
@@ -79,8 +113,8 @@ export function syncIncremental({
         const jsonRecords = await getJsonTable<any>(empresaId, collectionName);
         if (jsonRecords && jsonRecords.length > 0) {
           jsonRecords.forEach((item: any) => {
-            const id = item.id || item._docId;
-            if (id) docsMap.set(id, item);
+            const id = item._docId || item.id;
+            if (id) docsMap.set(String(id), item);
           });
           notify();
         }
@@ -97,7 +131,7 @@ export function syncIncremental({
       const cacheSnap = await getDocsFromCache(baseQuery);
       if (!cacheSnap.empty) {
         cacheSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
-          docsMap.set(doc.id, { _docId: doc.id, id: doc.id, ...doc.data() });
+          storeDoc(doc.id, doc.data());
         });
         notify();
       }
@@ -139,7 +173,7 @@ export function syncIncremental({
       if (serverSnap && !serverSnap.empty) {
         recordActualFirestoreReads(serverSnap.docs.length);
         serverSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
-          docsMap.set(doc.id, { _docId: doc.id, id: doc.id, ...doc.data() });
+          storeDoc(doc.id, doc.data());
         });
         notify();
       }
@@ -152,7 +186,7 @@ export function syncIncremental({
         const fallbackSnap = await getDocs(baseQuery);
         if (!fallbackSnap.empty) {
           fallbackSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
-            docsMap.set(doc.id, { _docId: doc.id, id: doc.id, ...doc.data() });
+            storeDoc(doc.id, doc.data());
           });
           notify();
         }
@@ -166,8 +200,6 @@ export function syncIncremental({
     // 4. Listener em tempo real: SÓ CRIA onSnapshot SE REALTIME FOR NECESSÁRIO
     const permitRealtime = isRealtimePermitido(collectionName, forceRealtime);
     if (!permitRealtime) {
-      // Para histórico, relatórios, cadastros e dados diários: NÃO conecta onSnapshot!
-      // A carga inicial (Cache + Delta pontual) já atualizou docsMap e notificou a UI.
       return;
     }
 
@@ -180,9 +212,12 @@ export function syncIncremental({
           snap.docChanges().forEach((change) => {
             if (change.type === 'removed') {
               docsMap.delete(change.doc.id);
+              if (change.doc.data()?.id) {
+                docsMap.delete(String(change.doc.data().id));
+              }
               changed = true;
             } else {
-              docsMap.set(change.doc.id, { _docId: change.doc.id, id: change.doc.id, ...change.doc.data() });
+              storeDoc(change.doc.id, change.doc.data());
               changed = true;
             }
           });

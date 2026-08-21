@@ -18,10 +18,11 @@ import {
   ShieldCheck,
   Zap,
   Tag,
-  TrendingUp
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
-import { getVendaMediaItens } from '../utils/estoqueStorage';
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
+import { useVendaMedia030519 } from '../utils/vendaMedia030519';
 
 interface FuturoShelfTabProps {
   validadesList: ValidadeRow[];
@@ -46,23 +47,18 @@ export interface CalculatedFuturoShelfRow {
   status: 'Futuro Shelf' | 'Vencido' | 'Seguro';
   localizacao: string;
   bloco?: string;
+  curvaAbc: 'A' | 'B' | 'C';
+  is030519: boolean;
+  sobraEstimadaCx: number;
 }
 
 export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh }: FuturoShelfTabProps) {
+  const { getItem: get030519Item, activeQuarterInfo } = useVendaMedia030519();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'Futuro Shelf' | 'Vencido' | 'Seguro'>('todos');
+  const [curvaFilter, setCurvaFilter] = useState<'todos' | 'Curva A' | 'Curva B' | 'Curva C'>('todos');
   const [localizacaoFilter, setLocalizacaoFilter] = useState<string>('todos');
   const [currentDateStr, setCurrentDateStr] = useState<string>(() => new Date().toISOString().substring(0, 10));
-
-  // Fetch Venda Média Items map
-  const vmMap = useMemo(() => {
-    const list = getVendaMediaItens();
-    const map = new Map<string, number>();
-    list.forEach(v => {
-      if (v.codigo) map.set(String(v.codigo).trim(), Number(v.vendaMediaDiaria) || 15);
-    });
-    return map;
-  }, [validadesList]);
 
   // Keep date updated with system server time every minute
   useEffect(() => {
@@ -104,9 +100,13 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       const quantidade = q > 0 ? q : (p > 0 || l > 0 || c > 0) ? calcularTotalCaixas(codigo, p, l, c) : (c > 0 ? c : 1);
       const lote = (item as any).lote || `LOT-${codigo}-${validadeStr.replace(/-/g, '')}`;
 
-      // Venda Média & Previsão de Escoamento
-      const vendaMediaDiaria = vmMap.get(codigo) || 15;
-      const diasEstoque = Math.max(1, Math.ceil(quantidade / Math.max(1, vendaMediaDiaria)));
+      // Venda Média 03.05.19 & Previsão de Escoamento
+      const item030519 = get030519Item(codigo);
+      const vendaMediaDiaria = item030519.vendaMediaDiaria;
+      const is030519 = item030519.source === '030519';
+      const curvaAbc = item030519.curvaAbc || 'B';
+
+      const diasEstoque = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
 
       // Data de Previsão de Escoamento = Hoje + Dias de Estoque
       const previsaoDate = new Date(todayObj);
@@ -138,6 +138,8 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
         status = 'Seguro';
       }
 
+      const sobraEstimadaCx = status === 'Futuro Shelf' ? Math.max(0, Math.round(quantidade - (vendaMediaDiaria * Math.max(0, diasParaVencer - 30)))) : 0;
+
       return {
         _docId: item._docId,
         id,
@@ -153,10 +155,13 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
         dataPrevisaoEscoamento,
         status,
         localizacao: item.localizacao || 'central',
-        bloco: item.bloco
+        bloco: item.bloco,
+        curvaAbc,
+        is030519,
+        sobraEstimadaCx
       } as CalculatedFuturoShelfRow;
     });
-  }, [validadesList, todayObj, currentDateStr, vmMap]);
+  }, [validadesList, todayObj, currentDateStr, get030519Item]);
 
   // 2. Filter & Sort (default sort: lowest diasParaVencer first)
   const filteredRows = useMemo(() => {
@@ -175,6 +180,12 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
         return false;
       }
 
+      // Curva ABC filter
+      if (curvaFilter !== 'todos') {
+        const expected = curvaFilter === 'Curva A' ? 'A' : curvaFilter === 'Curva B' ? 'B' : 'C';
+        if (r.curvaAbc !== expected) return false;
+      }
+
       // Localizacao filter
       if (localizacaoFilter !== 'todos' && r.localizacao !== localizacaoFilter) {
         return false;
@@ -182,7 +193,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
 
       return true;
     }).sort((a, b) => a.diasParaVencer - b.diasParaVencer);
-  }, [processedRows, searchTerm, statusFilter, localizacaoFilter]);
+  }, [processedRows, searchTerm, statusFilter, curvaFilter, localizacaoFilter]);
 
   // 3. KPI Statistics
   const stats = useMemo(() => {
@@ -377,6 +388,28 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
         </div>
       </div>
 
+      {/* BANNER INTEGRAÇÃO 03.05.19 */}
+      <div className="bg-gradient-to-r from-blue-950/40 via-[#111822] to-indigo-950/40 border border-blue-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <TrendingDown className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/15 px-2.5 py-0.5 rounded-full border border-blue-500/30">
+                03.05.19 Sincronizada
+              </span>
+              <span className="text-xs font-bold text-slate-200">
+                Previsão de Escoamento e Janela Crítica com Venda Média do Quarter <strong className="text-blue-300">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs)
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              O cálculo de dias de estoque e risco de entrada na janela crítica de 30 dias utiliza a taxa de saída real da rotina 03.05.19.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ALERT BANNER IF FUTURO SHELF OR VENCIDOS EXIST */}
       {(stats.futuroShelfCount > 0 || stats.vencidoCount > 0) && (
         <div className="bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-transparent border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -503,6 +536,18 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
             <option value="Seguro">🟢 Seguro (&gt; 30d) ({stats.seguroCount})</option>
           </select>
 
+          {/* CURVA ABC (03.05.19) FILTER */}
+          <select
+            value={curvaFilter}
+            onChange={e => setCurvaFilter(e.target.value as any)}
+            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500"
+          >
+            <option value="todos">📊 Todas as Curvas</option>
+            <option value="Curva A">🟢 Curva A (Alta Rotatividade)</option>
+            <option value="Curva B">🟡 Curva B (Média Rotatividade)</option>
+            <option value="Curva C">🔴 Curva C (Baixa Rotatividade / Lento)</option>
+          </select>
+
           {/* LOCALIZAÇÃO FILTER */}
           <select
             value={localizacaoFilter}
@@ -523,14 +568,15 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       {/* TABLE */}
       <div className="bg-[#111822] rounded-2xl border border-[#222d3a] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[900px]">
+          <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
               <tr className="bg-[#16202c] border-b border-[#222d3a] text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Produto / Descrição</th>
                 <th className="py-3.5 px-3">Código SKU</th>
+                <th className="py-3.5 px-3 text-center">Curva (03.05.19)</th>
                 <th className="py-3.5 px-3">Lote</th>
                 <th className="py-3.5 px-3 text-center">Quantidade</th>
-                <th className="py-3.5 px-3 text-center">Venda Média</th>
+                <th className="py-3.5 px-3 text-center">V. Média / Dia</th>
                 <th className="py-3.5 px-3 text-center">Data Vencimento</th>
                 <th className="py-3.5 px-3 text-center">Janela Crítica (-30d)</th>
                 <th className="py-3.5 px-3 text-center">Previsão Escoamento</th>
@@ -541,7 +587,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
             <tbody className="divide-y divide-[#1e293b] text-xs">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-500 font-medium">
+                  <td colSpan={11} className="py-12 text-center text-slate-500 font-medium">
                     Nenhum lote encontrado com os filtros selecionados.
                   </td>
                 </tr>
@@ -566,7 +612,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                       {/* PRODUTO */}
                       <td className="py-3.5 px-4 font-semibold text-white">
                         <div className="flex flex-col">
-                          <span className="truncate max-w-[240px] font-bold" title={row.descricao}>
+                          <span className="truncate max-w-[230px] font-bold" title={row.descricao}>
                             {row.descricao}
                           </span>
                           <span className="text-[10px] text-slate-400 font-normal">
@@ -581,6 +627,22 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                         {row.codigo}
                       </td>
 
+                      {/* CURVA ABC (03.05.19) */}
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            row.curvaAbc === 'A' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                            row.curvaAbc === 'B' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                            'bg-red-500/20 text-red-300 border border-red-500/40'
+                          }`}>
+                            Curva {row.curvaAbc}
+                          </span>
+                          {row.is030519 && (
+                            <span className="text-[8px] font-bold text-blue-400">03.05.19</span>
+                          )}
+                        </div>
+                      </td>
+
                       {/* LOTE */}
                       <td className="py-3.5 px-3 font-mono text-amber-300 font-bold">
                         {row.lote}
@@ -591,9 +653,9 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                         {row.quantidade} <span className="text-[10px] text-slate-400 font-normal">cx</span>
                       </td>
 
-                      {/* VENDA MÉDIA */}
+                      {/* VENDA MÉDIA (03.05.19) */}
                       <td className="py-3.5 px-3 text-center font-mono font-bold text-sky-400">
-                        {row.vendaMediaDiaria} <span className="text-[10px] text-slate-400 font-normal">cx/dia</span>
+                        {row.vendaMediaDiaria.toFixed(1)} <span className="text-[10px] text-slate-400 font-normal">cx/dia</span>
                       </td>
 
                       {/* DATA VENCIMENTO */}
@@ -609,7 +671,10 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                       {/* PREVISÃO ESCOAMENTO */}
                       <td className="py-3.5 px-3 text-center font-mono font-bold text-purple-300">
                         {formatDateBR(row.dataPrevisaoEscoamento)}
-                        <span className="block text-[10px] text-slate-400 font-normal">({row.diasEstoque}d de estoque)</span>
+                        <span className="block text-[10px] text-slate-400 font-normal">({row.diasEstoque}d estoque)</span>
+                        {row.sobraEstimadaCx > 0 && (
+                          <span className="block text-[9px] font-bold text-rose-400">Sobra: ~{row.sobraEstimadaCx} cx</span>
+                        )}
                       </td>
 
                       {/* DIAS PARA VENCER */}

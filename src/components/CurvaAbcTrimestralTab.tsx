@@ -28,6 +28,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { PRODUCTS } from '../planosData';
+import { sync030519WithEstoqueStorage } from '../utils/vendaMedia030519';
 
 // Helper to verify if an item is a registered finished beverage product (skipping vasilhames/garrafas vazias/ativos)
 export function isFinishedProductItem(codigo: number, rawName: string, unid: string): boolean {
@@ -382,6 +383,9 @@ export default function CurvaAbcTrimestralTab() {
         nomeArquivo: fileName
       }
     }));
+
+    // Synchronize globally with inventory and FEFO modules
+    sync030519WithEstoqueStorage(updatedItemsMap);
 
     showNotify(`Arquivo 03.05.19 importado para o ${targetQuarter.replace('Q', '')}º Trimestre! ${Object.keys(updatedItemsMap).length} SKUs de produtos acabados processados.`);
   };
