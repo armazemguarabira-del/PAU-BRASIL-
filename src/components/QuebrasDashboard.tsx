@@ -231,23 +231,40 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     const refreshQuebras = () => {
-      let rows = [...(empresaData.quebras || [])];
-      if (rows.length === 0) {
-        const saved = localStorage.getItem(`quebras_${companyId}`);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              rows = parsed;
-            }
-          } catch (_) {}
-        }
+      const officialRows = buildOfficialQuebrasRows(companyId);
+      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+
+      const customRows: QuebraRow[] = [];
+      const seenCustomKeys = new Set<string>();
+
+      const addCustomIfNew = (item: QuebraRow) => {
+        if (!item) return;
+        const idStr = String(item.id || item._docId || '');
+        if (idStr && officialIds.has(idStr)) return;
+        const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.area || ''}_${item.quantidade || 0}`;
+        if (seenCustomKeys.has(bizKey)) return;
+        seenCustomKeys.add(bizKey);
+        customRows.push(item);
+      };
+
+      if (empresaData.quebras && empresaData.quebras.length > 0) {
+        empresaData.quebras.forEach(addCustomIfNew);
       }
-      if (rows.length === 0) {
-        rows = buildOfficialQuebrasRows(companyId);
+
+      const saved = localStorage.getItem(`quebras_${companyId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
+          }
+        } catch (_) {}
       }
+
+      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
       setActualQuebras(rows);
+      localStorage.setItem(`quebras_${companyId}`, JSON.stringify(rows));
     };
 
     refreshQuebras();

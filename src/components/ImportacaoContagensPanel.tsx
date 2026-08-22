@@ -141,7 +141,10 @@ export default function ImportacaoContagensPanel({ user, onDataUpdated }: Import
 
     // Save records & logs
     const existing = getContagens();
-    const updatedRecords = [...existing, ...newRecords];
+    const map = new Map<string, any>();
+    existing.forEach((r: any) => map.set(r.id, r));
+    newRecords.forEach((r: any) => map.set(r.id, r));
+    const updatedRecords = Array.from(map.values());
     saveContagens(updatedRecords);
 
     const now = new Date();

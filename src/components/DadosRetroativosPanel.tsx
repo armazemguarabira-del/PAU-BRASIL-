@@ -42,6 +42,7 @@ import {
   clearRetroactiveModule
 } from '../utils/dadosRetroativosUtils';
 import { Usuario } from '../types';
+import { purgeStaleOperationalCache } from '../utils/safeLocalStorage';
 import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
 import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
 import RetroactiveDespejoJsonImport from './RetroactiveDespejoJsonImport';
@@ -496,6 +497,19 @@ export default function DadosRetroativosPanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={() => {
+              purgeStaleOperationalCache(user.empresaId || 'demo');
+              loadData();
+              notify('Cache operacional do navegador limpo e sincronizado com as bases oficiais!');
+            }}
+            title="Limpa caches residuais antigos e força recarregamento das bases oficiais completas"
+            className="px-3.5 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+            Limpar Cache Residual
+          </button>
+
           <button
             onClick={() => handleExportTemplateExample()}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2"

@@ -17,6 +17,7 @@ export interface Item030519Data {
   volumeTotalHectolitros: number;
   categoria?: string;
   classeABC?: 'A' | 'B' | 'C';
+  curvaAbc?: 'A' | 'B' | 'C';
   rank?: number;
   source: '030519' | 'fallback';
 }
@@ -103,6 +104,7 @@ export function getConsolidated030519Map(): Map<string, Item030519Data> {
         volumeTotalHectolitros: Number(item.volumeTotalHectolitros) || 0,
         categoria: item.categoria || 'Geral',
         classeABC,
+        curvaAbc: classeABC,
         rank: idx + 1,
         source: '030519'
       });
@@ -129,6 +131,7 @@ export function getConsolidated030519Map(): Map<string, Item030519Data> {
         volumeTotalHectolitros: ((fb.vendaMediaDiaria || 15) * 66) * (pCatalog?.fatorHecto || 0.1),
         categoria: fb.familia || 'Geral',
         classeABC: 'B',
+        curvaAbc: 'B',
         source: 'fallback'
       });
     }
@@ -163,6 +166,7 @@ export function get030519DataForSku(codigo: string | number): Item030519Data {
     volumeTotalHectolitros: 99,
     categoria: 'Geral',
     classeABC: 'B',
+    curvaAbc: 'B',
     source: 'fallback'
   };
 }

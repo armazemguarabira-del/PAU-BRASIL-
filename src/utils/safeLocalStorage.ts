@@ -170,3 +170,28 @@ export function safeGetLocalStorage<T = any>(key: string, fallback: T | null = n
   }
 }
 
+export function purgeStaleOperationalCache(empresaId = 'demo') {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const keysToRemove = [
+      `repack_rows_${empresaId}`,
+      `quebras_${empresaId}`,
+      `despejo_rows_${empresaId}`,
+      `efc_efd_vehicles_${empresaId}`,
+      `ronda_gsa_audits_history`,
+      `armazem_rows_${empresaId}`
+    ];
+    keysToRemove.forEach(k => {
+      try { localStorage.removeItem(k); } catch (_) {}
+    });
+    // Trigger window events so active screens immediately reload clean official base
+    window.dispatchEvent(new CustomEvent('repack-db-updated'));
+    window.dispatchEvent(new CustomEvent('quebras-db-updated'));
+    window.dispatchEvent(new CustomEvent('despejo-db-updated'));
+    window.dispatchEvent(new CustomEvent('efc-efd-db-updated'));
+  } catch (e) {
+    console.warn('Error purging operational cache:', e);
+  }
+}
+
+

@@ -54,27 +54,48 @@ export function syncIncremental({
   const syncKey = `sync:${empresaId}:${collectionName}`;
   const lastSyncStr = localStorage.getItem(syncKey);
 
+  const getItemKey = (item: any): string => {
+    if (!item) return '';
+    if (item._docId) return `doc:${item._docId}`;
+    if (item.id !== undefined && item.id !== null && item.id !== '') return `id:${item.id}`;
+    // Chaves de negócio para itens sem _docId e sem id explícito
+    if (item.codigo && item.validade && item.localizacao) {
+      return `val:${item.codigo}_${item.validade}_${item.localizacao}_${item.bloco || ''}`;
+    }
+    if (item.dataISO && item.inicio && item.codigo) {
+      return `desp:${item.dataISO}_${item.inicio}_${item.codigo}`;
+    }
+    if (item.dataISO && item.placa && item.inicio) {
+      return `arm:${item.dataISO}_${item.placa}_${item.inicio}`;
+    }
+    if (item.matricula) {
+      return `colab:${item.matricula}`;
+    }
+    return JSON.stringify(item);
+  };
+
   const notify = () => {
     if (!isUnsubscribed) {
       const rawRecords = Array.from(docsMap.values());
       const seen = new Set<string>();
       const records: any[] = [];
 
+      // Processar em ordem reversa ou com prioridade para garantir unicidade estrita
       for (const item of rawRecords) {
         if (!item) continue;
-        const key1 = item._docId ? `doc:${item._docId}` : null;
-        const key2 = (item.id !== undefined && item.id !== null) ? `id:${item.id}` : null;
-        
-        if ((key1 && seen.has(key1)) || (key2 && seen.has(key2))) {
+        const key = getItemKey(item);
+        if (!key || seen.has(key)) continue;
+
+        // Validação cruzada para evitar duplicidade id vs _docId
+        const idKey = (item.id !== undefined && item.id !== null) ? `id:${item.id}` : null;
+        const docKey = item._docId ? `doc:${item._docId}` : null;
+        if ((idKey && seen.has(idKey)) || (docKey && seen.has(docKey))) {
           continue;
         }
-        if (key1) seen.add(key1);
-        if (key2) seen.add(key2);
-        if (!key1 && !key2) {
-          const fp = typeof item === 'object' ? JSON.stringify(item) : String(item);
-          if (seen.has(fp)) continue;
-          seen.add(fp);
-        }
+
+        seen.add(key);
+        if (idKey) seen.add(idKey);
+        if (docKey) seen.add(docKey);
         records.push(item);
       }
 
@@ -89,23 +110,33 @@ export function syncIncremental({
     const rawData = typeof data === 'object' && data !== null ? data : {};
     const businessId = rawData.id !== undefined && rawData.id !== null ? rawData.id : docId;
     const docItem = { _docId: docId, id: businessId, ...rawData };
-    
-    // Remove qualquer entrada anterior que estivesse indexada pelo ID numérico/negócio
-    if (rawData.id !== undefined && rawData.id !== null) {
-      docsMap.delete(rawData.id);
-      docsMap.delete(String(rawData.id));
+
+    // Remover qualquer chave anterior que represente o mesmo documento
+    for (const [key, existing] of docsMap.entries()) {
+      if (
+        key === docId ||
+        key === `doc:${docId}` ||
+        key === `id:${businessId}` ||
+        key === String(businessId) ||
+        existing._docId === docId ||
+        (existing.id !== undefined && String(existing.id) === String(businessId))
+      ) {
+        docsMap.delete(key);
+      }
     }
-    docsMap.set(docId, docItem);
+
+    const primaryKey = `doc:${docId}`;
+    docsMap.set(primaryKey, docItem);
   };
 
   const runSync = async () => {
-    // 1. CARGA IMEDIATA: Tenta Memória / IndexedDB / JSON DB (0 leituras no servidor)
+    // 1. CARGA IMEDIATA DO CACHE (0ms, 0 leituras no servidor)
     try {
       const cached = await getHybridCacheCollection<any>(cacheKey, true);
       if (cached && cached.data && cached.data.length > 0) {
         cached.data.forEach((item: any) => {
-          const id = item._docId || item.id;
-          if (id) docsMap.set(String(id), item);
+          const key = getItemKey(item);
+          if (key) docsMap.set(key, item);
         });
         notify();
       } else {
@@ -113,8 +144,8 @@ export function syncIncremental({
         const jsonRecords = await getJsonTable<any>(empresaId, collectionName);
         if (jsonRecords && jsonRecords.length > 0) {
           jsonRecords.forEach((item: any) => {
-            const id = item._docId || item.id;
-            if (id) docsMap.set(String(id), item);
+            const key = getItemKey(item);
+            if (key) docsMap.set(key, item);
           });
           notify();
         }
@@ -165,6 +196,7 @@ export function syncIncremental({
         if (isDeltaQuery) {
           // Se a query delta falhar por falta de índice ou timestamp, tenta carregar query base
           serverSnap = await getDocsFromServer(baseQuery);
+          isDeltaQuery = false;
         } else {
           throw serverErr;
         }
@@ -172,6 +204,12 @@ export function syncIncremental({
 
       if (serverSnap && !serverSnap.empty) {
         recordActualFirestoreReads(serverSnap.docs.length);
+        
+        // Se foi uma consulta completa (não delta), substitui a base para evitar soma indesejada com cache obsoleto
+        if (!isDeltaQuery) {
+          docsMap.clear();
+        }
+        
         serverSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
           storeDoc(doc.id, doc.data());
         });
@@ -185,6 +223,7 @@ export function syncIncremental({
       try {
         const fallbackSnap = await getDocs(baseQuery);
         if (!fallbackSnap.empty) {
+          docsMap.clear();
           fallbackSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
             storeDoc(doc.id, doc.data());
           });

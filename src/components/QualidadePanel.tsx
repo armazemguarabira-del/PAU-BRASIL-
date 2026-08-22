@@ -51,6 +51,16 @@ import { exportChecklist5SOfficialPdf } from '../utils/exportChecklist5SPdf';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
 import { AcoesGeraisRepository } from '../db';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
+import { setMediaItem, getMediaItem } from '../utils/idbStorage';
+import { 
+  LaudoPragas, 
+  LaudoFileItem, 
+  initPragasStorage, 
+  getStoredPragasLaudosSync, 
+  savePragasLaudo, 
+  deletePragasLaudo,
+  downloadDataUrl 
+} from '../utils/pragasStorage';
 import { 
   BarChart, 
   Bar, 
@@ -139,25 +149,7 @@ export interface ArmazemTemperaturaLog {
   alertaCritico: boolean;
 }
 
-export interface LaudoFileItem {
-  fileName: string;
-  fileDataUrl?: string;
-}
-
-export interface LaudoPragas {
-  id: string;
-  numeroCertificado: string;
-  empresaEspecializada: string;
-  responsavelTecnico: string;
-  dataExecucao: string;
-  dataVencimento: string;
-  observacoes: string;
-  fileName: string;
-  fileDataUrl?: string;
-  arquivos?: LaudoFileItem[];
-  uploadBy: string;
-  criadoEm: string;
-}
+export type { LaudoFileItem, LaudoPragas };
 
 const generateInitialTempLogs = (): ArmazemTemperaturaLog[] => {
   const list: ArmazemTemperaturaLog[] = [];
@@ -451,6 +443,36 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
     window.addEventListener('5s_audit_updated', reloadAudits);
     window.addEventListener('5s_responsaveis_updated', reloadAudits);
     window.addEventListener('storage', reloadAudits);
+
+    // Hydrate any frota audit PDFs stored in IndexedDB
+    const hydrateFrotaPdfs = async () => {
+      try {
+        const saved = localStorage.getItem('auditorias_frota_5s_mensal');
+        if (saved) {
+          const list: AuditoriaFrotaMensal[] = JSON.parse(saved);
+          if (Array.isArray(list)) {
+            let hasChanges = false;
+            const updated = await Promise.all(list.map(async (item) => {
+              if (!item.pdfFileDataUrl) {
+                const idbPdf = await getMediaItem(`frota_pdf_${item.id}`);
+                if (idbPdf) {
+                  hasChanges = true;
+                  return { ...item, pdfFileDataUrl: idbPdf };
+                }
+              }
+              return item;
+            }));
+            if (hasChanges) {
+              setAuditoriasFrota(updated);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Error hydrating frota PDFs:', e);
+      }
+    };
+    hydrateFrotaPdfs();
+
     return () => {
       window.removeEventListener('5s_audit_updated', reloadAudits);
       window.removeEventListener('5s_responsaveis_updated', reloadAudits);
@@ -641,7 +663,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
   const isDispersaoConforme = dispersaoArmazemFrota <= 5;
 
   // Handler para Salvar Auditoria da Frota
-  const handleSaveAuditoriaFrota = (e: React.FormEvent) => {
+  const handleSaveAuditoriaFrota = async (e: React.FormEvent) => {
     e.preventDefault();
     const notaNum = parseInt(frotaNota, 10);
     if (isNaN(notaNum) || notaNum < 0 || notaNum > 100) {
@@ -650,8 +672,19 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
     }
 
     const mesAno = `${selectedMonth5S}/${selectedYear5S}`;
+    const recordId = `frota-${selectedYear5S}-${selectedMonth5S}`;
+    const pdfData = frotaPdfFile?.fileDataUrl || currentAuditoriaFrota?.pdfFileDataUrl;
+
+    if (pdfData) {
+      try {
+        await setMediaItem(`frota_pdf_${recordId}`, pdfData);
+      } catch (err) {
+        console.warn('Failed to save frota PDF to IndexedDB:', err);
+      }
+    }
+
     const newRecord: AuditoriaFrotaMensal = {
-      id: `frota-${selectedYear5S}-${selectedMonth5S}`,
+      id: recordId,
       mesAno,
       ano: selectedYear5S,
       mes: selectedMonth5S,
@@ -660,14 +693,20 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       notaPercentualFrota: notaNum,
       observacoes: frotaObs.trim() || `Auditoria de 5S mensal realizada pelo setor de Frota em ${mesAno}.`,
       pdfFileName: frotaPdfFile?.fileName || currentAuditoriaFrota?.pdfFileName || 'Auditoria_Frota_Assinada.pdf',
-      pdfFileDataUrl: frotaPdfFile?.fileDataUrl || currentAuditoriaFrota?.pdfFileDataUrl,
+      pdfFileDataUrl: pdfData,
       criadoEm: new Date().toISOString()
     };
 
     const filtered = auditoriasFrota.filter(a => !(a.ano === selectedYear5S && a.mes === selectedMonth5S));
     const updated = [newRecord, ...filtered];
     setAuditoriasFrota(updated);
-    localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(updated));
+    
+    // Save metadata without crashing localStorage
+    try {
+      const lightweight = updated.map(u => ({ ...u, pdfFileDataUrl: undefined }));
+      localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(lightweight));
+    } catch (_) {}
+
     setShowFrotaModal(false);
     alert(`✅ Auditoria do Setor de Frota para ${mesAno} salva com sucesso com nota ${notaNum}%!`);
   };
@@ -838,28 +877,44 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
   // ── CONTROLE QUINZENAL DE PRAGAS (PDF) STATE ──
   const [laudosPragas, setLaudosPragas] = useState<LaudoPragas[]>(() => {
-    try {
-      const saved = localStorage.getItem('controle_pragas_laudos');
-      if (saved) return JSON.parse(saved);
-      // Initial sample record for Guarabira
-      const initial: LaudoPragas[] = [{
-        id: 'pragas-2026-07-15',
-        numeroCertificado: 'CERT-PRAGAS-2026/014',
-        empresaEspecializada: 'IMUNIZADORA & DEDETIZADORA GUARABIRA LTDA',
-        responsavelTecnico: 'Dr. Fernando Arcoverde (CRQ 04412/PB)',
-        dataExecucao: '2026-07-15',
-        dataVencimento: '2026-07-30',
-        observacoes: 'Aplicação de gel para baratas e iscagem externa de roedores nos perímetros 1 a 4 do armazém. Sem indícios de pragas ativas.',
-        fileName: 'Controle_Quinzenal_Pragas_Julho_2026.pdf',
-        uploadBy: user?.nome || 'Controle de Qualidade',
-        criadoEm: '2026-07-15T08:30:00.000Z'
-      }];
-      localStorage.setItem('controle_pragas_laudos', JSON.stringify(initial));
-      return initial;
-    } catch {
-      return [];
-    }
+    return getStoredPragasLaudosSync();
   });
+  const [isSavingPragas, setIsSavingPragas] = useState(false);
+
+  // Auto-hydrate from IndexedDB on component mount and listen for real-time storage events
+  useEffect(() => {
+    let isMounted = true;
+    const hydratePragas = async () => {
+      try {
+        const loaded = await initPragasStorage();
+        if (isMounted && loaded && loaded.length > 0) {
+          setLaudosPragas(loaded);
+        }
+      } catch (e) {
+        console.warn('Error hydrating pest control certificates:', e);
+      }
+    };
+
+    hydratePragas();
+
+    const handleStorageUpdate = async () => {
+      try {
+        const refreshed = await initPragasStorage();
+        if (isMounted && refreshed) {
+          setLaudosPragas(refreshed);
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('controle_pragas_laudos_updated', handleStorageUpdate);
+    window.addEventListener('storage', handleStorageUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('controle_pragas_laudos_updated', handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, []);
 
   const [showPragasModal, setShowPragasModal] = useState(false);
   const [selectedPragasMonth, setSelectedPragasMonth] = useState<string>('todos');
@@ -914,12 +969,14 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
     setSelectedPdfFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSavePragasLaudo = (e: React.FormEvent) => {
+  const handleSavePragasLaudo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPdfFiles.length === 0) {
       alert('Por favor, selecione pelo menos 1 arquivo PDF para o Laudo Quinzenal de Pragas.');
       return;
     }
+
+    setIsSavingPragas(true);
 
     const firstFile = selectedPdfFiles[0];
     const summaryFileName = selectedPdfFiles.length === 1 
@@ -936,31 +993,37 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       observacoes: obsPragas.trim() || 'Certificado de dedetização e desratização quinzenal em conformidade com as normas sanitárias.',
       fileName: summaryFileName,
       fileDataUrl: firstFile.fileDataUrl,
-      arquivos: selectedPdfFiles.map(f => ({ fileName: f.fileName, fileDataUrl: f.fileDataUrl })),
+      arquivos: selectedPdfFiles.map(f => ({ fileName: f.fileName, fileDataUrl: f.fileDataUrl, fileSize: f.size })),
       uploadBy: user?.nome || 'Operador Responsável',
       criadoEm: new Date().toISOString()
     };
 
-    const updated = [newLaudo, ...laudosPragas];
-    setLaudosPragas(updated);
-    localStorage.setItem('controle_pragas_laudos', JSON.stringify(updated));
+    try {
+      // Persist in IndexedDB (immune to 5MB localStorage limit) + memory cache + metadata
+      const updated = await savePragasLaudo(newLaudo);
+      setLaudosPragas(updated);
 
-    // Reset Form
-    setShowPragasModal(false);
-    setNumCertificado('');
-    setEmpresaEspecializada('');
-    setRespTecnico('');
-    setObsPragas('');
-    setSelectedPdfFiles([]);
+      // Reset Form
+      setShowPragasModal(false);
+      setNumCertificado('');
+      setEmpresaEspecializada('');
+      setRespTecnico('');
+      setObsPragas('');
+      setSelectedPdfFiles([]);
 
-    alert(`✅ Laudo Quinzenal de Pragas (${selectedPdfFiles.length} arquivo(s)) importado com sucesso!`);
+      alert(`✅ Laudo Quinzenal de Pragas (${selectedPdfFiles.length} arquivo(s) PDF) gravado com sucesso no banco de dados permanente!`);
+    } catch (err) {
+      console.error('Falha ao salvar laudo de pragas:', err);
+      alert('Erro ao salvar o arquivo no banco de dados. Tente novamente.');
+    } finally {
+      setIsSavingPragas(false);
+    }
   };
 
-  const handleDeletePragasLaudo = (id: string) => {
+  const handleDeletePragasLaudo = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este laudo de pragas?')) {
-      const updated = laudosPragas.filter(l => l.id !== id);
+      const updated = await deletePragasLaudo(id);
       setLaudosPragas(updated);
-      localStorage.setItem('controle_pragas_laudos', JSON.stringify(updated));
     }
   };
 
@@ -2015,14 +2078,13 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
                   <div className="flex items-center gap-2 flex-wrap">
                     {currentAuditoriaFrota?.pdfFileDataUrl && (
-                      <a
-                        href={currentAuditoriaFrota.pdfFileDataUrl}
-                        download={currentAuditoriaFrota.pdfFileName || `Auditoria_Frota_${selectedMonth5S}_${selectedYear5S}.pdf`}
+                      <button
+                        onClick={() => downloadDataUrl(currentAuditoriaFrota.pdfFileDataUrl, currentAuditoriaFrota.pdfFileName || `Auditoria_Frota_${selectedMonth5S}_${selectedYear5S}.pdf`)}
                         className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                         title="Baixar Laudo Assinado pelo Setor de Frota"
                       >
                         <Download className="w-4 h-4" /> Baixar PDF Assinado
-                      </a>
+                      </button>
                     )}
 
                     <button
@@ -3292,24 +3354,22 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto flex-wrap">
                   {latest.arquivos && latest.arquivos.length > 0 ? (
                     latest.arquivos.map((arq, idx) => (
-                      <a
+                      <button
                         key={idx}
-                        href={arq.fileDataUrl}
-                        download={arq.fileName}
+                        onClick={() => downloadDataUrl(arq.fileDataUrl, arq.fileName)}
                         className="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
                         title={`Baixar ${arq.fileName}`}
                       >
                         <Download className="w-4 h-4" /> Baixar PDF {latest.arquivos!.length > 1 ? `#${idx + 1}` : ''}
-                      </a>
+                      </button>
                     ))
                   ) : latest.fileDataUrl ? (
-                    <a
-                      href={latest.fileDataUrl}
-                      download={latest.fileName}
+                    <button
+                      onClick={() => downloadDataUrl(latest.fileDataUrl, latest.fileName)}
                       className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
                     >
                       <Download className="w-4 h-4" /> Baixar PDF
-                    </a>
+                    </button>
                   ) : (
                     <span className="text-[10px] text-slate-400 italic">PDF de Exemplo Integrado</span>
                   )}
@@ -3568,53 +3628,49 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                           {laudo.arquivos && laudo.arquivos.length > 0 ? (
                             <div className="flex flex-col gap-1">
                               {laudo.arquivos.map((arq, idx) => (
-                                <a
+                                <button
                                   key={idx}
-                                  href={arq.fileDataUrl}
-                                  download={arq.fileName}
-                                  className="text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1 transition-colors"
+                                  onClick={() => downloadDataUrl(arq.fileDataUrl, arq.fileName)}
+                                  className="text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1 transition-colors text-left cursor-pointer"
                                   title={`Baixar ${arq.fileName}`}
                                 >
                                   <FileText className="w-3 h-3 text-emerald-400 shrink-0" />
                                   <span className="truncate max-w-[180px]">{arq.fileName}</span>
-                                </a>
+                                </button>
                               ))}
                             </div>
                           ) : (
-                            <a
-                              href={laudo.fileDataUrl}
-                              download={laudo.fileName}
-                              className="text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1 transition-colors"
+                            <button
+                              onClick={() => downloadDataUrl(laudo.fileDataUrl, laudo.fileName)}
+                              className="text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1 transition-colors text-left cursor-pointer"
                             >
                               <FileText className="w-3 h-3 text-emerald-400 shrink-0" />
                               <span className="truncate max-w-[180px]">{laudo.fileName}</span>
-                            </a>
+                            </button>
                           )}
                         </td>
                         <td className="p-3 text-right">
                           <div className="flex items-center justify-end gap-1.5 flex-wrap">
                             {laudo.arquivos && laudo.arquivos.length > 0 ? (
                               laudo.arquivos.map((arq, idx) => (
-                                <a
+                                <button
                                   key={idx}
-                                  href={arq.fileDataUrl}
-                                  download={arq.fileName}
-                                  className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg border border-emerald-500/30 transition-all flex items-center gap-1 text-[10px] font-bold"
+                                  onClick={() => downloadDataUrl(arq.fileDataUrl, arq.fileName)}
+                                  className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg border border-emerald-500/30 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
                                   title={`Baixar ${arq.fileName}`}
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                   {laudo.arquivos!.length > 1 && <span>#{idx + 1}</span>}
-                                </a>
+                                </button>
                               ))
                             ) : laudo.fileDataUrl ? (
-                              <a
-                                href={laudo.fileDataUrl}
-                                download={laudo.fileName}
-                                className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg border border-emerald-500/30 transition-all"
+                              <button
+                                onClick={() => downloadDataUrl(laudo.fileDataUrl, laudo.fileName)}
+                                className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg border border-emerald-500/30 transition-all cursor-pointer"
                                 title="Baixar Laudo PDF"
                               >
                                 <Download className="w-3.5 h-3.5" />
-                              </a>
+                              </button>
                             ) : null}
                             <button
                               onClick={() => handleDeletePragasLaudo(laudo.id)}

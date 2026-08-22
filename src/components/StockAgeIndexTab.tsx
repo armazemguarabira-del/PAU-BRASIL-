@@ -176,7 +176,14 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
   }, [validadesList, todayISO, empresaData?.produtos, get030519Item]);
 
   const allRows = useMemo(() => {
-    return [...processedRows, ...customRows];
+    if (customRows.length === 0) return processedRows;
+    const existingKeys = new Set(
+      processedRows.map(r => `${String(r.codigo).trim()}_${String(r.lote || '').trim()}_${String(r.dataVencimento || '').trim()}_${String(r.localizacao || '').trim()}`)
+    );
+    const nonDuplicatedCustom = customRows.filter(
+      r => !existingKeys.has(`${String(r.codigo).trim()}_${String(r.lote || '').trim()}_${String(r.dataVencimento || '').trim()}_${String(r.localizacao || '').trim()}`)
+    );
+    return [...processedRows, ...nonDuplicatedCustom];
   }, [processedRows, customRows]);
 
   const uniqueLotes = useMemo(() => {
@@ -520,6 +527,15 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           const valorTotal = quantidade * unitPrice;
           const setor = getSetor(cleanKeys.bloco, localizacaoStr);
 
+          // Venda Média 03.05.19 integration
+          const item030519 = get030519Item(codigo);
+          const vendaMediaDiaria = item030519.vendaMediaDiaria;
+          const is030519 = item030519.source === '030519';
+          const curvaAbc: 'A' | 'B' | 'C' = (item030519.curvaAbc || item030519.classeABC || 'B') as 'A' | 'B' | 'C';
+          const diasCobertura = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
+          const riscoSobra = calcResult.diasRestantes > 0 && diasCobertura > calcResult.diasRestantes;
+          const sobraEstimadaCx = riscoSobra ? Math.max(0, Math.round(quantidade - (vendaMediaDiaria * calcResult.diasRestantes))) : 0;
+
           const newRowObj: CalculatedStockAgeRow = {
             id: Date.now() + i,
             codigo,
@@ -535,7 +551,13 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
             statusLabel: calcResult.statusLabel,
             valorTotal,
             localizacao: localizacaoStr,
-            setor
+            setor,
+            vendaMediaDiaria,
+            is030519,
+            curvaAbc,
+            diasCobertura,
+            riscoSobra,
+            sobraEstimadaCx
           };
 
           newImportedRows.push(newRowObj);

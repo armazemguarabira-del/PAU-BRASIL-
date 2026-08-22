@@ -5,7 +5,7 @@ import { RepackRow, Usuario, Empresa, RepackActionPlan, RepackA3Board } from '..
 
 const repackActionPlansRepo = getRepository<RepackActionPlan>('repack_action_plans');
 const repackA3BoardsRepo = getRepository<RepackA3Board>('repack_a3_boards');
-import { useEmpresaData } from '../context/EmpresaDataContext';
+import { useEmpresaData, useRepackData } from '../context/EmpresaDataContext';
 import { withTimestamps } from '../utils/firestoreUtils';
 import A3BoardComponent from './A3BoardComponent';
 import CalendarFilter from './CalendarFilter';
@@ -420,40 +420,49 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   };
 
   const empresaData = useEmpresaData();
+  const repackCollection = useRepackData();
 
   // Fetch Firestore entries
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     const refreshRepackRows = () => {
+      // 1. Base oficial completa do código (1.094 registros / 6.524 caixas)
       const officialRows = buildOfficialRepackRows(companyId);
-      const officialIds = new Set(officialRows.map(r => r.id || r._docId));
+      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-      let rows = [...(empresaData.repack || [])];
-      if (rows.length === 0) {
-        const saved = localStorage.getItem(`repack_rows_${companyId}`);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              const userCustomRows = parsed.filter((r: any) => !r._docId?.startsWith('seed-') && !officialIds.has(r.id) && !officialIds.has(r._docId));
-              rows = [...userCustomRows, ...officialRows];
-            }
-          } catch (_) {}
-        }
+      // 2. Extrai novos registros customizados/manuais criados pela empresa
+      const customRows: RepackRow[] = [];
+      const seenCustomKeys = new Set<string>();
+
+      const addCustomIfNew = (item: RepackRow) => {
+        if (!item) return;
+        const idStr = String(item.id || item._docId || '');
+        if (idStr && officialIds.has(idStr)) return;
+        const bizKey = `${item.dataISO || item.data || ''}_${item.inicio || ''}_${item.operador || ''}_${item.embalagem || ''}_${item.quantidade || 0}`;
+        if (seenCustomKeys.has(bizKey)) return;
+        seenCustomKeys.add(bizKey);
+        customRows.push(item);
+      };
+
+      if (empresaData.repack && empresaData.repack.length > 0) {
+        empresaData.repack.forEach(addCustomIfNew);
       }
 
-      if (rows.length === 0) {
-        rows = officialRows;
-      } else {
-        const currentIds = new Set(rows.map(r => r.id || r._docId));
-        const missingOfficial = officialRows.filter(r => !currentIds.has(r.id) && !currentIds.has(r._docId));
-        if (missingOfficial.length > 0) {
-          rows = [...rows, ...missingOfficial];
-        }
+      const saved = localStorage.getItem(`repack_rows_${companyId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
+          }
+        } catch (_) {}
       }
+
+      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
 
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
       setActualRepackRows(rows);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
       setLoading(false);
     };
 
@@ -467,7 +476,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     return () => {
       window.removeEventListener('repack-db-updated', handleUpdated);
     };
-  }, [empresaData.repack, empresa?.id]);
+  }, [empresaData.repack, repackCollection, empresa?.id]);
 
   // Fetch Action Plans
   useEffect(() => {

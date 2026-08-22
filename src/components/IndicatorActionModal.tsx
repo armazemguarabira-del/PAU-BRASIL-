@@ -277,8 +277,13 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
         }
       ];
 
-      saveAcoes([...currentActions, ...newItems]);
-      setAllAcoes([...currentActions, ...newItems]);
+      const existingIds = new Set(currentActions.map(a => a.id));
+      const filteredNew = newItems.filter(item => !existingIds.has(item.id));
+      if (filteredNew.length > 0) {
+        const merged = [...currentActions, ...filteredNew];
+        saveAcoes(merged);
+        setAllAcoes(merged);
+      }
     }
   }, [isOpen, allowedProcessos, indicatorTitle, resolvedDefaultProcess, defaultIndicador, defaultMeta, user?.nome]);
 

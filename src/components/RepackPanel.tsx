@@ -184,29 +184,43 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     const refreshFromStorageOrBase = () => {
+      const officialRows = buildOfficialRepackRows(companyId);
+      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+
+      const customRows: RepackRow[] = [];
+      const seenCustomKeys = new Set<string>();
+
+      const addCustomIfNew = (item: RepackRow) => {
+        if (!item) return;
+        const idStr = String(item.id || item._docId || '');
+        if (idStr && officialIds.has(idStr)) return;
+        const bizKey = `${item.dataISO || item.data || ''}_${item.inicio || ''}_${item.operador || ''}_${item.embalagem || ''}_${item.quantidade || 0}`;
+        if (seenCustomKeys.has(bizKey)) return;
+        seenCustomKeys.add(bizKey);
+        customRows.push(item);
+      };
+
+      if (empresaData.repack && empresaData.repack.length > 0) {
+        empresaData.repack.forEach(addCustomIfNew);
+      }
+
       const saved = localStorage.getItem(`repack_rows_${companyId}`);
       if (saved) {
-        try { 
+        try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setRepackRows(parsed);
-            return;
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
           }
         } catch (e) {}
       }
-      const fallback = buildOfficialRepackRows(companyId);
-      setRepackRows(fallback);
-      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(fallback));
-    };
 
-    if (empresaData.repack && empresaData.repack.length > 0) {
-      const rows = [...empresaData.repack];
+      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
       setRepackRows(rows);
       localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
-    } else {
-      refreshFromStorageOrBase();
-    }
+    };
+
+    refreshFromStorageOrBase();
 
     const handleRepackUpdated = () => {
       refreshFromStorageOrBase();
