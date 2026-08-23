@@ -248,6 +248,7 @@ export const StandardDashboardChart: React.FC<StandardDashboardChartProps> = ({
                 strokeWidth={2.5}
                 dot={<CustomDot />}
                 activeDot={{ r: 8, stroke: '#ffffff', strokeWidth: 2 }}
+                isAnimationActive={false}
               />
             </ComposedChart>
           </ResponsiveContainer>

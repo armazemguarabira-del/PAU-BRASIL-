@@ -2,6 +2,7 @@ import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
 import { getStoredEfcVehicles, calculateEfcMetrics, calculateEfdMetrics } from '../utils/efcEfdManager';
 import { convertEfcVehiclesToArmazemRows } from '../services/retroactiveEfcEfdSyncService';
+import { firestoreDb } from '../database/firestoreDatabase';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   BarChart, 
@@ -480,11 +481,21 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
   // Save textual actions
   useEffect(() => {
     localStorage.setItem('logistica_gargalo_acoes', gargaloAcoes);
-  }, [gargaloAcoes]);
+    firestoreDb.create('logistica_melhorias_textos', {
+      id: 'gargalo_acoes',
+      conteudo: gargaloAcoes,
+      atualizadoEm: new Date().toISOString()
+    }, companyId, 'gargalo_acoes').catch(() => {});
+  }, [gargaloAcoes, companyId]);
 
   useEffect(() => {
     localStorage.setItem('logistica_rotas_acoes', rotasAcoes);
-  }, [rotasAcoes]);
+    firestoreDb.create('logistica_melhorias_textos', {
+      id: 'rotas_acoes',
+      conteudo: rotasAcoes,
+      atualizadoEm: new Date().toISOString()
+    }, companyId, 'rotas_acoes').catch(() => {});
+  }, [rotasAcoes, companyId]);
 
   // ACTION PLAN STATE
   const [acoes, setAcoes] = useState<ActionPlanItem[]>(() => {
@@ -542,10 +553,23 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     ];
   });
 
+  // Hydrate action plan from Firestore
+  useEffect(() => {
+    firestoreDb.getList<ActionPlanItem>('logistica_action_plan', companyId).then(docs => {
+      if (docs && docs.length > 0) {
+        setAcoes(docs);
+        try { localStorage.setItem('logistica_action_plan', JSON.stringify(docs)); } catch (_) {}
+      }
+    }).catch(() => {});
+  }, [companyId]);
+
   // Save Action Plan
   useEffect(() => {
-    localStorage.setItem('logistica_action_plan', JSON.stringify(acoes));
-  }, [acoes]);
+    try {
+      localStorage.setItem('logistica_action_plan', JSON.stringify(acoes));
+    } catch (_) {}
+    firestoreDb.batchUpsert('logistica_action_plan', acoes, companyId).catch(() => {});
+  }, [acoes, companyId]);
 
   // FORM FOR NEW ACTION
   const [showAddAction, setShowAddAction] = useState(false);

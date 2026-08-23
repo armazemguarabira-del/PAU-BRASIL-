@@ -1,6 +1,8 @@
 // Persistent IndexedDB Storage Engine for Pest Control Certificates (Laudos Quinzenais de Pragas)
 // Prevents browser localStorage 5MB QuotaExceededError and guarantees uploaded PDFs persist across F5 reloads.
 
+import { firestoreDb } from '../database/firestoreDatabase';
+
 export interface LaudoFileItem {
   fileName: string;
   fileDataUrl?: string;
@@ -248,7 +250,23 @@ export async function savePragasLaudo(laudo: LaudoPragas): Promise<LaudoPragas[]
     console.warn('localStorage metadata update warning:', e);
   }
 
-  // 4. Notify all tabs & components
+  // 4. Persist to Firestore
+  const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+  firestoreDb.create('controle_pragas_laudos', {
+    id: laudo.id,
+    numeroCertificado: laudo.numeroCertificado,
+    empresaEspecializada: laudo.empresaEspecializada,
+    responsavelTecnico: laudo.responsavelTecnico,
+    dataExecucao: laudo.dataExecucao,
+    dataVencimento: laudo.dataVencimento,
+    observacoes: laudo.observacoes,
+    fileName: laudo.fileName,
+    uploadBy: laudo.uploadBy,
+    criadoEm: laudo.criadoEm,
+    arquivosCount: laudo.arquivos?.length || (laudo.fileName ? 1 : 0)
+  }, companyId, laudo.id).catch(() => {});
+
+  // 5. Notify all tabs & components
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('controle_pragas_laudos_updated'));
   }
@@ -296,7 +314,11 @@ export async function deletePragasLaudo(id: string): Promise<LaudoPragas[]> {
     } catch (_) {}
   } catch (_) {}
 
-  // 4. Notify
+  // 4. Delete from Firestore
+  const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+  firestoreDb.delete('controle_pragas_laudos', id, companyId).catch(() => {});
+
+  // 5. Notify
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('controle_pragas_laudos_updated'));
   }

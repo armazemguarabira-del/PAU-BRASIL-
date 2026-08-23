@@ -15,6 +15,7 @@ import {
   ColaboradorMaster,
   AcessoColaborador
 } from '../types';
+import { CustomKpiTree } from '../types/treeKpiTypes';
 
 export interface EmpresaDataState {
   repack: RepackRow[];
@@ -33,6 +34,7 @@ export interface EmpresaDataState {
   acessos: AcessoColaborador[];
   repackActionPlans: any[];
   repackA3Boards: any[];
+  kpiTrees: CustomKpiTree[];
   loaded: boolean;
   viewUnitMode: 'R$' | 'HL';
 }
@@ -54,6 +56,7 @@ const EMPTY_STATE: EmpresaDataState = {
   acessos: [],
   repackActionPlans: [],
   repackA3Boards: [],
+  kpiTrees: [],
   loaded: false,
   viewUnitMode: 'R$'
 };
@@ -97,6 +100,7 @@ const COLLECTION_MAPPING: Record<string, keyof Omit<EmpresaDataState, 'loaded' |
   acessos: 'acessos',
   repack_action_plans: 'repackActionPlans',
   repack_a3_boards: 'repackA3Boards',
+  kpi_trees: 'kpiTrees',
 };
 
 export function EmpresaDataProvider({
@@ -128,11 +132,39 @@ export function EmpresaDataProvider({
 
   const refCounts = useRef<Record<string, number>>({});
   const unsubs = useRef<Record<string, () => void>>({});
+  const pendingUpdates = useRef<Record<string, any>>({});
+  const updateTimeoutRef = useRef<any>(null);
+
+  const applyPendingUpdates = useCallback(() => {
+    if (Object.keys(pendingUpdates.current).length === 0) return;
+    const batch = { ...pendingUpdates.current };
+    pendingUpdates.current = {};
+    setState((prev) => ({
+      ...prev,
+      ...batch,
+      loaded: true,
+    }));
+  }, []);
+
+  const scheduleStateUpdate = useCallback((chave: string, data: any) => {
+    pendingUpdates.current[chave] = data;
+    if (!updateTimeoutRef.current) {
+      updateTimeoutRef.current = setTimeout(() => {
+        updateTimeoutRef.current = null;
+        applyPendingUpdates();
+      }, 30);
+    }
+  }, [applyPendingUpdates]);
 
   useEffect(() => {
     // Reset state when empresaId changes or logs out
     setState(EMPTY_STATE);
     refCounts.current = {};
+    pendingUpdates.current = {};
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
     Object.values(unsubs.current).forEach(unsub => {
       if (typeof unsub === 'function') unsub();
     });
@@ -140,7 +172,7 @@ export function EmpresaDataProvider({
   }, [empresaId]);
 
   const subscribeCollection = useCallback(
-    (nome: string, chave: keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection'>) => {
+    (nome: string, chave: keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection' | 'viewUnitMode' | 'setViewUnitMode'>) => {
       if (!empresaId) return () => {};
 
       refCounts.current[nome] = (refCounts.current[nome] || 0) + 1;
@@ -151,11 +183,7 @@ export function EmpresaDataProvider({
           collectionName: nome,
           empresaId,
           onData: (data) => {
-            setState((prev) => ({
-              ...prev,
-              [chave]: data,
-              loaded: true,
-            }));
+            scheduleStateUpdate(chave as keyof EmpresaDataState, data);
           },
         });
         unsubs.current[nome] = cleanup;
@@ -169,7 +197,7 @@ export function EmpresaDataProvider({
         }
       };
     },
-    [empresaId]
+    [empresaId, scheduleStateUpdate]
   );
 
   const exportSnapshot = useCallback(async () => {
@@ -190,20 +218,29 @@ export function EmpresaDataProvider({
     }
   }, [state, empresaId]);
 
+  const contextValue = React.useMemo(() => ({
+    ...state,
+    empresaId,
+    viewUnitMode,
+    setViewUnitMode,
+    subscribeCollection: subscribeCollection as any,
+    getHybridStats: getHybridMetrics,
+    exportSnapshot,
+    importSnapshot,
+    getJsonTablesMeta,
+  }), [
+    state,
+    empresaId,
+    viewUnitMode,
+    setViewUnitMode,
+    subscribeCollection,
+    exportSnapshot,
+    importSnapshot,
+    getJsonTablesMeta,
+  ]);
+
   return (
-    <EmpresaDataContext.Provider
-      value={{
-        ...state,
-        empresaId,
-        viewUnitMode,
-        setViewUnitMode,
-        subscribeCollection: subscribeCollection as any,
-        getHybridStats: getHybridMetrics,
-        exportSnapshot,
-        importSnapshot,
-        getJsonTablesMeta,
-      }}
-    >
+    <EmpresaDataContext.Provider value={contextValue}>
       {children}
     </EmpresaDataContext.Provider>
   );

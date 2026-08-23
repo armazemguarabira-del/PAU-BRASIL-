@@ -53,6 +53,7 @@ interface QuebrasDashboardProps {
   empresa: Empresa | null;
   onBack?: () => void;
   theme?: 'light' | 'dark';
+  initialSubTab?: 'indicadores' | 'arvore' | 'wqi' | 'boarda3';
 }
 
 interface ActionPlan5W2H {
@@ -154,7 +155,7 @@ export const getGrupoName = (desc: string): string => {
   return 'Cervejas';
 };
 
-function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps) {
+function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: QuebrasDashboardProps) {
   const { filters, toggleFilter, isFiltered, filterData, clearAllFilters } = useCrossFilter();
 
   const [actualQuebras, setActualQuebras] = useState<QuebraRow[]>([]);
@@ -185,7 +186,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
     Boolean(startDate) || 
     Boolean(endDate);
   const [secondChartMode, setSecondChartMode] = useState<'grupo' | 'embalagem'>('grupo');
-  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'wqi' | 'boarda3'>('indicadores');
+  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'arvore' | 'wqi' | 'boarda3'>(initialSubTab || 'indicadores');
   const [isPopModalOpen, setIsPopModalOpen] = useState(false);
   const [is5SModalOpen, setIs5SModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -230,6 +231,16 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
   // Sync Quebras
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
+    
+    // Invalida cache legado caso a versão contábil tenha sido atualizada
+    const CACHE_VERSION_KEY = 'quebras_accounting_version';
+    const CURRENT_VERSION = 'v42692_53';
+    if (localStorage.getItem(CACHE_VERSION_KEY) !== CURRENT_VERSION) {
+      localStorage.removeItem(`quebras_${companyId}`);
+      localStorage.removeItem('quebras_demo');
+      localStorage.setItem(CACHE_VERSION_KEY, CURRENT_VERSION);
+    }
+
     const refreshQuebras = () => {
       const officialRows = buildOfficialQuebrasRows(companyId);
       const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
@@ -240,7 +251,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
       const addCustomIfNew = (item: QuebraRow) => {
         if (!item) return;
         const idStr = String(item.id || item._docId || '');
-        if (idStr && officialIds.has(idStr)) return;
+        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
         const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.area || ''}_${item.quantidade || 0}`;
         if (seenCustomKeys.has(bizKey)) return;
         seenCustomKeys.add(bizKey);
@@ -577,6 +588,31 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
   // Active CrossFilter indicators
   const isDateFiltered = isFiltered('data');
 
+  const availableEmbalagens = useMemo(() => {
+    return Array.from(new Set(quebras.map(q => getEmbalagemName(q.descricao)))).filter(Boolean).sort();
+  }, [quebras]);
+
+  const availableGrupos = useMemo(() => {
+    return Array.from(new Set(quebras.map(q => getGrupoName(q.descricao)))).filter(Boolean).sort();
+  }, [quebras]);
+
+  const totalCusto = estimatedCost;
+  const topReasonName = motivosChartData[0]?.name || motivosChartData[0]?.rawMotivo || 'Nenhum';
+  const topReasonShare = totalQuant > 0 && motivosChartData[0] ? (motivosChartData[0].value / totalQuant) * 100 : 0;
+  const topAreaName = criticalAreaName;
+  const topAreaShare = totalQuant > 0 && areaVolumeMap[criticalAreaKey] ? (areaVolumeMap[criticalAreaKey] / totalQuant) * 100 : 0;
+
+  const skuRanking = useMemo(() => {
+    return sortedSkus.map(s => ({
+      cod: s.cod,
+      desc: s.desc,
+      emb: getEmbalagemName(s.desc),
+      volumeHl: s.quantHE,
+      quantidade: s.quantCx,
+      valor: s.valorTotal
+    }));
+  }, [sortedSkus]);
+
   return (
     <div id="quebras-dashboard-wrapper" className={`flex flex-col gap-4 p-4 lg:p-6 rounded-2xl shadow-sm border transition-colors duration-300 ${
       theme === 'dark' ? 'bg-[#0b1329] text-slate-100 border-slate-800' : 'bg-[#f8fafc] text-[#0f172a] border-gray-200/80'
@@ -619,7 +655,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
           }`}>
             <button 
               onClick={() => setActiveSubTab('indicadores')}
-              className={`px-4 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
                 activeSubTab === 'indicadores' 
                   ? (theme === 'dark' ? 'bg-blue-600 text-white shadow-sm' : 'bg-[#032b5e] text-white shadow-sm') 
                   : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-[#032b5e] bg-transparent')
@@ -628,8 +664,18 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
               Quebras & BI
             </button>
             <button 
+              onClick={() => setActiveSubTab('arvore')}
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'arvore' 
+                  ? (theme === 'dark' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'bg-amber-500 text-slate-950 font-black shadow-sm') 
+                  : (theme === 'dark' ? 'text-amber-300 hover:text-white bg-transparent' : 'text-amber-700 hover:text-[#032b5e] bg-transparent')
+              }`}
+            >
+              🌳 Árvore de Perdas
+            </button>
+            <button 
               onClick={() => setActiveSubTab('wqi')}
-              className={`px-4 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
                 activeSubTab === 'wqi' 
                   ? (theme === 'dark' ? 'bg-blue-600 text-white shadow-sm' : 'bg-[#032b5e] text-white shadow-sm') 
                   : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-[#032b5e] bg-transparent')
@@ -639,7 +685,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
             </button>
             <button 
               onClick={() => setActiveSubTab('boarda3')}
-              className={`px-4 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
                 activeSubTab === 'boarda3' 
                   ? (theme === 'dark' ? 'bg-blue-600 text-white shadow-sm' : 'bg-[#032b5e] text-white shadow-sm') 
                   : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-[#032b5e] bg-transparent')
@@ -1108,6 +1154,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         dataKey="value" 
                         radius={[0, 4, 4, 0]} 
                         barSize={14}
+                        isAnimationActive={false}
                         onClick={(entry) => {
                           if (entry && entry.name) {
                             toggleFilter('motivo', entry.name, 'Motivo');
@@ -1229,6 +1276,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         dataKey="value" 
                         radius={[0, 6, 6, 0]} 
                         barSize={16}
+                        isAnimationActive={false}
                         onClick={(entry) => {
                           if (entry && entry.name) {
                             toggleFilter('grupo', entry.name, 'Grupo');
@@ -1302,6 +1350,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         outerRadius={48}
                         paddingAngle={3}
                         dataKey="value"
+                        isAnimationActive={false}
                         onClick={(entry: any) => {
                           if (entry && (entry.rawArea || entry.name)) {
                             toggleFilter('area', entry.rawArea || entry.name, 'Área');
@@ -1445,6 +1494,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         dataKey="quebras" 
                         stroke="#ef4444" 
                         strokeWidth={2} 
+                        isAnimationActive={false}
                         activeDot={{ 
                           r: 6, 
                           onClick: (e, payload: any) => {
@@ -1547,6 +1597,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         dataKey="value" 
                         radius={[0, 6, 6, 0]} 
                         barSize={16}
+                        isAnimationActive={false}
                         onClick={(entry) => {
                           if (entry && entry.name) {
                             toggleFilter('embalagem', entry.name, 'Embalagem');
@@ -1625,7 +1676,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                           borderRadius: '12px', 
                           padding: '10px 14px',
                           boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.12)',
-                          fontSize: 13,
+                          fontSize: 13, 
                           color: theme === 'dark' ? '#f8fafc' : '#0f172a'
                         }} 
                         labelStyle={{ 
@@ -1648,6 +1699,7 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                         dataKey="value" 
                         radius={[4, 4, 0, 0]} 
                         barSize={25}
+                        isAnimationActive={false}
                         onClick={(entry) => {
                           if (entry && entry.name) {
                             toggleFilter('turno', entry.name, 'Turno');
@@ -1824,6 +1876,367 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
                             </td>
                             <td className={`p-2.5 text-right font-bold font-mono ${theme === 'dark' ? 'text-blue-300' : 'text-blue-800'}`}>
                               {item.quantHE.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HE
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {activeSubTab === 'arvore' && (
+        <>
+          {/* HEADER DROPDOWN FILTERS */}
+          <div className={`flex flex-wrap items-center justify-between gap-4 p-3.5 rounded-xl border shadow-sm transition-colors ${
+            theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+              {/* Period selector */}
+              <div className="flex flex-col gap-1 min-w-[260px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Período</span>
+                <CalendarFilter
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                  }}
+                />
+              </div>
+
+              {/* Area filter */}
+              <div className="flex flex-col gap-1 w-[160px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Área</span>
+                <select 
+                  value={filterArea} 
+                  onChange={e => setFilterArea(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODAS">Todas as Áreas</option>
+                  <option value="ARMAZEM">Armazém / Depósito</option>
+                  <option value="ENTREGA">Rota de Entrega</option>
+                  <option value="MERCADO">Mercado / Retorno</option>
+                  <option value="PUXADA">Puxada / Transferência</option>
+                </select>
+              </div>
+
+              {/* Turno filter */}
+              <div className="flex flex-col gap-1 w-[130px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Turno</span>
+                <select 
+                  value={filterTurno} 
+                  onChange={e => setFilterTurno(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODOS">Todos os Turnos</option>
+                  <option value="MANHÃ">Manhã</option>
+                  <option value="NOITE / MADRUGADA">Noite / Madrugada</option>
+                </select>
+              </div>
+
+              {/* Packaging filter */}
+              <div className="flex flex-col gap-1 w-[150px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Embalagem</span>
+                <select 
+                  value={filterEmbalagem} 
+                  onChange={e => setFilterEmbalagem(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODAS">Todas Embalagens</option>
+                  {availableEmbalagens.map(emb => (
+                    <option key={emb} value={emb}>{emb}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Group filter */}
+              <div className="flex flex-col gap-1 w-[140px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Grupo</span>
+                <select 
+                  value={filterGrupo} 
+                  onChange={e => setFilterGrupo(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODOS">Todos os Grupos</option>
+                  {availableGrupos.map(grp => (
+                    <option key={grp} value={grp}>{grp}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Motivo filter */}
+              <div className="flex flex-col gap-1 min-w-[200px] flex-1">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Motivo</span>
+                <select 
+                  value={filterMotivo} 
+                  onChange={e => setFilterMotivo(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODOS">Todos os Motivos</option>
+                  {availableMotivos.map(mot => (
+                    <option key={mot.value} value={mot.value}>{mot.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {hasActiveHeaderFilters && (
+                <button
+                  onClick={handleResetAllFilters}
+                  className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Limpar Filtros
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ACTIVE CROSS-FILTERS TOOLBAR BANNER */}
+          <ActiveCrossFiltersBar onClearAll={handleResetAllFilters} />
+
+          {/* TOP KPI CARDS (DASHBOARD PRINCIPAL ACIMA DA ÁRVORE) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* KPI 1: Total Quebrada */}
+            <div className="bg-gradient-to-br from-[#ef4444] to-[#b91c1c] text-white p-4.5 rounded-xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[125px]">
+              <div>
+                <span className="text-[9px] uppercase font-black tracking-widest text-[#fecaca]/80 block">
+                  {viewUnit === 'rs' 
+                    ? 'VALOR TOTAL DE QUEBRAS' 
+                    : viewUnit === 'hl' 
+                      ? 'VOLUME TOTAL DE QUEBRAS (HL)' 
+                      : 'VOLUME FÍSICO DE QUEBRAS (CX/UN)'}
+                </span>
+                <div className="flex items-baseline mt-2">
+                  {viewUnit === 'rs' && <span className="text-2xl font-bold mr-1 text-[#fecaca]">R$</span>}
+                  <span className="text-4xl font-extrabold tracking-tight">
+                    {totalQuant.toLocaleString('pt-BR', { 
+                      minimumFractionDigits: viewUnit === 'sku' ? 0 : 2, 
+                      maximumFractionDigits: 2 
+                    })}
+                  </span>
+                  {viewUnit !== 'rs' && (
+                    <span className="text-xs font-bold uppercase ml-1.5 opacity-90">
+                      {viewUnit === 'hl' ? 'HL' : 'UN'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-white/20 pt-2 text-[10px] text-[#fecaca]">
+                <span>{crossFilteredData.length} ocorrências registradas</span>
+                <span className="font-bold flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> {viewUnit === 'rs' ? 'Impacto Contábil' : 'Volume Físico'}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 2: Custo / Perda */}
+            <div className={`p-4.5 rounded-xl shadow-sm border relative overflow-hidden flex flex-col justify-between min-h-[125px] transition-colors ${
+              theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-white' : 'bg-white border-gray-200 text-slate-800'
+            }`}>
+              <div>
+                <span className={`text-[9px] uppercase font-black tracking-widest block ${
+                  theme === 'dark' ? 'text-slate-400' : 'text-gray-400'
+                }`}>
+                  {viewUnit === 'rs' ? 'IMPACTO FINANCEIRO ESTIMADO' : 'VALOR MONETÁRIO ESTIMADO'}
+                </span>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-xl font-bold text-gray-400 mr-1">R$</span>
+                  <span className={`text-3xl font-extrabold tracking-tight ${
+                    theme === 'dark' ? 'text-slate-100' : 'text-[#032b5e]'
+                  }`}>
+                    {totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-2 text-[10px] text-gray-500 dark:text-slate-400">
+                <span>Custo médio unitário</span>
+                <span className="font-extrabold text-amber-500">
+                  R$ {(totalQuant > 0 ? totalCusto / totalQuant : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 3: Principal Motivo 80/20 */}
+            <div className={`p-4.5 rounded-xl shadow-sm border relative overflow-hidden flex flex-col justify-between min-h-[125px] transition-colors ${
+              theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-white' : 'bg-white border-gray-200 text-slate-800'
+            }`}>
+              <div>
+                <span className={`text-[9px] uppercase font-black tracking-widest block ${
+                  theme === 'dark' ? 'text-slate-400' : 'text-gray-400'
+                }`}>
+                  OFENSOR PRINCIPAL (80/20)
+                </span>
+                <div className={`text-base font-extrabold truncate mt-2 ${
+                  theme === 'dark' ? 'text-slate-100' : 'text-[#032b5e]'
+                }`} title={topReasonName}>
+                  {topReasonName}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-2 text-[10px] text-gray-500 dark:text-slate-400">
+                <span>Concentração</span>
+                <span className="font-extrabold text-[#ef4444]">
+                  {topReasonShare.toFixed(1)}% das quebras
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 4: Área Mais Crítica */}
+            <div className={`p-4.5 rounded-xl shadow-sm border relative overflow-hidden flex flex-col justify-between min-h-[125px] transition-colors ${
+              theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-white' : 'bg-white border-gray-200 text-slate-800'
+            }`}>
+              <div>
+                <span className={`text-[9px] uppercase font-black tracking-widest block ${
+                  theme === 'dark' ? 'text-slate-400' : 'text-gray-400'
+                }`}>
+                  ÁREA OPERACIONAL CRÍTICA
+                </span>
+                <div className={`text-base font-extrabold truncate mt-2 ${
+                  theme === 'dark' ? 'text-slate-100' : 'text-[#032b5e]'
+                }`}>
+                  {topAreaName}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-2 text-[10px] text-gray-500 dark:text-slate-400">
+                <span>Concentração</span>
+                <span className="font-extrabold text-blue-500">
+                  {topAreaShare.toFixed(1)}% do volume total
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ÁRVORE DE DECOMPOSIÇÃO DE PERDAS (5 NÍVEIS) */}
+          <div className="w-full mt-2 space-y-3">
+            <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+              theme === 'dark' ? 'bg-[#111a30] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div>
+                <h3 className={`font-sans font-black text-xs uppercase tracking-wider flex items-center gap-2 ${
+                  theme === 'dark' ? 'text-amber-300' : 'text-amber-700'
+                }`}>
+                  🌳 ÁRVORE DE HIERARQUIA E DECOMPOSIÇÃO DE PERDAS (LOSS TREE)
+                </h3>
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  Navegue visualmente pelos 5 níveis hierárquicos (Total → Mês → Família → Embalagem → SKU) com conectores dinâmicos.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 p-1 bg-slate-800/80 dark:bg-slate-900/90 rounded-lg border border-slate-700 self-stretch sm:self-auto justify-center">
+                <button
+                  type="button"
+                  onClick={() => setTreeViewMode('diagram')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                    treeViewMode === 'diagram'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ✨ Diagrama Visual (5 Níveis)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTreeViewMode('classic')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                    treeViewMode === 'classic'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📁 Lista em Pastas (Clássica)
+                </button>
+              </div>
+            </div>
+
+            {treeViewMode === 'diagram' ? (
+              <LossHierarchyTree quebras={crossFilteredData} />
+            ) : (
+              <ArvoreMotivosTree data={crossFilteredData} viewUnit={viewUnit} theme={theme} />
+            )}
+          </div>
+
+          {/* DETAILED SKU RANKING TABLE */}
+          <div className="w-full mt-4">
+            <div className={`p-5 rounded-xl border shadow-sm transition-colors ${
+              theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                <div>
+                  <h3 className={`font-sans font-black text-xs uppercase tracking-wider ${
+                    theme === 'dark' ? 'text-slate-100' : 'text-[#032b5e]'
+                  }`}>
+                    Ranking de Produtos Ofensores (SKUs)
+                  </h3>
+                  <span className="text-[10px] text-gray-400 font-medium">
+                    Listagem detalhada consolidada com filtros cruzados ativos
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className={`border-b text-[9px] uppercase tracking-wider ${
+                      theme === 'dark' ? 'border-slate-700 text-slate-400' : 'border-gray-100 text-gray-400'
+                    }`}>
+                      <th className="py-2.5 px-3">Cód</th>
+                      <th className="py-2.5 px-3">Descrição do SKU</th>
+                      <th className="py-2.5 px-3">Embalagem</th>
+                      <th className="py-2.5 px-3 text-right">Volume (HL)</th>
+                      <th className="py-2.5 px-3 text-right">Quantidade</th>
+                      <th className="py-2.5 px-3 text-right">Valor Total (R$)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800 text-xs">
+                    {skuRanking.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-gray-400 text-xs">
+                          Nenhum registro encontrado para os filtros selecionados.
+                        </td>
+                      </tr>
+                    ) : (
+                      skuRanking.slice(0, 15).map((item, idx) => {
+                        return (
+                          <tr key={idx} className={`transition-colors ${
+                            theme === 'dark' ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50'
+                          }`}>
+                            <td className="py-2.5 px-3 font-mono font-bold text-gray-400 text-[11px]">{item.cod}</td>
+                            <td className="py-2.5 px-3 font-bold">{item.desc}</td>
+                            <td className="py-2.5 px-3 font-medium text-gray-500">{item.emb}</td>
+                            <td className="py-2.5 px-3 text-right font-bold text-blue-600 dark:text-blue-400">
+                              {item.volumeHl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HL
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-bold">
+                              {item.quantidade.toLocaleString('pt-BR')} un
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-extrabold text-red-600 dark:text-red-400">
+                              R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                           </tr>
                         );

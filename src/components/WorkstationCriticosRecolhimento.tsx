@@ -549,56 +549,56 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
       {/* KPI METRICS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-rose-50/70 dark:bg-[#0b1222] border border-rose-200 dark:border-rose-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-rose-700 dark:text-slate-400 font-extrabold uppercase tracking-wider block">SKUs na Janela (≤45d)</span>
-            <strong className="text-2xl text-rose-600 dark:text-rose-400 font-black">{totalSkusCriticos}</strong>
-            <span className="text-[10px] text-rose-600 dark:text-rose-300 font-bold block mt-0.5">janela crítica total</span>
+            <span className="text-[10px] text-red-700 dark:text-red-400 font-black uppercase tracking-wider block">SKUs na Janela (≤45d)</span>
+            <strong className="text-2xl text-red-600 dark:text-red-400 font-black">{totalSkusCriticos}</strong>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">janela crítica total</span>
           </div>
-          <div className="p-3 bg-white dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-500/20 shadow-xs">
+          <div className="p-3 bg-red-600 text-white rounded-xl shadow-xs">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-amber-50/70 dark:bg-[#0b1222] border border-amber-200 dark:border-amber-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-amber-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Volume Em Risco</span>
+            <span className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider block">Volume Em Risco</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <strong className="text-2xl text-amber-600 dark:text-amber-400 font-black">{totalCaixasRisco.toLocaleString('pt-BR')} cx</strong>
               <span className="text-xs text-sky-700 dark:text-sky-400 font-bold font-mono">({totalHlRisco.toFixed(1)} HL)</span>
             </div>
-            <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold block mt-0.5">caixas e hectolitros totais em risco</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">caixas e hectolitros totais em risco</span>
           </div>
-          <div className="p-3 bg-white dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-500/20 shadow-xs">
+          <div className="p-3 bg-amber-500 text-slate-950 rounded-xl shadow-xs">
             <Box className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-emerald-50/70 dark:bg-[#0b1222] border border-emerald-200 dark:border-emerald-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900 border-2 border-emerald-200 dark:border-emerald-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-emerald-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Valoração em Risco</span>
+            <span className="text-[10px] text-emerald-800 dark:text-emerald-400 font-black uppercase tracking-wider block">Valoração em Risco</span>
             <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">R$ {valorTotalRisco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold block mt-0.5">montante total R$</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">montante total R$</span>
           </div>
-          <div className="p-3 bg-white dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
+          <div className="p-3 bg-emerald-600 text-white rounded-xl shadow-xs">
             <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-sky-50/70 dark:bg-[#0b1222] border border-sky-200 dark:border-sky-500/30 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900 border-2 border-sky-200 dark:border-sky-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-sky-800 dark:text-slate-400 font-extrabold uppercase tracking-wider block">Status do Acompanhamento</span>
+            <span className="text-[10px] text-sky-800 dark:text-sky-400 font-black uppercase tracking-wider block">Status do Acompanhamento</span>
             <strong className="text-2xl text-[#1e56f0] dark:text-sky-400 font-black">{totalTratados} / {totalSkusCriticos}</strong>
-            <span className="text-[10px] text-sky-700 dark:text-sky-300 font-bold block mt-0.5">itens tratados no workstation</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">itens tratados no workstation</span>
           </div>
-          <div className="p-3 bg-white dark:bg-sky-500/10 text-[#1e56f0] dark:text-sky-400 rounded-xl border border-sky-200 dark:border-sky-500/20 shadow-xs">
+          <div className="p-3 bg-[#1e56f0] text-white rounded-xl shadow-xs">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* FILTERS & VIEW MODE TOOLBAR */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-100/90 dark:bg-slate-900 p-3 rounded-xl border border-slate-300/80 dark:border-slate-800 shadow-xs">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[200px]">
@@ -640,7 +640,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
         {/* View Mode Toggle & Counter */}
         <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-bold whitespace-nowrap">
+          <span className="text-[11px] text-slate-600 dark:text-slate-400 font-mono font-bold whitespace-nowrap">
             {filteredList.length} itens
           </span>
 
@@ -698,7 +698,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
       {/* 1. RESPONSIVE CARDS VIEW (Mobile-friendly & Desktop grid) */}
       {filteredList.length > 0 && viewMode === 'cards' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredList.map((item, idx) => {
             const itemKey = `${item.codigo}_${item.validade}`;
             const isTratado = tratadosSet.has(itemKey);
@@ -712,33 +712,33 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
             return (
               <div
                 key={`card_${itemKey}_${idx}`}
-                className={`rounded-xl border transition-all duration-200 p-4 flex flex-col justify-between gap-3.5 shadow-xs ${
+                className={`rounded-2xl border-2 transition-all duration-200 p-4 flex flex-col justify-between gap-3.5 shadow-sm hover:shadow-md ${
                   isJustUpdated
-                    ? 'bg-emerald-100/90 dark:bg-emerald-950/60 ring-2 ring-emerald-500 border-emerald-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500 border-emerald-500'
                     : isTratado
-                    ? 'bg-slate-50/80 dark:bg-[#0d1527]/60 border-slate-200 dark:border-slate-800 opacity-80'
+                    ? 'bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-slate-800 opacity-75'
                     : item.diasParaVencer <= 30
-                    ? 'bg-rose-50/70 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 hover:border-rose-300'
-                    : 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40 hover:border-amber-300'
+                    ? 'bg-white dark:bg-slate-900 border-red-300 dark:border-red-900/80 hover:border-red-500'
+                    : 'bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-900/80 hover:border-amber-500'
                 }`}
               >
                 {/* CARD HEADER */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider shadow-2xs ${
                       item.diasParaVencer <= 30 
-                        ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40' 
-                        : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40'
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-amber-500 text-slate-950 font-black'
                     }`}>
-                      {item.diasParaVencer <= 30 ? 'CRÍTICO (≤30d)' : 'ALERTA (31-45d)'}
+                      {item.diasParaVencer <= 30 ? 'CRÍTICO (≤30D)' : 'ALERTA (31-45D)'}
                     </span>
 
-                    <span className="font-mono text-xs font-black px-2 py-0.5 bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-md border border-slate-300 dark:border-slate-700">
+                    <span className="font-mono text-xs font-black px-2.5 py-1 bg-slate-900 text-amber-300 dark:bg-slate-800 dark:text-amber-300 rounded-md shadow-2xs">
                       #{item.codigo}
                     </span>
 
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400" />
+                    <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-500" />
                       {item.localizacao} {item.bloco ? `(${item.bloco})` : ''}
                     </span>
                   </div>
@@ -746,10 +746,10 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                   <button
                     type="button"
                     onClick={() => handleToggleTratado(itemKey)}
-                    className={`shrink-0 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border ${
+                    className={`shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
                       isTratado
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                        : 'bg-white dark:bg-[#111a30] text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-emerald-500'
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600'
                     }`}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -759,35 +759,41 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
                 {/* PRODUCT TITLE */}
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white leading-snug">
+                  <h4 className="text-sm font-black text-slate-900 dark:text-white leading-snug tracking-tight">
                     {item.descricao}
                   </h4>
                   {item.lote && (
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 block">
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-1 font-semibold block">
                       Lote: {item.lote}
                     </span>
                   )}
                 </div>
 
-                {/* KEY DATA METRICS (2-COLUMN GRID) */}
-                <div className="grid grid-cols-2 gap-2 bg-white dark:bg-[#0f172a]/90 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
+                {/* KEY DATA METRICS (2-COLUMN GRID WITH CRISP HIGH CONTRAST) */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-100/90 dark:bg-slate-950/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                   {/* Vencimento & Dias */}
-                  <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-bold flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" /> Vencimento
+                  <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-0.5">
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-slate-500" /> Vencimento
                     </span>
                     <div className="font-mono font-black text-slate-900 dark:text-white text-xs">
                       {item.validade}
                     </div>
-                    <div className={`text-[10px] font-mono font-bold ${item.diasParaVencer <= 30 ? 'text-rose-600 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                      {item.diasParaVencer} dias restantes
+                    <div>
+                      <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded inline-block ${
+                        item.diasParaVencer <= 30 
+                          ? 'text-red-700 bg-red-100 dark:bg-red-950/80 dark:text-red-300' 
+                          : 'text-amber-800 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300'
+                      }`}>
+                        {item.diasParaVencer} dias restantes
+                      </span>
                     </div>
                   </div>
 
                   {/* Quantidade & Volume */}
-                  <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-bold flex items-center gap-1">
-                      <Box className="w-3 h-3 text-slate-400" /> Qtd em Risco
+                  <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-0.5">
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                      <Box className="w-3 h-3 text-slate-500" /> Qtd em Risco
                     </span>
                     {isEditing ? (
                       <div className="flex items-center gap-1">
@@ -825,54 +831,54 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                             setEditingKey(itemKey);
                             setEditingQtyVal(String(item.quantidade));
                           }}
-                          className="p-1 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded transition-colors cursor-pointer"
+                          className="p-1 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded transition-colors cursor-pointer"
                           title="Editar quantidade física"
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
                       </div>
                     )}
-                    <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono">
+                    <div className="text-[9px] text-slate-600 dark:text-slate-400 font-mono font-semibold">
                       {diasEstoqueVal}d de cobertura
                     </div>
                   </div>
 
                   {/* Venda Média */}
-                  <div className="space-y-0.5 pt-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-bold flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3 text-slate-400" /> Venda Média
+                  <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-0.5">
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-slate-500" /> Venda Média
                     </span>
-                    <div className="font-mono font-bold text-slate-800 dark:text-slate-200 text-xs">
+                    <div className="font-mono font-black text-slate-900 dark:text-slate-100 text-xs">
                       {vendaMediaVal} <span className="text-[9px] text-slate-500 font-normal">cx/dia</span>
                     </div>
                   </div>
 
                   {/* Valoração */}
-                  <div className="space-y-0.5 pt-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-bold flex items-center gap-1">
-                      <DollarSign className="w-3 h-3 text-slate-400" /> Valoração
+                  <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-0.5">
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
+                      <DollarSign className="w-3 h-3 text-slate-500" /> Valoração
                     </span>
-                    <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                    <div className="font-mono font-black text-emerald-700 dark:text-emerald-400 text-xs">
                       R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 </div>
 
                 {item.qtdAtualizadaLog && (
-                  <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="text-[9px] text-emerald-700 dark:text-emerald-400 font-bold">
                     ✓ Aferido às {item.qtdAtualizadaLog.updatedAt} por {item.qtdAtualizadaLog.conferente}
                   </span>
                 )}
 
                 {/* CARD ACTIONS */}
-                <div className="flex items-center gap-1.5 pt-1 border-t border-slate-200/60 dark:border-slate-800/80">
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => {
                       setEditingKey(itemKey);
                       setEditingQtyVal(String(item.quantidade));
                     }}
-                    className="flex-1 py-1.5 px-2 bg-white dark:bg-[#111a30] hover:bg-blue-50 dark:hover:bg-sky-950/40 text-blue-700 dark:text-sky-300 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border border-slate-300 dark:border-slate-700 hover:border-blue-300 transition-all cursor-pointer flex items-center justify-center gap-1"
+                    className="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-600 dark:text-indigo-300 dark:hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-indigo-200 dark:border-indigo-800/80 transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                   >
                     <Edit2 className="w-3 h-3" /> Qtd
                   </button>
@@ -881,7 +887,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     type="button"
                     disabled={isActionLoading}
                     onClick={() => handleEncaminharDespejo(item.codigo, item.descricao, item.validade)}
-                    className={`flex-1 py-1.5 px-2 bg-rose-600/10 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider border border-rose-300 dark:border-rose-500/40 transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    className={`flex-1 py-2 px-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 dark:bg-rose-950/40 dark:hover:bg-rose-600 dark:text-rose-300 dark:hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-rose-200 dark:border-rose-800/80 transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
                       isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -893,7 +899,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     type="button"
                     disabled={isActionLoading}
                     onClick={() => handleEncaminharPNC(item.codigo, item.descricao, item.validade)}
-                    className={`flex-1 py-1.5 px-2 bg-amber-600/10 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider border border-amber-300 dark:border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    className={`flex-1 py-2 px-2 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-900 dark:bg-amber-950/40 dark:hover:bg-amber-600 dark:text-amber-300 dark:hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-800/80 transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
                       isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -952,22 +958,22 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     >
                       {/* FAROL */}
                       <td className="py-3 px-3 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider shadow-2xs ${
                           item.diasParaVencer <= 30 
-                            ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40' 
-                            : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40'
+                            ? 'bg-red-600 text-white' 
+                            : 'bg-amber-500 text-slate-950 font-black'
                         }`}>
-                          {item.diasParaVencer <= 30 ? 'CRÍTICO (≤30d)' : 'ALERTA (31-45d)'}
+                          {item.diasParaVencer <= 30 ? 'CRÍTICO (≤30D)' : 'ALERTA (31-45D)'}
                         </span>
                       </td>
 
                       {/* CÓDIGO */}
-                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
-                        {item.codigo}
+                      <td className="py-3 px-3 text-center font-mono font-black text-slate-900 dark:text-slate-100">
+                        #{item.codigo}
                       </td>
 
                       {/* PRODUTO */}
-                      <td className="py-3 px-4 text-center font-extrabold text-slate-900 dark:text-white">
+                      <td className="py-3 px-4 text-center font-black text-slate-900 dark:text-white">
                         <span className="truncate max-w-[240px] mx-auto block" title={item.descricao}>
                           {item.descricao}
                         </span>
@@ -1073,17 +1079,17 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                               setEditingKey(itemKey);
                               setEditingQtyVal(String(item.quantidade));
                             }}
-                            className="px-2 py-1 bg-blue-50 hover:bg-blue-100 dark:bg-sky-600/30 dark:hover:bg-sky-600 text-[#1e56f0] dark:text-sky-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-blue-200 dark:border-sky-500/40 transition-all cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 dark:bg-indigo-950/40 dark:hover:bg-indigo-600 text-indigo-700 dark:text-indigo-300 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                             title="Conferente: Notificar quantidade física atualizada deste item no workstation"
                           >
-                            ✏️ Qtd
+                            <Edit2 className="w-3 h-3" /> Qtd
                           </button>
 
                           <button
                             type="button"
                             disabled={isActionLoading}
                             onClick={() => handleEncaminharDespejo(item.codigo, item.descricao, item.validade)}
-                            className={`px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/30 dark:hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-rose-200 dark:border-rose-500/40 transition-all cursor-pointer flex items-center gap-1 ${
+                            className={`px-2.5 py-1 bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-rose-200 dark:border-rose-800 transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
                               isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                             title="Encaminhar este item para o Setor de Despejo"
@@ -1096,7 +1102,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                             type="button"
                             disabled={isActionLoading}
                             onClick={() => handleEncaminharPNC(item.codigo, item.descricao, item.validade)}
-                            className={`px-2 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-600/30 dark:hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white rounded-lg text-[10px] font-bold uppercase tracking-wider border border-amber-200 dark:border-amber-500/40 transition-all cursor-pointer flex items-center gap-1 ${
+                            className={`px-2.5 py-1 bg-amber-50 hover:bg-amber-600 dark:bg-amber-950/40 dark:hover:bg-amber-600 text-amber-900 dark:text-amber-300 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-800 transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
                               isActionLoading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                             title="Encaminhar este item para Produtos Não Conformes (PNC)"
@@ -1108,10 +1114,10 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                           <button
                             type="button"
                             onClick={() => handleToggleTratado(itemKey)}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border ${
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border shadow-2xs ${
                               isTratado
-                                ? 'bg-slate-800 text-slate-400 border-slate-700'
-                                : 'bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white border-emerald-500/40'
+                                ? 'bg-slate-800 text-slate-300 border-slate-700'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
                             }`}
                           >
                             <CheckCircle2 className="w-3 h-3" /> {isTratado ? 'Tratado' : 'Concluir'}

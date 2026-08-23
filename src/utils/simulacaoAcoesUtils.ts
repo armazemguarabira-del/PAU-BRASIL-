@@ -1,3 +1,5 @@
+import { firestoreDb } from '../database/firestoreDatabase';
+
 // Requirement 26, 27, 28, 31 & 32: Auto Action Generator, Simulated Action Database (280+ items), FEFO/Loss Specific Actions, and Multi-Database Isolation.
 
 export interface AuditTrailEntry {
@@ -453,6 +455,10 @@ export function saveAcoes(list: AcaoCorretiva[], specificMode?: DatabaseMode): v
     // Dispatch event so all UI components update in real time
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('af_acoes_updated'));
+      const empresaId = localStorage.getItem('af_empresa_id') || 'demo';
+      if (cleanList.length > 0) {
+        firestoreDb.batchUpsert('acoes', cleanList, empresaId).catch(() => {});
+      }
     }
   } catch (e) {
     console.error('Error saving actions:', e);

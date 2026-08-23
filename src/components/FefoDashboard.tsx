@@ -58,6 +58,7 @@ import {
 import { Usuario, Empresa, ValidadeRow } from '../types';
 import { isCustomFirebaseConnected } from '../firebase';
 import { ValidadesRepository } from '../db';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
 import A3BoardComponent from './A3BoardComponent';
@@ -105,6 +106,7 @@ interface ActionPoint {
 }
 
 interface StockTransfer {
+  id?: string;
   ruaOrigem: string;
   ruaDestino: string;
   produto: string;
@@ -116,6 +118,7 @@ interface StockTransfer {
 }
 
 interface PickingComparison {
+  id?: string;
   produto: string;
   lote: string;
   validade: string;
@@ -511,7 +514,7 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
     syncFefoDemandsFromValidades(companyId, combinedValidades);
   }, [empresaData.validades, companyId]);
 
-  // Sync other sub-tables with localstorage (to keep editing interactive and high fidelity)
+  // Sync other sub-tables with localstorage and Firestore
   useEffect(() => {
     const meetKey = `fefo_meetings_${companyId}`;
     const actKey = `fefo_actions_${companyId}`;
@@ -535,27 +538,66 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
     if (savedPicking) setPickingComp(JSON.parse(savedPicking));
     else setPickingComp([]);
 
+    // Hydrate from Firestore if local is empty
+    if (!savedMeets) {
+      firestoreDb.getList<RLPMeeting>('fefo_meetings', companyId).then(docs => {
+        if (docs && docs.length > 0) {
+          setRlpMeetings(docs);
+          try { localStorage.setItem(meetKey, JSON.stringify(docs)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+    if (!savedActs) {
+      firestoreDb.getList<ActionPoint>('fefo_actions', companyId).then(docs => {
+        if (docs && docs.length > 0) {
+          setActionPoints(docs);
+          try { localStorage.setItem(actKey, JSON.stringify(docs)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+    if (!savedTransfers) {
+      firestoreDb.getList<StockTransfer>('fefo_transfers', companyId).then(docs => {
+        if (docs && docs.length > 0) {
+          setStockTransfers(docs);
+          try { localStorage.setItem(transferKey, JSON.stringify(docs)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+    if (!savedPicking) {
+      firestoreDb.getList<PickingComparison>('fefo_picking', companyId).then(docs => {
+        if (docs && docs.length > 0) {
+          setPickingComp(docs);
+          try { localStorage.setItem(pickingKey, JSON.stringify(docs)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
   }, [companyId]);
 
-  // Save helper functions
+  // Save helper functions with Firestore persistence
   const saveMeetings = (list: RLPMeeting[]) => {
     setRlpMeetings(list);
     localStorage.setItem(`fefo_meetings_${companyId}`, JSON.stringify(list));
+    firestoreDb.batchUpsert('fefo_meetings', list, companyId).catch(err => console.warn('FEFO meetings firestore error:', err));
   };
 
   const saveActions = (list: ActionPoint[]) => {
     setActionPoints(list);
     localStorage.setItem(`fefo_actions_${companyId}`, JSON.stringify(list));
+    firestoreDb.batchUpsert('fefo_actions', list, companyId).catch(err => console.warn('FEFO actions firestore error:', err));
   };
 
   const saveTransfers = (list: StockTransfer[]) => {
     setStockTransfers(list);
     localStorage.setItem(`fefo_transfers_${companyId}`, JSON.stringify(list));
+    const itemsToUpsert = list.map((t, idx) => ({ id: t.id || `transf_${idx}_${t.produto}_${t.lote}`, ...t }));
+    firestoreDb.batchUpsert('fefo_transfers', itemsToUpsert, companyId).catch(err => console.warn('FEFO transfers firestore error:', err));
   };
 
   const savePicking = (list: PickingComparison[]) => {
     setPickingComp(list);
     localStorage.setItem(`fefo_picking_${companyId}`, JSON.stringify(list));
+    const itemsToUpsert = list.map((p, idx) => ({ id: p.id || `picking_${idx}_${p.produto}_${p.lote}`, ...p }));
+    firestoreDb.batchUpsert('fefo_picking', itemsToUpsert, companyId).catch(err => console.warn('FEFO picking firestore error:', err));
   };
 
   // Helper date/time functions

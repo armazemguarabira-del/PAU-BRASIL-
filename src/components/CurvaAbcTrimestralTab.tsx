@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { 
   BarChart2, 
   Upload, 
@@ -239,12 +240,26 @@ export default function CurvaAbcTrimestralTab() {
   const [editingDays, setEditingDays] = useState<boolean>(false);
   const [tempDaysVal, setEditingDaysVal] = useState<string>('');
 
+  // Hydrate from Firestore
   useEffect(() => {
+    const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+    firestoreDb.getById<Record<string, TrimestreDataStore>>('af_curva_abc_trimestres', 'quarters_data_doc', companyId).then(doc => {
+      if (doc && (doc.Q1 || doc.Q2 || doc.Q3 || doc.Q4)) {
+        const { id, empresaId, ...rest } = doc as any;
+        setQuartersData(rest);
+        try { localStorage.setItem(STORAGE_KEY_TRIMESTRES_V1, JSON.stringify(rest)); } catch (_) {}
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
     try {
       localStorage.setItem(STORAGE_KEY_TRIMESTRES_V1, JSON.stringify(quartersData));
     } catch (e) {
       console.error('Erro ao salvar trimestres no localStorage:', e);
     }
+    firestoreDb.create('af_curva_abc_trimestres', { id: 'quarters_data_doc', ...quartersData }, companyId, 'quarters_data_doc').catch(() => {});
   }, [quartersData]);
 
   const showNotify = (msg: string) => {

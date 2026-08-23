@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TemperaturaImportExportBar from './TemperaturaImportExportBar';
 import { getStoredTempLogs } from '../utils/tempStorage';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { 
   ShieldCheck, 
   Thermometer, 
@@ -775,6 +776,19 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(lightweight));
     } catch (_) {}
 
+    const companyId = empresa?.id || 'demo';
+    firestoreDb.create('auditorias_frota_5s_mensal', {
+      id: `${newRecord.ano}-${newRecord.mes}`,
+      ano: newRecord.ano,
+      mes: newRecord.mes,
+      dataAuditoria: newRecord.dataAuditoria,
+      auditorResponsavel: newRecord.auditorResponsavel,
+      notaPercentualFrota: newRecord.notaPercentualFrota,
+      observacoes: newRecord.observacoes,
+      pdfFileName: newRecord.pdfFileName,
+      criadoEm: newRecord.criadoEm
+    }, companyId, `${newRecord.ano}-${newRecord.mes}`).catch(() => {});
+
     setShowFrotaModal(false);
     alert(`✅ Auditoria do Setor de Frota para ${mesAno} salva com sucesso com nota ${notaNum}%!`);
   };
@@ -930,6 +944,9 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
     setTempLogs(updated);
     localStorage.setItem('armazem_temperatura_logs', JSON.stringify(updated));
+
+    const companyId = empresa?.id || 'demo';
+    firestoreDb.batchUpsert('armazem_temperatura_logs', updated, companyId).catch(() => {});
 
     // Auto-generate action plan if temperature is critical
     if (isAlerta) {

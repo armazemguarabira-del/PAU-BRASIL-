@@ -42,6 +42,10 @@ export interface DtoRegistro {
   operacaoId: DtoOperacaoId;
   operacaoNome: string;
   motivoDto: 'meta_nao_batida' | 'aumento_perdas' | 'auditoria_rotina' | 'reciclagem_treinamento' | 'solicitacao_gestao';
+  tipoDtoCategoria?: 'dto_padrao' | 'dto_indicador_metas'; // 'dto_padrao' = DTO Padrão tudo batendo 100% | 'dto_indicador_metas' = DTO Indicador de Metas de Pacote
+  tipoPacote?: 'Lata' | 'PET' | 'Garrafa 600ml' | 'Long Neck' | 'Litrinho' | 'Geral';
+  metaBatida?: boolean; // true = 90% dos casos batendo tudo | false = 10% com desvio/não batendo
+  origemMovimentacao?: 'Armazém (Movimentação Interna)'; // Exclusivo movimentação no armazém
   metaEsperada?: string;
   resultadoRealizado?: string;
   indicadorOfensor?: string;
@@ -59,6 +63,7 @@ export interface DtoRegistro {
   classificacao: 'conforme' | 'atencao' | 'critico';
   observacaoGeral?: string;
   planoAcao?: DtoPlanoAcao;
+  planosAcao?: any[];
   criadoEm: string;
 }
 

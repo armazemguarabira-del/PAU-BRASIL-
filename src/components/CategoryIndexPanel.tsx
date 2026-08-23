@@ -182,14 +182,6 @@ export const CATEGORY_DEFINITIONS: Record<
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
       },
       {
-        id: 'eficiencia-montagem',
-        label: 'Eficiência de Montagem',
-        description: 'Aderência e padrão de montagem de paletes para expedição.',
-        icon: <Zap className="w-5 h-5 text-sky-600 dark:text-sky-400" />,
-        badge: 'Montagem',
-        color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
-      },
-      {
         id: 'kpi-arvore',
         label: 'KPI em Árvore',
         description: 'Visão em árvore hierárquica para desdobramento de metas DPO.',

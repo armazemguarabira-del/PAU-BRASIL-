@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { SETORES_5S, MAPEAMENTO_RESPONSAVEIS_5S, Audit5SRecord } from '../components/Checklist5SModal';
 
 // In-Memory Singleton Cache to avoid constant expensive JSON.parse / generation
@@ -147,13 +148,17 @@ export const getStored5SAudits = (): Audit5SRecord[] => {
 
 export const save5SAuditRecord = async (newRecord: Audit5SRecord): Promise<boolean> => {
   try {
-    // 1. Update Firestore if connected
-    if (db) {
-      try {
-        const docRef = doc(db, 'af_5s_audits', newRecord.id);
-        await setDoc(docRef, newRecord);
-      } catch (firestoreErr) {
-        console.warn('Firestore fallback on save 5S:', firestoreErr);
+    const companyId = newRecord.empresaId || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+
+    // 1. Update Firestore
+    try {
+      await firestoreDb.create('af_5s_audits', newRecord, companyId, newRecord.id);
+    } catch (firestoreErr) {
+      if (db) {
+        try {
+          const docRef = doc(db, 'af_5s_audits', newRecord.id);
+          await setDoc(docRef, newRecord);
+        } catch (e) {}
       }
     }
 
@@ -183,7 +188,7 @@ export const save5SAuditRecord = async (newRecord: Audit5SRecord): Promise<boole
   }
 };
 
-export const saveBulk5SAudits = (bulkList: Audit5SRecord[]) => {
+export const saveBulk5SAudits = async (bulkList: Audit5SRecord[]) => {
   const currentList = getStored5SAudits();
   const map = new Map<string, Audit5SRecord>();
 
@@ -202,11 +207,15 @@ export const saveBulk5SAudits = (bulkList: Audit5SRecord[]) => {
   const merged = Array.from(map.values()).sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
   _inMemoryAuditsCache = merged;
 
+  const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+
   try {
     localStorage.setItem('af_5s_audits', JSON.stringify(merged));
     localStorage.setItem('5s_audits_history', JSON.stringify(merged));
+    // Persist bulk to Firestore
+    await firestoreDb.batchUpsert('af_5s_audits', merged, companyId);
   } catch (e) {
-    console.warn('LocalStorage save error:', e);
+    console.warn('5S bulk save error:', e);
   }
 
   window.dispatchEvent(new CustomEvent('5s_audit_updated', { detail: bulkList }));

@@ -362,7 +362,7 @@ export default function LossHierarchyTree({
 
   // ── DATA PREPARATION & HIERARCHY TREE CALCULATION ──
   const effectiveQuebras = useMemo(() => {
-    if (quebras && Array.isArray(quebras)) return quebras;
+    if (quebras && Array.isArray(quebras) && quebras.length > 0) return quebras;
     try {
       const saved = localStorage.getItem('quebras_demo');
       if (saved) {
@@ -370,7 +370,7 @@ export default function LossHierarchyTree({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return [];
+    return buildOfficialQuebrasRows('demo');
   }, [quebras]);
 
   const hierarchyData = useMemo(() => {

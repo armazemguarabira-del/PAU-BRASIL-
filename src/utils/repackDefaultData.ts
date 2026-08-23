@@ -10950,10 +10950,16 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
   }
 ];
 
+let cachedOfficialRepackRows: Record<string, RepackRow[]> = {};
+
 /**
  * Converte o dataset oficial de Repack em RepackRow formatadas para a plataforma
  */
 export function buildOfficialRepackRows(empresaId: string = 'demo'): RepackRow[] {
+  if (cachedOfficialRepackRows[empresaId] && cachedOfficialRepackRows[empresaId].length > 0) {
+    return cachedOfficialRepackRows[empresaId];
+  }
+
   const parseSec = (hms: string) => {
     if (!hms) return 0;
     const parts = hms.split(':').map(Number);
@@ -10970,7 +10976,7 @@ export function buildOfficialRepackRows(empresaId: string = 'demo'): RepackRow[]
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
 
-  return OFFICIAL_REPACK_DATA_JSON.map((item, idx) => {
+  const rows = OFFICIAL_REPACK_DATA_JSON.map((item, idx) => {
     const dataISO = item.Data || '2026-01-01';
     const dataFormatada = new Date(dataISO + 'T00:00:00').toLocaleDateString('pt-BR');
     const ini = item.Inicio || '08:00:00';
@@ -11002,20 +11008,29 @@ export function buildOfficialRepackRows(empresaId: string = 'demo'): RepackRow[]
       _criadoEm: `${dataISO}T${ini}.000Z`
     };
   });
+
+  cachedOfficialRepackRows[empresaId] = rows;
+  return rows;
 }
+
+let cachedOfficialRepackRetro: Record<string, RetroactiveRecord[]> = {};
 
 /**
  * Converte o dataset oficial de Repack em RetroactiveRecord para a Base Central
  */
-export function buildOfficialRepackRetroactiveRecords(): RetroactiveRecord[] {
-  return OFFICIAL_REPACK_DATA_JSON.map((item, idx) => {
+export function buildOfficialRepackRetroactiveRecords(empresaId: string = 'demo'): RetroactiveRecord[] {
+  if (cachedOfficialRepackRetro[empresaId] && cachedOfficialRepackRetro[empresaId].length > 0) {
+    return cachedOfficialRepackRetro[empresaId];
+  }
+
+  const records = OFFICIAL_REPACK_DATA_JSON.map((item, idx) => {
     const dataISO = item.Data || '2026-01-01';
     const dataFormatada = new Date(dataISO + 'T00:00:00').toLocaleDateString('pt-BR');
     const qtd = Number(item.Quantidade) || 1;
     
     return {
       id: `retro-repack-off-${dataISO.replace(/-/g, '')}-${idx}`,
-      modulo: 'repack',
+      modulo: 'repack' as const,
       dataISO: dataISO,
       dataFormatada: dataFormatada,
       codigoProduto: `REPACK-${item.Embalagem?.replace(/\s+/g, '-').toUpperCase() || 'LATA-350'}`,
@@ -11030,9 +11045,12 @@ export function buildOfficialRepackRetroactiveRecords(): RetroactiveRecord[] {
       duracaoMinutos: 60,
       setor: 'Bancada Repack / Armazém',
       observacoes: `Resultado: ${item.Resultado || 'Dentro da Meta'} | Meta: ${item.Meta || '00:05:00'}`,
-      status: 'Concluído',
-      simuladoHistorico: true,
+      status: 'Concluído' as const,
+      simuladoHistorico: true as const,
       criadoEm: `${dataISO}T08:00:00.000Z`
     };
   });
+
+  cachedOfficialRepackRetro[empresaId] = records;
+  return records;
 }

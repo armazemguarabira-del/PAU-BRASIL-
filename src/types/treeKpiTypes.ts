@@ -13,6 +13,8 @@ export interface CustomTreeNode {
   sublabel?: string;
   value: number;
   volume?: number;
+  meta?: string | number;
+  real?: string | number;
   percentage?: number;
   badge?: string;
   isCritical?: boolean;
@@ -22,6 +24,7 @@ export interface CustomTreeNode {
   unitPrice?: number;
   records?: CustomTreeNodeRecord[];
   skuCode?: string;
+  position?: { x: number; y: number };
 }
 
 export interface CustomKpiTree {
@@ -38,6 +41,8 @@ export interface CustomKpiTree {
   ticketMedio: number;
   summaryTag: string;
   criticalHighlight?: string;
+  layoutMode?: 'columns' | 'free';
+  positions?: Record<string, { x: number; y: number }>;
   levels: {
     level1Title: string;
     level1Badge: string;

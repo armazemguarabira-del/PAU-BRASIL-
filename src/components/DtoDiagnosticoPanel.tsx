@@ -7,7 +7,7 @@ import {
   DtoPlanoAcao,
   DtoOperacaoConfig 
 } from '../types/dto';
-import { DTO_OPERACOES_CONFIG } from '../data/dtoOperacoesData';
+import { DTO_OPERACOES_CONFIG, INITIAL_DTO_HISTORICO_MOCK } from '../data/dtoOperacoesData';
 import { DtoService } from '../services/dtoService';
 import { 
   ClipboardCheck, 
@@ -48,8 +48,12 @@ import {
   Eye,
   Sliders,
   Sparkles,
-  Info
+  Info,
+  FileCode,
+  FileUp
 } from 'lucide-react';
+
+import { firestoreDb } from '../database/firestoreDatabase';
 
 interface DtoDiagnosticoPanelProps {
   user: Usuario | null;
@@ -97,16 +101,20 @@ export default function DtoDiagnosticoPanel({
   // Form State
   const [dataDto, setDataDto] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [horaDto, setHoraDto] = useState<string>(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
-  const [motivoDto, setMotivoDto] = useState<DtoRegistro['motivoDto']>('meta_nao_batida');
-  const [metaEsperada, setMetaEsperada] = useState<string>('');
-  const [resultadoRealizado, setResultadoRealizado] = useState<string>('');
+  const [tipoDtoCategoria, setTipoDtoCategoria] = useState<DtoRegistro['tipoDtoCategoria']>('dto_padrao');
+  const [tipoPacote, setTipoPacote] = useState<DtoRegistro['tipoPacote']>('Geral');
+  const [metaBatida, setMetaBatida] = useState<boolean>(true);
+  const [origemMovimentacao, setOrigemMovimentacao] = useState<string>('Armazém (Movimentação Interna)');
+  const [motivoDto, setMotivoDto] = useState<DtoRegistro['motivoDto']>('auditoria_rotina');
+  const [metaEsperada, setMetaEsperada] = useState<string>('Procedimento padrão e metas de movimentação 100% cumpridos');
+  const [resultadoRealizado, setResultadoRealizado] = useState<string>('🟢 TUDO BATENDO (100% Conforme)');
   const [indicadorOfensor, setIndicadorOfensor] = useState<string>('');
-  const [avaliadorNome, setAvaliadorNome] = useState<string>(user?.nome || 'Supervisor DPO');
-  const [avaliadorCargo, setAvaliadorCargo] = useState<string>(user?.cargo || 'Supervisor de Armazém');
-  const [colaboradorNome, setColaboradorNome] = useState<string>('');
+  const [avaliadorNome, setAvaliadorNome] = useState<string>(user?.nome || 'Supervisor Marcelo Dantas');
+  const [avaliadorCargo, setAvaliadorCargo] = useState<string>(user?.cargo || 'Supervisor DPO Armazém');
+  const [colaboradorNome, setColaboradorNome] = useState<string>('Gladson Barbosa (G1145)');
   const [turno, setTurno] = useState<DtoRegistro['turno']>('1º Turno');
-  const [linhaOuBox, setLinhaOuBox] = useState<string>('');
-  const [observacaoGeral, setObservacaoGeral] = useState<string>('');
+  const [linhaOuBox, setLinhaOuBox] = useState<string>('Rua 04 - Armazém / Bloco Pulmão');
+  const [observacaoGeral, setObservacaoGeral] = useState<string>('DTO realizado dentro das normas DPO de movimentação interna no armazém.');
   
   // Respostas do formulário
   const [respostas, setRespostas] = useState<Record<string, DtoItemResposta>>({});
@@ -122,11 +130,20 @@ export default function DtoDiagnosticoPanel({
 
   // Filtros do Histórico
   const [filtroOperacao, setFiltroOperacao] = useState<string>('todos');
+  const [filtroTipoDto, setFiltroTipoDto] = useState<string>('todos');
+  const [filtroTipoPacote, setFiltroTipoPacote] = useState<string>('todos');
+  const [filtroMetaBatida, setFiltroMetaBatida] = useState<string>('todos');
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
   const [filtroMotivo, setFiltroMotivo] = useState<string>('todos');
   const [buscaTexto, setBuscaTexto] = useState<string>('');
   const [filtroDataInicio, setFiltroDataInicio] = useState<string>('');
   const [filtroDataFim, setFiltroDataFim] = useState<string>('');
+
+  // Modal de Importação JSON
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  const [importJsonText, setImportJsonText] = useState<string>('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Feedback toast
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
@@ -136,17 +153,184 @@ export default function DtoDiagnosticoPanel({
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Carrega histórico
+  // Exemplo de template DTO padrão solicitado pelo usuário
+  const DTO_SAMPLE_JSON = JSON.stringify({
+    "id": "DTO-REPACK-202601-001",
+    "modulo": "Repack (Reembalagem de Avarias)",
+    "dataAplicacao": "2026-01-04",
+    "gatilho": "Meta Não Batida (Gatilho DPO)",
+    "colaboradorAvaliado": "Antônio Marcos Lima",
+    "avaliador": "Supervisor Marcelo Dantas",
+    "turno": "1º Turno (Manhã)",
+    "posto": "Box de Repack 02",
+    "checklist": [
+      {
+        "itemId": "01",
+        "titulo": "Uso integral de EPIs obrigatórios",
+        "categoria": "Segurança & EPI",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "02",
+        "titulo": "Organização e 5S da bancada de repack",
+        "categoria": "Registro & 5S",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "03",
+        "titulo": "Triagem e segregação prévia por SKU e Lote",
+        "categoria": "Qualidade & FEFO",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "04",
+        "titulo": "Inspeção visual contra microfissuras e vazamentos",
+        "categoria": "Qualidade & FEFO",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "05",
+        "titulo": "Padrão de fitamento / fechamento do fardo",
+        "categoria": "Procedimento & Padrão",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "06",
+        "titulo": "Apontamento de caixas e perdas em tempo real",
+        "categoria": "Registro & 5S",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "07",
+        "titulo": "Cadência e ritmo de produção (Meta cx/h)",
+        "categoria": "Produtividade & Tempo",
+        "resposta": "SIM"
+      },
+      {
+        "itemId": "08",
+        "titulo": "Identificação e endereçamento de produto liberado",
+        "categoria": "Procedimento & Padrão",
+        "resposta": "SIM"
+      }
+    ],
+    "resumo": {
+      "conformes": 8,
+      "naoConformes": 0,
+      "percentualAderencia": 100,
+      "classificacao": "Bom"
+    },
+    "parecerFinal": "Time engajado e com bom controle de FEFO na triagem. Parabenizar colaboradores no DDS.",
+    "registradoEm": "2026-01-04T17:44:00-03:00"
+  }, null, 2);
+
+  // Manipulador de upload de arquivo .json
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        setImportJsonText(text);
+        setImportError(null);
+      } catch (err: any) {
+        setImportError('Erro ao ler o arquivo JSON: ' + err.message);
+      }
+    };
+    reader.onerror = () => {
+      setImportError('Falha na leitura do arquivo local.');
+    };
+    reader.readAsText(file);
+    // Limpa o input para permitir selecionar o mesmo arquivo novamente se quiser
+    e.target.value = '';
+  };
+
+  // Executa a importação
+  const handleExecuteImport = () => {
+    if (!importJsonText.trim()) {
+      setImportError('Por favor, cole o código JSON ou selecione um arquivo para importar.');
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(importJsonText);
+      const companyId = empresa?.id || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+      const result = DtoService.importFromJson(parsed, companyId);
+      
+      if (result.success) {
+        const updatedList = DtoService.getHistorico(companyId);
+        setHistorico(updatedList);
+        setIsImportModalOpen(false);
+        setImportJsonText('');
+        setImportError(null);
+        showToast(`Sucesso: ${result.count} registro(s) de DTO importado(s) e sincronizados!`, 'success');
+      } else {
+        setImportError(result.error || 'Não foi possível processar os registros de DTO.');
+      }
+    } catch (err: any) {
+      setImportError('JSON inválido ou corrompido: ' + err.message);
+    }
+  };
+
+  // Carrega histórico e sincroniza com Firestore
   useEffect(() => {
-    const loadData = () => {
-      const data = DtoService.getHistorico(empresa?.id);
+    const companyId = empresa?.id || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+    
+    // Initial local load (always contains 16 monthly DTOs + any custom records)
+    const localData = DtoService.getHistorico(companyId);
+    setHistorico(localData);
+
+    // Subscribe to Firestore for real-time changes
+    const unsubscribe = firestoreDb.subscribe<DtoRegistro>('dto_diagnosticos', companyId, (remoteDtos) => {
+      // Build map starting with official 16 monthly DTOs
+      const map = new Map<string, DtoRegistro>();
+      INITIAL_DTO_HISTORICO_MOCK.forEach(r => {
+        map.set(r.id, { ...r, empresaId: companyId });
+      });
+
+      // Overlay remote DTOs from Firestore if any exist
+      if (remoteDtos && remoteDtos.length > 0) {
+        remoteDtos.forEach(r => {
+          if (r && r.id && !['dto-reg-101', 'dto-reg-102', 'dto-reg-103'].includes(r.id)) {
+            map.set(r.id, { ...r, empresaId: companyId });
+          }
+        });
+      } else {
+        // Automatically sync initial DTOs to Firestore if empty
+        firestoreDb.batchUpsert('dto_diagnosticos', INITIAL_DTO_HISTORICO_MOCK.map(r => ({ ...r, empresaId: companyId })), companyId).catch(() => {});
+      }
+
+      // Also overlay local custom items
+      const local = DtoService.getHistorico(companyId);
+      local.forEach(r => {
+        if (r && r.id) {
+          map.set(r.id, r);
+        }
+      });
+
+      const merged = Array.from(map.values()).sort(
+        (a, b) => new Date(b.dataHoraISO || b.criadoEm || b.data || 0).getTime() - new Date(a.dataHoraISO || a.criadoEm || a.data || 0).getTime()
+      );
+
+      setHistorico(merged);
+      try {
+        const key = companyId ? `armazem_dto_historico_registros_v1_${companyId}` : 'armazem_dto_historico_registros_v1';
+        localStorage.setItem(key, JSON.stringify(merged));
+        localStorage.setItem('armazem_dto_historico_registros_v1', JSON.stringify(merged));
+      } catch {}
+    });
+
+    const handleUpdate = () => {
+      const data = DtoService.getHistorico(companyId);
       setHistorico(data);
     };
-    loadData();
-
-    const handleUpdate = () => loadData();
     window.addEventListener('dto_historico_updated', handleUpdate);
-    return () => window.removeEventListener('dto_historico_updated', handleUpdate);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('dto_historico_updated', handleUpdate);
+    };
   }, [empresa?.id]);
 
   // Configuração da operação ativa
@@ -183,6 +367,78 @@ export default function DtoDiagnosticoPanel({
     }));
   };
 
+  // Preencher DTO Padrão (Tudo Batendo 100%)
+  const handlePreencherDtoPadrao = () => {
+    setTipoDtoCategoria('dto_padrao');
+    setMetaBatida(true);
+    setMotivoDto('auditoria_rotina');
+    setMetaEsperada('Padrão DPO de movimentação interna no armazém 100% cumprido, 5S e liberação < 15 min');
+    setResultadoRealizado('🟢 TUDO BATENDO (100% Conforme) - Procedimento cumprido com excelência no armazém');
+    setIndicadorOfensor('Nenhum desvio operacional');
+    setOrigemMovimentacao('Armazém (Movimentação Interna)');
+
+    const newRespostas: Record<string, DtoItemResposta> = {};
+    operacaoConfig.itens.forEach(item => {
+      newRespostas[item.id] = {
+        itemId: item.id,
+        conforme: true,
+        observacao: 'Padrão operacional rigorosamente atendido.'
+      };
+    });
+    setRespostas(newRespostas);
+    showToast('DTO Padrão configurado: 100% dos itens conformes (Tudo Batendo).', 'success');
+  };
+
+  // Preencher DTO Indicador de Metas de Pacote (90% Batendo / 10% Desvio)
+  const handlePreencherDtoIndicadorMeta = (baterMeta: boolean = true) => {
+    setTipoDtoCategoria('dto_indicador_metas');
+    setMetaBatida(baterMeta);
+    setOrigemMovimentacao('Armazém (Movimentação Interna)');
+
+    const pacoteSelecionado = tipoPacote && tipoPacote !== 'Geral' ? tipoPacote : 'Lata';
+    if (baterMeta) {
+      setMotivoDto('auditoria_rotina');
+      setMetaEsperada(`Meta de quebra no armazém para pacote ${pacoteSelecionado}: Índice < 0,08%`);
+      setResultadoRealizado(`🟢 META BATIDA (90% Meta) - Realizado: 0,04% para ${pacoteSelecionado}`);
+      setIndicadorOfensor(`Nenhum ofensor crítico no pacote ${pacoteSelecionado}`);
+      
+      const newRespostas: Record<string, DtoItemResposta> = {};
+      operacaoConfig.itens.forEach(item => {
+        newRespostas[item.id] = {
+          itemId: item.id,
+          conforme: true,
+          observacao: `Verificação de conformidade do pacote ${pacoteSelecionado} no padrão DPO.`
+        };
+      });
+      setRespostas(newRespostas);
+      showToast(`DTO Indicador de Metas configurado: Meta do pacote ${pacoteSelecionado} 100% batida!`, 'success');
+    } else {
+      setMotivoDto('meta_nao_batida');
+      setMetaEsperada(`Meta de quebra no armazém para pacote ${pacoteSelecionado}: Índice < 0,08%`);
+      setResultadoRealizado(`🔴 META NÃO BATIDA (10% Desvio) - Realizado: 0,16% para ${pacoteSelecionado}`);
+      setIndicadorOfensor(`Paletização instável ou filme stretch frouxo gerou quebra na curva de manobra`);
+      
+      const newRespostas: Record<string, DtoItemResposta> = {};
+      operacaoConfig.itens.forEach((item, idx) => {
+        const isDesvio = idx === 2 || idx === 7; // Itens de causa raiz e meta
+        newRespostas[item.id] = {
+          itemId: item.id,
+          conforme: !isDesvio,
+          observacao: isDesvio ? `Desvio de ${pacoteSelecionado} identificado no armazém exigindo plano de ação.` : 'Conforme padrão.'
+        };
+      });
+      setRespostas(newRespostas);
+      setPlanoAcao({
+        oQueFazer: `Ajustar amarração do filme stretch e treinar manobras de transporte de ${pacoteSelecionado} no armazém`,
+        responsavel: colaboradorNome || 'Gladson Barbosa (G1145)',
+        prazo: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+        comoFazer: `Aumentar número de voltas de stretch na base e reforçar inspeção visual antes da movimentação`,
+        status: 'pendente'
+      });
+      showToast(`DTO Indicador de Metas configurado: Desvio de 10% registrado para abertura de plano de ação.`, 'info');
+    }
+  };
+
   // Marcar todos como SIM
   const handleMarcarTodosSim = () => {
     const newRespostas: Record<string, DtoItemResposta> = {};
@@ -190,7 +446,7 @@ export default function DtoDiagnosticoPanel({
       newRespostas[item.id] = {
         itemId: item.id,
         conforme: true,
-        observacao: respostas[item.id]?.observacao || ''
+        observacao: respostas[item.id]?.observacao || 'Conforme padrão DPO.'
       };
     });
     setRespostas(newRespostas);
@@ -279,11 +535,15 @@ export default function DtoDiagnosticoPanel({
       dataHoraISO: new Date(`${dataDto}T${horaDto}:00`).toISOString(),
       operacaoId: selectedOperacaoId,
       operacaoNome: operacaoConfig.nome,
+      tipoDtoCategoria: tipoDtoCategoria || 'dto_padrao',
+      tipoPacote: tipoPacote || 'Geral',
+      metaBatida: metaBatida ?? (formStats.percentual >= 90),
+      origemMovimentacao: 'Armazém (Movimentação Interna)',
       motivoDto,
       metaEsperada: metaEsperada || undefined,
       resultadoRealizado: resultadoRealizado || undefined,
       indicadorOfensor: indicadorOfensor || undefined,
-      avaliadorNome: avaliadorNome || user?.nome || 'Supervisor DPO',
+      avaliadorNome: avaliadorNome || user?.nome || 'Supervisor Marcelo Dantas',
       avaliadorCargo: avaliadorCargo || undefined,
       colaboradorNome,
       turno,
@@ -304,11 +564,8 @@ export default function DtoDiagnosticoPanel({
       showToast(`DTO de ${operacaoConfig.tituloCurto} registrado com sucesso! (${formStats.percentual}% de aderência)`, 'success');
       // Redefine campos parciais
       setRespostas({});
-      setColaboradorNome('');
-      setMetaEsperada('');
-      setResultadoRealizado('');
-      setIndicadorOfensor('');
-      setObservacaoGeral('');
+      setColaboradorNome('Gladson Barbosa (G1145)');
+      setObservacaoGeral('DTO realizado dentro das normas DPO de movimentação interna no armazém.');
       setPlanoAcao({
         oQueFazer: '',
         responsavel: '',
@@ -356,6 +613,21 @@ export default function DtoDiagnosticoPanel({
       if (filtroOperacao !== 'todos' && reg.operacaoId !== filtroOperacao) {
         return false;
       }
+      // Filtro Tipo DTO
+      if (filtroTipoDto !== 'todos') {
+        const cat = reg.tipoDtoCategoria || (reg.classificacao === 'conforme' && reg.motivoDto !== 'meta_nao_batida' ? 'dto_padrao' : 'dto_indicador_metas');
+        if (cat !== filtroTipoDto) return false;
+      }
+      // Filtro Pacote
+      if (filtroTipoPacote !== 'todos') {
+        if (reg.tipoPacote !== filtroTipoPacote) return false;
+      }
+      // Filtro Meta Batida
+      if (filtroMetaBatida !== 'todos') {
+        const isBatida = reg.metaBatida !== undefined ? reg.metaBatida : (reg.classificacao === 'conforme');
+        if (filtroMetaBatida === 'sim' && !isBatida) return false;
+        if (filtroMetaBatida === 'nao' && isBatida) return false;
+      }
       // Filtro Status / Classificacao
       if (filtroStatus !== 'todos' && reg.classificacao !== filtroStatus) {
         return false;
@@ -378,13 +650,14 @@ export default function DtoDiagnosticoPanel({
         const matchColab = reg.colaboradorNome.toLowerCase().includes(q);
         const matchAvaliador = reg.avaliadorNome.toLowerCase().includes(q);
         const matchOp = reg.operacaoNome.toLowerCase().includes(q);
+        const matchPacote = reg.tipoPacote?.toLowerCase().includes(q);
         const matchObs = reg.observacaoGeral?.toLowerCase().includes(q);
         const matchPlano = reg.planoAcao?.oQueFazer.toLowerCase().includes(q);
-        return matchColab || matchAvaliador || matchOp || matchObs || matchPlano;
+        return matchColab || matchAvaliador || matchOp || matchPacote || matchObs || matchPlano;
       }
       return true;
     });
-  }, [historico, filtroOperacao, filtroStatus, filtroMotivo, filtroDataInicio, filtroDataFim, buscaTexto]);
+  }, [historico, filtroOperacao, filtroTipoDto, filtroTipoPacote, filtroMetaBatida, filtroStatus, filtroMotivo, filtroDataInicio, filtroDataFim, buscaTexto]);
 
   // Estatísticas gerais
   const estatisticasGerais = useMemo(() => {
@@ -636,11 +909,17 @@ export default function DtoDiagnosticoPanel({
             
             {/* CABEÇALHO DO DIAGNÓSTICO */}
             <div className="border-b border-slate-200/80 dark:border-slate-800 pb-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                    Cabeçalho da Auditoria • {operacaoConfig.badge}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                      Cabeçalho da Auditoria • {operacaoConfig.badge}
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" />
+                      Origem: Armazém (Movimentação Interna)
+                    </span>
+                  </div>
                   <h2 className="text-lg font-black">
                     Formulário de Diagnóstico Operacional: {operacaoConfig.nome}
                   </h2>
@@ -649,16 +928,37 @@ export default function DtoDiagnosticoPanel({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    onClick={handleMarcarTodosSim}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
-                    title="Preenche todos os itens com SIM de forma rápida"
+                    onClick={handlePreencherDtoPadrao}
+                    className="px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer flex items-center gap-1.5 transition-all shadow-xs"
+                    title="Preenche como DTO Padrão: 100% Batendo no armazém"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Marcar Todos SIM (100%)
+                    DTO Padrão (Tudo Batendo)
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePreencherDtoIndicadorMeta(true)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 hover:bg-blue-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
+                    title="Preenche como Indicador de Metas de Pacote (90% Batendo Meta)"
+                  >
+                    <Award className="w-3.5 h-3.5 text-blue-600" />
+                    Meta de Pacote (90% Batendo)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePreencherDtoIndicadorMeta(false)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
+                    title="Preenche como Indicador de Metas com Desvio de 10% e Plano de Ação"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    Meta de Pacote (10% Desvio)
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleLimparFormulario}
@@ -670,12 +970,67 @@ export default function DtoDiagnosticoPanel({
                 </div>
               </div>
 
+              {/* AVISO DE ESCOPO DPO E DIRETRIZ MENSAL */}
+              <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-900/40 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>
+                    <strong>Diretriz DPO:</strong> Por mês são gerados <strong>2 DTOs</strong> (1 Padrão 100% batendo + 1 Indicador de Metas de Pacote com taxa 90/10).
+                    {selectedOperacaoId === 'quebras' && (
+                      <span className="ml-1 text-amber-700 dark:text-amber-300 font-bold">
+                        Exclusivo movimentação no armazém (qualquer movimentação externa não entra no DTO).
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
               {/* CAMPOS DO CABEÇALHO */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-1">
+                {/* Tipo de Categoria do DTO */}
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                    Tipo de DTO *
+                  </label>
+                  <select
+                    value={tipoDtoCategoria}
+                    onChange={e => setTipoDtoCategoria(e.target.value as any)}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none cursor-pointer ${
+                      tipoDtoCategoria === 'dto_padrao'
+                        ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                        : 'border-blue-500/60 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                    }`}
+                  >
+                    <option value="dto_padrao">🟢 DTO Padrão (Tudo Batendo 100%)</option>
+                    <option value="dto_indicador_metas">🎯 DTO Indicador de Metas de Pacote</option>
+                  </select>
+                </div>
+
+                {/* Tipo de Pacote */}
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                    Tipo de Pacote / Embalagem *
+                  </label>
+                  <select
+                    value={tipoPacote}
+                    onChange={e => setTipoPacote(e.target.value as any)}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none cursor-pointer ${
+                      theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <option value="Lata">Lata (350ml / 269ml Sleek)</option>
+                    <option value="PET">PET (2L / 1L / 500ml)</option>
+                    <option value="Garrafa 600ml">Garrafa 600ml (Retornável)</option>
+                    <option value="Long Neck">Long Neck (330ml / 355ml)</option>
+                    <option value="Litrinho">Litrinho (300ml Retornável)</option>
+                    <option value="Geral">Geral / Multicategoria</option>
+                  </select>
+                </div>
+
                 {/* Data e Hora */}
                 <div>
                   <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                    Data da Aplicação *
+                    Data e Hora da Aplicação *
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -692,7 +1047,7 @@ export default function DtoDiagnosticoPanel({
                       value={horaDto}
                       onChange={e => setHoraDto(e.target.value)}
                       required
-                      className={`w-28 px-2 py-2 rounded-xl border text-xs font-bold outline-none text-center ${
+                      className={`w-24 px-2 py-2 rounded-xl border text-xs font-bold outline-none text-center ${
                         theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
                       }`}
                     />
@@ -715,22 +1070,25 @@ export default function DtoDiagnosticoPanel({
                         : 'bg-slate-50 border-slate-200 text-slate-800'
                     }`}
                   >
+                    <option value="auditoria_rotina">🔵 Auditoria de Rotina DPO</option>
                     <option value="meta_nao_batida">🔴 Meta Não Batida (Gatilho DPO)</option>
                     <option value="aumento_perdas">🟡 Aumento de Avarias / Perdas</option>
-                    <option value="auditoria_rotina">🔵 Auditoria de Rotina DPO</option>
                     <option value="reciclagem_treinamento">🟣 Treinamento / Reciclagem</option>
                     <option value="solicitacao_gestao">⚪ Solicitação da Gestão</option>
                   </select>
                 </div>
+              </div>
 
+              {/* SEGUNDA LINHA: Colaborador, Avaliador, Turno, Origem */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-1">
                 {/* Colaborador / Equipe */}
                 <div>
                   <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                    Colaborador / Equipe Avaliada *
+                    Colaborador / Operador Avaliado *
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: João da Silva / Operador Doca 02"
+                    placeholder="Ex: Gladson Barbosa (G1145)"
                     value={colaboradorNome}
                     onChange={e => setColaboradorNome(e.target.value)}
                     required
@@ -743,11 +1101,11 @@ export default function DtoDiagnosticoPanel({
                 {/* Avaliador / Responsável */}
                 <div>
                   <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                    Avaliador (Supervisor / Monitor)
+                    Avaliador (Supervisor DPO)
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Carlos Eduardo (Supervisor)"
+                    placeholder="Ex: Marcelo Dantas (Supervisor)"
                     value={avaliadorNome}
                     onChange={e => setAvaliadorNome(e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none ${
@@ -755,10 +1113,8 @@ export default function DtoDiagnosticoPanel({
                     }`}
                   />
                 </div>
-              </div>
 
-              {/* CAMPOS ADICIONAIS: Turno, Local e Indicador de Meta */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 pt-1">
+                {/* Turno */}
                 <div>
                   <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
                     Turno
@@ -778,13 +1134,14 @@ export default function DtoDiagnosticoPanel({
                   </select>
                 </div>
 
+                {/* Local da Operação (Exclusivo Armazém) */}
                 <div>
                   <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                    Posto / Box / Linha
+                    Localização no Armazém
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Bancada 01 / Doca 04 / Rua 06"
+                    placeholder="Ex: Rua 04 - Armazém / Bloco Pulmão"
                     value={linhaOuBox}
                     onChange={e => setLinhaOuBox(e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none ${
@@ -792,40 +1149,39 @@ export default function DtoDiagnosticoPanel({
                     }`}
                   />
                 </div>
+              </div>
 
-                {motivoDto === 'meta_nao_batida' && (
-                  <>
-                    <div>
-                      <label className="text-[11px] font-bold uppercase text-rose-500 block mb-1">
-                        Meta Esperada
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex: 28 cx/h ou < 40 min"
-                        value={metaEsperada}
-                        onChange={e => setMetaEsperada(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl border border-rose-400/40 text-xs font-bold outline-none ${
-                          theme === 'dark' ? 'bg-[#151b23] text-white' : 'bg-rose-50/50 text-slate-800'
-                        }`}
-                      />
-                    </div>
+              {/* CAMPOS DE METAS: Meta Esperada e Realizado */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                    Meta Operacional Esperada
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Tempo de ciclo < 00:05:00 ou Índice de perda < 0,08%"
+                    value={metaEsperada}
+                    onChange={e => setMetaEsperada(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none ${
+                      theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                  />
+                </div>
 
-                    <div>
-                      <label className="text-[11px] font-bold uppercase text-rose-500 block mb-1">
-                        Resultado Realizado (Desvio)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex: 18 cx/h (-35%)"
-                        value={resultadoRealizado}
-                        onChange={e => setResultadoRealizado(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl border border-rose-400/40 text-xs font-bold outline-none ${
-                          theme === 'dark' ? 'bg-[#151b23] text-white' : 'bg-rose-50/50 text-slate-800'
-                        }`}
-                      />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                    Resultado Realizado / Status da Meta
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 🟢 META BATIDA (Realizado 0,04%) ou 🔴 Desvio de 0,16%"
+                    value={resultadoRealizado}
+                    onChange={e => setResultadoRealizado(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none ${
+                      theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1163,6 +1519,31 @@ export default function DtoDiagnosticoPanel({
 
               {/* Botões de Ação Rápida */}
               <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".json,application/json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const res = DtoService.seedMonthlyRepackAndDespejoDtos(empresa?.id);
+                    if (res.success) {
+                      const updated = DtoService.getHistorico(empresa?.id);
+                      setHistorico(updated);
+                      showToast('16 DTOs mensais (Repack & Despejo - Jan a Ago/2026) sincronizados com sucesso!', 'success');
+                    }
+                  }}
+                  className="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/80 cursor-pointer transition-all shadow-xs"
+                  title="Carregar DTOs mensais de 2026 para Repack e Despejo baseados nos dados reais da plataforma"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>Carregar DTOs Mensais (2026)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => DtoService.exportToJson(empresa?.id)}
@@ -1172,25 +1553,41 @@ export default function DtoDiagnosticoPanel({
                   <Download className="w-3.5 h-3.5 text-blue-600" />
                   <span>Exportar JSON</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => {
-                    if (window.confirm('Deseja restaurar os registros de demonstração padrão do DTO?')) {
-                      DtoService.resetToDefault(empresa?.id);
-                      showToast('Histórico restaurado para os dados padrão.', 'info');
+                    setImportError(null);
+                    setIsImportModalOpen(true);
+                  }}
+                  className="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/80 cursor-pointer transition-all shadow-xs"
+                  title="Importar diagnósticos DTO em formato JSON"
+                >
+                  <Upload className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>Importar DTO</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Atenção: Deseja realmente zerar todos os registros de DTO para iniciar os diagnósticos verídicos? Esta ação limpará os dados locais e na nuvem.')) {
+                      DtoService.clearAll(empresa?.id);
+                      setHistorico([]);
+                      setSelectedRegistroVisualizar(null);
+                      showToast('Histórico de DTO zerado com sucesso. Pronto para iniciar os registros verídicos!', 'success');
                     }
                   }}
-                  className="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all text-slate-400"
-                  title="Restaurar dados mock"
+                  className="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-rose-50 text-rose-600 border-rose-200 dark:hover:bg-rose-950/30 dark:border-rose-900/40 cursor-pointer transition-all"
+                  title="Zerar todos os registros de DTO"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Restaurar Base</span>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Zerar DTOs</span>
                 </button>
               </div>
             </div>
 
             {/* Linha de Filtros Dropdowns */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
               <div>
                 <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Operação</label>
                 <select
@@ -1200,10 +1597,59 @@ export default function DtoDiagnosticoPanel({
                     theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-white/80 border-slate-200 text-slate-800'
                   }`}
                 >
-                  <option value="todos">Todas as 9 Operações</option>
+                  <option value="todos">Todas as Operações</option>
                   {DTO_OPERACOES_CONFIG.map(op => (
                     <option key={op.id} value={op.id}>{op.tituloCurto} ({op.sigla})</option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Tipo de DTO</label>
+                <select
+                  value={filtroTipoDto}
+                  onChange={e => setFiltroTipoDto(e.target.value)}
+                  className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold outline-none cursor-pointer ${
+                    theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-white/80 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <option value="todos">Todos os Tipos</option>
+                  <option value="dto_padrao">🟢 DTO Padrão (Tudo Batendo)</option>
+                  <option value="dto_indicador_metas">🎯 DTO Indicador de Metas</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Tipo de Pacote</label>
+                <select
+                  value={filtroTipoPacote}
+                  onChange={e => setFiltroTipoPacote(e.target.value)}
+                  className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold outline-none cursor-pointer ${
+                    theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-white/80 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <option value="todos">Todos os Pacotes</option>
+                  <option value="Lata">Lata</option>
+                  <option value="PET">PET</option>
+                  <option value="Garrafa 600ml">Garrafa 600ml</option>
+                  <option value="Long Neck">Long Neck</option>
+                  <option value="Litrinho">Litrinho</option>
+                  <option value="Geral">Geral</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Status da Meta (90/10)</label>
+                <select
+                  value={filtroMetaBatida}
+                  onChange={e => setFiltroMetaBatida(e.target.value)}
+                  className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold outline-none cursor-pointer ${
+                    theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-white/80 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <option value="todos">Todas as Metas</option>
+                  <option value="sim">🟢 Meta Batida (90%)</option>
+                  <option value="nao">🔴 Meta Não Batida (10%)</option>
                 </select>
               </div>
 
@@ -1220,24 +1666,6 @@ export default function DtoDiagnosticoPanel({
                   <option value="conforme">🟢 Conforme (≥ 90%)</option>
                   <option value="atencao">🟡 Atenção (75% a 89%)</option>
                   <option value="critico">🔴 Crítico (&lt; 75%)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Motivo do DTO</label>
-                <select
-                  value={filtroMotivo}
-                  onChange={e => setFiltroMotivo(e.target.value)}
-                  className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold outline-none cursor-pointer ${
-                    theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-white' : 'bg-white/80 border-slate-200 text-slate-800'
-                  }`}
-                >
-                  <option value="todos">Todos os Motivos</option>
-                  <option value="meta_nao_batida">Meta Não Batida</option>
-                  <option value="aumento_perdas">Aumento de Perdas</option>
-                  <option value="auditoria_rotina">Auditoria de Rotina</option>
-                  <option value="reciclagem_treinamento">Treinamento</option>
-                  <option value="solicitacao_gestao">Solicitação Gestão</option>
                 </select>
               </div>
 
@@ -1272,6 +1700,8 @@ export default function DtoDiagnosticoPanel({
                 const isCritico = reg.classificacao === 'critico';
                 const isAtencao = reg.classificacao === 'atencao';
                 const isConforme = reg.classificacao === 'conforme';
+                const isDtoPadrao = reg.tipoDtoCategoria === 'dto_padrao' || (!reg.tipoDtoCategoria && isConforme);
+                const isMetaBatida = reg.metaBatida !== undefined ? reg.metaBatida : isConforme;
 
                 return (
                   <div
@@ -1301,7 +1731,38 @@ export default function DtoDiagnosticoPanel({
                             <span className="text-sm font-black tracking-tight">
                               {reg.operacaoNome}
                             </span>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+
+                            {/* Badge Tipo de DTO */}
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                              isDtoPadrao
+                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                            }`}>
+                              {isDtoPadrao ? '✓ DTO Padrão (100%)' : '🎯 Indicador de Metas'}
+                            </span>
+
+                            {/* Badge Tipo de Pacote */}
+                            {reg.tipoPacote && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                                Pacote: {reg.tipoPacote}
+                              </span>
+                            )}
+
+                            {/* Badge Origem Armazém */}
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              Armazém
+                            </span>
+
+                            {/* Status da Meta */}
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                              isMetaBatida
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                            }`}>
+                              {isMetaBatida ? '🟢 Meta Batida' : '🔴 Meta Não Batida'}
+                            </span>
+
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                               {reg.turno}
                             </span>
                             {reg.linhaOuBox && (
@@ -1325,8 +1786,8 @@ export default function DtoDiagnosticoPanel({
                             </span>
                           </div>
 
-                          {/* Motivo do DTO */}
-                          <div className="pt-1 flex items-center gap-2">
+                          {/* Motivo do DTO / Resultado Realizado */}
+                          <div className="pt-1 flex flex-wrap items-center gap-2">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                               reg.motivoDto === 'meta_nao_batida'
                                 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30'
@@ -1334,9 +1795,14 @@ export default function DtoDiagnosticoPanel({
                             }`}>
                               {reg.motivoDto === 'meta_nao_batida' ? '🔴 Meta Não Batida' : '🔵 Auditoria DPO'}
                             </span>
+                            {reg.metaEsperada && (
+                              <span className="text-[11px] text-slate-500">
+                                Meta: <strong className="text-slate-700 dark:text-slate-300">{reg.metaEsperada}</strong>
+                              </span>
+                            )}
                             {reg.resultadoRealizado && (
-                              <span className="text-[11px] text-rose-500 font-bold">
-                                Desvio: {reg.resultadoRealizado}
+                              <span className={`text-[11px] font-bold ${isMetaBatida ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                • {reg.resultadoRealizado}
                               </span>
                             )}
                           </div>
@@ -1609,6 +2075,152 @@ export default function DtoDiagnosticoPanel({
                 className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
               >
                 Fechar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════
+          MODAL DE IMPORTAÇÃO DE DTO (JSON)
+          ═════════════════════════════════════════════════════════════════════ */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className={`w-full max-w-2xl rounded-2xl border shadow-2xl p-5 sm:p-6 space-y-4 my-8 relative max-h-[90vh] flex flex-col ${
+            theme === 'dark' ? 'bg-[#11151c] border-[#1c2530] text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            
+            {/* Botão Fechar */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsImportModalOpen(false);
+                setImportError(null);
+              }}
+              className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Cabeçalho */}
+            <div className="border-b border-slate-200/80 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black">Importar Diagnósticos DTO (JSON)</h2>
+                  <p className="text-xs text-slate-500">
+                    Importe arquivos .json ou cole diretamente os registros no padrão oficial de DTO.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Botões de Ação Rápida no Modal */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-all"
+                >
+                  <FileUp className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Selecionar Arquivo .JSON</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportJsonText(DTO_SAMPLE_JSON);
+                    setImportError(null);
+                  }}
+                  className="px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800/60 cursor-pointer transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Carregar Modelo Exemplo (Repack)</span>
+                </button>
+              </div>
+
+              {importJsonText && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportJsonText('');
+                    setImportError(null);
+                  }}
+                  className="text-xs text-slate-400 hover:text-rose-500 font-semibold cursor-pointer"
+                >
+                  Limpar código
+                </button>
+              )}
+            </div>
+
+            {/* Editor Textarea JSON */}
+            <div className="flex-1 flex flex-col space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase">
+                Conteúdo JSON (Objeto único ou Lista de DTOs):
+              </label>
+              <textarea
+                value={importJsonText}
+                onChange={e => {
+                  setImportJsonText(e.target.value);
+                  if (importError) setImportError(null);
+                }}
+                placeholder='{\n  "id": "DTO-REPACK-202601-001",\n  "modulo": "Repack (Reembalagem de Avarias)",\n  "dataAplicacao": "2026-01-04",\n  "gatilho": "Meta Não Batida (Gatilho DPO)",\n  "colaboradorAvaliado": "Antônio Marcos Lima",\n  "avaliador": "Supervisor Marcelo Dantas",\n  "turno": "1º Turno (Manhã)",\n  "posto": "Box de Repack 02",\n  "checklist": [...],\n  "resumo": { "conformes": 8, "naoConformes": 0, "percentualAderencia": 100, "classificacao": "Bom" },\n  "parecerFinal": "...",\n  "registradoEm": "2026-01-04T17:44:00-03:00"\n}'
+                className={`w-full h-56 p-3 rounded-xl border font-mono text-xs outline-none resize-none leading-relaxed ${
+                  theme === 'dark' 
+                    ? 'bg-[#0d1117] border-[#21262d] text-emerald-400 focus:border-blue-500' 
+                    : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500'
+                }`}
+                spellCheck={false}
+              />
+            </div>
+
+            {/* Mensagem de Erro se houver */}
+            {importError && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{importError}</span>
+              </div>
+            )}
+
+            {/* Informações de Compatibilidade */}
+            <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+              <p className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Padrão 100% Compatível com DPO / DTO Armazém
+              </p>
+              <p>
+                O importador aceita automaticamente objetos individuais ou arrays com campos como <code className="font-mono text-blue-600 dark:text-blue-300">modulo</code>, <code className="font-mono text-blue-600 dark:text-blue-300">colaboradorAvaliado</code>, <code className="font-mono text-blue-600 dark:text-blue-300">checklist</code>, <code className="font-mono text-blue-600 dark:text-blue-300">resumo</code> e <code className="font-mono text-blue-600 dark:text-blue-300">parecerFinal</code>.
+              </p>
+            </div>
+
+            {/* Rodapé / Botões */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsImportModalOpen(false);
+                  setImportError(null);
+                }}
+                className="px-4 py-2 rounded-xl border text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteImport}
+                disabled={!importJsonText.trim()}
+                className={`px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-sm ${
+                  !importJsonText.trim()
+                    ? 'bg-slate-300 dark:bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-98'
+                }`}
+              >
+                <Check className="w-4 h-4" />
+                <span>Confirmar e Importar</span>
               </button>
             </div>
 

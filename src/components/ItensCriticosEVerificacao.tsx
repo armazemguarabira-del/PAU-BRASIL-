@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ClipboardCheck, CheckCircle2, Plus, Trash2, Edit3, X, Save } from 'lucide-react';
+import { firestoreDb } from '../database/firestoreDatabase';
 
 export interface ItemCriticoOuVerificacao {
   id: string;
@@ -78,6 +79,23 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
   const [novaDescricao, setNovaDescricao] = useState('');
   const [novoSetor, setNovoSetor] = useState('Armazém Geral');
 
+  const companyId = user?.empresaId || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+
+  useEffect(() => {
+    // Hydrate from Firestore
+    firestoreDb.getList<ItemCriticoOuVerificacao>('itens_criticos_verificacao', companyId).then(docs => {
+      if (docs && docs.length > 0) {
+        setItems(docs);
+        try {
+          localStorage.setItem('oficial_ics_ivs_compartilhados', JSON.stringify(docs));
+        } catch {}
+      } else {
+        // If Firestore is empty, seed initial defaults to Firestore
+        firestoreDb.batchUpsert('itens_criticos_verificacao', DEFAULT_ITEMS, companyId).catch(() => {});
+      }
+    }).catch(() => {});
+  }, [companyId]);
+
   useEffect(() => {
     const handleStorageChange = () => {
       try {
@@ -96,8 +114,14 @@ export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps>
 
   const saveItems = (newItems: ItemCriticoOuVerificacao[]) => {
     setItems(newItems);
-    localStorage.setItem('oficial_ics_ivs_compartilhados', JSON.stringify(newItems));
+    try {
+      localStorage.setItem('oficial_ics_ivs_compartilhados', JSON.stringify(newItems));
+    } catch {}
     window.dispatchEvent(new Event('ics_ivs_updated'));
+    // Persist to Firestore
+    firestoreDb.batchUpsert('itens_criticos_verificacao', newItems, companyId).catch(err => {
+      console.warn('Erro ao salvar ICs/IVs no Firestore:', err);
+    });
   };
 
   const handleAddItem = (e: React.FormEvent) => {

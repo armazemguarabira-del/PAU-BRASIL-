@@ -230,18 +230,22 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
   };
 
   // Calculate today's productivity meta compliance for Repack & Despejo
-  const todayISO = new Date().toISOString().split('T')[0];
-  const todayStr = new Date().toLocaleDateString('pt-BR');
+  const todayISO = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = React.useMemo(() => new Date().toLocaleDateString('pt-BR'), []);
 
-  const todayRepackEntries = (empresaData.repack || []).filter(r => 
-    (r.dataISO === todayISO || r.data === todayStr) && 
-    (r.operador === user.nome || !r.operador)
-  );
+  const todayRepackEntries = React.useMemo(() => {
+    return (empresaData.repack || []).filter(r => 
+      (r.dataISO === todayISO || r.data === todayStr) && 
+      (r.operador === user.nome || !r.operador)
+    );
+  }, [empresaData.repack, todayISO, todayStr, user.nome]);
 
-  const todayDespejoEntries = (empresaData.despejo || []).filter(d => 
-    (d.dataISO === todayISO || d.data === todayStr) && 
-    (d.operador === user.nome || !d.operador)
-  );
+  const todayDespejoEntries = React.useMemo(() => {
+    return (empresaData.despejo || []).filter(d => 
+      (d.dataISO === todayISO || d.data === todayStr) && 
+      (d.operador === user.nome || !d.operador)
+    );
+  }, [empresaData.despejo, todayISO, todayStr, user.nome]);
 
   // Helper to parse duration or time string into minutes
   const parseTimeToMinutes = (timeStr?: string): number => {
@@ -256,53 +260,72 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     return isNaN(num) ? 0 : num;
   };
 
-  // Repack: Sum of target time per unit vs Sum of actual realized time
-  const totalRepackMetaMins = todayRepackEntries.reduce((sum, r) => {
-    const metaUnit = parseTimeToMinutes(String(r.metaEmbalagem || r.meta || '5 min')) || 5;
-    const qty = Number(r.quantidade) || 1;
-    return sum + (metaUnit * qty);
-  }, 0);
+  const {
+    totalRepackMetaMins,
+    totalRepackRealMins,
+    hasMissedRepackMeta,
+    totalRepackQty,
+    isGatilhoRepack10CxAtivo,
+    totalDespejoMetaMins,
+    totalDespejoRealMins,
+    hasMissedDespejoMeta,
+    overallMetaMet
+  } = React.useMemo(() => {
+    // Repack: Sum of target time per unit vs Sum of actual realized time
+    const rMetaMins = todayRepackEntries.reduce((sum, r) => {
+      const metaUnit = parseTimeToMinutes(String(r.metaEmbalagem || r.meta || '5 min')) || 5;
+      const qty = Number(r.quantidade) || 1;
+      return sum + (metaUnit * qty);
+    }, 0);
 
-  const totalRepackRealMins = todayRepackEntries.reduce((sum, r) => {
-    if (r.duracao) return sum + parseTimeToMinutes(String(r.duracao));
-    if (r.inicio && r.fim) {
-      const i = parseTimeToMinutes(r.inicio);
-      const f = parseTimeToMinutes(r.fim);
-      return sum + Math.max(0, f - i);
-    }
-    return sum;
-  }, 0);
+    const rRealMins = todayRepackEntries.reduce((sum, r) => {
+      if (r.duracao) return sum + parseTimeToMinutes(String(r.duracao));
+      if (r.inicio && r.fim) {
+        const i = parseTimeToMinutes(r.inicio);
+        const f = parseTimeToMinutes(r.fim);
+        return sum + Math.max(0, f - i);
+      }
+      return sum;
+    }, 0);
 
-  // If actual realized time > total target time, user missed the goal
-  const hasMissedRepackMeta = todayRepackEntries.length > 0 && totalRepackRealMins > totalRepackMetaMins;
+    const rMissed = todayRepackEntries.length > 0 && rRealMins > rMetaMins;
+    const rQty = todayRepackEntries.reduce((sum, r) => sum + (Number(r.quantidade) || 0), 0);
+    const rHours = rRealMins / 60;
+    const rCxHora = rHours > 0 ? (rQty / rHours) : 0;
+    const rGatilho = todayRepackEntries.length > 0 && rCxHora < 10.0;
 
-  // Repack: 2 Metas Oficiais: (1) 10 cx/h e (2) Meta por Embalagem (Soma das metas vs Real)
-  const totalRepackQty = todayRepackEntries.reduce((sum, r) => sum + (Number(r.quantidade) || 0), 0);
-  const totalRepackHours = totalRepackRealMins / 60;
-  const realRepackCxHora = totalRepackHours > 0 ? (totalRepackQty / totalRepackHours) : 0;
-  const isGatilhoRepack10CxAtivo = todayRepackEntries.length > 0 && realRepackCxHora < 10.0;
+    // Despejo: Sum of target time per unit vs Sum of actual realized time
+    const dMetaMins = todayDespejoEntries.reduce((sum, d) => {
+      const metaUnit = parseTimeToMinutes(String(d.metaEmbalagem || d.meta || '5 min')) || 5;
+      const qty = Number(d.quantidade) || 1;
+      return sum + (metaUnit * qty);
+    }, 0);
 
-  // Despejo: Sum of target time per unit vs Sum of actual realized time
-  const totalDespejoMetaMins = todayDespejoEntries.reduce((sum, d) => {
-    const metaUnit = parseTimeToMinutes(String(d.metaEmbalagem || d.meta || '5 min')) || 5;
-    const qty = Number(d.quantidade) || 1;
-    return sum + (metaUnit * qty);
-  }, 0);
+    const dRealMins = todayDespejoEntries.reduce((sum, d) => {
+      if (d.duracao) return sum + parseTimeToMinutes(String(d.duracao));
+      if (d.inicio && d.fim) {
+        const i = parseTimeToMinutes(d.inicio);
+        const f = parseTimeToMinutes(d.fim);
+        return sum + Math.max(0, f - i);
+      }
+      return sum;
+    }, 0);
 
-  const totalDespejoRealMins = todayDespejoEntries.reduce((sum, d) => {
-    if (d.duracao) return sum + parseTimeToMinutes(String(d.duracao));
-    if (d.inicio && d.fim) {
-      const i = parseTimeToMinutes(d.inicio);
-      const f = parseTimeToMinutes(d.fim);
-      return sum + Math.max(0, f - i);
-    }
-    return sum;
-  }, 0);
+    const dMissed = todayDespejoEntries.length > 0 && dRealMins > dMetaMins;
+    const metaAll = !rMissed && !dMissed;
 
-  // If actual realized time > total target time, user missed the goal
-  const hasMissedDespejoMeta = todayDespejoEntries.length > 0 && totalDespejoRealMins > totalDespejoMetaMins;
-
-  const overallMetaMet = !hasMissedRepackMeta && !hasMissedDespejoMeta;
+    return {
+      totalRepackMetaMins: rMetaMins,
+      totalRepackRealMins: rRealMins,
+      hasMissedRepackMeta: rMissed,
+      totalRepackQty: rQty,
+      isGatilhoRepack10CxAtivo: rGatilho,
+      totalDespejoMetaMins: dMetaMins,
+      totalDespejoRealMins: dRealMins,
+      hasMissedDespejoMeta: dMissed,
+      overallMetaMet: metaAll
+    };
+  }, [todayRepackEntries, todayDespejoEntries]);
 
   // State for Operação Ajudante Improvement Suggestions
   const [sugestaoProcesso, setSugestaoProcesso] = useState('Repack');

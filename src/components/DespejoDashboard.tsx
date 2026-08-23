@@ -102,6 +102,22 @@ function DespejoHeaderClock() {
   );
 }
 
+const extractDateISO = (val: any): string => {
+  if (!val) return '';
+  const str = String(val).trim();
+  // Match YYYY-MM-DD (e.g. "2026-01-19", "2026-01-19 11:59:15", "2026-01-19T...")
+  const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+  }
+  // Match DD/MM/YYYY (e.g. "19/01/2026", "19/01/2026 11:59:15")
+  const brMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (brMatch) {
+    return `${brMatch[3]}-${brMatch[2].padStart(2, '0')}-${brMatch[1].padStart(2, '0')}`;
+  }
+  return '';
+};
+
 const DEFAULT_EMBALAGENS_CONFIG: Record<string, { metaSec: number; label: string }> = {
   'LATA 250': { metaSec: 270, label: 'Lata 250 (Meta: 04:30)' },
   'LATA 269': { metaSec: 270, label: 'Lata 269 (Meta: 04:30)' },
@@ -294,6 +310,17 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   const [activeStartDate, setActiveStartDate] = useState('');
   const [activeEndDate, setActiveEndDate] = useState('');
   const [activeMeta, setActiveMeta] = useState<'todos' | 'dentro' | 'fora'>('todos');
+
+  // Auto-sync active filter states when user changes filter controls (instant reactive filtering)
+  useEffect(() => {
+    setActiveColaborador(filterColaborador);
+    setActiveEmbalagem(filterEmbalagem);
+    setActiveMes(filterMes);
+    setActiveStartDate(filterStartDate);
+    setActiveEndDate(filterEndDate);
+    setActiveMeta(filterMeta);
+    setCurrentPage(1);
+  }, [filterColaborador, filterEmbalagem, filterMes, filterStartDate, filterEndDate, filterMeta]);
 
   // Pagination & Search
   const [tableSearch, setTableSearch] = useState('');
@@ -595,9 +622,15 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
       }
 
       // 4. Date range
-      const rowDate = (row.data ? row.data.split('/').reverse().map(p => p.padStart(2, '0')).join('-') : '') || row.dataISO || '';
-      if (activeStartDate && rowDate && rowDate < activeStartDate) return false;
-      if (activeEndDate && rowDate && rowDate > activeEndDate) return false;
+      const startISO = extractDateISO(activeStartDate);
+      const endISO = extractDateISO(activeEndDate) || (activeStartDate ? startISO : '');
+      
+      if (startISO || endISO) {
+        const rowDate = extractDateISO(row.dataISO) || extractDateISO(row.data) || extractDateISO((row as any)['Data']) || extractDateISO((row as any)['Data Lançamento']) || '';
+        if (!rowDate) return false;
+        if (startISO && rowDate < startISO) return false;
+        if (endISO && rowDate > endISO) return false;
+      }
 
       // 5. Meta status
       if (activeMeta !== 'todos') {

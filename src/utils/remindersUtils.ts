@@ -1,5 +1,7 @@
 // Operational Reminders & Scheduled Notifications Manager (Requirement DPO)
 
+import { firestoreDb } from '../database/firestoreDatabase';
+
 export interface OperationalReminderConfig {
   id: string;
   titulo: string;
@@ -56,7 +58,9 @@ export function getStoredReminders(): OperationalReminderConfig[] {
       // Filter out removed legacy reminders like rem_placas_09h
       const filtered = parsed.filter(r => r.id !== 'rem_placas_09h' && !r.titulo.toLowerCase().includes('03.11.49.02') && !r.titulo.toLowerCase().includes('importação de placas'));
       if (filtered.length !== parsed.length) {
-        saveStoredReminders(filtered);
+        try {
+          localStorage.setItem(STORAGE_KEY_REMINDERS, JSON.stringify(filtered));
+        } catch {}
       }
       return filtered;
     }
@@ -66,7 +70,8 @@ export function getStoredReminders(): OperationalReminderConfig[] {
   return [...DEFAULT_OPERATIONAL_REMINDERS];
 }
 
-export function saveStoredReminders(list: OperationalReminderConfig[]): void {
+export function saveStoredReminders(list: OperationalReminderConfig[], empresaId?: string): void {
+  const companyId = empresaId || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
   try {
     localStorage.setItem(STORAGE_KEY_REMINDERS, JSON.stringify(list));
     if (typeof window !== 'undefined') {
@@ -76,9 +81,29 @@ export function saveStoredReminders(list: OperationalReminderConfig[]): void {
   } catch (e) {
     console.error('Erro ao salvar lembretes:', e);
   }
+
+  // Persist to Firestore
+  firestoreDb.batchUpsert('lembretes_config', list, companyId).catch(err => {
+    console.warn('Erro ao salvar lembretes no Firestore:', err);
+  });
 }
 
-export function resetRemindersToDefault(): OperationalReminderConfig[] {
-  saveStoredReminders(DEFAULT_OPERATIONAL_REMINDERS);
+export async function hydrateRemindersFromFirestore(empresaId?: string): Promise<OperationalReminderConfig[]> {
+  const companyId = empresaId || (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+  try {
+    const docs = await firestoreDb.getList<OperationalReminderConfig>('lembretes_config', companyId);
+    if (docs && docs.length > 0) {
+      localStorage.setItem(STORAGE_KEY_REMINDERS, JSON.stringify(docs));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('af_reminders_updated'));
+      }
+      return docs;
+    }
+  } catch (e) {}
+  return getStoredReminders();
+}
+
+export function resetRemindersToDefault(empresaId?: string): OperationalReminderConfig[] {
+  saveStoredReminders(DEFAULT_OPERATIONAL_REMINDERS, empresaId);
   return [...DEFAULT_OPERATIONAL_REMINDERS];
 }

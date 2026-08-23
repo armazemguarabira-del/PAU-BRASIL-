@@ -26,7 +26,6 @@ import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
 import { add5PorquesDemand } from '../utils/fiveWhysManager';
 import { isSameCollaborator } from '../utils/colaboradorUtils';
 import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
-import { OperationalNotificationBell } from './OperationalNotificationBell';
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
 import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
@@ -1048,7 +1047,6 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                     <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono">
                       ● Ativo
                     </span>
-                    <OperationalNotificationBell user={user} userRole="empilhador" onNavigate={(panel, tab) => { if (tab) setDemandTab(tab as any); }} />
                   </h3>
                 </div>
               </div>

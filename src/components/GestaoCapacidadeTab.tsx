@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PRODUCT_MASTER_DATA, findProductMaster, ProductMaster } from '../data/productMasterData';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { 
   Database, 
   Upload, 
@@ -75,11 +76,29 @@ export default function GestaoCapacidadeTab({ theme = 'light' }: GestaoCapacidad
   const [uploadTargetArea, setUploadTargetArea] = useState<'AUTO' | 'CENTRAL' | 'PICKING' | 'MARKETPLACE'>('AUTO');
   const [uploadStatusMsg, setUploadStatusMsg] = useState<string | null>(null);
 
-  // Save items state to localStorage
+  const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+
+  // Hydrate from Firestore if local empty
+  useEffect(() => {
+    const saved = localStorage.getItem('af_capacity_items');
+    if (!saved) {
+      firestoreDb.getList<CapacityItem>('af_capacidade_items', companyId).then(docs => {
+        if (docs && docs.length > 0) {
+          setItems(docs);
+          try { localStorage.setItem('af_capacity_items', JSON.stringify(docs)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+  }, [companyId]);
+
+  // Save items state to localStorage and Firestore
   const saveItemsState = (newItems: CapacityItem[]) => {
     setItems(newItems);
     try {
       localStorage.setItem('af_capacity_items', JSON.stringify(newItems));
+      firestoreDb.batchUpsert('af_capacidade_items', newItems, companyId).catch(err => {
+        console.warn('Erro ao salvar capacidade no Firestore:', err);
+      });
     } catch (e) {
       console.error(e);
     }

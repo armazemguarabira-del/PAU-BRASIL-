@@ -101,7 +101,10 @@ export function getStoredTempLogs(): ArmazemTemperaturaLog[] {
 
   // Populate default database with exact CSV records up to 28/08/2026
   const initial = parseBaseCsvData();
-  saveTempLogs(initial);
+  try {
+    const sorted = sortTempLogsDescending(initial);
+    localStorage.setItem(TEMP_STORAGE_KEY, JSON.stringify(sorted));
+  } catch {}
   return initial;
 }
 

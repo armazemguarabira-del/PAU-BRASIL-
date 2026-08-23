@@ -3,6 +3,7 @@ import { getProductMeta } from './productCatalogData';
 import { categorizeFamilia } from './estoqueParsers';
 import { setMediaItem } from './idbStorage';
 import { calculateCurvaAbc } from './curvaAbcUtils';
+import { firestoreDb } from '../database/firestoreDatabase';
 import {
   ContagemRecord,
   ImportLog,
@@ -165,8 +166,15 @@ export function getContagens(): ContagemRecord[] {
   }
 }
 
+function getCompanyId(): string {
+  return (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+}
+
 export function saveContagens(records: ContagemRecord[]): void {
-  localStorage.setItem(STORAGE_KEYS.CONTAGENS, JSON.stringify(records));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CONTAGENS, JSON.stringify(records));
+  } catch (_) {}
+  firestoreDb.batchUpsert('af_estoque_contagens', records, getCompanyId()).catch(() => {});
 }
 
 export function getContagensLogs(): ImportLog[] {
@@ -184,7 +192,10 @@ export function getContagensLogs(): ImportLog[] {
 }
 
 export function saveContagensLogs(logs: ImportLog[]): void {
-  localStorage.setItem(STORAGE_KEYS.CONTAGENS_LOGS, JSON.stringify(logs));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CONTAGENS_LOGS, JSON.stringify(logs));
+  } catch (_) {}
+  firestoreDb.batchUpsert('af_estoque_contagens_logs', logs, getCompanyId()).catch(() => {});
 }
 
 // ── CONTINGENCY AREA ──
@@ -203,7 +214,10 @@ export function getContingenciaItens(): ContingenciaItem[] {
 }
 
 export function saveContingenciaItens(itens: ContingenciaItem[]): void {
-  localStorage.setItem(STORAGE_KEYS.CONTINGENCIA_ITENS, JSON.stringify(itens));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CONTINGENCIA_ITENS, JSON.stringify(itens));
+  } catch (_) {}
+  firestoreDb.batchUpsert('af_estoque_contingencia_itens', itens, getCompanyId()).catch(() => {});
 }
 
 export function getContingenciaHistorico(): ContingenciaMovimentacao[] {
@@ -217,7 +231,10 @@ export function getContingenciaHistorico(): ContingenciaMovimentacao[] {
 }
 
 export function saveContingenciaHistorico(list: ContingenciaMovimentacao[]): void {
-  localStorage.setItem(STORAGE_KEYS.CONTINGENCIA_HISTORICO, JSON.stringify(list));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CONTINGENCIA_HISTORICO, JSON.stringify(list));
+  } catch (_) {}
+  firestoreDb.batchUpsert('af_estoque_contingencia_historico', list, getCompanyId()).catch(() => {});
 }
 
 // ── VENDA MÉDIA ──
@@ -242,6 +259,8 @@ export function saveVendaMediaItens(itens: VendaMediaItem[]): void {
     localStorage.setItem(STORAGE_KEYS.VENDA_MEDIA, jsonStr);
   } catch (_) {}
   setMediaItem(STORAGE_KEYS.VENDA_MEDIA, jsonStr);
+  const mapped = itens.map(it => ({ id: String(it.codigo), ...it }));
+  firestoreDb.batchUpsert('af_estoque_venda_media', mapped, getCompanyId()).catch(() => {});
 }
 
 export function getVendaMediaLogs(): ImportVendaMediaLog[] {
@@ -276,6 +295,7 @@ export function saveVendaMediaLogs(logs: ImportVendaMediaLog[]): void {
     localStorage.setItem(STORAGE_KEYS.VENDA_MEDIA_LOGS, jsonStr);
   } catch (_) {}
   setMediaItem(STORAGE_KEYS.VENDA_MEDIA_LOGS, jsonStr);
+  firestoreDb.batchUpsert('af_estoque_venda_media_logs', logs, getCompanyId()).catch(() => {});
 }
 
 // ── ESTOQUE DISPONÍVEL 02.05.02 ──
@@ -296,6 +316,8 @@ export function saveEstoqueDisponivel0205Itens(itens: EstoqueDisponivel0205Item[
     localStorage.setItem(STORAGE_KEYS.ESTOQUE_DISPONIVEL_0205, jsonStr);
   } catch (_) {}
   setMediaItem(STORAGE_KEYS.ESTOQUE_DISPONIVEL_0205, jsonStr);
+  const mapped = itens.map(it => ({ id: String(it.codigo), ...it }));
+  firestoreDb.batchUpsert('af_estoque_disponivel_0205', mapped, getCompanyId()).catch(() => {});
 }
 
 export function getEstoqueDisponivel0205Logs(): ImportEstoqueDisponivelLog[] {
@@ -309,7 +331,10 @@ export function getEstoqueDisponivel0205Logs(): ImportEstoqueDisponivelLog[] {
 }
 
 export function saveEstoqueDisponivel0205Logs(logs: ImportEstoqueDisponivelLog[]): void {
-  localStorage.setItem(STORAGE_KEYS.ESTOQUE_DISPONIVEL_0205_LOGS, JSON.stringify(logs));
+  try {
+    localStorage.setItem(STORAGE_KEYS.ESTOQUE_DISPONIVEL_0205_LOGS, JSON.stringify(logs));
+  } catch (_) {}
+  firestoreDb.batchUpsert('af_estoque_disponivel_0205_logs', logs, getCompanyId()).catch(() => {});
 }
 
 // ── CALCULATION ENGINE: POLÍTICA DE ESTOQUE (REQUIREMENT 16, 17, 18, 19) ──
@@ -513,6 +538,7 @@ export function savePosicaoPallet021101Itens(itens: import('../types/estoque').P
   } catch (e) {
     console.error('Error saving Posicao Pallet 02.11.01 items:', e);
   }
+  firestoreDb.batchUpsert('af_estoque_posicao_pallet', itens, getCompanyId()).catch(() => {});
 }
 
 export function getPosicaoPallet021101Logs(): import('../types/estoque').ImportPosicaoPalletLog[] {
@@ -531,6 +557,7 @@ export function savePosicaoPallet021101Logs(logs: import('../types/estoque').Imp
   } catch (e) {
     console.error('Error saving Posicao Pallet 02.11.01 logs:', e);
   }
+  firestoreDb.batchUpsert('af_estoque_posicao_pallet_logs', logs, getCompanyId()).catch(() => {});
 }
 
 export interface AreaMetasConfig {
@@ -593,5 +620,6 @@ export function saveCapacityAreaMetas(metas: AreaMetasConfig) {
   } catch (e) {
     console.error('Error saving capacity metas:', e);
   }
+  firestoreDb.create('af_capacity_area_metas', { id: 'capacity_area_metas_doc', ...metas }, getCompanyId(), 'capacity_area_metas_doc').catch(() => {});
 }
 

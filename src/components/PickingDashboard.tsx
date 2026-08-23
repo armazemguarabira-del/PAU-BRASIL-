@@ -1842,7 +1842,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
                           labelClassName="text-slate-800 text-xs font-black"
                           formatter={(value: any) => [`${value} palete(s)`, 'Paletes Finalizados']}
                         />
-                        <Bar dataKey="quantidade" fill="#f5a623" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="quantidade" fill="#f5a623" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                           {finalizedPalletsByHour.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#f5a623' : '#d97706'} />
                           ))}
@@ -1886,7 +1886,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
                             contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
                             labelClassName="text-slate-800 text-xs font-black"
                           />
-                          <Bar dataKey="avgTime" name="Tempo Médio (min)" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                          <Bar dataKey="avgTime" name="Tempo Médio (min)" fill="#3b82f6" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                             {operatorAvgTimeData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#3b82f6'} />
                             ))}
@@ -2026,7 +2026,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
                           contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
                           labelClassName="text-slate-800 text-xs font-black"
                         />
-                        <Bar dataKey="pallets" fill="#10b981" radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="pallets" fill="#10b981" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -2057,7 +2057,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
                             contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
                             itemStyle={{ fontSize: 10, color: '#1e293b' }}
                           />
-                          <Line type="monotone" dataKey="solicitacoes" name="Solicitações" stroke="#3b82f6" strokeWidth={2.5} activeDot={{ r: 5 }} />
+                          <Line type="monotone" dataKey="solicitacoes" name="Solicitações" stroke="#3b82f6" strokeWidth={2.5} isAnimationActive={false} activeDot={{ r: 5 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     )}

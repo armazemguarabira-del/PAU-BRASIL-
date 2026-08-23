@@ -149,7 +149,11 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     const rows = customManualRows.length > 0 ? [...customManualRows, ...officialRows] : [...officialRows];
     rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
     setDespejoRows(rows);
-    localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
+    if (customManualRows.length > 0) {
+      try {
+        localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(customManualRows));
+      } catch (e) {}
+    }
   }, [empresa?.id]);
 
   useEffect(() => {

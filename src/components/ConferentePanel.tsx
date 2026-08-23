@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { TarefasRepository } from '../db';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { Usuario, Empresa, Tarefa, ArmazemTemperaturaLog, TmrDemand } from '../types';
 import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
 import { useEmpresaData } from '../context/EmpresaDataContext';
@@ -27,7 +28,6 @@ import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
 import { getStoredTempLogs } from '../utils/tempStorage';
 import { saveJornadaRecord, saveMultipleJornadas, saveDailyFaturadoRecord, getStoredJornadas, getStoredMontagens, saveMontagemRecord, finalizarMontagemRecord, WlpMontagemRecord, JornadaRecord } from '../utils/jornadaUtils';
-import { OperationalNotificationBell } from './OperationalNotificationBell';
 
 const SAMPLE_03114902_CSV = `UNB;Nome UNB;Transportadora;Nome Transportadora;Data Entrega;Roteirizado;Nro do Mapa;Nro do RoadShow;Hora Imp Roadshow;AS / Rota;Armazém;Veículo;Placa;Veiculo Substituto;Motorista;Carga;MPD;Hora MPD;Classificação;KM Prev.;Tempo Prev. (+almoço);Entregas;Total de caixas;% Ocupação Caixas;Total peso;% Ocupação Peso;% Tempo;% Eficiência;Ação;Mapas da Ação;Usuario;Data;Hora;Carga Atual;Excesso;Filial Origem;Cidades +Entregas;Região +Entregas;Clientes;Mapa Transbordo;
 5;PAU BRASIL GUARABIRA;1;DISTRIBUIDORA DE BEBIDAS PAU BRASIL BREJ;31/07/2026;Sim;016078;05;19:56:09;Rota;01;Toco;RLR8G79;;000000000010;Fixa;Saída portaria;07:02;;172,54;11:41:00;58;208,58;64,77 ;5770;82,43 ;100,00;82,43 ;;;;;;Roterizada;Tempo;;TACIMA (30) / DONA INES (25) / RIACHAO (5);;
@@ -732,6 +732,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
     setTempLogs(updated);
     localStorage.setItem('armazem_temperatura_logs', JSON.stringify(updated));
+    firestoreDb.batchUpsert('armazem_temperatura_logs', updated, empresaId).catch(() => {});
     window.dispatchEvent(new Event('armazem_temp_updated'));
     toast(`Temperatura de ${tempNum}°C (${tempHora}) registrada por ${loggedUserLabel}!`);
 
@@ -743,6 +744,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     const updated = tempLogs.filter(l => l.id !== id);
     setTempLogs(updated);
     localStorage.setItem('armazem_temperatura_logs', JSON.stringify(updated));
+    firestoreDb.delete('armazem_temperatura_logs', id, empresaId).catch(() => {});
     window.dispatchEvent(new Event('armazem_temp_updated'));
     toast('Registro de temperatura removido.');
   };
@@ -1164,7 +1166,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         <div>
           <span className="font-sans font-black text-sm tracking-widest text-[#f5a623] uppercase flex items-center gap-2">
             <Truck className="w-4 h-4 text-amber-400" /> CONFERENTE / ADM & GESTÃO EFC / EFD
-            <OperationalNotificationBell user={user} userRole="conferente" onNavigate={(panel, tab) => { if (tab) setPanelTab(tab as any); }} />
           </span>
           <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
             Despacho de Pátio, Importação do Relatório 03.11.49.02 e Controle de Pernoites (D1–D4)

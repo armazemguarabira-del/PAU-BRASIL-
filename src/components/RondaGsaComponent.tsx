@@ -32,6 +32,7 @@ import {
 import { exportRondaGsaManualPdf } from '../utils/exportRondaGsaPdf';
 import * as XLSX from 'xlsx';
 import { RondaGsaRepository } from '../db';
+import { firestoreDb } from '../database/firestoreDatabase';
 
 export type NivelAvaliacao = 'excelente' | 'bom' | 'razoavel' | 'ruim';
 
@@ -189,6 +190,14 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
       } catch (e) {
         console.warn('Fallback loading Ronda GSA:', e);
       }
+
+      try {
+        const doc = await firestoreDb.getById<{ url?: string }>('ronda_gsa_config', 'pasta_compartilhada', empresaId);
+        if (doc && doc.url) {
+          setPastaCompartilhadaUrl(doc.url);
+          localStorage.setItem('ronda_gsa_pasta_compartilhada', doc.url);
+        }
+      } catch (_) {}
     };
 
     fetchFirestoreGSA();
@@ -285,6 +294,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
   const handleSavePastaCompartilhada = (url: string) => {
     setPastaCompartilhadaUrl(url);
     localStorage.setItem('ronda_gsa_pasta_compartilhada', url);
+    firestoreDb.create('ronda_gsa_config', { id: 'pasta_compartilhada', url, atualizadoEm: new Date().toISOString() }, empresaId, 'pasta_compartilhada').catch(() => {});
     setIsEditingPasta(false);
   };
 

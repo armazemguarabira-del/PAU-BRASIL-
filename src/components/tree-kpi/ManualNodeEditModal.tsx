@@ -73,6 +73,8 @@ export const ManualNodeEditModal: React.FC<ManualNodeEditModalProps> = ({
   const [label, setLabel] = useState(node?.label || '');
   const [sublabel, setSublabel] = useState(node?.sublabel || '');
   const [skuCode, setSkuCode] = useState(node?.skuCode || '');
+  const [meta, setMeta] = useState(node?.meta !== undefined ? String(node.meta) : (node?.percentage !== undefined && node.percentage > 0 ? `${node.percentage}%` : ''));
+  const [real, setReal] = useState(node?.real !== undefined ? String(node.real) : (node?.value !== undefined && node.value !== 0 ? String(node.value) : ''));
   const [value, setValue] = useState(node?.value !== undefined ? String(node.value) : '0');
   const [volume, setVolume] = useState(node?.volume !== undefined ? String(node.volume) : '0');
   const [percentage, setPercentage] = useState(node?.percentage !== undefined ? String(node.percentage) : '');
@@ -129,6 +131,8 @@ export const ManualNodeEditModal: React.FC<ManualNodeEditModalProps> = ({
       label: label.trim(),
       sublabel: sublabel.trim() || undefined,
       skuCode: skuCode.trim() || undefined,
+      meta: meta.trim() || undefined,
+      real: real.trim() || undefined,
       value: numValue,
       volume: numVolume,
       percentage: numPercentage,
@@ -239,94 +243,44 @@ export const ManualNodeEditModal: React.FC<ManualNodeEditModalProps> = ({
             )}
           </div>
 
-          {/* Value & Volume */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                Valor ({currencySymbol}) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none font-mono font-bold text-rose-700"
-              />
+          {/* META & REAL (Main KPI Target and Actual Values) */}
+          <div className="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-emerald-50/90 border border-blue-200 rounded-2xl space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-blue-600" />
+                Indicadores Principais (META & REAL)
+              </span>
+              <span className="text-[10px] text-blue-700 font-bold bg-blue-100/70 px-2 py-0.5 rounded-full">Exibidos no card</span>
             </div>
-            <div>
-              <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                Volume ({unitName})
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={volume}
-                onChange={(e) => setVolume(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none font-mono font-bold text-blue-900"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                % Participação
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={percentage}
-                onChange={(e) => setPercentage(e.target.value)}
-                placeholder="Ex: 19.4"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none font-mono font-bold"
-              />
-            </div>
-          </div>
 
-          {/* Unit price for Terminal Level */}
-          {isTerminalItemLevel && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                  Preço Médio Unitário (R$)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(e.target.value)}
-                  placeholder="Ex: 3.25"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none font-mono font-bold text-slate-800"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                  Resumo de Lançamentos
+                <label className="block text-[11px] font-black uppercase text-blue-700 tracking-wider mb-1">
+                  META (Objetivo)
                 </label>
                 <input
                   type="text"
-                  value={metaInfo}
-                  onChange={(e) => setMetaInfo(e.target.value)}
-                  placeholder="Ex: 3 lançamentos individuais"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs"
+                  value={meta}
+                  onChange={(e) => setMeta(e.target.value)}
+                  placeholder="Ex: 98,5% ou 150 cx/h"
+                  className="w-full px-3 py-2.5 rounded-xl border border-blue-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none font-mono font-black text-blue-950 text-sm shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase text-emerald-700 tracking-wider mb-1">
+                  REAL (Realizado)
+                </label>
+                <input
+                  type="text"
+                  value={real}
+                  onChange={(e) => setReal(e.target.value)}
+                  placeholder="Ex: 95,2% ou 142 cx/h"
+                  className="w-full px-3 py-2.5 rounded-xl border border-emerald-300 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none font-mono font-black text-emerald-950 text-sm shadow-2xs"
                 />
               </div>
             </div>
-          )}
-
-          {/* Info subtitle for intermediate levels */}
-          {!isTerminalItemLevel && (
-            <div>
-              <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1">
-                Texto de Rodapé do Card (Ex: "Dados Operacionais")
-              </label>
-              <input
-                type="text"
-                value={metaInfo}
-                onChange={(e) => setMetaInfo(e.target.value)}
-                placeholder="Ex: Dados Operacionais • 12 itens"
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs"
-              />
-            </div>
-          )}
+          </div>
 
           {/* Relocate Parent Branch (if applicable) */}
           {availableParents && availableParents.length > 0 && node && (
@@ -351,49 +305,6 @@ export const ManualNodeEditModal: React.FC<ManualNodeEditModalProps> = ({
               </p>
             </div>
           )}
-
-          {/* Critical Highlight & Icon selection */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-black uppercase text-slate-800 tracking-wider flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isCritical}
-                  onChange={(e) => setIsCritical(e.target.checked)}
-                  className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500"
-                />
-                Marcar como Ponto Crítico (Destaque Vermelho/Alerta)
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-black uppercase text-slate-600 tracking-wider mb-1.5">
-                Ícone do Card
-              </label>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                {AVAILABLE_ICONS.map(item => {
-                  const IconC = item.icon;
-                  const isSel = iconName === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setIconName(item.id)}
-                      className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                        isSel 
-                          ? 'bg-blue-100 border-blue-500 text-blue-900 font-bold shadow-xs' 
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
-                      }`}
-                      title={item.label}
-                    >
-                      <IconC className="w-4 h-4" />
-                      <span className="text-[9px] truncate max-w-full">{item.id}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
 
           {/* Terminal Levels (5 or 7): Individual Record Launches Builder */}
           {isTerminalItemLevel && (

@@ -1389,6 +1389,11 @@ export default function CadastrosPanel({
     const updated = metas.filter(m => m.operacaoKey !== keyToDelete);
     setMetas(updated);
     localStorage.setItem(`metas_operacao_${empresaId}`, JSON.stringify(updated));
+    try {
+      await metasOperacaoRepo.delete(keyToDelete, empresaId);
+    } catch (e) {
+      console.warn('Metas delete warning:', e);
+    }
     alert('Meta removida com sucesso!');
   };
 

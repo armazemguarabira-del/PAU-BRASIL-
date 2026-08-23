@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { QuebrasRepository } from '../db';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
-import { TrendingUp, CheckCircle, Clock, Award, BarChart2, AlertTriangle, FileSpreadsheet, Upload, Download, FileText, Database, Check, RefreshCw, Layers, ExternalLink } from 'lucide-react';
+import { TrendingUp, Clock, Award, BarChart2, AlertTriangle, FileSpreadsheet, Upload, Download, FileText, Database, Check, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
@@ -13,7 +13,6 @@ import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { safeSetLocalStorage } from '../utils/safeLocalStorage';
 import { PaginationControls } from './common/PaginationControls';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
-import LossHierarchyTree from './LossHierarchyTree';
 
 interface QuebrasPanelProps {
   user: Usuario;
@@ -146,7 +145,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
   }, [colaboradorQuebrou, colaboradoresList]);
   
-  const [activeTab, setActiveTab] = useState<'form' | 'import' | 'stats' | 'hist' | 'tree'>('form');
+  const [activeTab, setActiveTab] = useState<'form' | 'import' | 'stats' | 'hist'>('form');
   const [quebras, setQuebras] = useState<QuebraRow[]>([]);
   const [registering, setRegistering] = useState(false);
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
@@ -721,38 +720,11 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       
       <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs flex-wrap gap-2">
         <span className="font-sans font-black text-sm tracking-widest text-rose-600 dark:text-[#ef4444] uppercase">💥 CONTROLE DE QUEBRAS E AVARIAS</span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab('tree')}
-            className="px-3.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-xs"
-          >
-            <Layers className="w-4 h-4 text-amber-400" />
-            Árvore de Perdas (5 Níveis)
-          </button>
-          <button
-            onClick={() => {
-              const url = `${window.location.origin}${window.location.pathname}?view=loss-tree`;
-              window.open(url, '_blank');
-            }}
-            title="Abrir a Árvore de Decomposição em outra página/aba exclusiva"
-            className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-400 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-          >
-            <ExternalLink className="w-4 h-4 text-blue-400" />
-            Abrir em Nova Página
-          </button>
-        </div>
       </div>
 
       <SopBannerViewer operation="quebras" operationName="Quebras e Avarias" theme="dark" />
 
       <div className="ptabs border-b border-[#222d3a] flex gap-2 flex-wrap">
-        <button 
-          onClick={() => setActiveTab('tree')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative flex items-center gap-2 ${activeTab === 'tree' ? 'text-amber-400 border-b-2 border-b-amber-400 bg-amber-500/10 rounded-t-lg' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          🌳 Árvore de Perdas (Loss Tree)
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">5 Níveis</span>
-        </button>
         <button 
           onClick={() => setActiveTab('form')}
           className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
@@ -1330,13 +1302,6 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
               </>
             );
           })()}
-        </div>
-      )}
-
-      {/* Árvore de Hierarquia de Decomposição de Perdas / Despesas (Loss Tree) */}
-      {activeTab === 'tree' && (
-        <div className="w-full">
-          <LossHierarchyTree quebras={quebras} />
         </div>
       )}
 

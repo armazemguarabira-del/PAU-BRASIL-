@@ -33,7 +33,6 @@ import SimulacaoAcoesPanel from './components/SimulacaoAcoesPanel';
 import DadosRetroativosPanel from './components/DadosRetroativosPanel';
 import SimuladorRessuprimentoPanel from './components/SimuladorRessuprimentoPanel';
 import RankingModule from './components/RankingModule';
-import EficienciaMontagemPanel from './components/EficienciaMontagemPanel';
 import TreeKpiViewer from './components/TreeKpiViewer';
 import LossHierarchyTree from './components/LossHierarchyTree';
 import CadastrosPanel from './components/CadastrosPanel';
@@ -852,8 +851,6 @@ export default function App() {
         return <SemanaQualidadePanel user={user} theme={theme} />;
       case 'armazem-facil-padrao-02':
         return <ArmazemFacilPadrao02 user={user} empresa={empresa} theme={theme} />;
-      case 'eficiencia-montagem':
-        return <EficienciaMontagemPanel user={user} />;
       case 'kpi-arvore':
         return <TreeKpiViewer user={user} />;
       case 'agenda-executiva':
@@ -921,7 +918,15 @@ export default function App() {
         );
       case 'loss-tree':
       case 'arvore-perdas':
-        return <LossHierarchyTree />;
+        return (
+          <QuebrasDashboard 
+            user={user} 
+            empresa={empresa} 
+            onBack={() => setActivePanel('visao-geral')} 
+            theme={theme}
+            initialSubTab="arvore"
+          />
+        );
     }
   };
 

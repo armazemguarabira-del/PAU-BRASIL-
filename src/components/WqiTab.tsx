@@ -48,6 +48,7 @@ import CalendarFilter from './CalendarFilter';
 import { PRODUCTS } from '../planosData';
 import { PRODUCT_MASTER_DATA, PRODUCT_MASTER_MAP, findProductMaster } from '../data/productMasterData';
 import { useEmpresaData } from '../context/EmpresaDataContext';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { COLABORADORES_QUEBRA } from './QuebrasPanel';
 import { normalizeCollaboratorName } from '../utils/colaboradorUtils';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
@@ -349,11 +350,22 @@ export function getItemValorReal(q: Partial<QuebraRow>): number {
   const qty = Number(q.quantidade) || 0;
   if (qty <= 0) return 0;
 
-  const priceKey = `${q.codProduto || ''}_${q.descricao || ''}_${q.valorUnitario || ''}_${q.valorTotal || ''}`;
+  // 1. Se a linha já tem valorTotal ou valor registrado explicitamente (ex: dataset oficial auditado)
+  if (q.valorTotal !== undefined && q.valorTotal !== null && Number(q.valorTotal) > 0) {
+    return Number(q.valorTotal);
+  }
+  if (q.valor !== undefined && q.valor !== null && Number(q.valor) > 0) {
+    return Number(q.valor);
+  }
+  if (q.valorUnitario !== undefined && q.valorUnitario !== null && Number(q.valorUnitario) > 0) {
+    return Number(q.valorUnitario) * qty;
+  }
+
+  const priceKey = `${q.codProduto || ''}_${q.descricao || ''}`;
   let unitPrice = unitPriceCache.get(priceKey);
 
   if (unitPrice === undefined) {
-    // 1. Primary lookup in PRODUCT_MASTER_DATA by codProduto or description
+    // 2. Lookup in PRODUCT_MASTER_DATA by codProduto or description
     let pm: any;
     if (q.codProduto) {
       const codeClean = String(q.codProduto).trim().replace(/^0+/, '');
@@ -385,10 +397,6 @@ export function getItemValorReal(q: Partial<QuebraRow>): number {
 
     if (catalogUnitPrice > 0) {
       unitPrice = catalogUnitPrice;
-    } else if (q.valorUnitario && Number(q.valorUnitario) > 0) {
-      unitPrice = Number(q.valorUnitario);
-    } else if (q.valorTotal && Number(q.valorTotal) > 0 && qty > 0) {
-      unitPrice = Number(q.valorTotal) / qty;
     } else {
       unitPrice = 3.50;
     }
@@ -825,18 +833,20 @@ export default function WqiTab({
 
   const [area2025Filter, setArea2025Filter] = useState<'TODOS' | 'ARMAZEM' | 'ENTREGA' | 'PUXADA'>('TODOS');
 
-  // Save WQI matrix to localStorage whenever updated
+  // Save WQI matrix to localStorage and Firestore whenever updated
   useEffect(() => {
     try {
       localStorage.setItem('wqi_hl_faturado_map', JSON.stringify(hlFaturadoMap));
+      firestoreDb.create('wqi_config', { hlFaturadoMap, atualizadoEm: new Date().toISOString() }, empresaId, 'hl_faturado_map').catch(() => {});
     } catch (e) {}
-  }, [hlFaturadoMap]);
+  }, [hlFaturadoMap, empresaId]);
 
   useEffect(() => {
     try {
       localStorage.setItem('wqi_real2025_data', JSON.stringify(real2025Data));
+      firestoreDb.create('wqi_config', { real2025Data, atualizadoEm: new Date().toISOString() }, empresaId, 'real2025_data').catch(() => {});
     } catch (e) {}
-  }, [real2025Data]);
+  }, [real2025Data, empresaId]);
 
   // Inline cell edit states
   const [editingCell, setEditingCell] = useState<{ rowKey: 'hlFaturado' | 'real2025'; monthIdx: number } | null>(null);

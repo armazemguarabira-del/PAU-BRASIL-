@@ -112,7 +112,7 @@ export default function Sidebar({
       subItems: [
         'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
         'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 'ranking-produtividade', 
-        'qualidade', 'eficiencia-montagem', 'kpi-arvore'
+        'qualidade', 'kpi-arvore'
       ]
     },
     {

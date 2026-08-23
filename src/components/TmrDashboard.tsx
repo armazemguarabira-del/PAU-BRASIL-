@@ -3,6 +3,7 @@ import { Usuario, Empresa, TmrDemand } from '../types';
 import { getStoredTmrDemands } from '../utils/tmrManager';
 import { getStoredEfcVehicles, EfcEfdVehicle } from '../utils/efcEfdManager';
 import { useSystemTargets } from '../utils/useSystemTargets';
+import { firestoreDb } from '../database/firestoreDatabase';
 import { ManualInstrucaoCard, MetricDefinition } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
 import { SopBannerViewer } from './SopBannerViewer';
@@ -82,17 +83,39 @@ export default function TmrDashboard({ user, empresa, theme = 'dark', onBack }: 
     return saved ? Number(saved) : (targets.tmr_terceiros ?? 50);
   });
 
+  useEffect(() => {
+    firestoreDb.getById<{ metaCarreta?: number; metaRecarga?: number; metaTerceiros?: number }>('tmr_metas_config', `tmr_metas_${empresaId}`, empresaId).then(doc => {
+      if (doc) {
+        if (doc.metaCarreta !== undefined) {
+          setMetaCarretaMin(doc.metaCarreta);
+          localStorage.setItem(`meta_tmr_carreta_${empresaId}`, String(doc.metaCarreta));
+        }
+        if (doc.metaRecarga !== undefined) {
+          setMetaRecargaMin(doc.metaRecarga);
+          localStorage.setItem(`meta_tmr_recarga_${empresaId}`, String(doc.metaRecarga));
+        }
+        if (doc.metaTerceiros !== undefined) {
+          setMetaTerceirosMin(doc.metaTerceiros);
+          localStorage.setItem(`meta_tmr_terceiros_${empresaId}`, String(doc.metaTerceiros));
+        }
+      }
+    }).catch(() => {});
+  }, [empresaId]);
+
   const updateMetaCarreta = (val: number) => {
     setMetaCarretaMin(val);
     localStorage.setItem(`meta_tmr_carreta_${empresaId}`, String(val));
+    firestoreDb.create('tmr_metas_config', { id: `tmr_metas_${empresaId}`, metaCarreta: val, metaRecarga: metaRecargaMin, metaTerceiros: metaTerceirosMin }, empresaId, `tmr_metas_${empresaId}`).catch(() => {});
   };
   const updateMetaRecarga = (val: number) => {
     setMetaRecargaMin(val);
     localStorage.setItem(`meta_tmr_recarga_${empresaId}`, String(val));
+    firestoreDb.create('tmr_metas_config', { id: `tmr_metas_${empresaId}`, metaCarreta: metaCarretaMin, metaRecarga: val, metaTerceiros: metaTerceirosMin }, empresaId, `tmr_metas_${empresaId}`).catch(() => {});
   };
   const updateMetaTerceiros = (val: number) => {
     setMetaTerceirosMin(val);
     localStorage.setItem(`meta_tmr_terceiros_${empresaId}`, String(val));
+    firestoreDb.create('tmr_metas_config', { id: `tmr_metas_${empresaId}`, metaCarreta: metaCarretaMin, metaRecarga: metaRecargaMin, metaTerceiros: val }, empresaId, `tmr_metas_${empresaId}`).catch(() => {});
   };
 
   const META_CARRETA_MIN = metaCarretaMin;

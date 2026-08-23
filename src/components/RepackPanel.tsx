@@ -217,7 +217,11 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
       const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
       setRepackRows(rows);
-      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
+      if (customRows.length > 0) {
+        try {
+          localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(customRows));
+        } catch (e) {}
+      }
     };
 
     refreshFromStorageOrBase();

@@ -685,18 +685,6 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
         </div>
 
         <div className="flex items-center gap-3">
-          {activeSetor === 'Picking' && onNavigate && (
-            <button
-              onClick={() => onNavigate('eficiencia-montagem')}
-              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg transition-all cursor-pointer flex items-center gap-2 shrink-0"
-              title="Acessar performance do Fast Picking na plataforma secundária"
-            >
-              <Zap className="w-4 h-4 text-slate-950" />
-              <span>Acessar Fast Picking</span>
-              <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </button>
-          )}
-
           <div className="bg-white/10 border border-white/20 p-3 rounded-xl flex items-center gap-3 shrink-0">
             <Award className="w-8 h-8 text-amber-300" />
             <div>

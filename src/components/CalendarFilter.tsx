@@ -168,16 +168,15 @@ export default function CalendarFilter({
 
   // Day cell click handler
   const handleDayClick = (dayString: string) => {
-    if (!tempStart || (tempStart && tempEnd)) {
+    if (!tempStart || (tempStart && tempEnd && tempStart !== tempEnd)) {
       setTempStart(dayString);
-      setTempEnd('');
-    } else {
-      // We have tempStart but no tempEnd
+      setTempEnd(dayString);
+    } else if (tempStart && (!tempEnd || tempStart === tempEnd)) {
       const start = parseDateString(tempStart);
       const clicked = parseDateString(dayString);
       if (start && clicked && clicked < start) {
-        // Clicked date is before current start, so reset start to clicked
         setTempStart(dayString);
+        setTempEnd(tempStart);
       } else {
         setTempEnd(dayString);
       }
@@ -262,7 +261,8 @@ export default function CalendarFilter({
   };
 
   const handleApply = () => {
-    onChange(tempStart, tempEnd);
+    const finalEnd = tempEnd || tempStart;
+    onChange(tempStart, finalEnd);
     setIsOpen(false);
   };
 

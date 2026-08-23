@@ -29,6 +29,19 @@ import {
 import { db } from '../firebase';
 import { QueryOptions, QueryFilter, PaginatedResult } from './databaseTypes';
 
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean;
+}
+
 export class FirestoreDatabase {
   private static instance: FirestoreDatabase;
 
@@ -173,8 +186,9 @@ export class FirestoreDatabase {
 
   public async create<T>(collectionName: string, data: any, empresaId = 'demo', customDocId?: string): Promise<T> {
     const colRef = collection(db, 'empresas', empresaId, collectionName);
+    const sanitizedData = sanitizeForFirestore(data) || {};
     const payload = {
-      ...data,
+      ...sanitizedData,
       empresaId,
       _criadoEm: new Date().toISOString(),
       _serverTimestamp: serverTimestamp()
@@ -192,8 +206,9 @@ export class FirestoreDatabase {
 
   public async update<T>(collectionName: string, id: string, data: Partial<T>, empresaId = 'demo'): Promise<void> {
     const docRef = doc(db, 'empresas', empresaId, collectionName, id);
+    const sanitizedData = sanitizeForFirestore(data) || {};
     await updateDoc(docRef, {
-      ...data,
+      ...sanitizedData,
       _atualizadoEm: new Date().toISOString()
     });
   }
@@ -215,8 +230,9 @@ export class FirestoreDatabase {
     for (const item of items) {
       const docId = String(item._docId || item.id || Math.random().toString(36).substring(2, 9));
       const docRef = doc(colRef, docId);
+      const sanitized = sanitizeForFirestore(item) || {};
       batch.set(docRef, {
-        ...item,
+        ...sanitized,
         empresaId,
         _atualizadoEm: new Date().toISOString()
       }, { merge: true });

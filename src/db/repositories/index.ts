@@ -22,6 +22,7 @@ import {
   FefoRelocationDemand,
   ArmazemTemperaturaLog
 } from '../../types';
+import { CustomKpiTree } from '../../types/treeKpiTypes';
 
 // Repositórios Operacionais
 export const RepackRepository = new BaseRepository<RepackRow>('repack');
@@ -34,6 +35,7 @@ export const RefugoRepository = new BaseRepository<BlitzRefugoRow>('blitz_refugo
 export const TarefasRepository = new BaseRepository<Tarefa>('tarefas');
 export const PlanosAcaoRepository = new BaseRepository<RepackActionPlan>('planos_acao');
 export const A3BoardRepository = new BaseRepository<RepackA3Board>('a3_boards');
+export const KpiTreesRepository = new BaseRepository<CustomKpiTree>('kpi_trees');
 
 // Repositórios de Cadastros e Acessos
 export const ColaboradoresRepository = new BaseRepository<ColaboradorMaster>('colaboradores');

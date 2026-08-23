@@ -21,6 +21,7 @@ import {
   getStoredReminders, 
   saveStoredReminders, 
   resetRemindersToDefault, 
+  hydrateRemindersFromFirestore,
   OperationalReminderConfig 
 } from '../utils/remindersUtils';
 
@@ -28,6 +29,18 @@ export function CadastrosLembretesManager() {
   const [reminders, setReminders] = useState<OperationalReminderConfig[]>(() => getStoredReminders());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    hydrateRemindersFromFirestore().then(list => {
+      if (list) setReminders(list);
+    });
+
+    const handleUpdate = () => {
+      setReminders(getStoredReminders());
+    };
+    window.addEventListener('af_reminders_updated', handleUpdate);
+    return () => window.removeEventListener('af_reminders_updated', handleUpdate);
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState<Omit<OperationalReminderConfig, 'id'>>({

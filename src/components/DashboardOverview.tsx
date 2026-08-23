@@ -781,7 +781,6 @@ export default function DashboardOverview({
       { id: 'gestao-capacidade', title: 'Capacidade', icon: 'Layers', val: `${capacidadePct}%`, meta: '85.0%', hit: capacidadePct <= 85.5, pct: (capacidadePct / 85) * 100 },
       { id: 'despejo-dashboard', title: 'Despejo', icon: 'Trash2', val: `${despejoAproveitamento}%`, meta: '90.0%', hit: despejoAproveitamento >= 90, pct: (despejoAproveitamento / 90) * 100 },
       { id: 'logistica-dashboard', title: 'EFC / EFD', icon: 'Truck', val: `${logisticaPct}%`, meta: '95.0%', hit: logisticaPct >= 95, pct: (logisticaPct / 95) * 100 },
-      { id: 'eficiencia-montagem', title: 'Montagem', icon: 'Zap', val: `${montagemPct}%`, meta: '100%', hit: montagemPct >= 100, pct: montagemPct },
       { id: 'politica-estoque', title: 'Politica Estoque', icon: 'BarChart3', val: validadesRows.length > 0 && criticosFefo > 0 ? 'Atenção' : 'Ideal', meta: 'Ideal', hit: criticosFefo === 0, pct: criticosFefo === 0 ? 100 : 90 },
       { id: 'dados-retroativos', title: 'Histórico', icon: 'Clock', val: empresaData.loaded ? 'Sincronizado' : 'Carregando', meta: 'Ativo', hit: true, pct: 100 },
       { id: 'kpi-arvore', title: 'Árvore KPI', icon: 'Activity', val: 'Consolidado', meta: 'OK', hit: true, pct: 100 }
@@ -1764,13 +1763,6 @@ export default function DashboardOverview({
                 className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-black uppercase tracking-wider border border-emerald-200 hover:border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> DN & Matriz SWOT
-              </button>
-
-              <button
-                onClick={() => onNavigate('eficiencia-montagem')}
-                className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black uppercase tracking-wider border border-indigo-200 hover:border-indigo-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:shadow-md"
-              >
-                <Zap className="w-3.5 h-3.5 text-indigo-600" /> Eficiência de Montagem (Fast Picking)
               </button>
 
               <button
