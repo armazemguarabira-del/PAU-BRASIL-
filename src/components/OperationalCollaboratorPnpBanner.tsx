@@ -192,45 +192,19 @@ export const OperationalCollaboratorPnpBanner: React.FC<OperationalCollaboratorP
               </div>
             </div>
           ) : (
-            /* COCKPIT DO AJUDANTE (PNP, REPACK, JORNADA) */
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
+            /* COCKPIT EXCLUSIVO DE PNP (HL/HH) */
+            <div className="flex items-center gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
               {/* PNP META VS REAL */}
-              <div className="bg-[#0b1222]/90 border border-indigo-500/30 rounded-xl p-2.5 px-3 min-w-0">
-                <span className="text-[9px] font-black uppercase text-slate-400 block truncate">PNP (HL/HH)</span>
+              <div className="bg-[#0b1222]/90 border border-indigo-500/40 rounded-xl p-2.5 px-4 min-w-[200px] sm:min-w-[220px]">
+                <span className="text-[9px] font-black uppercase tracking-wider text-indigo-300 block truncate">PNP (HL/HH)</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
-                  <strong className="text-base font-black font-mono text-emerald-400">{realPnp.toFixed(2)}</strong>
-                  <span className="text-[11px] font-mono text-slate-400">/ Meta: {metaPnp.toFixed(2)}</span>
+                  <strong className="text-lg font-black font-mono text-emerald-400">{realPnp.toFixed(2)}</strong>
+                  <span className="text-xs font-mono text-slate-400">/ Meta: {metaPnp.toFixed(2)}</span>
                 </div>
-                <span className={`text-[9px] font-black uppercase block mt-0.5 truncate ${
+                <span className={`text-[10px] font-black uppercase block mt-0.5 truncate ${
                   percentualMeta >= 100 ? 'text-emerald-400' : 'text-amber-400'
                 }`}>
-                  {percentualMeta.toFixed(1)}% da Meta
-                </span>
-              </div>
-
-              {/* RITMO REPACK META (10 CX/H) VS REAL */}
-              <div className="bg-[#0b1222]/90 border border-slate-800 rounded-xl p-2.5 px-3 min-w-0">
-                <span className="text-[9px] font-black uppercase text-slate-400 block truncate">Ritmo Repack</span>
-                <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
-                  <strong className="text-base font-black font-mono text-indigo-300">{repack.ritmoRealCxH}</strong>
-                  <span className="text-[11px] font-mono text-slate-400">/ Meta: 10 cx/h</span>
-                </div>
-                <span className={`text-[9px] font-black uppercase block mt-0.5 truncate ${
-                  repack.ritmoRealCxH >= 10 ? 'text-emerald-400' : 'text-rose-400'
-                }`}>
-                  {repack.ritmoRealCxH >= 10 ? 'Meta OK' : 'Abaixo da Meta'}
-                </span>
-              </div>
-
-              {/* HORAS & DIAS */}
-              <div className="bg-[#0b1222]/90 border border-slate-800 rounded-xl p-2.5 px-3 min-w-0">
-                <span className="text-[9px] font-black uppercase text-slate-400 block truncate">Jornada</span>
-                <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
-                  <strong className="text-base font-black font-mono text-white">{totalHoras.toFixed(1)}h</strong>
-                  <span className="text-[11px] text-slate-400">({diasTrabalhados} {diasTrabalhados === 1 ? 'dia' : 'dias'})</span>
-                </div>
-                <span className="text-[9px] text-indigo-400 font-bold uppercase block mt-0.5 truncate">
-                  Status: {statusMeta}
+                  {percentualMeta.toFixed(1)}% da Meta • {percentualMeta >= 100 ? 'Meta Batida' : 'Em Andamento'}
                 </span>
               </div>
             </div>

@@ -227,101 +227,111 @@ export const getEmbalagemName = (desc: string): string => {
   if (d.includes('1L') || d.includes('1 L') || d.includes('LITRÃO') || d.includes('LITRAO') || d.includes('1000')) return 'Garrafa 1L';
   if (d.includes('PET') || d.includes('2L') || d.includes('1.5L')) return 'PET';
   return 'Outras Embalagens';
-}// Helper to calculate HL factor and HL volume for individual items
+}// Fast memoization caches for factors and prices
+const hlFactorCache = new Map<string, number>();
+const unitPriceCache = new Map<string, number>();
+
+// Helper to calculate HL factor and HL volume for individual items
 export const getItemHlInfo = (r: Partial<QuebraRow>) => {
   const qty = Number(r.quantidade) || 0;
-  let fator = 0;
+  
+  const cacheKey = `${r.codProduto || ''}_${r.descricao || ''}_${r.embalagem || ''}_${r.fatorHl || ''}`;
+  let fator = hlFactorCache.get(cacheKey);
 
-  // 1. Primary lookup in PRODUCT_MASTER_DATA by codProduto or description
-  let pm: any;
-  if (r.codProduto) {
-    const codeClean = String(r.codProduto).trim().replace(/^0+/, '');
-    const num = parseInt(codeClean, 10);
-    if (!isNaN(num)) {
-      pm = PRODUCT_MASTER_MAP.get(num) || PRODUCT_MASTER_DATA.find(p => p.cod === num);
-    }
-  }
-  if (!pm && r.descricao) {
-    pm = findProductMaster(r.descricao);
-  }
-
-  if (pm && pm.fator > 0 && pm.fatorHecto > 0) {
-    // Unit hectoliter = SKU_FATOR_HECTO / SKU_FATOR
-    fator = pm.fatorHecto / pm.fator;
-  }
-
-  // 2. Lookup in PRODUCTS catalog by code
-  if (fator <= 0 && r.codProduto) {
-    const codeStr = String(r.codProduto).trim();
-    const codeClean = codeStr.replace(/^0+/, '');
-    const match = PRODUCTS.find(p => String(p.codigo) === codeClean || String(p.codigo) === codeStr);
-    if (match) {
-      if (match.fatorHectoPorUnidade && match.fatorHectoPorUnidade > 0) {
-        fator = match.fatorHectoPorUnidade;
-      } else if (match.fatorHecto && match.fator) {
-        fator = match.fatorHecto / match.fator;
+  if (fator === undefined) {
+    fator = 0;
+    // 1. Primary lookup in PRODUCT_MASTER_DATA by codProduto or description
+    let pm: any;
+    if (r.codProduto) {
+      const codeClean = String(r.codProduto).trim().replace(/^0+/, '');
+      const num = parseInt(codeClean, 10);
+      if (!isNaN(num)) {
+        pm = PRODUCT_MASTER_MAP.get(num) || PRODUCT_MASTER_DATA.find(p => p.cod === num);
       }
     }
-  }
-
-  // 3. Explicit r.fatorHl (only if valid unit factor <= 0.05)
-  if (fator <= 0 && r.fatorHl && Number(r.fatorHl) > 0) {
-    const fNum = Number(r.fatorHl);
-    if (fNum <= 0.05) {
-      fator = fNum;
-    } else {
-      fator = fNum / (pm?.fator || 12);
+    if (!pm && r.descricao) {
+      pm = findProductMaster(r.descricao);
     }
-  }
 
-  // 4. Fallback: Parse description / packaging volume
-  if (fator <= 0) {
-    const desc = (String(r.descricao || '') + ' ' + String(r.embalagem || '')).toUpperCase();
-    if (desc.includes('2,5L') || desc.includes('2.5L') || desc.includes('2,5 L') || desc.includes('2.5 L')) {
-      fator = 0.025; // 2.5 L = 0.025 HL
-    } else if (desc.includes('2L') || desc.includes('2 L') || desc.includes('PET 2')) {
-      fator = 0.02; // 2 L = 0.02 HL
-    } else if (desc.includes('1,5L') || desc.includes('1.5L') || desc.includes('1,5 L') || desc.includes('1.5 L')) {
-      fator = 0.015; // 1.5 L = 0.015 HL
-    } else if (desc.includes('1L') || desc.includes('1 L') || desc.includes('1000ML') || desc.includes('1000 ML') || desc.includes('1000')) {
-      fator = 0.01; // 1 L = 0.01 HL
-    } else if (desc.includes('900ML') || desc.includes('900 ML') || desc.includes('965ML')) {
-      fator = 0.009; // 900 ml = 0.009 HL
-    } else if (desc.includes('750ML') || desc.includes('750 ML') || desc.includes('750')) {
-      fator = 0.0075; // 750 ml = 0.0075 HL
-    } else if (desc.includes('600ML') || desc.includes('600 ML') || desc.includes('600')) {
-      fator = 0.006; // 600 ml = 0.006 HL
-    } else if (desc.includes('510ML') || desc.includes('510 ML')) {
-      fator = 0.0051; // 510 ml = 0.0051 HL
-    } else if (desc.includes('500ML') || desc.includes('500 ML') || desc.includes('500')) {
-      fator = 0.005; // 500 ml = 0.005 HL
-    } else if (desc.includes('473ML') || desc.includes('473 ML') || desc.includes('473') || desc.includes('LATÃO') || desc.includes('LATAO')) {
-      fator = 0.00473; // 473 ml = 0.00473 HL
-    } else if (desc.includes('355ML') || desc.includes('355 ML') || desc.includes('355')) {
-      fator = 0.00355; // 355 ml = 0.00355 HL
-    } else if (desc.includes('350ML') || desc.includes('350 ML') || desc.includes('350')) {
-      fator = 0.0035; // 350 ml = 0.0035 HL
-    } else if (desc.includes('330ML') || desc.includes('330 ML') || desc.includes('330') || desc.includes('LN') || desc.includes('LONG')) {
-      fator = 0.0033; // 330 ml = 0.0033 HL
-    } else if (desc.includes('300ML') || desc.includes('300 ML') || desc.includes('300') || desc.includes('ROMARINHO') || desc.includes('KS')) {
-      fator = 0.003; // 300 ml = 0.003 HL
-    } else if (desc.includes('275ML') || desc.includes('275 ML') || desc.includes('275')) {
-      fator = 0.00275; // 275 ml = 0.00275 HL
-    } else if (desc.includes('269ML') || desc.includes('269 ML') || desc.includes('269')) {
-      fator = 0.00269; // 269 ml = 0.00269 HL
-    } else if (desc.includes('250ML') || desc.includes('250 ML') || desc.includes('250')) {
-      fator = 0.0025; // 250 ml = 0.0025 HL
-    } else if (desc.includes('210ML') || desc.includes('210 ML')) {
-      fator = 0.0021; // 210 ml = 0.0021 HL
-    } else if (desc.includes('200ML') || desc.includes('200 ML') || desc.includes('200')) {
-      fator = 0.002; // 200 ml = 0.002 HL
-    } else if (desc.includes('50L') || desc.includes('KEG 50')) {
-      fator = 0.5; // Keg 50L = 0.5 HL
-    } else if (desc.includes('30L') || desc.includes('KEG 30')) {
-      fator = 0.3; // Keg 30L = 0.3 HL
-    } else {
-      fator = 0.0035; // Standard default factor (~350ml)
+    if (pm && pm.fator > 0 && pm.fatorHecto > 0) {
+      // Unit hectoliter = SKU_FATOR_HECTO / SKU_FATOR
+      fator = pm.fatorHecto / pm.fator;
     }
+
+    // 2. Lookup in PRODUCTS catalog by code
+    if (fator <= 0 && r.codProduto) {
+      const codeStr = String(r.codProduto).trim();
+      const codeClean = codeStr.replace(/^0+/, '');
+      const match = PRODUCTS.find(p => String(p.codigo) === codeClean || String(p.codigo) === codeStr);
+      if (match) {
+        if (match.fatorHectoPorUnidade && match.fatorHectoPorUnidade > 0) {
+          fator = match.fatorHectoPorUnidade;
+        } else if (match.fatorHecto && match.fator) {
+          fator = match.fatorHecto / match.fator;
+        }
+      }
+    }
+
+    // 3. Explicit r.fatorHl (only if valid unit factor <= 0.05)
+    if (fator <= 0 && r.fatorHl && Number(r.fatorHl) > 0) {
+      const fNum = Number(r.fatorHl);
+      if (fNum <= 0.05) {
+        fator = fNum;
+      } else {
+        fator = fNum / (pm?.fator || 12);
+      }
+    }
+
+    // 4. Fallback: Parse description / packaging volume
+    if (fator <= 0) {
+      const desc = (String(r.descricao || '') + ' ' + String(r.embalagem || '')).toUpperCase();
+      if (desc.includes('2,5L') || desc.includes('2.5L') || desc.includes('2,5 L') || desc.includes('2.5 L')) {
+        fator = 0.025; // 2.5 L = 0.025 HL
+      } else if (desc.includes('2L') || desc.includes('2 L') || desc.includes('PET 2')) {
+        fator = 0.02; // 2 L = 0.02 HL
+      } else if (desc.includes('1,5L') || desc.includes('1.5L') || desc.includes('1,5 L') || desc.includes('1.5 L')) {
+        fator = 0.015; // 1.5 L = 0.015 HL
+      } else if (desc.includes('1L') || desc.includes('1 L') || desc.includes('1000ML') || desc.includes('1000 ML') || desc.includes('1000')) {
+        fator = 0.01; // 1 L = 0.01 HL
+      } else if (desc.includes('900ML') || desc.includes('900 ML') || desc.includes('965ML')) {
+        fator = 0.009; // 900 ml = 0.009 HL
+      } else if (desc.includes('750ML') || desc.includes('750 ML') || desc.includes('750')) {
+        fator = 0.0075; // 750 ml = 0.0075 HL
+      } else if (desc.includes('600ML') || desc.includes('600 ML') || desc.includes('600')) {
+        fator = 0.006; // 600 ml = 0.006 HL
+      } else if (desc.includes('510ML') || desc.includes('510 ML')) {
+        fator = 0.0051; // 510 ml = 0.0051 HL
+      } else if (desc.includes('500ML') || desc.includes('500 ML') || desc.includes('500')) {
+        fator = 0.005; // 500 ml = 0.005 HL
+      } else if (desc.includes('473ML') || desc.includes('473 ML') || desc.includes('473') || desc.includes('LATÃO') || desc.includes('LATAO')) {
+        fator = 0.00473; // 473 ml = 0.00473 HL
+      } else if (desc.includes('355ML') || desc.includes('355 ML') || desc.includes('355')) {
+        fator = 0.00355; // 355 ml = 0.00355 HL
+      } else if (desc.includes('350ML') || desc.includes('350 ML') || desc.includes('350')) {
+        fator = 0.0035; // 350 ml = 0.0035 HL
+      } else if (desc.includes('330ML') || desc.includes('330 ML') || desc.includes('330') || desc.includes('LN') || desc.includes('LONG')) {
+        fator = 0.0033; // 330 ml = 0.0033 HL
+      } else if (desc.includes('300ML') || desc.includes('300 ML') || desc.includes('300') || desc.includes('ROMARINHO') || desc.includes('KS')) {
+        fator = 0.003; // 300 ml = 0.003 HL
+      } else if (desc.includes('275ML') || desc.includes('275 ML') || desc.includes('275')) {
+        fator = 0.00275; // 275 ml = 0.00275 HL
+      } else if (desc.includes('269ML') || desc.includes('269 ML') || desc.includes('269')) {
+        fator = 0.00269; // 269 ml = 0.00269 HL
+      } else if (desc.includes('250ML') || desc.includes('250 ML') || desc.includes('250')) {
+        fator = 0.0025; // 250 ml = 0.0025 HL
+      } else if (desc.includes('210ML') || desc.includes('210 ML')) {
+        fator = 0.0021; // 210 ml = 0.0021 HL
+      } else if (desc.includes('200ML') || desc.includes('200 ML') || desc.includes('200')) {
+        fator = 0.002; // 200 ml = 0.002 HL
+      } else if (desc.includes('50L') || desc.includes('KEG 50')) {
+        fator = 0.5; // Keg 50L = 0.5 HL
+      } else if (desc.includes('30L') || desc.includes('KEG 30')) {
+        fator = 0.3; // Keg 30L = 0.3 HL
+      } else {
+        fator = 0.0035; // Standard default factor (~350ml)
+      }
+    }
+    hlFactorCache.set(cacheKey, fator);
   }
 
   const totalHl = qty * fator;
@@ -339,49 +349,54 @@ export function getItemValorReal(q: Partial<QuebraRow>): number {
   const qty = Number(q.quantidade) || 0;
   if (qty <= 0) return 0;
 
-  // 1. Primary lookup in PRODUCT_MASTER_DATA by codProduto or description
-  let pm: any;
-  if (q.codProduto) {
-    const codeClean = String(q.codProduto).trim().replace(/^0+/, '');
-    const num = parseInt(codeClean, 10);
-    if (!isNaN(num)) {
-      pm = PRODUCT_MASTER_MAP.get(num) || PRODUCT_MASTER_DATA.find(p => p.cod === num);
-    }
-  }
-  if (!pm && q.descricao) {
-    pm = findProductMaster(q.descricao);
-  }
+  const priceKey = `${q.codProduto || ''}_${q.descricao || ''}_${q.valorUnitario || ''}_${q.valorTotal || ''}`;
+  let unitPrice = unitPriceCache.get(priceKey);
 
-  let catalogUnitPrice = 0;
-  if (pm && pm.fator > 0 && pm.valor > 0) {
-    // Unit price = SKU_VALOR / SKU_FATOR
-    catalogUnitPrice = pm.valor / pm.fator;
-  } else if (q.codProduto || q.descricao) {
-    const codeClean = String(q.codProduto || '').replace(/^0+/, '');
-    const match = PRODUCTS.find(p => String(p.codigo) === codeClean || (q.descricao && p.descricao && p.descricao.toUpperCase().trim() === String(q.descricao).toUpperCase().trim()));
-    if (match) {
-      const p = match as any;
-      const casePrice = p.preco || p.valor || 0;
-      const fator = p.fator || 1;
-      if (casePrice > 0) {
-        catalogUnitPrice = casePrice / fator;
+  if (unitPrice === undefined) {
+    // 1. Primary lookup in PRODUCT_MASTER_DATA by codProduto or description
+    let pm: any;
+    if (q.codProduto) {
+      const codeClean = String(q.codProduto).trim().replace(/^0+/, '');
+      const num = parseInt(codeClean, 10);
+      if (!isNaN(num)) {
+        pm = PRODUCT_MASTER_MAP.get(num) || PRODUCT_MASTER_DATA.find(p => p.cod === num);
       }
     }
+    if (!pm && q.descricao) {
+      pm = findProductMaster(q.descricao);
+    }
+
+    let catalogUnitPrice = 0;
+    if (pm && pm.fator > 0 && pm.valor > 0) {
+      // Unit price = SKU_VALOR / SKU_FATOR
+      catalogUnitPrice = pm.valor / pm.fator;
+    } else if (q.codProduto || q.descricao) {
+      const codeClean = String(q.codProduto || '').replace(/^0+/, '');
+      const match = PRODUCTS.find(p => String(p.codigo) === codeClean || (q.descricao && p.descricao && p.descricao.toUpperCase().trim() === String(q.descricao).toUpperCase().trim()));
+      if (match) {
+        const p = match as any;
+        const casePrice = p.preco || p.valor || 0;
+        const fator = p.fator || 1;
+        if (casePrice > 0) {
+          catalogUnitPrice = casePrice / fator;
+        }
+      }
+    }
+
+    if (catalogUnitPrice > 0) {
+      unitPrice = catalogUnitPrice;
+    } else if (q.valorUnitario && Number(q.valorUnitario) > 0) {
+      unitPrice = Number(q.valorUnitario);
+    } else if (q.valorTotal && Number(q.valorTotal) > 0 && qty > 0) {
+      unitPrice = Number(q.valorTotal) / qty;
+    } else {
+      unitPrice = 3.50;
+    }
+
+    unitPriceCache.set(priceKey, unitPrice);
   }
 
-  if (catalogUnitPrice > 0) {
-    return catalogUnitPrice * qty;
-  }
-
-  // Fallback to row values if catalog not matched
-  if (q.valorUnitario && Number(q.valorUnitario) > 0) {
-    return Number(q.valorUnitario) * qty;
-  }
-  if (q.valorTotal && Number(q.valorTotal) > 0) {
-    return Number(q.valorTotal);
-  }
-
-  return qty * 3.50;
+  return unitPrice * qty;
 }
 
 // 3-way unit value getter
@@ -1416,12 +1431,18 @@ export default function WqiTab({
         {/* KPI 2 */}
         <div className={`p-4.5 rounded-xl border shadow-sm flex items-center justify-between transition-colors ${isDark ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'}`}>
           <div>
-            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Volume Total de Perdas</span>
+            <span className={`text-[9px] font-black uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
+              {viewUnit === 'rs' ? 'Valor Total de Perdas' : viewUnit === 'hl' ? 'Volume Total de Perdas (HL)' : 'Volume Físico de Perdas (CX/UN)'}
+            </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl font-black font-mono text-[#ef4444]">
                 {viewUnit === 'rs' ? `R$ ${totalVolume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : totalVolume.toLocaleString('pt-BR', { minimumFractionDigits: viewUnit === 'hl' ? 2 : 0, maximumFractionDigits: viewUnit === 'hl' ? 2 : 0 })}
               </span>
-              <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{viewUnit === 'rs' ? 'R$' : viewUnit === 'hl' ? 'HL' : 'unidades'}</span>
+              {viewUnit !== 'rs' && (
+                <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {viewUnit === 'hl' ? 'HL' : 'unidades / cx'}
+                </span>
+              )}
             </div>
             <span className="text-[9px] text-slate-400 mt-0.5 block font-semibold">Volume acumulado descartes</span>
           </div>

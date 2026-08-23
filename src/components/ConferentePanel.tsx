@@ -6,7 +6,6 @@ import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplica
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
-import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { 
   parse03114902Report, 
   getStoredEfcVehicles, 
@@ -22,6 +21,7 @@ import { Upload, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, Truck, Pla
 import ValidadesPanel from './ValidadesPanel';
 import RefugoPanel from './RefugoPanel';
 import TemperaturaImportExportBar from './TemperaturaImportExportBar';
+import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
 import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
@@ -1156,6 +1156,9 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
   return (
     <div className="flex flex-col gap-6">
       
+      {/* BANNER OFICIAL DE DESEMPENHO PNP DO COLABORADOR */}
+      <OperationalCollaboratorPnpBanner user={user} theme={theme} />
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full gap-3">
         <div>
@@ -1171,25 +1174,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
           Ambev DPO Operacional
         </div>
       </div>
-
-      {/* MANUAL DE INSTRUÇÃO E METAS */}
-      <ManualInstrucaoCard
-        title="Manual de Instrução & Parâmetros de Meta — Conferência & Indicadores EFC / EFD"
-        metrics={[
-          {
-            key: 'efc',
-            label: 'Eficiência no Carregamento (EFC)',
-            unit: '%',
-            comoCalcular: '(Veículos com Carregamento Finalizado ≤ 06:30) ÷ (Total de Veículos Importados do Relatório 03.11.49.02) × 100.'
-          },
-          {
-            key: 'efd',
-            label: 'Eficiência no Descarregamento (EFD)',
-            unit: '%',
-            comoCalcular: '(Veículos Descarregados ≤ 22:00) ÷ (Total de Veículos que Saíram para Rota Comercial, Excluindo Pernoite do Cálculo de Falha) × 100.'
-          }
-        ]}
-      />
 
       {/* CONTROLE DE JORNADA DO CONFERENTE */}
       <div className="bg-[#151b23] border border-amber-500/40 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-lg">
@@ -2879,6 +2863,16 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                 </table>
               </div>
             )}
+          </div>
+
+          {/* HISTÓRICO E RECOLHIMENTO DE VALIDADES CRÍTICAS REPLICADO NO PAINEL DE TEMPERATURA */}
+          <div className="pt-2">
+            <WorkstationCriticosRecolhimento
+              validadesList={empresaData.validades}
+              empresa={empresa}
+              user={user}
+              onRefresh={() => (empresaData as any)?.fetchValidades?.()}
+            />
           </div>
         </div>
       )}

@@ -25,7 +25,8 @@ import {
   FileSpreadsheet,
   HelpCircle,
   Sparkles,
-  CheckCircle
+  CheckCircle,
+  Printer
 } from 'lucide-react';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 
@@ -74,7 +75,8 @@ export const SETORES_5S = [
   'ÁREA DE CARREGAMENTO DA EMPILHADEIRA',
   'EMPILHADEIRA 2',
   'EMPILHADEIRA 1',
-  'FROTA DA ENTREGA'
+  'FROTA DA ENTREGA',
+  'ADMINISTRATIVO'
 ];
 
 export interface Responsavel5SItem {
@@ -96,9 +98,10 @@ export const MAPEAMENTO_RESPONSAVEIS_5S: Responsavel5SItem[] = [
   { id: 9, area: 'DEVOLUÇÃO', colaborador: 'GLADSON LISBOA DOS SANTOS', cargo: 'AJUDANTE' },
   { id: 10, area: 'REPACK', colaborador: 'OZENILDO SOUSA SILVA', cargo: 'AJUDANTE' },
   { id: 11, area: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', colaborador: 'PAULO PEREIRA DA SILVA', cargo: 'EMPILHADOR' },
-  { id: 12, area: 'EMPILHADEIRA 2', colaborador: 'JOSE RONILDO DA SILVA', cargo: 'ADMINISTRATIVO' },
+  { id: 12, area: 'EMPILHADEIRA 2', colaborador: 'JOSE RONILDO DA SILVA', cargo: 'EMPILHADOR' },
   { id: 13, area: 'EMPILHADEIRA 1', colaborador: 'MARIVALDO ARTUR ALVES', cargo: 'EMPILHADOR' },
   { id: 14, area: 'FROTA DA ENTREGA', colaborador: 'DIOGENES PEREIRA DA SILVA', cargo: 'AJUDANTE' },
+  { id: 15, area: 'ADMINISTRATIVO', colaborador: 'KATHYEL ROCHA DA SILVA', cargo: 'ADMINISTRATIVO' },
 ];
 
 export const getUserAssignedAreasList = (
@@ -124,8 +127,11 @@ export const getUserAssignedAreasList = (
 
   // Fallback by user role / panel
   const userRole = (user?.cargo || user?.perfil || user?.setor || '').toString().toUpperCase();
+  if (userRole.includes('ADMINISTRAT') || userRole.includes('ADM')) {
+    return MAPEAMENTO_RESPONSAVEIS_5S.filter(a => a.cargo === 'ADMINISTRATIVO').map(a => a.area);
+  }
   if (userRole.includes('EMPILHA')) {
-    return MAPEAMENTO_RESPONSAVEIS_5S.filter(a => a.cargo === 'EMPILHADOR' || a.cargo === 'ADMINISTRATIVO').map(a => a.area);
+    return MAPEAMENTO_RESPONSAVEIS_5S.filter(a => a.cargo === 'EMPILHADOR').map(a => a.area);
   }
   if (userRole.includes('AJUDAN') || userRole.includes('CARGA')) {
     return MAPEAMENTO_RESPONSAVEIS_5S.filter(a => a.cargo === 'AJUDANTE').map(a => a.area);
@@ -1363,9 +1369,122 @@ export const Checklist5SForm: React.FC<Checklist5SFormProps> = ({
           </div>
         </div>
 
-        <div className="hidden sm:flex flex-col items-end">
-          <span className="text-[10px] text-slate-300 font-bold uppercase">PAU BRASIL DISTRIBUIDORA</span>
-          <span className="text-xs font-black text-amber-400">UNIDADE GUARABIRA-PB</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const printWin = window.open('', '_blank');
+              if (!printWin) {
+                window.print();
+                return;
+              }
+              const perguntasHtml = PERGUNTAS_5S_OFICIAIS.map((p, idx) => `
+                <tr style="border-bottom: 1px solid #cbd5e1; height: 36px;">
+                  <td style="padding: 6px; text-align: center; font-weight: bold; border-right: 1px solid #cbd5e1; background: #f8fafc;">${idx + 1}</td>
+                  <td style="padding: 6px; font-weight: 800; border-right: 1px solid #cbd5e1;">${p.categoria}</td>
+                  <td style="padding: 6px; border-right: 1px solid #cbd5e1;">${p.pergunta}</td>
+                  <td style="padding: 6px; text-align: center; border-right: 1px solid #cbd5e1; width: 45px;"><div style="width: 16px; height: 16px; border: 1.5px solid #0f172a; margin: 0 auto; border-radius: 2px;"></div></td>
+                  <td style="padding: 6px; text-align: center; width: 45px;"><div style="width: 16px; height: 16px; border: 1.5px solid #0f172a; margin: 0 auto; border-radius: 2px;"></div></td>
+                </tr>
+              `).join('');
+
+              printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Formulário 5S para Preenchimento à Caneta - ${setor}</title>
+                  <style>
+                    @page { size: A4 portrait; margin: 12mm; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 0; font-size: 11px; }
+                    .header { background: #032b5e; color: white; padding: 12px; border-radius: 6px; border-bottom: 4px solid #f59e0b; display: flex; justify-content: space-between; align-items: center; }
+                    .title { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; }
+                    .subtitle { font-size: 9px; color: #fde047; font-weight: bold; margin-top: 2px; }
+                    .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 12px 0; padding: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; }
+                    .meta-item { display: flex; flex-direction: column; }
+                    .meta-label { font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+                    .meta-line { border-bottom: 1.5px solid #94a3b8; height: 20px; font-weight: bold; font-size: 11px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
+                    th { background: #032b5e; color: white; padding: 8px 6px; font-size: 9px; text-transform: uppercase; border: 1px solid #032b5e; }
+                    .footer-box { margin-top: 12px; display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+                    .box { border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc; min-height: 50px; }
+                    .box-title { font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="header">
+                    <div>
+                      <div class="title">CHECKLIST 5S – ARMAZÉM (FOLHA DE CAMPO)</div>
+                      <div class="subtitle">ORGANIZAÇÃO • SEGURANÇA • LIMPEZA — PAU BRASIL DISTRIBUIDORA</div>
+                    </div>
+                    <div style="text-align: right; font-size: 9px;">
+                      <div style="font-weight: bold;">UNIDADE GUARABIRA-PB</div>
+                      <div style="color: #cbd5e1;">CONTROLE DE QUALIDADE</div>
+                    </div>
+                  </div>
+
+                  <div class="meta-grid">
+                    <div class="meta-item">
+                      <span class="meta-label">SETOR / ÁREA 5S:</span>
+                      <div class="meta-line">${setor}</div>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">COLABORADOR(A) RESPONSÁVEL:</span>
+                      <div class="meta-line">${operador}</div>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">DATA DA AVALIAÇÃO (A CANETA):</span>
+                      <div class="meta-line" style="background: white; border: 1px dashed #94a3b8; border-radius: 4px; height: 22px; padding: 2px 6px; color: transparent;">___/___/2026</div>
+                    </div>
+                  </div>
+
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width: 30px; text-align: center;">Nº</th>
+                        <th style="width: 110px; text-align: left;">CATEGORIA</th>
+                        <th style="text-align: left;">ITEM DE VERIFICAÇÃO</th>
+                        <th style="width: 45px; text-align: center; background: #047857;">SIM</th>
+                        <th style="width: 45px; text-align: center; background: #be123c;">NÃO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${perguntasHtml}
+                    </tbody>
+                  </table>
+
+                  <div class="footer-box">
+                    <div class="box">
+                      <div class="box-title">ANOMALIAS / ITENS NÃO CONFORMES & AÇÕES CORRETIVAS:</div>
+                      <div style="border-bottom: 1px dotted #cbd5e1; height: 18px; margin-top: 4px;"></div>
+                      <div style="border-bottom: 1px dotted #cbd5e1; height: 18px; margin-top: 4px;"></div>
+                    </div>
+                    <div class="box">
+                      <div class="box-title">PONTUAÇÃO OBTIDA & ASSINATURA:</div>
+                      <div style="margin-top: 6px; font-size: 10px; font-weight: bold;">NOTA: [ ____ / 10 ] ( ______ % )</div>
+                      <div style="margin-top: 14px; border-bottom: 1.5px solid #64748b; text-align: center; font-size: 8px; color: #64748b;">
+                        ASSINATURA DO AUDITOR / LÍDER
+                      </div>
+                    </div>
+                  </div>
+                </body>
+                </html>
+              `);
+              printWin.document.close();
+              printWin.focus();
+              setTimeout(() => {
+                printWin.print();
+              }, 250);
+            }}
+            className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow flex items-center gap-1.5"
+            title="Imprimir formulário em branco para preenchimento com caneta"
+          >
+            <Printer className="w-3.5 h-3.5 text-slate-950" /> Imprimir em Branco (Caneta)
+          </button>
+
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-[10px] text-slate-300 font-bold uppercase">PAU BRASIL DISTRIBUIDORA</span>
+            <span className="text-xs font-black text-amber-400">UNIDADE GUARABIRA-PB</span>
+          </div>
         </div>
       </div>
 
@@ -1718,6 +1837,7 @@ export interface Checklist5SModalProps {
   user?: any;
   empresaId?: string;
   liderAuditor?: string;
+  onSaveSuccess?: () => void;
 }
 
 export const Checklist5SModal: React.FC<Checklist5SModalProps> = ({
@@ -1727,7 +1847,8 @@ export const Checklist5SModal: React.FC<Checklist5SModalProps> = ({
   userNombre,
   user,
   empresaId = 'demo',
-  liderAuditor = 'Líder de Turno'
+  liderAuditor = 'Líder de Turno',
+  onSaveSuccess
 }) => {
   if (!isOpen) return null;
 
@@ -1751,9 +1872,13 @@ export const Checklist5SModal: React.FC<Checklist5SModalProps> = ({
             liderAuditor={liderAuditor}
             onCancel={onClose}
             onSaveSuccess={() => {
-              setTimeout(() => {
-                onClose();
-              }, 1200);
+              if (onSaveSuccess) {
+                onSaveSuccess();
+              } else {
+                setTimeout(() => {
+                  onClose();
+                }, 1200);
+              }
             }}
           />
         </div>

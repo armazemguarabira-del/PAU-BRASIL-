@@ -111,8 +111,8 @@ export function exportChecklist5SOfficialPdf(options?: ExportChecklist5SOptions)
   doc.text(`Auditado: ${options?.auditado || '____________________________________________________'}`, 60, 24);
   doc.text(`Área auditada: ${options?.areaAuditada || '____________________________________________________'}`, 60, 28);
 
-  // Data no cabeçalho da coluna direita
-  const dataLabel = options?.dataStr || new Date().toLocaleDateString('pt-BR');
+  // Data no cabeçalho da coluna direita (se vazio, deixa linhas em branco para preenchimento manual com caneta)
+  const dataLabel = options?.dataStr ? options.dataStr : '___ / ___ / ______';
 
   // TABELA PRINCIPAL
   const colSensW = 12;

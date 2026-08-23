@@ -505,6 +505,9 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
         </div>
       )}
 
+      {/* BANNER OFICIAL DE DESEMPENHO PNP DO COLABORADOR */}
+      <OperationalCollaboratorPnpBanner user={user} theme={theme} />
+
       {/* HEADER BAR & SHIFT CONTROL */}
       <div className="bg-white border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3.5">

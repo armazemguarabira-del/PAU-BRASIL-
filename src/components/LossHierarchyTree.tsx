@@ -399,7 +399,6 @@ export default function LossHierarchyTree({
       qtd: number;
       registrosCount: number;
       skusSet: Set<string>;
-      rows: QuebraRow[];
       motivosMap: Map<string, {
         motivoName: string;
         icon: any;
@@ -413,7 +412,6 @@ export default function LossHierarchyTree({
         qtd: number;
         registrosCount: number;
         skusSet: Set<string>;
-        rows: QuebraRow[];
         packagingsMap: Map<string, {
           packagingName: string;
           badge: string;
@@ -422,7 +420,6 @@ export default function LossHierarchyTree({
           qtd: number;
           registrosCount: number;
           skusSet: Set<string>;
-          rows: QuebraRow[];
           productsMap: Map<string, {
             codProduto: string;
             descricao: string;
@@ -461,7 +458,6 @@ export default function LossHierarchyTree({
           qtd: 0,
           registrosCount: 0,
           skusSet: new Set(),
-          rows: [],
           motivosMap: new Map()
         });
       }
@@ -470,7 +466,6 @@ export default function LossHierarchyTree({
       mItem.qtd += q;
       mItem.registrosCount += 1;
       mItem.skusSet.add(cod);
-      mItem.rows.push(row);
 
       // Level 3: Motivo da Perda
       if (!mItem.motivosMap.has(motMeta.name)) {
@@ -487,7 +482,6 @@ export default function LossHierarchyTree({
           qtd: 0,
           registrosCount: 0,
           skusSet: new Set(),
-          rows: [],
           packagingsMap: new Map()
         });
       }
@@ -496,7 +490,6 @@ export default function LossHierarchyTree({
       motItem.qtd += q;
       motItem.registrosCount += 1;
       motItem.skusSet.add(cod);
-      motItem.rows.push(row);
 
       // Level 4: Embalagem / Tipo
       if (!motItem.packagingsMap.has(pkgMeta.name)) {
@@ -508,7 +501,6 @@ export default function LossHierarchyTree({
           qtd: 0,
           registrosCount: 0,
           skusSet: new Set(),
-          rows: [],
           productsMap: new Map()
         });
       }
@@ -517,7 +509,6 @@ export default function LossHierarchyTree({
       pItem.qtd += q;
       pItem.registrosCount += 1;
       pItem.skusSet.add(cod);
-      pItem.rows.push(row);
 
       // Level 5: Produtos
       const prodKey = String(cod && cod !== 'S/C' ? cod : desc);
@@ -563,20 +554,18 @@ export default function LossHierarchyTree({
     };
   }, [effectiveQuebras]);
 
-  // Set default initial month selection
-  useEffect(() => {
-    if (hierarchyData.months.length > 0) {
-      if (!selectedMonthKey || !hierarchyData.months.some(m => m.monthKey === selectedMonthKey)) {
-        const initialM = hierarchyData.criticalMonthKey || hierarchyData.months[0].monthKey;
-        setSelectedMonthKey(initialM);
-      }
+  // Effective Month
+  const effectiveMonthKey = useMemo(() => {
+    if (selectedMonthKey && hierarchyData.months.some(m => m.monthKey === selectedMonthKey)) {
+      return selectedMonthKey;
     }
+    return hierarchyData.criticalMonthKey || hierarchyData.months[0]?.monthKey || null;
   }, [hierarchyData.months, hierarchyData.criticalMonthKey, selectedMonthKey]);
 
   // Active Month Data
   const activeMonth = useMemo(() => {
-    return hierarchyData.months.find(m => m.monthKey === selectedMonthKey) || hierarchyData.months[0] || null;
-  }, [hierarchyData.months, selectedMonthKey]);
+    return hierarchyData.months.find(m => m.monthKey === effectiveMonthKey) || hierarchyData.months[0] || null;
+  }, [hierarchyData.months, effectiveMonthKey]);
 
   // Sorted Motivos for Active Month
   const activeMotivos = useMemo(() => {
@@ -585,22 +574,19 @@ export default function LossHierarchyTree({
     return list.sort((a, b) => (metricMode === 'valor' ? b.valor - a.valor : b.qtd - a.qtd));
   }, [activeMonth, metricMode]);
 
-  // Set default Motivo selection
-  useEffect(() => {
-    if (activeMotivos.length > 0) {
-      if (!selectedMotivoKey || !activeMotivos.some(m => m.motivoName === selectedMotivoKey)) {
-        setSelectedMotivoKey(activeMotivos[0].motivoName);
-      }
-    } else {
-      setSelectedMotivoKey(null);
+  // Effective Motivo
+  const effectiveMotivoKey = useMemo(() => {
+    if (selectedMotivoKey && activeMotivos.some(m => m.motivoName === selectedMotivoKey)) {
+      return selectedMotivoKey;
     }
+    return activeMotivos[0]?.motivoName || null;
   }, [activeMotivos, selectedMotivoKey]);
 
   // Active Motivo Data
   const activeMotivo = useMemo(() => {
     if (!activeMonth) return null;
-    return activeMonth.motivosMap.get(selectedMotivoKey || '') || activeMotivos[0] || null;
-  }, [activeMonth, activeMotivos, selectedMotivoKey]);
+    return activeMonth.motivosMap.get(effectiveMotivoKey || '') || activeMotivos[0] || null;
+  }, [activeMonth, activeMotivos, effectiveMotivoKey]);
 
   // Sorted Packagings for Active Motivo
   const activePackagings = useMemo(() => {
@@ -609,22 +595,19 @@ export default function LossHierarchyTree({
     return list.sort((a, b) => (metricMode === 'valor' ? b.valor - a.valor : b.qtd - a.qtd));
   }, [activeMotivo, metricMode]);
 
-  // Set default Packaging selection
-  useEffect(() => {
-    if (activePackagings.length > 0) {
-      if (!selectedPackagingKey || !activePackagings.some(p => p.packagingName === selectedPackagingKey)) {
-        setSelectedPackagingKey(activePackagings[0].packagingName);
-      }
-    } else {
-      setSelectedPackagingKey(null);
+  // Effective Packaging
+  const effectivePackagingKey = useMemo(() => {
+    if (selectedPackagingKey && activePackagings.some(p => p.packagingName === selectedPackagingKey)) {
+      return selectedPackagingKey;
     }
+    return activePackagings[0]?.packagingName || null;
   }, [activePackagings, selectedPackagingKey]);
 
   // Active Packaging Data
   const activePackaging = useMemo(() => {
     if (!activeMotivo) return null;
-    return activeMotivo.packagingsMap.get(selectedPackagingKey || '') || activePackagings[0] || null;
-  }, [activeMotivo, activePackagings, selectedPackagingKey]);
+    return activeMotivo.packagingsMap.get(effectivePackagingKey || '') || activePackagings[0] || null;
+  }, [activeMotivo, activePackagings, effectivePackagingKey]);
 
   // Sorted Top 10 Products for Active Packaging
   const activeTop10Products = useMemo(() => {
@@ -682,13 +665,13 @@ export default function LossHierarchyTree({
 
     // 1. Root -> Selected Month
     const rootAnchor = getRightAnchor(rootCardRef.current);
-    if (selectedMonthKey && monthCardRefs.current[selectedMonthKey]) {
-      const mEl = monthCardRefs.current[selectedMonthKey]!;
+    if (effectiveMonthKey && monthCardRefs.current[effectiveMonthKey]) {
+      const mEl = monthCardRefs.current[effectiveMonthKey]!;
       const mLeft = getLeftAnchor(mEl);
-      const isCritical = selectedMonthKey === hierarchyData.criticalMonthKey;
+      const isCritical = effectiveMonthKey === hierarchyData.criticalMonthKey;
       const color = isCritical ? '#f43f5e' : '#2563eb';
       newPaths.push({
-        id: `root-to-${selectedMonthKey}`,
+        id: `root-to-${effectiveMonthKey}`,
         d: createSmoothCurve(rootAnchor, mLeft),
         gradientId: isCritical ? 'grad-root-rose' : 'grad-root-blue',
         color,
@@ -698,11 +681,11 @@ export default function LossHierarchyTree({
 
       // 2. Selected Month -> Selected Motivo
       const mRight = getRightAnchor(mEl);
-      if (selectedMotivoKey && motivoCardRefs.current[selectedMotivoKey]) {
-        const motEl = motivoCardRefs.current[selectedMotivoKey]!;
+      if (effectiveMotivoKey && motivoCardRefs.current[effectiveMotivoKey]) {
+        const motEl = motivoCardRefs.current[effectiveMotivoKey]!;
         const motLeft = getLeftAnchor(motEl);
         newPaths.push({
-          id: `month-to-${selectedMotivoKey}`,
+          id: `month-to-${effectiveMotivoKey}`,
           d: createSmoothCurve(mRight, motLeft),
           gradientId: 'grad-month-amber',
           color: '#f59e0b',
@@ -712,11 +695,11 @@ export default function LossHierarchyTree({
 
         // 3. Selected Motivo -> Selected Packaging
         const motRight = getRightAnchor(motEl);
-        if (selectedPackagingKey && packagingCardRefs.current[selectedPackagingKey]) {
-          const pEl = packagingCardRefs.current[selectedPackagingKey]!;
+        if (effectivePackagingKey && packagingCardRefs.current[effectivePackagingKey]) {
+          const pEl = packagingCardRefs.current[effectivePackagingKey]!;
           const pLeft = getLeftAnchor(pEl);
           newPaths.push({
-            id: `motivo-to-${selectedPackagingKey}`,
+            id: `motivo-to-${effectivePackagingKey}`,
             d: createSmoothCurve(motRight, pLeft),
             gradientId: 'grad-motivo-sky',
             color: '#0ea5e9',
@@ -742,18 +725,23 @@ export default function LossHierarchyTree({
 
     setSvgPaths(newPaths);
   }, [
-    selectedMonthKey, 
-    selectedMotivoKey, 
-    selectedPackagingKey, 
+    effectiveMonthKey, 
+    effectiveMotivoKey, 
+    effectivePackagingKey, 
     hierarchyData.criticalMonthKey
   ]);
 
   useEffect(() => {
-    const timer = setTimeout(calculateConnectors, 60);
-    window.addEventListener('resize', calculateConnectors);
+    const handle = requestAnimationFrame(() => {
+      calculateConnectors();
+    });
+    const handleResize = () => {
+      requestAnimationFrame(calculateConnectors);
+    };
+    window.addEventListener('resize', handleResize);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', calculateConnectors);
+      cancelAnimationFrame(handle);
+      window.removeEventListener('resize', handleResize);
     };
   }, [calculateConnectors, zoomLevel, isFullscreen]);
 
@@ -762,7 +750,7 @@ export default function LossHierarchyTree({
       ...prev,
       [cod]: !prev[cod]
     }));
-    setTimeout(calculateConnectors, 100);
+    requestAnimationFrame(calculateConnectors);
   };
 
   const criticalMonthObj = useMemo(() => {
@@ -1149,7 +1137,7 @@ export default function LossHierarchyTree({
                 </div>
               ) : (
                 hierarchyData.months.map((m, mIdx) => {
-                const isSelected = selectedMonthKey === m.monthKey;
+                const isSelected = effectiveMonthKey === m.monthKey;
                 const isCritical = m.monthKey === hierarchyData.criticalMonthKey;
                 const metricVal = metricMode === 'valor' ? m.valor : m.qtd;
                 const progressPercent = Math.min(100, Math.round((metricVal / maxMonthValue) * 100));
@@ -1163,7 +1151,7 @@ export default function LossHierarchyTree({
                     ref={el => { monthCardRefs.current[m.monthKey] = el; }}
                     onClick={() => {
                       setSelectedMonthKey(m.monthKey);
-                      setTimeout(calculateConnectors, 50);
+                      requestAnimationFrame(calculateConnectors);
                     }}
                     className={`rounded-xl border transition-all cursor-pointer relative overflow-hidden group p-3 backdrop-blur-md ${
                       isSelected
@@ -1244,7 +1232,7 @@ export default function LossHierarchyTree({
                 </div>
               ) : (
                 activeMotivos.map((mot, motIdx) => {
-                const isSelected = selectedMotivoKey === mot.motivoName;
+                const isSelected = effectiveMotivoKey === mot.motivoName;
                 const IconComponent = mot.icon || AlertTriangle;
                 const monthTotal = metricMode === 'valor' ? activeMonth?.valor || 1 : activeMonth?.qtd || 1;
                 const val = metricMode === 'valor' ? mot.valor : mot.qtd;
@@ -1257,7 +1245,7 @@ export default function LossHierarchyTree({
                     ref={el => { motivoCardRefs.current[mot.motivoName] = el; }}
                     onClick={() => {
                       setSelectedMotivoKey(mot.motivoName);
-                      setTimeout(calculateConnectors, 50);
+                      requestAnimationFrame(calculateConnectors);
                     }}
                     className={`rounded-xl border transition-all cursor-pointer group p-3 relative overflow-hidden backdrop-blur-md ${
                       isSelected
@@ -1321,7 +1309,7 @@ export default function LossHierarchyTree({
                 </div>
               ) : (
                 activePackagings.map((pkg, pkgIdx) => {
-                const isSelected = selectedPackagingKey === pkg.packagingName;
+                const isSelected = effectivePackagingKey === pkg.packagingName;
                 const motTotal = metricMode === 'valor' ? activeMotivo?.valor || 1 : activeMotivo?.qtd || 1;
                 const val = metricMode === 'valor' ? pkg.valor : pkg.qtd;
                 const sharePercent = motTotal > 0 ? ((val / motTotal) * 100).toFixed(1) : '0.0';
@@ -1333,7 +1321,7 @@ export default function LossHierarchyTree({
                     ref={el => { packagingCardRefs.current[pkg.packagingName] = el; }}
                     onClick={() => {
                       setSelectedPackagingKey(pkg.packagingName);
-                      setTimeout(calculateConnectors, 50);
+                      requestAnimationFrame(calculateConnectors);
                     }}
                     className={`rounded-xl border transition-all cursor-pointer group p-3 relative overflow-hidden backdrop-blur-md ${
                       isSelected

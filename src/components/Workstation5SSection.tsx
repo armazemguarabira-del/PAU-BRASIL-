@@ -49,7 +49,8 @@ export const DEFAULT_RESPONSAVEIS_5S: AreaResponsavel5S[] = [
   { id: '11', area: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', responsavel: 'PAULO PEREIRA DA SILVA', cargoResponsavel: 'EMPILHADOR', observacao: 'Baterias e Carregadores', metaPct: 80 },
   { id: '12', area: 'EMPILHADEIRA 2', responsavel: 'JOSE RONILDO DA SILVA', cargoResponsavel: 'EMPILHADOR', observacao: 'Empilhadeira Clássica 02', metaPct: 80 },
   { id: '13', area: 'EMPILHADEIRA 1', responsavel: 'MARIVALDO ARTUR ALVES', cargoResponsavel: 'EMPILHADOR', observacao: 'Empilhadeira Retrátil 01', metaPct: 80 },
-  { id: '14', area: 'FROTA DA ENTREGA', responsavel: 'DIOGENES PEREIRA DA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Pátio de Carretas e Caminhões', metaPct: 80 }
+  { id: '14', area: 'FROTA DA ENTREGA', responsavel: 'DIOGENES PEREIRA DA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Pátio de Carretas e Caminhões', metaPct: 80 },
+  { id: '15', area: 'ADMINISTRATIVO', responsavel: 'KATHYEL ROCHA DA SILVA', cargoResponsavel: 'ADMINISTRATIVO', observacao: 'Escritório Administrativo & Apoio', metaPct: 80 }
 ];
 
 interface Workstation5SSectionProps {

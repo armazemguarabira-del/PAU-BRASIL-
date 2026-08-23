@@ -47964,8 +47964,14 @@ function inferEmbalagem(desc: string): string {
 /**
  * Converte o dataset padrão embutido em QuebraRow[] para uso como fallback oficial
  */
+const officialRowsCache = new Map<string, QuebraRow[]>();
+
 export function buildOfficialQuebrasRows(empresaId: string = 'demo'): QuebraRow[] {
+  if (officialRowsCache.has(empresaId)) {
+    return officialRowsCache.get(empresaId)!;
+  }
   const parsed = parseQuebrasJson(SAMPLE_QUEBRAS_JSON, empresaId);
+  officialRowsCache.set(empresaId, parsed.quebraRows);
   return parsed.quebraRows;
 }
 

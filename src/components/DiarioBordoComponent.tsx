@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { DiarioBordoRepository } from '../db';
+import { Checklist5SForm, Checklist5SModal, Collaborator5SPerformanceCard, getUserAssignedAreasList } from './Checklist5SModal';
 
 export interface RegistroDiarioBordo {
   id: string;
@@ -220,6 +221,9 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
   const [visaoModo, setVisaoModo] = useState<'individual' | 'administrativa'>(() => {
     return isUserAdminOrControl ? 'administrativa' : 'individual';
   });
+  const [activeDiarioTab, setActiveDiarioTab] = useState<'demandas' | '5s'>('demandas');
+  const [showModal5S, setShowModal5S] = useState<boolean>(false);
+  const [selectedSetor5S, setSelectedSetor5S] = useState<string>('ADMINISTRATIVO');
   const [colaboradorSelecionadoMatricula, setColaboradorSelecionadoMatricula] = useState<string>('todos');
   const [funcaoFiltro, setFuncaoFiltro] = useState<string>('todos');
   const [statusFiltro, setStatusFiltro] = useState<string>('todos');
@@ -457,10 +461,14 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
         }
       }
 
-      // 2. Filtro de Grupo de Função (Ajudantes, Empilhadores, Operadores/Conferentes)
+      // 2. Filtro de Grupo de Função (Administrativo, Ajudantes, Empilhadores, Operadores/Conferentes)
       if (funcaoFiltro !== 'todos') {
         const colab = listaColaboradoresParaFiltro.find(c => c.nome.toLowerCase() === r.usuarioNome.toLowerCase() || c.matricula === r.usuarioMatricula);
-        if (colab && colab.funcaoGroup !== funcaoFiltro) {
+        if (funcaoFiltro === 'Administrativo') {
+          const isAdm = (colab?.cargo || r.usuarioCargo || '').toUpperCase().includes('ADMINISTRATIVO') || 
+                        (colab?.matricula || r.usuarioMatricula) === 'G1073';
+          if (!isAdm) return false;
+        } else if (colab && colab.funcaoGroup !== funcaoFiltro) {
           return false;
         }
       }
@@ -542,6 +550,19 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            onClick={() => {
+              const assigned = getUserAssignedAreasList(user, userNome);
+              if (assigned.length > 0) setSelectedSetor5S(assigned[0]);
+              setShowModal5S(true);
+            }}
+            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg flex items-center gap-2 shrink-0 border border-emerald-300/40"
+            title="Realizar auditoria 5S oficial do colaborador"
+          >
+            <Sparkles className="w-4 h-4 text-slate-950 animate-spin" /> Fazer 5S do Colaborador
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleOpenModal()}
             className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg flex items-center gap-2 shrink-0"
           >
@@ -554,30 +575,59 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
       <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-4 shadow-lg">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           
-          {/* MODO DE VISÃO */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <button
-              type="button"
-              onClick={() => {
-                setVisaoModo('individual');
-                setColaboradorSelecionadoMatricula('todos');
-              }}
-              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
-                visaoModo === 'individual' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <User className="w-4 h-4" /> Meu Diário (Operacional)
-            </button>
+          {/* MODO DE VISÃO & SUB-ABAS (DEMANDAS VS 5S) */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setVisaoModo('individual');
+                  setColaboradorSelecionadoMatricula('todos');
+                }}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+                  visaoModo === 'individual' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <User className="w-4 h-4" /> Meu Diário (Operacional)
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setVisaoModo('administrativa')}
-              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
-                visaoModo === 'administrativa' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Users className="w-4 h-4" /> Visão Administrativa (Todos)
-            </button>
+              <button
+                type="button"
+                onClick={() => setVisaoModo('administrativa')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+                  visaoModo === 'administrativa' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Users className="w-4 h-4" /> Visão Administrativa (Todos)
+              </button>
+            </div>
+
+            {/* TOGGLE ENTRE DEMANDAS & HISTÓRICO 5S */}
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#0b1222] p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setActiveDiarioTab('demandas')}
+                className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeDiarioTab === 'demandas'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" /> Demandas & Tarefas
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveDiarioTab('5s')}
+                className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeDiarioTab === '5s'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-md border border-emerald-300'
+                    : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" /> Quadro & Histórico 5S
+              </button>
+            </div>
           </div>
 
           {/* SELETOR DE COLABORADOR NA VISÃO ADMINISTRATIVA */}
@@ -593,22 +643,29 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
                     className="bg-transparent text-xs font-black text-slate-900 dark:text-white outline-none cursor-pointer w-full"
                   >
                     <option value="todos" className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">📋 Todos os Colaboradores (Consolidado)</option>
+                    <optgroup label="Administrativo & Controle" className="bg-white dark:bg-[#111a30] text-cyan-600 dark:text-cyan-400">
+                      {listaColaboradoresParaFiltro.filter(c => (c.cargo || '').toUpperCase().includes('ADMINISTRATIVO') || c.matricula === 'G1073').map(c => (
+                        <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
+                          [{c.matricula}] {c.nome} - {c.cargo} (5S Responsável)
+                        </option>
+                      ))}
+                    </optgroup>
                     <optgroup label="Ajudantes de Armazém" className="bg-white dark:bg-[#111a30] text-amber-600 dark:text-amber-400">
-                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Ajudante').map(c => (
+                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Ajudante' && !(c.cargo || '').toUpperCase().includes('ADMINISTRATIVO')).map(c => (
                         <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
                       ))}
                     </optgroup>
                     <optgroup label="Operadores de Empilhadeira" className="bg-white dark:bg-[#111a30] text-purple-600 dark:text-purple-400">
-                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Empilhador').map(c => (
+                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Empilhador' && !(c.cargo || '').toUpperCase().includes('ADMINISTRATIVO')).map(c => (
                         <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
                       ))}
                     </optgroup>
                     <optgroup label="Operadores & Conferentes" className="bg-white dark:bg-[#111a30] text-emerald-600 dark:text-emerald-400">
-                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Operador').map(c => (
+                      {listaColaboradoresParaFiltro.filter(c => c.funcaoGroup === 'Operador' && !(c.cargo || '').toUpperCase().includes('ADMINISTRATIVO') && c.matricula !== 'G1073').map(c => (
                         <option key={c.matricula} value={c.matricula} className="bg-white dark:bg-[#111a30] text-slate-900 dark:text-white">
                           [{c.matricula}] {c.nome} - {c.cargo}
                         </option>
@@ -691,6 +748,7 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
               className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
             >
               <option value="todos">Todas as Funções</option>
+              <option value="Administrativo">Administrativo & Controle</option>
               <option value="Ajudante">Ajudantes de Armazém</option>
               <option value="Empilhador">Operadores de Empilhadeira</option>
               <option value="Operador">Conferentes & Operação</option>
@@ -828,139 +886,187 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
         </div>
       )}
 
-      {/* LISTA DE DEMANDAS DO DIÁRIO DE BORDO */}
-      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-            {visaoModo === 'individual' ? `Minhas Demandas (${registrosFiltrados.length})` : 
-             colaboradorSelecionadoMatricula !== 'todos' ? `Demandas de ${listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula)?.nome} (${registrosFiltrados.length})` :
-             `Demandas de Todos os Colaboradores (${registrosFiltrados.length})`}
-          </h3>
-          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-            {new Date().toLocaleDateString('pt-BR')}
-          </span>
+      {/* VISÃO CONDICIONAL: DEMANDAS DO DIÁRIO VS QUADRO & HISTÓRICO 5S */}
+      {activeDiarioTab === '5s' ? (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-[#0d2218] dark:to-[#0f172a] p-4 rounded-2xl border border-emerald-300 dark:border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                  Quadro de 5S do Colaborador no Diário de Bordo
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  {visaoModo === 'individual' 
+                    ? `Acompanhe seu histórico de auditorias e realize o 5S do seu setor (${userNome}).` 
+                    : colaboradorSelecionadoMatricula !== 'todos'
+                      ? `Histórico de 5S de ${listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula)?.nome}.`
+                      : 'Consolidado oficial de auditorias 5S de todos os colaboradores do quadro.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const targetColab = colaboradorSelecionadoMatricula !== 'todos' 
+                  ? listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula) 
+                  : user;
+                const assigned = getUserAssignedAreasList(targetColab, targetColab?.nome);
+                if (assigned.length > 0) setSelectedSetor5S(assigned[0]);
+                setShowModal5S(true);
+              }}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg flex items-center gap-2 shrink-0"
+            >
+              <Sparkles className="w-4 h-4" /> Novo Formulário 5S
+            </button>
+          </div>
+
+          <Collaborator5SPerformanceCard
+            user={colaboradorSelecionadoMatricula !== 'todos' ? listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula) : user}
+            userNombre={colaboradorSelecionadoMatricula !== 'todos' ? listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula)?.nome : userNome}
+            onSelectSector={(sec) => {
+              setSelectedSetor5S(sec);
+              setShowModal5S(true);
+            }}
+          />
         </div>
+      ) : (
+        <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+              {visaoModo === 'individual' ? `Minhas Demandas (${registrosFiltrados.length})` : 
+               colaboradorSelecionadoMatricula !== 'todos' ? `Demandas de ${listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula)?.nome} (${registrosFiltrados.length})` :
+               `Demandas de Todos os Colaboradores (${registrosFiltrados.length})`}
+            </h3>
+            <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+              {new Date().toLocaleDateString('pt-BR')}
+            </span>
+          </div>
 
-        {registrosFiltrados.length > 0 ? (
-          <div className="space-y-3">
-            {registrosFiltrados.map((r) => {
-              const isConcluido = r.status === 'Concluído';
-              const isEmAndamento = r.status === 'Em Andamento';
+          {registrosFiltrados.length > 0 ? (
+            <div className="space-y-3">
+              {registrosFiltrados.map((r) => {
+                const isConcluido = r.status === 'Concluído';
+                const isEmAndamento = r.status === 'Em Andamento';
 
-              return (
-                <div 
-                  key={r.id} 
-                  className={`p-4 rounded-2xl border transition-all space-y-3 relative shadow-sm ${
-                    isConcluido 
-                      ? 'bg-slate-50 dark:bg-[#080d1a] border-slate-200 dark:border-slate-800 opacity-90 dark:opacity-80' 
-                      : isEmAndamento 
-                        ? 'bg-blue-50/60 dark:bg-[#0d1b2a] border-blue-200 dark:border-blue-500/40' 
-                        : 'bg-slate-50/70 dark:bg-[#0e172a] border-slate-200 dark:border-slate-700 hover:border-amber-500/50'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* TAG DO STATUS DA DEMANDA */}
-                        <button
-                          type="button"
-                          onClick={() => handleCycleStatus(r)}
-                          className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded cursor-pointer transition-all ${
-                            isConcluido ? 'bg-emerald-600 text-white' :
-                            isEmAndamento ? 'bg-sky-500 text-slate-950 font-black animate-pulse' :
-                            'bg-amber-500 text-slate-950 font-black'
-                          }`}
-                          title="Clique para mudar o status da demanda"
-                        >
-                          {r.status}
-                        </button>
+                return (
+                  <div 
+                    key={r.id} 
+                    className={`p-4 rounded-2xl border transition-all space-y-3 relative shadow-sm ${
+                      isConcluido 
+                        ? 'bg-slate-50 dark:bg-[#080d1a] border-slate-200 dark:border-slate-800 opacity-90 dark:opacity-80' 
+                        : isEmAndamento 
+                          ? 'bg-blue-50/60 dark:bg-[#0d1b2a] border-blue-200 dark:border-blue-500/40' 
+                          : 'bg-slate-50/70 dark:bg-[#0e172a] border-slate-200 dark:border-slate-700 hover:border-amber-500/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* TAG DO STATUS DA DEMANDA */}
+                          <button
+                            type="button"
+                            onClick={() => handleCycleStatus(r)}
+                            className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded cursor-pointer transition-all ${
+                              isConcluido ? 'bg-emerald-600 text-white' :
+                              isEmAndamento ? 'bg-sky-500 text-slate-950 font-black animate-pulse' :
+                              'bg-amber-500 text-slate-950 font-black'
+                            }`}
+                            title="Clique para mudar o status da demanda"
+                          >
+                            {r.status}
+                          </button>
 
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                          r.prioridade === 'Alta' ? 'bg-rose-600 text-white' :
-                          r.prioridade === 'Média' ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                          'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                        }`}>
-                          Prioridade {r.prioridade || 'Média'}
-                        </span>
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                            r.prioridade === 'Alta' ? 'bg-rose-600 text-white' :
+                            r.prioridade === 'Média' ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                            'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                          }`}>
+                            Prioridade {r.prioridade || 'Média'}
+                          </span>
 
-                        <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          {r.dataFormatted} às {r.hora}
-                        </span>
+                          <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {r.dataFormatted} às {r.hora}
+                          </span>
 
-                        <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                          {r.tipo}
-                        </span>
+                          <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                            {r.tipo}
+                          </span>
+                        </div>
+
+                        <h4 className={`text-sm font-black uppercase ${isConcluido ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
+                          {r.titulo}
+                        </h4>
                       </div>
 
-                      <h4 className={`text-sm font-black uppercase ${isConcluido ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
-                        {r.titulo}
-                      </h4>
-                    </div>
-
-                    {/* BOTAO ALTERAÇÃO DE STATUS RAPIDA */}
-                    <button
-                      type="button"
-                      onClick={() => handleCycleStatus(r)}
-                      className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold shadow-sm ${
-                        isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'
-                      }`}
-                      title="Mudar status (Pendente -> Em Andamento -> Concluído)"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span className="hidden sm:inline">{isConcluido ? 'Concluído' : 'Avançar Status'}</span>
-                    </button>
-                  </div>
-
-                  {r.descricao && (
-                    <p className="text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-[#080d1a] p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed">
-                      "{r.descricao}"
-                    </p>
-                  )}
-
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/80 gap-2">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                        <User className="w-3.5 h-3.5" /> {r.usuarioNome} ({r.usuarioCargo || 'Operacional'})
-                      </span>
-                      <span className="text-slate-500 dark:text-slate-400 font-mono">Setor: {r.setorOuProcesso}</span>
-                      {r.criadoPor && (
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">Criado por: {r.criadoPor}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      {/* BOTAO ALTERAÇÃO DE STATUS RAPIDA */}
                       <button
                         type="button"
-                        onClick={() => handleEditRecord(r)}
-                        className="p-1.5 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg"
-                        title="Editar Demanda"
+                        onClick={() => handleCycleStatus(r)}
+                        className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1 text-xs font-bold shadow-sm ${
+                          isConcluido ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white'
+                        }`}
+                        title="Mudar status (Pendente -> Em Andamento -> Concluído)"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRequestDelete(r)}
-                        className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg transition-colors"
-                        title="Excluir Demanda"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Check className="w-4 h-4" />
+                        <span className="hidden sm:inline">{isConcluido ? 'Concluído' : 'Avançar Status'}</span>
                       </button>
                     </div>
+
+                    {r.descricao && (
+                      <p className="text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-[#080d1a] p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed">
+                        "{r.descricao}"
+                      </p>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/80 gap-2">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                          <User className="w-3.5 h-3.5" /> {r.usuarioNome} ({r.usuarioCargo || 'Operacional'})
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400 font-mono">Setor: {r.setorOuProcesso}</span>
+                        {r.criadoPor && (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">Criado por: {r.criadoPor}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => handleEditRecord(r)}
+                          className="p-1.5 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg"
+                          title="Editar Demanda"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRequestDelete(r)}
+                          className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer bg-slate-100 dark:bg-slate-800/60 rounded-lg transition-colors"
+                          title="Excluir Demanda"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl">
-            <BookOpen className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Nenhuma demanda cadastrada para este filtro ou colaborador. Clique em "+ Nova Demanda do Dia" para registrar.
-            </p>
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl">
+              <BookOpen className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Nenhuma demanda cadastrada para este filtro ou colaborador. Clique em "+ Nova Demanda do Dia" para registrar.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* MODAL FORMULARIO NOVO / EDITAR REGISTRO NO DIÁRIO DE BORDO */}
       {showModal && (
@@ -1212,6 +1318,19 @@ export const DiarioBordoComponent: React.FC<DiarioBordoComponentProps> = ({
         </div>
       )}
 
+      {/* MODAL OFICIAL DE AUDITORIA 5S */}
+      {showModal5S && (
+        <Checklist5SModal
+          isOpen={showModal5S}
+          onClose={() => setShowModal5S(false)}
+          defaultSetor={selectedSetor5S}
+          user={colaboradorSelecionadoMatricula !== 'todos' ? listaColaboradoresParaFiltro.find(c => c.matricula === colaboradorSelecionadoMatricula) : user}
+          onSaveSuccess={() => {
+            setShowModal5S(false);
+            showToast('✅ Auditoria 5S registrada e sincronizada com sucesso!');
+          }}
+        />
+      )}
     </div>
   );
 };

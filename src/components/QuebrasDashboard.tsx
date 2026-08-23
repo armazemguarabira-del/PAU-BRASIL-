@@ -915,17 +915,25 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
             <div className="bg-gradient-to-br from-[#ef4444] to-[#b91c1c] text-white p-4.5 rounded-xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[125px]">
               <div>
                 <span className="text-[9px] uppercase font-black tracking-widest text-[#fecaca]/80 block">
-                  VOLUME TOTAL DE QUEBRAS
+                  {viewUnit === 'rs' 
+                    ? 'VALOR TOTAL DE QUEBRAS' 
+                    : viewUnit === 'hl' 
+                      ? 'VOLUME TOTAL DE QUEBRAS (HL)' 
+                      : 'VOLUME FÍSICO DE QUEBRAS (CX/UN)'}
                 </span>
                 <div className="flex items-baseline mt-2">
+                  {viewUnit === 'rs' && <span className="text-2xl font-bold mr-1 text-[#fecaca]">R$</span>}
                   <span className="text-4xl font-extrabold tracking-tight">
-                    {viewUnit === 'rs' 
-                      ? `R$ ${totalQuant.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
-                      : totalQuant.toLocaleString('pt-BR', { minimumFractionDigits: viewUnit === 'hl' ? 2 : 0, maximumFractionDigits: viewUnit === 'hl' ? 2 : 0 })}
+                    {totalQuant.toLocaleString('pt-BR', { 
+                      minimumFractionDigits: viewUnit === 'sku' ? 0 : 2, 
+                      maximumFractionDigits: 2 
+                    })}
                   </span>
-                  <span className="text-xs font-bold ml-1.5 text-[#fecaca]">
-                    {viewUnit === 'rs' ? 'R$' : viewUnit === 'hl' ? 'HL' : 'unidades'}
-                  </span>
+                  {viewUnit !== 'rs' && (
+                    <span className="text-xs font-bold ml-1.5 text-[#fecaca]">
+                      {viewUnit === 'hl' ? 'HL' : 'unidades / cx'}
+                    </span>
+                  )}
                 </div>
               </div>
               <p className="text-[10px] text-red-100 font-medium leading-normal mt-2 border-t border-red-500/30 pt-2 flex items-center gap-1">
@@ -979,9 +987,11 @@ function QuebrasDashboardInner({ user, empresa, onBack }: QuebrasDashboardProps)
               <div className={`mt-2 border-t pt-2 flex justify-between items-center text-[10px] font-bold uppercase ${
                 theme === 'dark' ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-500'
               }`}>
-                <span>Volumetria SKU</span>
+                <span>{viewUnit === 'rs' ? 'Impacto Financeiro SKU' : 'Volumetria SKU'}</span>
                 <span className="text-[#ef4444]">
-                  {viewUnit === 'rs' ? `R$ ${topSku.quant.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${topSku.quant.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'un'}`} ({topSkuPct}%)
+                  {viewUnit === 'rs' 
+                    ? `R$ ${topSku.quant.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                    : `${topSku.quant.toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'un'}`} ({topSkuPct}%)
                 </span>
               </div>
             </div>

@@ -89,7 +89,8 @@ export function getStoredTempLogs(): ArmazemTemperaturaLog[] {
       if (Array.isArray(parsed) && parsed.length > 0) {
         // Check if old mock data or misparsed December data is present
         const hasDec = parsed.some(l => l.mesAno === '12/2026' || l.mesAno === '11/2026' || l.mesAno === '10/2026' || l.mesAno === '09/2026');
-        if (!hasDec) {
+        const hasAug28 = parsed.some(l => l.dataISO === '2026-08-28');
+        if (!hasDec && hasAug28) {
           return sortTempLogsDescending(parsed);
         }
       }
@@ -98,7 +99,7 @@ export function getStoredTempLogs(): ArmazemTemperaturaLog[] {
     console.error('Erro ao ler logs de temperatura do localStorage:', e);
   }
 
-  // Populate default database with exact CSV records
+  // Populate default database with exact CSV records up to 28/08/2026
   const initial = parseBaseCsvData();
   saveTempLogs(initial);
   return initial;
