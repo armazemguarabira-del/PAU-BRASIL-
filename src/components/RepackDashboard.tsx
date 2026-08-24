@@ -286,6 +286,75 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   const [actualActionPlans, setActualActionPlans] = useState<RepackActionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isRecalculatingGlobal, setIsRecalculatingGlobal] = useState(false);
+  const [globalRecalcBanner, setGlobalRecalcBanner] = useState(false);
+  const [recalcSummary, setRecalcSummary] = useState<{ total: number; dentro: number; fora: number; conformidadePct: number } | null>(null);
+
+  // Recalculate attainment across all rows based on current packaging targets
+  const handleRecalcularAtingimento = () => {
+    setIsRecalculatingGlobal(true);
+    setGlobalRecalcBanner(false);
+
+    setTimeout(() => {
+      let dentroCount = 0;
+      let foraCount = 0;
+
+      setActualRepackRows(prev => {
+        const updated = prev.map(r => {
+          const unitMeta = embalagensConfig[r.embalagem]?.metaSec || 240;
+          const expectedSec = unitMeta * (Number(r.quantidade) || 1);
+          const spentSec = timeToSec(r.duracao);
+          const isWithin = spentSec > 0 && spentSec <= expectedSec;
+          if (isWithin) dentroCount++;
+          else foraCount++;
+          return {
+            ...r,
+            resultado: isWithin ? '🟢 Dentro da Meta' : '🔴 Fora da Meta'
+          };
+        });
+        const total = updated.length;
+        const conformidadePct = total > 0 ? Math.round((dentroCount / total) * 100) : 0;
+        setRecalcSummary({ total, dentro: dentroCount, fora: foraCount, conformidadePct });
+        return updated;
+      });
+
+      // Update in localStorage if enterprise data exists
+      try {
+        const saved = localStorage.getItem(`empresa_data_${empresa?.id || 'demo'}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.repack) {
+            parsed.repack = (parsed.repack || []).map((r: any) => {
+              const unitMeta = embalagensConfig[r.embalagem]?.metaSec || 240;
+              const expectedSec = unitMeta * (Number(r.quantidade) || 1);
+              const spentSec = timeToSec(r.duracao || r.tempo);
+              const isWithin = spentSec > 0 && spentSec <= expectedSec;
+              return {
+                ...r,
+                resultado: isWithin ? '🟢 Dentro da Meta' : '🔴 Fora da Meta'
+              };
+            });
+            localStorage.setItem(`empresa_data_${empresa?.id || 'demo'}`, JSON.stringify(parsed));
+          }
+        }
+      } catch (e) {}
+
+      setIsRecalculatingGlobal(false);
+      setGlobalRecalcBanner(true);
+      setTimeout(() => setGlobalRecalcBanner(false), 5000);
+    }, 450);
+  };
+
+  // Listen to global recalculate events
+  useEffect(() => {
+    const handleGlobalRecalc = (e: any) => {
+      if (!e.detail || e.detail.processo === 'repack' || e.detail.processo === 'all') {
+        handleRecalcularAtingimento();
+      }
+    };
+    window.addEventListener('dpo_recalcular_atingimento', handleGlobalRecalc);
+    return () => window.removeEventListener('dpo_recalcular_atingimento', handleGlobalRecalc);
+  }, [embalagensConfig]);
 
   // A3 Problem Solving Board states
   const [boards, setBoards] = useState<RepackA3Board[]>([]);
@@ -389,9 +458,29 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
 
   const timeToSec = (hms: string): number => {
     if (!hms) return 0;
-    const parts = hms.split(':').map(Number);
-    if (parts.length === 2) return (parts[0] * 3600) + (parts[1] * 60);
-    if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+    const str = String(hms).trim();
+    if (str.includes(':')) {
+      const parts = str.split(':').map(Number);
+      if (parts.length === 2) return (parts[0] * 3600) + (parts[1] * 60);
+      if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+    }
+    const num = parseFloat(str.replace(/[^0-9.]/g, ''));
+    return isNaN(num) ? 0 : Math.round(num * 60);
+  };
+
+  const getRowDurationSec = (row: RepackRow): number => {
+    if (!row) return 0;
+    if (row.duracao) {
+      const sec = timeToSec(row.duracao);
+      if (sec > 0) return sec;
+    }
+    if (row.inicio && row.fim) {
+      const startSec = timeToSec(row.inicio);
+      const endSec = timeToSec(row.fim);
+      let diff = endSec - startSec;
+      if (diff < 0) diff += 86400;
+      if (diff > 0) return diff;
+    }
     return 0;
   };
 
@@ -651,7 +740,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
   }, [filteredRows]);
 
   const totalTempoGastoSec = useMemo(() => {
-    return filteredRows.reduce((sum, r) => sum + timeToSec(r.duracao), 0);
+    return filteredRows.reduce((sum, r) => sum + getRowDurationSec(r), 0);
   }, [filteredRows]);
 
   const tempoMedioPorSkuSec = useMemo(() => {
@@ -1702,6 +1791,18 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* BOTÃO RECALCULAR ATINGIMENTO */}
+          <button
+            type="button"
+            onClick={handleRecalcularAtingimento}
+            disabled={isRecalculatingGlobal}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-lg shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 border border-amber-400/50"
+            title="Recalcular conformidade e atingimento de todos os registros de Repack com base nas metas alteradas"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRecalculatingGlobal ? 'animate-spin' : ''}`} />
+            <span>{isRecalculatingGlobal ? 'Recalculando...' : 'Recalcular Atingimento'}</span>
+          </button>
+
           {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (REPACK) */}
           <button
             onClick={() => {
@@ -1749,6 +1850,27 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
         </div>
       </header>
 
+      {/* FEEDBACK BANNER DE RECALCULAÇÃO */}
+      {globalRecalcBanner && recalcSummary && (
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <div>
+              <strong className="font-black uppercase tracking-wider">Atingimento Recalculado com Sucesso!</strong>
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                {recalcSummary.total} registros reprocessados: <strong>{recalcSummary.dentro} Dentro da Meta ({recalcSummary.conformidadePct}%)</strong> e <strong>{recalcSummary.fora} Fora da Meta</strong>.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setGlobalRecalcBanner(false)}
+            className="text-emerald-700 hover:text-emerald-950 dark:text-emerald-300 text-[11px] font-bold underline cursor-pointer"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
+
       {activeSubTab === 'produtividade' && (
         <div className="space-y-3">
           {/* MANUAL DE INSTRUÇÃO E METAS OFICIAIS (REPACK: PRODUTIVIDADE & TODAS AS EMBALAGENS) */}
@@ -1759,6 +1881,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
             embalagensConfig={embalagensConfig}
             onUpdateEmbalagemMeta={handleUpdateEmbalagemMeta}
             onResetEmbalagens={handleResetEmbalagens}
+            onRecalcular={handleRecalcularAtingimento}
             isManager={user?.papel === 'admin' || user?.papel === 'supervisor' || true}
           />
           

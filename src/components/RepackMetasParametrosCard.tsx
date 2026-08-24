@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   Layers,
   Save,
-  X
+  X,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 
 interface RepackMetasParametrosCardProps {
@@ -23,6 +25,7 @@ interface RepackMetasParametrosCardProps {
   embalagensConfig: Record<string, { metaSec: number; label: string }>;
   onUpdateEmbalagemMeta: (key: string, newSec: number) => void;
   onResetEmbalagens: () => void;
+  onRecalcular?: () => void;
   isManager?: boolean;
   processo?: 'repack' | 'despejo';
 }
@@ -34,12 +37,15 @@ export function RepackMetasParametrosCard({
   embalagensConfig,
   onUpdateEmbalagemMeta,
   onResetEmbalagens,
+  onRecalcular,
   isManager = true,
   processo = 'repack'
 }: RepackMetasParametrosCardProps) {
   const isDespejo = processo === 'despejo';
   const processLabel = isDespejo ? 'Despejo' : 'Repack';
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [recalcSuccess, setRecalcSuccess] = useState(false);
 
   // Edit states for Meta 1 (Produtividade cx/h)
   const [editingMeta1, setEditingMeta1] = useState(false);
@@ -75,6 +81,24 @@ export function RepackMetasParametrosCard({
     setEditingPackKey(null);
   };
 
+  const handleTriggerRecalcular = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsRecalculating(true);
+    setRecalcSuccess(false);
+
+    if (onRecalcular) {
+      onRecalcular();
+    } else {
+      window.dispatchEvent(new CustomEvent('dpo_recalcular_atingimento', { detail: { processo } }));
+    }
+
+    setTimeout(() => {
+      setIsRecalculating(false);
+      setRecalcSuccess(true);
+      setTimeout(() => setRecalcSuccess(false), 3500);
+    }, 600);
+  };
+
   const packEntries = Object.entries(embalagensConfig);
 
   return (
@@ -106,12 +130,29 @@ export function RepackMetasParametrosCard({
           </div>
         </div>
 
-        <button 
-          type="button"
-          className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleTriggerRecalcular}
+            disabled={isRecalculating}
+            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
+              recalcSuccess
+                ? 'bg-emerald-500 text-white'
+                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black'
+            }`}
+            title="Recalcular todo o histórico e atingimento das metas com base nos parâmetros atuais"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRecalculating ? 'animate-spin' : ''}`} />
+            <span>{isRecalculating ? 'Recalculando...' : recalcSuccess ? '✓ Metas Recalculadas' : 'Recalcular Atingimento'}</span>
+          </button>
+
+          <button 
+            type="button"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* BODY */}
@@ -365,6 +406,30 @@ export function RepackMetasParametrosCard({
               </div>
             </div>
 
+          </div>
+
+          {/* ACTION BAR: RECALCULAR ATINGIMENTO */}
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                Alterou as metas acima? Clique em <strong>Recalcular Atingimento</strong> para reprocessar a conformidade de todos os registros históricos e atuais.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleTriggerRecalcular}
+              disabled={isRecalculating}
+              className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md cursor-pointer ${
+                recalcSuccess
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                  : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20'
+              }`}
+            >
+              <RefreshCw className={`w-4 h-4 ${isRecalculating ? 'animate-spin' : ''}`} />
+              <span>{isRecalculating ? 'Recalculando Atingimento...' : recalcSuccess ? '✓ Metas & Atingimento Atualizados!' : '⚡ Recalcular Atingimento'}</span>
+            </button>
           </div>
 
         </div>

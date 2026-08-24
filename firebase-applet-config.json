@@ -1,9 +1,11 @@
 {
-  "projectId": "banco-03-teste",
-  "appId": "1:960111862390:web:14e480b12d53eb9fb0b557",
-  "apiKey": "AIzaSyCRqq7FK0L9m_aEqte7BXCu5q0C68JbJ64",
-  "authDomain": "banco-03-teste.firebaseapp.com",
-  "storageBucket": "banco-03-teste.firebasestorage.app",
-  "messagingSenderId": "960111862390"
+  "projectId": "gen-lang-client-0207847235",
+  "appId": "1:646202229831:web:9e9071b696daa1499c9d62",
+  "apiKey": "AIzaSyCjEWEOQ9JQyiEjFPGLSYtAfoeMqiXTVcQ",
+  "authDomain": "gen-lang-client-0207847235.firebaseapp.com",
+  "storageBucket": "gen-lang-client-0207847235.firebasestorage.app",
+  "messagingSenderId": "646202229831",
+  "measurementId": "",
+  "oAuthClientId": "646202229831-3b1iklr8anmj4gc6gjap80p2722ubg13.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
-

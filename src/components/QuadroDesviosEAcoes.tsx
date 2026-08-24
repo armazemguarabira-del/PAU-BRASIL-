@@ -199,6 +199,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
   
   // Modal state for Generating Corrective Action
   const [showGerarAcaoModal, setShowGerarAcaoModal] = useState(false);
+  const [actionDataCriacao, setActionDataCriacao] = useState(new Date().toISOString().split('T')[0]);
   const [actionTitle, setActionTitle] = useState('');
   const [actionColab, setActionColab] = useState('');
   const [actionSup, setActionSup] = useState(userName);
@@ -686,12 +687,16 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
     }
 
     const now = new Date();
+    const selectedDate = actionDataCriacao ? new Date(actionDataCriacao + 'T12:00:00') : now;
+    const dStr = selectedDate.toLocaleDateString('pt-BR');
+    const dISO = actionDataCriacao || selectedDate.toISOString().split('T')[0];
+    const hStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const newAcaoId = `AC_DESVIO_${Date.now()}`;
     const newAcao: AcaoCorretiva = {
       id: newAcaoId,
-      data: now.toLocaleDateString('pt-BR'),
-      dataISO: now.toISOString().split('T')[0],
-      hora: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      data: dStr,
+      dataISO: dISO,
+      hora: hStr,
       processo: actionProcess,
       setor: selectedDemand?.processo || selectedDeviation?.processo || 'Operação',
       colaboradorResponsavel: actionColab,
@@ -705,14 +710,14 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       prazo: actionPrazo,
       comentarioOperador: '',
       abertoPor: `${userName}${user.cargo ? ` (${user.cargo})` : ''}`,
-      dataAbertura: `${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      dataAbertura: `${dStr} ${hStr}`,
       historicoAlteracoes: [{
-        dataHora: now.toLocaleString('pt-BR'),
+        dataHora: `${dStr} ${hStr}`,
         usuario: userName,
-        alteracao: `Ação corretiva aberta por ${userName} e atribuída a ${actionColab}.`
+        alteracao: `Ação corretiva aberta por ${userName} e atribuída a ${actionColab} na data ${dStr}.`
       }],
       simulado: false,
-      criadoEm: now.toISOString(),
+      criadoEm: selectedDate.toISOString(),
       tipoAcao: 'Corretiva',
       prioridade: actionPrioridade,
       cincoPorques: selectedDemand ? {
@@ -1958,7 +1963,21 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Data de Criação:</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={actionDataCriacao}
+                    onChange={e => setActionDataCriacao(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-900 dark:text-white outline-none mt-1 font-semibold focus:border-amber-400"
+                    required
+                  />
+                </div>
+
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Processo:</label>
                   <select
@@ -1987,7 +2006,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">Prazo de Conclusão:</label>
+                  <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Prazo:</span>
+                  </label>
                   <input
                     type="date"
                     value={actionPrazo}

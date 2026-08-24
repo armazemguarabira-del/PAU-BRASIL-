@@ -119,21 +119,21 @@ const extractDateISO = (val: any): string => {
 };
 
 const DEFAULT_EMBALAGENS_CONFIG: Record<string, { metaSec: number; label: string }> = {
-  'LATA 250': { metaSec: 270, label: 'Lata 250 (Meta: 04:30)' },
-  'LATA 269': { metaSec: 270, label: 'Lata 269 (Meta: 04:30)' },
-  'LATA 350': { metaSec: 330, label: 'Lata 350 (Meta: 05:30)' },
-  'LATA 473': { metaSec: 330, label: 'Lata 473 (Meta: 05:30)' },
-  'LONG NECK': { metaSec: 360, label: 'Long Neck (Meta: 06:00)' },
-  'PET 1L': { metaSec: 330, label: 'Pet 1L (Meta: 05:30)' },
-  'PET 2L': { metaSec: 300, label: 'Pet 2L (Meta: 05:00)' },
-  'PET 500ml': { metaSec: 300, label: 'Pet 500ml (Meta: 05:00)' },
-  'PET 200ml': { metaSec: 270, label: 'Pet 200ml (Meta: 04:30)' },
-  'PET 2,5L': { metaSec: 270, label: 'Pet 2,5L (Meta: 04:30)' },
-  'PET 3,3L': { metaSec: 240, label: 'Pet 3,3L (Meta: 04:00)' },
-  '600 OW': { metaSec: 300, label: '600 OW (Meta: 05:00)' },
-  '300 OW': { metaSec: 240, label: '300 OW (Meta: 04:00)' },
-  'GARRAFA 600ml': { metaSec: 255, label: 'Garrafa 600ml (Meta: 04:15)' },
-  'GARRAFA 1L': { metaSec: 285, label: 'Garrafa 1L (Meta: 04:45)' }
+  'LATA 250': { metaSec: 50, label: 'Lata 250 (Meta: 00:50)' },
+  'LATA 269': { metaSec: 50, label: 'Lata 269 (Meta: 00:50)' },
+  'LATA 350': { metaSec: 50, label: 'Lata 350 (Meta: 00:50)' },
+  'LATA 473': { metaSec: 50, label: 'Lata 473 (Meta: 00:50)' },
+  'LONG NECK': { metaSec: 50, label: 'Long Neck (Meta: 00:50)' },
+  'PET 1L': { metaSec: 50, label: 'Pet 1L (Meta: 00:50)' },
+  'PET 2L': { metaSec: 50, label: 'Pet 2L (Meta: 00:50)' },
+  'PET 500ml': { metaSec: 50, label: 'Pet 500ml (Meta: 00:50)' },
+  'PET 200ml': { metaSec: 50, label: 'Pet 200ml (Meta: 00:50)' },
+  'PET 2,5L': { metaSec: 50, label: 'Pet 2,5L (Meta: 00:50)' },
+  'PET 3,3L': { metaSec: 50, label: 'Pet 3,3L (Meta: 00:50)' },
+  '600 OW': { metaSec: 50, label: '600 OW (Meta: 00:50)' },
+  '300 OW': { metaSec: 50, label: '300 OW (Meta: 00:50)' },
+  'GARRAFA 600ml': { metaSec: 50, label: 'Garrafa 600ml (Meta: 00:50)' },
+  'GARRAFA 1L': { metaSec: 50, label: 'Garrafa 1L (Meta: 00:50)' }
 };
 
 const DEFAULT_OPERADORES = [
@@ -191,7 +191,7 @@ const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
       const op = operators[(i + j) % operators.length];
       const prod = packages[(i * 2 + j) % packages.length];
       const qty = Math.floor(Math.random() * 12) + 8; // 8 to 19 units
-      const config = DEFAULT_EMBALAGENS_CONFIG[prod.emb] || { metaSec: 270, label: prod.emb };
+      const config = DEFAULT_EMBALAGENS_CONFIG[prod.emb] || { metaSec: 50, label: prod.emb };
       const expectedSec = config.metaSec * qty;
       const isWithin = Math.random() > 0.22;
       const actualSec = isWithin
@@ -261,14 +261,19 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   const [embalagensConfig, setEmbalagensConfig] = useState<Record<string, { metaSec: number; label: string }>>(() => {
     const saved = localStorage.getItem(`despejo_embalagens_config_${empresa?.id || 'demo'}`);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        // If saved config is outdated or has old targets > 120s, merge with 50s defaults
+        const hasOutdated = Object.values(parsed).some((v: any) => v?.metaSec > 120);
+        if (!hasOutdated) return parsed;
+      } catch (e) { console.error(e); }
     }
     return DEFAULT_EMBALAGENS_CONFIG;
   });
 
   const handleUpdateEmbalagemMeta = (key: string, newSec: number) => {
     setEmbalagensConfig(prev => {
-      const current = prev[key] || { label: key, metaSec: 270 };
+      const current = prev[key] || { label: key, metaSec: 50 };
       const m = Math.floor(newSec / 60);
       const s = newSec % 60;
       const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -289,6 +294,76 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
     setEmbalagensConfig(DEFAULT_EMBALAGENS_CONFIG);
     localStorage.setItem(`despejo_embalagens_config_${empresa?.id || 'demo'}`, JSON.stringify(DEFAULT_EMBALAGENS_CONFIG));
   };
+
+  // Recalculation states & logic
+  const [isRecalculatingGlobal, setIsRecalculatingGlobal] = useState(false);
+  const [globalRecalcBanner, setGlobalRecalcBanner] = useState(false);
+  const [recalcSummary, setRecalcSummary] = useState<{ total: number; dentro: number; fora: number; conformidadePct: number } | null>(null);
+
+  const handleRecalcularAtingimento = () => {
+    setIsRecalculatingGlobal(true);
+    setGlobalRecalcBanner(false);
+
+    setTimeout(() => {
+      let dentroCount = 0;
+      let foraCount = 0;
+
+      setDespejoRows(prev => {
+        const updated = prev.map(r => {
+          const config = embalagensConfig[r.embalagem] || { metaSec: 50 };
+          const expectedSec = config.metaSec * (Number(r.quantidade) || 1);
+          const actualSec = toSec(r.duracao || r.tempo || 0);
+          const isWithin = actualSec > 0 && actualSec <= expectedSec;
+          if (isWithin) dentroCount++;
+          else foraCount++;
+          return {
+            ...r,
+            resultado: isWithin ? '🟢 META BATIDA' : '🔴 ACIMA DA META'
+          };
+        });
+        const total = updated.length;
+        const conformidadePct = total > 0 ? Math.round((dentroCount / total) * 100) : 0;
+        setRecalcSummary({ total, dentro: dentroCount, fora: foraCount, conformidadePct });
+        return updated;
+      });
+
+      // Update in localStorage if enterprise data exists
+      try {
+        const saved = localStorage.getItem(`empresa_data_${empresa?.id || 'demo'}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.despejo) {
+            parsed.despejo = (parsed.despejo || []).map((r: any) => {
+              const config = embalagensConfig[r.embalagem] || { metaSec: 50 };
+              const expectedSec = config.metaSec * (Number(r.quantidade) || 1);
+              const actualSec = toSec(r.duracao || r.tempo || 0);
+              const isWithin = actualSec > 0 && actualSec <= expectedSec;
+              return {
+                ...r,
+                resultado: isWithin ? '🟢 META BATIDA' : '🔴 ACIMA DA META'
+              };
+            });
+            localStorage.setItem(`empresa_data_${empresa?.id || 'demo'}`, JSON.stringify(parsed));
+          }
+        }
+      } catch (e) {}
+
+      setIsRecalculatingGlobal(false);
+      setGlobalRecalcBanner(true);
+      setTimeout(() => setGlobalRecalcBanner(false), 5000);
+    }, 450);
+  };
+
+  // Listen to global recalculate events
+  useEffect(() => {
+    const handleGlobalRecalc = (e: any) => {
+      if (!e.detail || e.detail.processo === 'despejo' || e.detail.processo === 'all') {
+        handleRecalcularAtingimento();
+      }
+    };
+    window.addEventListener('dpo_recalcular_atingimento', handleGlobalRecalc);
+    return () => window.removeEventListener('dpo_recalcular_atingimento', handleGlobalRecalc);
+  }, [embalagensConfig]);
 
   // Modals
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -634,7 +709,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
 
       // 5. Meta status
       if (activeMeta !== 'todos') {
-        const config = embalagensConfig[row.embalagem] || { metaSec: 270 };
+        const config = embalagensConfig[row.embalagem] || { metaSec: 50 };
         const totalExpectedSec = config.metaSec * (Number(row.quantidade) || 1);
         const actualSec = getRowDurationSec(row);
         const isWithin = actualSec <= totalExpectedSec;
@@ -743,7 +818,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
 
   const totalTempoEsperadoSec = useMemo(() => {
     return filteredRows.reduce((sum, r) => {
-      const config = embalagensConfig[r.embalagem] || { metaSec: 270 };
+      const config = embalagensConfig[r.embalagem] || { metaSec: 50 };
       return sum + (config.metaSec * (Number(r.quantidade) || 1));
     }, 0);
   }, [filteredRows, embalagensConfig]);
@@ -762,7 +837,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   const conformidadeMetaPct = useMemo(() => {
     if (filteredRows.length === 0) return 0;
     const dentro = filteredRows.filter(r => {
-      const config = embalagensConfig[r.embalagem] || { metaSec: 270 };
+      const config = embalagensConfig[r.embalagem] || { metaSec: 50 };
       const expectedSec = config.metaSec * (Number(r.quantidade) || 1);
       const actualSec = getRowDurationSec(r);
       return actualSec <= expectedSec;
@@ -801,7 +876,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
       const prev = map.get(nome) || { nome, totalRegistros: 0, totalCx: 0, totalSec: 0, dentroMeta: 0, totalOps: 0 };
       const cx = Number(r.quantidade) || 0;
       const sec = getRowDurationSec(r);
-      const config = embalagensConfig[r.embalagem] || { metaSec: 270 };
+      const config = embalagensConfig[r.embalagem] || { metaSec: 50 };
       const expected = config.metaSec * (cx || 1);
       map.set(nome, {
         nome,
@@ -1233,7 +1308,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
   // Submit New Production Record
   const handleCreateRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    const config = embalagensConfig[newEmbalagem] || { metaSec: 270 };
+    const config = embalagensConfig[newEmbalagem] || { metaSec: 50 };
     const expectedSec = config.metaSec * newQuantidade;
     const duracaoHMS = toHMS(stopwatchSeconds > 0 ? stopwatchSeconds : expectedSec);
     const duracaoSec = stopwatchSeconds > 0 ? stopwatchSeconds : expectedSec;
@@ -1302,7 +1377,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
         'Hora Inicial': r.inicio || '—',
         'Hora Final': r.fim || '—',
         'Duração / Tempo': r.duracao || r.tempo,
-        'Resultado / Meta': r.resultado || (toSec(r.duracao || r.tempo || 0) <= (embalagensConfig[r.embalagem]?.metaSec || 270) * (Number(r.quantidade) || 1) ? '🟢 META BATIDA' : '🔴 ACIMA DA META'),
+        'Resultado / Meta': r.resultado || (toSec(r.duracao || r.tempo || 0) <= (embalagensConfig[r.embalagem]?.metaSec || 50) * (Number(r.quantidade) || 1) ? '🟢 META BATIDA' : '🔴 ACIMA DA META'),
         'Justificativa / Motivo': r.motivo || '—'
       };
     });
@@ -1374,7 +1449,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
         const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
         const hl = r.hlPerdido || r.hectolitroPerdido || (factor * (Number(r.quantidade) || 0) / 100);
         const actualSec = getRowDurationSec(r);
-        const within = r.resultado?.includes('META BATIDA') || actualSec <= (embalagensConfig[r.embalagem]?.metaSec || 270) * (Number(r.quantidade) || 1);
+        const within = r.resultado?.includes('META BATIDA') || actualSec <= (embalagensConfig[r.embalagem]?.metaSec || 50) * (Number(r.quantidade) || 1);
 
         doc.setTextColor(71, 85, 105);
         doc.text(String(r.data || r.dataISO || '—').slice(0, 10), 16, y);
@@ -1436,6 +1511,18 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
 
         <div className="flex flex-wrap items-center gap-2.5">
           <DespejoHeaderClock />
+
+          {/* BOTÃO RECALCULAR ATINGIMENTO */}
+          <button
+            type="button"
+            onClick={handleRecalcularAtingimento}
+            disabled={isRecalculatingGlobal}
+            className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 border border-amber-400/50"
+            title="Recalcular conformidade e atingimento de todos os registros de Despejo com base nas metas alteradas"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRecalculatingGlobal ? 'animate-spin' : ''}`} />
+            <span>{isRecalculatingGlobal ? 'Recalculando...' : 'Recalcular Atingimento'}</span>
+          </button>
 
           {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (DESPEJO) */}
           <button
@@ -1519,6 +1606,27 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
         </div>
       </header>
 
+      {/* FEEDBACK BANNER DE RECALCULAÇÃO */}
+      {globalRecalcBanner && recalcSummary && (
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 shadow-sm mb-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <div>
+              <strong className="font-black uppercase tracking-wider">Atingimento Recalculado com Sucesso!</strong>
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                {recalcSummary.total} registros de Despejo reprocessados: <strong>{recalcSummary.dentro} Dentro da Meta ({recalcSummary.conformidadePct}%)</strong> e <strong>{recalcSummary.fora} Fora da Meta</strong>.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setGlobalRecalcBanner(false)}
+            className="text-emerald-700 hover:text-emerald-950 dark:text-emerald-300 text-[11px] font-bold underline cursor-pointer"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
+
       {/* SUB TAB: PRODUTIVIDADE & BI */}
       {activeSubTab === 'produtividade' && (
         <div className="space-y-6">
@@ -1531,6 +1639,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
             embalagensConfig={embalagensConfig}
             onUpdateEmbalagemMeta={handleUpdateEmbalagemMeta}
             onResetEmbalagens={handleResetEmbalagens}
+            onRecalcular={handleRecalcularAtingimento}
             isManager={user?.papel === 'admin' || user?.papel === 'supervisor' || true}
             processo="despejo"
           />
@@ -2022,7 +2131,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                   ) : (
                     paginatedRows.map((row, rIdx) => {
                       const docId = (row as any)._docId || row.id || `row-${rIdx}`;
-                      const config = embalagensConfig[row.embalagem] || { metaSec: 270 };
+                      const config = embalagensConfig[row.embalagem] || { metaSec: 50 };
                       const expectedSec = config.metaSec * (Number(row.quantidade) || 1);
                       const actualSec = getRowDurationSec(row);
                       const isWithin = actualSec <= expectedSec;
@@ -2165,7 +2274,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
                 <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
                   <span className="text-gray-400 block text-[10px] uppercase font-bold">Tempo Real vs Meta</span>
                   <span className="font-bold font-mono text-slate-900 dark:text-white mt-0.5 block">
-                    {selectedRowObj.duracao || selectedRowObj.tempo} (Meta: {toHMS((embalagensConfig[selectedRowObj.embalagem]?.metaSec || 270) * (Number(selectedRowObj.quantidade) || 1))})
+                    {selectedRowObj.duracao || selectedRowObj.tempo} (Meta: {toHMS((embalagensConfig[selectedRowObj.embalagem]?.metaSec || 50) * (Number(selectedRowObj.quantidade) || 1))})
                   </span>
                 </div>
               </div>
@@ -2926,12 +3035,12 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
               <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-900/60 text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-slate-400">Meta Unidade ({newEmbalagem}):</span>
-                  <span className="font-bold font-mono">{toHMS(embalagensConfig[newEmbalagem]?.metaSec || 270)}</span>
+                  <span className="font-bold font-mono">{toHMS(embalagensConfig[newEmbalagem]?.metaSec || 50)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-slate-400">Tempo Limite Total ({newQuantidade} UN):</span>
                   <span className="font-bold font-mono text-blue-600 dark:text-blue-400">
-                    {toHMS((embalagensConfig[newEmbalagem]?.metaSec || 270) * newQuantidade)}
+                    {toHMS((embalagensConfig[newEmbalagem]?.metaSec || 50) * newQuantidade)}
                   </span>
                 </div>
               </div>

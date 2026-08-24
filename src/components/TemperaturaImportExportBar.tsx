@@ -7,7 +7,8 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   RefreshCw,
-  RotateCcw
+  RotateCcw,
+  FileCheck
 } from 'lucide-react';
 import { 
   exportarModeloExcelTemperatura, 
@@ -19,10 +20,11 @@ import {
 
 interface TemperaturaImportExportBarProps {
   onDataChanged?: () => void;
+  onOpenPadraoModal?: () => void;
   compact?: boolean;
 }
 
-export default function TemperaturaImportExportBar({ onDataChanged, compact = false }: TemperaturaImportExportBarProps) {
+export default function TemperaturaImportExportBar({ onDataChanged, onOpenPadraoModal, compact = false }: TemperaturaImportExportBarProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -129,6 +131,19 @@ export default function TemperaturaImportExportBar({ onDataChanged, compact = fa
 
         {/* Right Buttons */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Padrão de Recolhimento */}
+          {onOpenPadraoModal && (
+            <button
+              type="button"
+              onClick={onOpenPadraoModal}
+              className="px-3.5 py-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs hover:text-white"
+              title="Importar ou Visualizar o Padrão Oficial de Recolhimento de Temperatura (POP/LUP)"
+            >
+              <FileCheck className="w-3.5 h-3.5 text-cyan-400" />
+              Padrão de Recolhimento
+            </button>
+          )}
+
           {/* Reload from CSV Code */}
           <button
             type="button"

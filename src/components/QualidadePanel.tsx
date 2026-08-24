@@ -51,9 +51,11 @@ import { IndicatorActionModal } from './IndicatorActionModal';
 import { exportChecklist5SOfficialPdf, getDefaultScoresForPercentage } from '../utils/exportChecklist5SPdf';
 import { Official5SDigitalAuditModal } from './Official5SDigitalAuditModal';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
+import { PadraoRecolhimentoTemperaturaModal } from './PadraoRecolhimentoTemperaturaModal';
+import { PlanoAcoesTermicasMensais } from './PlanoAcoesTermicasMensais';
 import { AcoesGeraisRepository } from '../db';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
-import { setMediaItem, getMediaItem } from '../utils/idbStorage';
+import { setMediaItem, getMediaItem, removeMediaItem } from '../utils/idbStorage';
 import { 
   LaudoPragas, 
   LaudoFileItem, 
@@ -61,7 +63,8 @@ import {
   getStoredPragasLaudosSync, 
   savePragasLaudo, 
   deletePragasLaudo,
-  downloadDataUrl 
+  downloadDataUrl,
+  openDataUrlInNewTab
 } from '../utils/pragasStorage';
 import { 
   BarChart, 
@@ -277,8 +280,8 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       observacoes: 'Auditoria mensal do armazém conforme padrão DPO. 5S realizado com sucesso.', 
       pdfFileName: 'Auditoria_Frota_Armazem_01_2026_Assinada.pdf', 
       criadoEm: '2026-01-28T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(88, 1)
     },
     { 
@@ -289,11 +292,11 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-02-25', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 88, 
-      observacoes: 'Organização do pátio e picking bem estruturados. Setor organizado.', 
+      observacoes: 'Organização do pátio e picking bem estruturados. Setor bem organizado.', 
       pdfFileName: 'Auditoria_Frota_Armazem_02_2026_Assinada.pdf', 
       criadoEm: '2026-02-25T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(88, 2)
     },
     { 
@@ -304,11 +307,11 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-03-27', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 92, 
-      observacoes: 'Conformidade de faixas de pedestre e segregação. Área limpa.', 
+      observacoes: 'Conformidade das faixas de pedestre e segregação. Área limpa.', 
       pdfFileName: 'Auditoria_Frota_Armazem_03_2026_Assinada.pdf', 
       criadoEm: '2026-03-27T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(92, 3)
     },
     { 
@@ -319,11 +322,11 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-04-28', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 88, 
-      observacoes: 'Atenção para acúmulo de paletes no descarte. Chec list feito.', 
+      observacoes: 'Disposição adequada de paletes e descarte segregado. Checklist concluído.', 
       pdfFileName: 'Auditoria_Frota_Armazem_04_2026_Assinada.pdf', 
       criadoEm: '2026-04-28T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(88, 4)
     },
     { 
@@ -334,11 +337,11 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-05-27', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 88, 
-      observacoes: 'Setores de devolução e refugo bem segregados. 5S realisado.', 
+      observacoes: 'Setores de devolução e refugo bem demarcados. 5S realizado com excelência.', 
       pdfFileName: 'Auditoria_Frota_Armazem_05_2026_Assinada.pdf', 
       criadoEm: '2026-05-27T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(88, 5)
     },
     { 
@@ -349,26 +352,26 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-06-26', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 92, 
-      observacoes: 'Excelente pontuação de 5S no armazém. 5S realizado com sucesso.', 
+      observacoes: 'Excelente padrão de 5S no armazém. Rotina cumprida com sucesso.', 
       pdfFileName: 'Auditoria_Frota_Armazem_06_2026_Assinada.pdf', 
       criadoEm: '2026-06-26T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(92, 6)
     },
     { 
       id: 'frota-2026-07', 
       mesAno: '07/2026', 
-      ano: '2026', 
       mes: '07', 
+      ano: '2026', 
       dataAuditoria: '2026-07-29', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 88, 
-      observacoes: 'Auditoria cruzada realizada. Conforme padrão. Setor organizado.', 
+      observacoes: 'Auditoria cruzada realizada conforme padrão DPO. Setor organizado.', 
       pdfFileName: 'Auditoria_Frota_Armazem_07_2026_Assinada.pdf', 
       criadoEm: '2026-07-29T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(88, 7)
     },
     { 
@@ -379,11 +382,11 @@ export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
       dataAuditoria: '2026-08-14', 
       auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
       notaPercentualFrota: 92, 
-      observacoes: 'Auditoria do mês de Agosto em andamento, conformidade positiva e área limpa.', 
+      observacoes: 'Auditoria mensal em andamento, conformidade positiva e área limpa.', 
       pdfFileName: 'Auditoria_Frota_Armazem_08_2026_Assinada.pdf', 
       criadoEm: '2026-08-14T10:00:00Z',
-      areaAuditada: 'Armazém Geral (Guarabira - PB)',
-      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       scores: getDefaultScoresForPercentage(92, 8)
     }
   ];
@@ -409,17 +412,28 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
   // ── AUDITORIAS DO SETOR DE FROTA (PEDRO BRUNO) ──
   const [auditoriasFrota, setAuditoriasFrota] = useState<AuditoriaFrotaMensal[]>(() => {
+    const targetFrotaByMonth: Record<string, number> = {
+      '01': 88, '02': 88, '03': 92, '04': 88, '05': 88, '06': 92, '07': 88, '08': 92
+    };
+
     try {
       const saved = localStorage.getItem('auditorias_frota_5s_mensal');
       if (saved) {
         const parsed: AuditoriaFrotaMensal[] = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Garante que todas as auditorias históricas da frota passem de 85% e mantenham a dispersão < 5%
           const updated = parsed.map(item => {
-            if (item.notaPercentualFrota < 88 || (item.mes === '08' && item.notaPercentualFrota === 85)) {
-              return { ...item, notaPercentualFrota: item.mes === '08' ? 90 : 88 };
-            }
-            return item;
+            const defaultTarget = targetFrotaByMonth[item.mes] || 88;
+            const nota = item.notaPercentualFrota || defaultTarget;
+            const auditName = item.auditadoNome && !item.auditadoNome.toUpperCase().includes('KATHYEL') 
+              ? item.auditadoNome 
+              : 'Djeanderson Soares';
+            return {
+              ...item,
+              notaPercentualFrota: nota,
+              areaAuditada: 'Armazém Geral',
+              auditadoNome: auditName,
+              scores: item.scores || getDefaultScoresForPercentage(nota, parseInt(item.mes, 10))
+            };
           });
           localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(updated));
           return updated;
@@ -540,9 +554,11 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
   const [filter5SMode, setFilter5SMode] = useState<'todos' | 'atingiram' | 'fora'>('todos');
   const [is5SModalOpen, setIs5SModalOpen] = useState(false);
+  const [is5SDigitalModalOpen, setIs5SDigitalModalOpen] = useState(false);
   const [is5SImportModalOpen, setIs5SImportModalOpen] = useState(false);
   const [selected5SSetor, setSelected5SSetor] = useState('PICKING');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const frotaFileInputRef = React.useRef<HTMLInputElement>(null);
   
   // Estado para Modal de Histórico Diário do Colaborador e Detalhamento
   const [selectedColabForHistory, setSelectedColabForHistory] = useState<any | null>(null);
@@ -571,9 +587,115 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
     }
   };
 
+  const handleImportFrotaPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const dataUrl = event.target?.result as string;
+      const recordId = `frota-${selectedYear5S}-${selectedMonth5S}`;
+      try {
+        await setMediaItem(`frota_pdf_${recordId}`, dataUrl);
+      } catch (err) {
+        console.warn('Erro ao salvar PDF no IndexedDB:', err);
+      }
+
+      setAuditoriasFrota(prev => {
+        const existing = prev.find(item => item.ano === selectedYear5S && item.mes === selectedMonth5S);
+        let updated: AuditoriaFrotaMensal[];
+        if (existing) {
+          updated = prev.map(item => {
+            if (item.ano === selectedYear5S && item.mes === selectedMonth5S) {
+              return {
+                ...item,
+                pdfFileName: file.name,
+                pdfFileDataUrl: dataUrl
+              };
+            }
+            return item;
+          });
+        } else {
+          const newRecord: AuditoriaFrotaMensal = {
+            id: recordId,
+            mesAno: `${selectedMonth5S}/${selectedYear5S}`,
+            ano: selectedYear5S,
+            mes: selectedMonth5S,
+            dataAuditoria: `${selectedYear5S}-${selectedMonth5S}-25`,
+            auditorResponsavel: 'Pedro Bruno (Setor de Frota)',
+            notaPercentualFrota: 92,
+            observacoes: `Auditoria de 5S do armazém importada em PDF para ${selectedMonth5S}/${selectedYear5S}.`,
+            pdfFileName: file.name,
+            pdfFileDataUrl: dataUrl,
+            criadoEm: new Date().toISOString()
+          };
+          updated = [newRecord, ...prev];
+        }
+        try {
+          const lightList = updated.map(u => ({ ...u, pdfFileDataUrl: undefined }));
+          localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(lightList));
+        } catch (err) {
+          console.warn('Erro ao persistir no LocalStorage:', err);
+        }
+        return updated;
+      });
+      window.dispatchEvent(new Event('5s_audit_updated'));
+      window.dispatchEvent(new Event('5s_frota_audit_saved'));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleDeleteFrotaPdf = async () => {
+    if (!confirm(`Deseja remover o arquivo PDF anexado da auditoria de ${selectedMonth5S}/${selectedYear5S}? O arquivo será excluído permanentemente até novo upload.`)) {
+      return;
+    }
+    const recordId = `frota-${selectedYear5S}-${selectedMonth5S}`;
+    try {
+      await removeMediaItem(`frota_pdf_${recordId}`);
+    } catch (err) {
+      console.warn('Erro ao remover do IndexedDB:', err);
+    }
+
+    setAuditoriasFrota(prev => {
+      const updated = prev.map(item => {
+        if (item.ano === selectedYear5S && item.mes === selectedMonth5S) {
+          return {
+            ...item,
+            pdfFileName: undefined,
+            pdfFileDataUrl: undefined
+          };
+        }
+        return item;
+      });
+      try {
+        const lightList = updated.map(u => ({ ...u, pdfFileDataUrl: undefined }));
+        localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(lightList));
+      } catch (err) {}
+      return updated;
+    });
+    window.dispatchEvent(new Event('5s_audit_updated'));
+    window.dispatchEvent(new Event('5s_frota_audit_saved'));
+  };
+
   useEffect(() => {
+    const handleFrotaAuditUpdated = () => {
+      try {
+        const saved = localStorage.getItem('auditorias_frota_5s_mensal');
+        if (saved) {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list)) {
+            setAuditoriasFrota(list);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
     window.addEventListener('5s_audit_updated', reloadAudits);
     window.addEventListener('5s_responsaveis_updated', reloadAudits);
+    window.addEventListener('5s_frota_audit_saved', handleFrotaAuditUpdated);
     window.addEventListener('storage', reloadAudits);
 
     // Hydrate any frota audit PDFs stored in IndexedDB
@@ -608,6 +730,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
     return () => {
       window.removeEventListener('5s_audit_updated', reloadAudits);
       window.removeEventListener('5s_responsaveis_updated', reloadAudits);
+      window.removeEventListener('5s_frota_audit_saved', handleFrotaAuditUpdated);
       window.removeEventListener('storage', reloadAudits);
     };
   }, []);
@@ -784,11 +907,16 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       const sum = filtered5SAuditsMonth.reduce((acc, curr) => acc + (curr.notaPercentual || 0), 0);
       return Math.round(sum / filtered5SAuditsMonth.length);
     }
-    return 91;
-  }, [filtered5SAuditsMonth]);
+    const defaultArmazemByMonth: Record<string, number> = {
+      '01': 92, '02': 92, '03': 88, '04': 92, '05': 92, '06': 89, '07': 92, '08': 88
+    };
+    return defaultArmazemByMonth[selectedMonth5S] || 92;
+  }, [filtered5SAuditsMonth, selectedMonth5S]);
 
   // Real Auditoria Frota
-  const realAuditoriaFrotaPct = currentAuditoriaFrota ? currentAuditoriaFrota.notaPercentualFrota : 90;
+  const realAuditoriaFrotaPct = currentAuditoriaFrota
+    ? currentAuditoriaFrota.notaPercentualFrota
+    : ((selectedMonth5S === '03' || selectedMonth5S === '06' || selectedMonth5S === '08') ? 92 : 88);
 
   // Dispersão (Armazém - Frota)
   const dispersaoArmazemFrota = Math.abs(realAuditoriaArmazemPct - realAuditoriaFrotaPct);
@@ -811,10 +939,14 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       { label: 'Dez', mesStr: '12' }
     ];
 
+    const defaultArmazemByMonth: Record<string, number> = {
+      '01': 92, '02': 92, '03': 88, '04': 92, '05': 92, '06': 89, '07': 92, '08': 88
+    };
+
     return meses.map(m => {
       const numMes = parseInt(m.mesStr, 10);
       if (numMes > 8) {
-        return { mes: m.label, armazem: 0, frota: 0, meta: 80, dispersao: 0 };
+        return { mes: m.label, armazem: 0, frota: 0, meta: 85, dispersao: 0 };
       }
 
       // Cálculo de conformidade dos colaboradores no mês
@@ -825,15 +957,13 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
       let armazemNota = auditsDoMes.length > 0
         ? Math.round(auditsDoMes.reduce((acc, curr) => acc + (curr.notaPercentual || 0), 0) / auditsDoMes.length)
-        : (m.mesStr === selectedMonth5S ? realAuditoriaArmazemPct : 91);
+        : (defaultArmazemByMonth[m.mesStr] || 92);
 
       // Busca nota de auditoria da Frota
       const frotaAudit = auditoriasFrota.find(f => f.ano === selectedYear5S && f.mes === m.mesStr);
-      let frotaNotaVal = frotaAudit ? frotaAudit.notaPercentualFrota : (m.mesStr === selectedMonth5S ? realAuditoriaFrotaPct : 90);
-
-      // Garante que o Armazém e a Frota passem de 85% e a dispersão seja estritamente < 5%
-      if (armazemNota <= 85) armazemNota = 91;
-      if (frotaNotaVal <= 85) frotaNotaVal = 90;
+      let frotaNotaVal = frotaAudit
+        ? frotaAudit.notaPercentualFrota
+        : ((m.mesStr === '03' || m.mesStr === '06' || m.mesStr === '08') ? 92 : 88);
 
       const disp = Math.abs(armazemNota - frotaNotaVal);
 
@@ -841,11 +971,11 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
         mes: m.label,
         armazem: armazemNota,
         frota: frotaNotaVal,
-        meta: 80,
+        meta: 85,
         dispersao: disp
       };
     });
-  }, [audits5S, auditoriasFrota, selectedYear5S, selectedMonth5S, realAuditoriaArmazemPct, realAuditoriaFrotaPct]);
+  }, [audits5S, auditoriasFrota, selectedYear5S]);
 
   // Handler para Salvar Auditoria da Frota
   const handleSaveAuditoriaFrota = async (e: React.FormEvent) => {
@@ -879,6 +1009,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       observacoes: frotaObs.trim() || `Auditoria de 5S mensal realizada pelo setor de Frota em ${mesAno}.`,
       pdfFileName: frotaPdfFile?.fileName || currentAuditoriaFrota?.pdfFileName || 'Auditoria_Frota_Assinada.pdf',
       pdfFileDataUrl: pdfData,
+      areaAuditada: 'Armazém Geral',
+      auditadoNome: 'Djeanderson Soares',
       criadoEm: new Date().toISOString()
     };
 
@@ -928,8 +1060,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
   const handleExportBlank5SOfficial = () => {
     exportChecklist5SOfficialPdf({
       auditor: '',
-      auditado: '',
-      areaAuditada: '',
+      auditado: 'Djeanderson Soares',
+      areaAuditada: 'Armazém Geral',
       dataStr: '' // Data em branco para preenchimento com caneta
     });
   };
@@ -942,6 +1074,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
   const [selectedFilterYear, setSelectedFilterYear] = useState<string>(currentYearStr);
   const [selectedRetroactiveMonth, setSelectedRetroactiveMonth] = useState<string>(`${currentMonthStr}/${currentYearStr}`);
   const [selectedTempDayId, setSelectedTempDayId] = useState<string | null>(null);
+  const [isPadraoTempModalOpen, setIsPadraoTempModalOpen] = useState<boolean>(false);
+  const [hoveredTempLog, setHoveredTempLog] = useState<ArmazemTemperaturaLog | null>(null);
 
   const [tempLogs, setTempLogs] = useState<ArmazemTemperaturaLog[]>(() => {
     return getStoredTempLogs();
@@ -1365,7 +1499,10 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       {activeSubTab === 'temperatura' && (
         <div className="bg-[#111a30] border border-cyan-500/30 rounded-2xl p-6 space-y-6 shadow-xl">
           {/* Import / Export / Clear Bar */}
-          <TemperaturaImportExportBar onDataChanged={handleRefreshTempLogs} />
+          <TemperaturaImportExportBar 
+            onDataChanged={handleRefreshTempLogs} 
+            onOpenPadraoModal={() => setIsPadraoTempModalOpen(true)}
+          />
 
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
             <div>
@@ -1387,6 +1524,17 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
             {/* SELETOR DE FILTRO DE MÊS E ANO + REGISTRO */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botão Padrão de Recolhimento de Temperatura (POP) */}
+              <button
+                type="button"
+                onClick={() => setIsPadraoTempModalOpen(true)}
+                className="px-3.5 py-2 bg-[#0b1222] hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                title="Importar ou Visualizar o Padrão Oficial de Recolhimento de Temperatura"
+              >
+                <FileCheck className="w-4 h-4 text-cyan-400" />
+                Padrão de Recolhimento
+              </button>
+
               <div className="bg-[#0b1222] border border-slate-800 p-1.5 rounded-xl flex items-center gap-2">
                 <Filter className="w-3.5 h-3.5 text-cyan-400 ml-1" />
                 
@@ -1811,6 +1959,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
           {/* CARDS DE RESUMO DO MÊS ATIVO */}
           {(() => {
             const targetMonth = `${selectedFilterMonth}/${selectedFilterYear}`;
+            // Sorted ASCENDING chronologically from Day 01 to Day 31
             const monthLogs = tempLogs
               .filter(l => l.mesAno === targetMonth)
               .sort((a, b) => {
@@ -1818,18 +1967,25 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                 const timeB = (b.hora || '00:00').length === 4 ? `0${b.hora}` : (b.hora || '00:00');
                 const keyA = `${a.dataISO || '0000-00-00'}T${timeA}`;
                 const keyB = `${b.dataISO || '0000-00-00'}T${timeB}`;
-                return keyB.localeCompare(keyA);
+                return keyA.localeCompare(keyB);
               });
+
             const totalDays = monthLogs.length;
             const avgTemp = totalDays > 0 ? (monthLogs.reduce((acc, curr) => acc + curr.temperatura, 0) / totalDays).toFixed(1) : '0.0';
             const maxTemp = totalDays > 0 ? Math.max(...monthLogs.map(l => l.temperatura)).toFixed(1) : '0.0';
             const minTemp = totalDays > 0 ? Math.min(...monthLogs.map(l => l.temperatura)).toFixed(1) : '0.0';
             const alertsCount = monthLogs.filter(l => l.temperatura > 28.0).length;
 
+            // Active log to display on HUD (hovered log takes precedence, then selected log, then latest recorded log)
+            const activeLog = hoveredTempLog 
+              || (selectedTempDayId ? monthLogs.find(l => l.id === selectedTempDayId) : null) 
+              || (monthLogs.length > 0 ? monthLogs[monthLogs.length - 1] : null);
+
             return (
               <div className="space-y-6">
+                {/* METRIC KPI CARDS */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1">
+                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm">
                     <span className="text-[10px] font-bold uppercase text-slate-400 block">Média Térmica ({targetMonth})</span>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-mono font-black text-cyan-400">{avgTemp}°C</span>
@@ -1837,7 +1993,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     </div>
                   </div>
 
-                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1">
+                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm">
                     <span className="text-[10px] font-bold uppercase text-slate-400 block">Pico Máximo Registrado</span>
                     <div className="flex items-center justify-between">
                       <span className={`text-xl font-mono font-black ${parseFloat(maxTemp) > 28.0 ? 'text-rose-400' : 'text-emerald-400'}`}>
@@ -1847,7 +2003,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     </div>
                   </div>
 
-                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1">
+                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm">
                     <span className="text-[10px] font-bold uppercase text-slate-400 block">Mínima Aferida</span>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-mono font-black text-indigo-400">{minTemp}°C</span>
@@ -1855,8 +2011,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     </div>
                   </div>
 
-                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Alertas (&gt; 28°C)</span>
+                  <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Alertas Críticos (&gt; 28°C)</span>
                     <div className="flex items-center justify-between">
                       <span className={`text-xl font-mono font-black ${alertsCount > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                         {alertsCount}
@@ -1866,77 +2022,170 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                   </div>
                 </div>
 
-                {/* GRAFICO INTERATIVO DE VARIACAO DIARIA DE TEMPERATURA */}
-                <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-5 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                    <div>
-                      <strong className="text-xs font-black text-white uppercase block">
-                        Gráfico de Variação Diária da Temperatura ({targetMonth})
-                      </strong>
-                      <span className="text-[10px] text-slate-400">
-                        Clique em qualquer ponto do gráfico para ver a aferição completa do Conferente.
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-[10px]">
-                      <span className="flex items-center gap-1 text-cyan-400 font-bold">
-                        <span className="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span> Medição (°C)
-                      </span>
-                      <span className="flex items-center gap-1 text-rose-400 font-bold">
-                        <span className="w-3 h-0.5 bg-rose-500 rounded-full inline-block"></span> Limite (28.0°C)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* VISUAL SVG LINE CHART */}
-                  <div className="w-full overflow-x-auto pt-2">
-                    <div className="min-w-[650px] h-48 relative flex items-end justify-between px-4 pb-6 pt-4 border-b border-slate-800">
-                      {/* Threshold 28°C line */}
-                      <div 
-                        className="absolute left-0 right-0 border-b-2 border-dashed border-rose-500/80 z-10 flex items-center justify-end pr-2"
-                        style={{ bottom: `${((28.0 - 20) / 12) * 100}%` }}
-                      >
-                        <span className="text-[9px] font-black text-rose-400 bg-rose-950/90 px-1.5 py-0.5 rounded border border-rose-500/40">
-                          LIMITE CRÍTICO 28.0°C
-                        </span>
-                      </div>
-
-                      {monthLogs.map((log) => {
-                        const heightPct = Math.max(5, Math.min(95, ((log.temperatura - 20) / 12) * 100));
-                        const isSelected = selectedTempDayId === log.id;
-                        const isCritical = log.temperatura > 28.0;
-
-                        return (
-                          <div
-                            key={log.id}
-                            onClick={() => setSelectedTempDayId(isSelected ? null : log.id)}
-                            className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative z-20"
-                          >
-                            {/* Tooltip on Hover / Selected */}
-                            <div className={`absolute -top-12 bg-slate-900 border ${isCritical ? 'border-rose-500 text-rose-300' : 'border-slate-700 text-slate-200'} px-2 py-1 rounded text-[9px] font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 shadow-lg ${isSelected ? 'opacity-100 border-cyan-400' : ''}`}>
-                              <strong>{log.dataFormatted.substring(0, 5)}</strong>: {log.temperatura}°C ({log.hora})
-                            </div>
-
-                            {/* Node point */}
-                            <div
-                              className={`w-3.5 h-3.5 rounded-full border-2 transition-all flex items-center justify-center ${
-                                isCritical
-                                  ? 'bg-rose-500 border-white shadow-lg shadow-rose-500/50 scale-125'
-                                  : isSelected
-                                  ? 'bg-cyan-400 border-white scale-125'
-                                  : 'bg-[#111a30] border-cyan-400 group-hover:bg-cyan-400'
-                              }`}
-                              style={{ marginBottom: `${heightPct}%` }}
-                            />
-
-                            {/* Day label */}
-                            <span className="text-[9px] font-mono text-slate-500 absolute -bottom-5">
-                              {log.dataFormatted.substring(0, 2)}
+                {/* HUD EM DESTAQUE / CURSOR INTERATIVO - NUNCA FICA OCULTO */}
+                {activeLog && (
+                  <div className="bg-gradient-to-r from-[#0b1426] via-[#0f1d38] to-[#0b1426] border-2 border-cyan-500/50 rounded-2xl p-4 shadow-xl transition-all">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-start sm:items-center gap-3.5">
+                        <div className={`p-3 rounded-xl border flex items-center justify-center ${activeLog.temperatura > 28.0 ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-lg shadow-rose-500/20 animate-pulse' : 'bg-cyan-500/20 border-cyan-500 text-cyan-400'}`}>
+                          <Thermometer className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                              Aferição em Foco {hoveredTempLog ? '(Passagem do Cursor)' : '(Última / Selecionada)'}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide border ${activeLog.temperatura > 28.0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'}`}>
+                              {activeLog.temperatura > 28.0 ? '🚨 ALERTA TÉRMICO (> 28°C)' : '✅ DENTRO DA FAIXA SEGURA (18°C a 28°C)'}
                             </span>
                           </div>
-                        );
-                      })}
+                          <div className="flex items-baseline gap-3 mt-1">
+                            <span className={`text-3xl font-mono font-black ${activeLog.temperatura > 28.0 ? 'text-rose-400' : 'text-cyan-300'}`}>
+                              {activeLog.temperatura.toFixed(1)}°C
+                            </span>
+                            <span className="text-xs text-slate-300 font-bold">
+                              📅 {activeLog.dataFormatted} às {activeLog.hora}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#080d1a] border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs space-y-1 min-w-[280px]">
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="text-slate-400 text-[11px]">Conferente:</span>
+                          <strong className="text-white font-sans">{activeLog.conferenteNome}</strong>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="text-slate-400 text-[11px]">Umidade Relativa:</span>
+                          <span className="text-cyan-400 font-mono font-bold">{activeLog.umidade || '58'}%</span>
+                        </div>
+                        {activeLog.observacao && (
+                          <div className="text-[10px] text-slate-300 italic pt-1 border-t border-slate-800">
+                            "{activeLog.observacao}"
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
+                )}
+
+                {/* GRAFICO INTERATIVO DE VARIACAO DIARIA DE TEMPERATURA */}
+                <div className="bg-[#0b1222] border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div>
+                      <strong className="text-xs font-black text-white uppercase flex items-center gap-2">
+                        <Thermometer className="w-4 h-4 text-cyan-400" />
+                        Gráfico de Variação Diária da Temperatura ({targetMonth})
+                      </strong>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Passe o cursor sobre os pontos para visualizar a medição detalhada no topo ou clique para fixar.
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] flex-wrap">
+                      <span className="flex items-center gap-1 text-cyan-400 font-bold">
+                        <span className="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span> Medição Conforme
+                      </span>
+                      <span className="flex items-center gap-1 text-rose-400 font-bold">
+                        <span className="w-2.5 h-2.5 bg-rose-500 rounded-full inline-block animate-pulse"></span> Alerta (&gt; 28.0°C)
+                      </span>
+                      <span className="flex items-center gap-1 text-amber-400 font-bold">
+                        <span className="w-3 h-0.5 bg-rose-500 rounded-full inline-block"></span> Limite Máximo 28°C
+                      </span>
+                    </div>
+                  </div>
+
+                  {monthLogs.length === 0 ? (
+                    <div className="py-12 text-center text-slate-500 text-xs">
+                      Nenhuma medição registrada para {targetMonth}. Utilize a barra acima para importar dados ou clique em <strong>+ Lançar Medição</strong>.
+                    </div>
+                  ) : (
+                    /* VISUAL SVG LINE & POINTS CHART */
+                    <div className="w-full overflow-x-auto pt-4 pb-2">
+                      <div className="min-w-[700px] h-56 relative flex items-end justify-between px-6 pb-8 pt-8 border-b border-slate-800 bg-[#080e1b]/40 rounded-xl">
+                        {/* Threshold 28°C line */}
+                        <div 
+                          className="absolute left-0 right-0 border-b-2 border-dashed border-rose-500/80 z-10 flex items-center justify-end pr-3 pointer-events-none"
+                          style={{ bottom: `${Math.max(5, Math.min(95, ((28.0 - 18) / 14) * 100))}%` }}
+                        >
+                          <span className="text-[9px] font-black text-rose-300 bg-rose-950/90 px-2 py-0.5 rounded border border-rose-500/50 shadow-md">
+                            LIMITE MÁXIMO 28.0°C
+                          </span>
+                        </div>
+
+                        {/* Threshold 18°C line */}
+                        <div 
+                          className="absolute left-0 right-0 border-b border-dashed border-indigo-500/40 z-10 flex items-center justify-end pr-3 pointer-events-none"
+                          style={{ bottom: '0%' }}
+                        >
+                          <span className="text-[8px] font-bold text-indigo-300 bg-indigo-950/70 px-1.5 py-0.5 rounded">
+                            MÍNIMA 18.0°C
+                          </span>
+                        </div>
+
+                        {monthLogs.map((log, idx) => {
+                          // Scale 18°C to 32°C (span of 14 degrees)
+                          const heightPct = Math.max(5, Math.min(95, ((log.temperatura - 18) / 14) * 100));
+                          const isSelected = selectedTempDayId === log.id;
+                          const isHovered = hoveredTempLog?.id === log.id;
+                          const isCritical = log.temperatura > 28.0;
+
+                          return (
+                            <div
+                              key={log.id || idx}
+                              onMouseEnter={() => setHoveredTempLog(log)}
+                              onMouseLeave={() => setHoveredTempLog(null)}
+                              onClick={() => setSelectedTempDayId(isSelected ? null : log.id)}
+                              className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative z-20"
+                            >
+                              {/* High-visibility Floating Tooltip */}
+                              {(isHovered || isSelected) && (
+                                <div 
+                                  className={`absolute z-40 bg-slate-900 border-2 ${isCritical ? 'border-rose-500 text-rose-200' : 'border-cyan-400 text-cyan-100'} px-2.5 py-1.5 rounded-lg text-[10px] font-mono whitespace-nowrap shadow-2xl pointer-events-none transition-transform transform -translate-y-2`}
+                                  style={{ bottom: `${heightPct + 12}%` }}
+                                >
+                                  <div className="font-bold flex items-center gap-1">
+                                    <span>{log.dataFormatted.substring(0, 5)} ({log.hora})</span>
+                                    <span className={`px-1.5 py-0.2 rounded font-black ${isCritical ? 'bg-rose-600 text-white' : 'bg-cyan-500 text-slate-950'}`}>
+                                      {log.temperatura.toFixed(1)}°C
+                                    </span>
+                                  </div>
+                                  <div className="text-[9px] text-slate-300 font-sans mt-0.5 font-semibold truncate max-w-[140px]">
+                                    {log.conferenteNome}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Vertical Guide Line on Hover */}
+                              {(isHovered || isSelected) && (
+                                <div 
+                                  className={`absolute top-0 bottom-6 w-[2px] pointer-events-none z-10 ${isCritical ? 'bg-rose-500/60' : 'bg-cyan-400/60'}`}
+                                />
+                              )}
+
+                              {/* Node Point with Pulse and Highlight */}
+                              <div
+                                className={`w-3.5 h-3.5 rounded-full border-2 transition-all flex items-center justify-center ${
+                                  isCritical
+                                    ? 'bg-rose-500 border-white shadow-lg shadow-rose-500/80 scale-125 ring-2 ring-rose-400/50'
+                                    : isSelected || isHovered
+                                    ? 'bg-cyan-400 border-white scale-140 shadow-lg shadow-cyan-500/80 ring-2 ring-cyan-300'
+                                    : 'bg-[#111a30] border-cyan-400 group-hover:bg-cyan-400 group-hover:scale-125'
+                                }`}
+                                style={{ marginBottom: `${heightPct}%` }}
+                              />
+
+                              {/* Day and Time Label */}
+                              <div className="absolute -bottom-6 flex flex-col items-center pointer-events-none">
+                                <span className={`text-[9px] font-mono ${isCritical ? 'text-rose-400 font-bold' : isHovered || isSelected ? 'text-cyan-300 font-bold' : 'text-slate-400'}`}>
+                                  {log.dataFormatted.substring(0, 2)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* DETALHES DO DIA SELECIONADO NO GRÁFICO */}
                   {selectedTempDayId && (() => {
@@ -1947,17 +2196,26 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                       <div className="p-4 bg-[#111a30] border border-cyan-500/40 rounded-xl space-y-2 text-xs">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                           <strong className="text-white font-mono flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-cyan-400" /> Detalhes da Aferição de {detailLog.dataFormatted} às {detailLog.hora}
+                            <Calendar className="w-4 h-4 text-cyan-400" /> Detalhes Fixados da Aferição de {detailLog.dataFormatted} às {detailLog.hora}
                           </strong>
-                          <span className={`px-2 py-0.5 rounded font-mono font-black ${detailLog.temperatura > 28 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
-                            {detailLog.temperatura}°C
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded font-mono font-black ${detailLog.temperatura > 28 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+                              {detailLog.temperatura.toFixed(1)}°C
+                            </span>
+                            <button
+                              onClick={() => setSelectedTempDayId(null)}
+                              className="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded bg-slate-800"
+                            >
+                              ✕ Fechar
+                            </button>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-2 text-slate-300">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
                           <div><span className="text-slate-500">Conferente:</span> <strong>{detailLog.conferenteNome}</strong></div>
+                          <div><span className="text-slate-500">Horário Oficial:</span> <strong>{detailLog.hora}</strong></div>
                         </div>
                         {detailLog.observacao && (
-                          <p className="text-[11px] text-slate-400 italic bg-[#0b1222] p-2 rounded-lg border border-slate-800">
+                          <p className="text-[11px] text-slate-300 italic bg-[#0b1222] p-2.5 rounded-lg border border-slate-800">
                             "{detailLog.observacao}"
                           </p>
                         )}
@@ -1967,18 +2225,18 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                 </div>
 
                 {/* TABELA REGISTRO COMPLETO DO MÊS */}
-                <div className="bg-[#0b1222] border border-slate-800 rounded-xl overflow-hidden">
+                <div className="bg-[#0b1222] border border-slate-800 rounded-xl overflow-hidden shadow-md">
                   <div className="px-4 py-3 bg-[#131d38] border-b border-slate-800 flex items-center justify-between">
                     <strong className="text-xs text-white uppercase tracking-wider font-black flex items-center gap-2">
                       <FileText className="w-4 h-4 text-cyan-400" /> Registros Aferidos do Mês ({targetMonth})
                     </strong>
-                    <span className="text-[10px] text-slate-400">Total: {monthLogs.length} Aferições</span>
+                    <span className="text-[10px] text-slate-400 font-bold">Total: {monthLogs.length} Aferições</span>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto max-h-80">
                     <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-[#0b1222] text-slate-400 text-[10px] uppercase border-b border-slate-800 font-black">
+                      <thead className="sticky top-0 bg-[#0b1222] z-10">
+                        <tr className="text-slate-400 text-[10px] uppercase border-b border-slate-800 font-black">
                           <th className="p-3">Data / Hora</th>
                           <th className="p-3">Temperatura (°C)</th>
                           <th className="p-3">Conferente</th>
@@ -1990,7 +2248,14 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                         {monthLogs.map((log) => {
                           const isCrit = log.temperatura > 28.0;
                           return (
-                            <tr key={log.id} className={`hover:bg-slate-800/40 transition-colors ${isCrit ? 'bg-rose-950/20' : ''}`}>
+                            <tr 
+                              key={log.id} 
+                              onClick={() => {
+                                setSelectedTempDayId(log.id);
+                                setHoveredTempLog(log);
+                              }}
+                              className={`hover:bg-slate-800/60 cursor-pointer transition-colors ${isCrit ? 'bg-rose-950/20' : ''}`}
+                            >
                               <td className="p-3 font-bold text-white whitespace-nowrap">
                                 {log.dataFormatted} <span className="text-slate-500 text-[10px]">({log.hora})</span>
                               </td>
@@ -2011,7 +2276,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                                   </span>
                                 )}
                               </td>
-                              <td className="p-3 text-[10px] text-slate-400 font-sans truncate max-w-[200px]">
+                              <td className="p-3 text-[10px] text-slate-400 font-sans truncate max-w-[220px]">
                                 {log.observacao || '-'}
                               </td>
                             </tr>
@@ -2021,6 +2286,14 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     </table>
                   </div>
                 </div>
+
+                {/* PLANO DE AÇÕES TÉRMICAS MENSAIS (DIRETO DA TEMPERATURA) */}
+                <PlanoAcoesTermicasMensais
+                  user={user}
+                  selectedMonth={selectedFilterMonth}
+                  selectedYear={selectedFilterYear}
+                  onActionCreated={handleRefreshTempLogs}
+                />
               </div>
             );
           })()}
@@ -2054,23 +2327,13 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
               <button
                 onClick={handleExportBlank5SOfficial}
                 className="px-3.5 py-2 bg-[#0b1222] hover:bg-slate-800 text-amber-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-wider border border-amber-500/40 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                title="Exportar formulário oficial de 5S em PDF para impressão ou assinatura"
+                title="Exportar formulário oficial de 5S em PDF para impressão e preenchimento manual em situações sem conexão de internet"
               >
                 <Download className="w-4 h-4 text-amber-400" /> Exportar Formulário PDF
               </button>
 
               <button
-                onClick={() => setShowFrotaModal(true)}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
-              >
-                <Truck className="w-4 h-4 text-indigo-200" /> Auditoria Frota (Pedro Bruno)
-              </button>
-
-              <button
-                onClick={() => {
-                  setSelected5SSetor('PICKING');
-                  setIs5SModalOpen(true);
-                }}
+                onClick={() => setIs5SDigitalModalOpen(true)}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
               >
                 <Plus className="w-4 h-4 text-slate-950" /> Nova Auditoria 5S
@@ -2265,6 +2528,15 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
 
               {/* CARD DE DETALHE DA AUDITORIA MENSAL DA FROTA (PEDRO BRUNO) */}
               <div className="bg-[#0b1222] border-2 border-indigo-500/40 rounded-2xl p-5 shadow-xl space-y-4">
+                {/* Input oculto para importação direta de PDF assinado/preenchido */}
+                <input
+                  type="file"
+                  ref={frotaFileInputRef}
+                  accept="application/pdf,image/*"
+                  onChange={handleImportFrotaPdf}
+                  className="hidden"
+                />
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                   <div className="flex items-start gap-3.5">
                     <div className="p-3 bg-indigo-500/20 border border-indigo-500/40 rounded-xl shrink-0">
@@ -2288,23 +2560,36 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     </div>
                   </div>
 
+                  {/* AÇÕES DA AUDITORIA DA FROTA: VISUALIZAR AUDITORIA (COM IMPORTAÇÃO INTERNA DE PDF) */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    {currentAuditoriaFrota?.pdfFileDataUrl && (
-                      <button
-                        onClick={() => downloadDataUrl(currentAuditoriaFrota.pdfFileDataUrl, currentAuditoriaFrota.pdfFileName || `Auditoria_Frota_${selectedMonth5S}_${selectedYear5S}.pdf`)}
-                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                        title="Baixar Laudo Assinado pelo Setor de Frota"
-                      >
-                        <Download className="w-4 h-4" /> Baixar PDF Assinado
-                      </button>
-                    )}
-
+                    {/* Botão de Visualizar Auditoria com informações preenchidas pelo auditor */}
                     <button
-                      onClick={() => setShowFrotaModal(true)}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                      onClick={() => setIs5SDigitalModalOpen(true)}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md cursor-pointer"
+                      title="Visualizar formulário preenchido pelo auditor, imprimir laudo e importar PDF assinado"
                     >
-                      <Edit3 className="w-4 h-4" /> {currentAuditoriaFrota ? 'Atualizar Auditoria' : 'Lançar Auditoria Frota'}
+                      <Eye className="w-4 h-4" /> Visualizar Auditoria
                     </button>
+
+                    {/* Visualizar e Baixar PDF quando houver documento anexado */}
+                    {currentAuditoriaFrota?.pdfFileDataUrl && (
+                      <>
+                        <button
+                          onClick={() => openDataUrlInNewTab(currentAuditoriaFrota.pdfFileDataUrl, currentAuditoriaFrota.pdfFileName || `Auditoria_Frota_${selectedMonth5S}_${selectedYear5S}.pdf`)}
+                          className="px-3.5 py-2 bg-indigo-600/80 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                          title="Visualizar formulário PDF assinado em uma nova guia"
+                        >
+                          <ExternalLink className="w-4 h-4" /> Visualizar em Outra Guia
+                        </button>
+                        <button
+                          onClick={() => downloadDataUrl(currentAuditoriaFrota.pdfFileDataUrl, currentAuditoriaFrota.pdfFileName || `Auditoria_Frota_${selectedMonth5S}_${selectedYear5S}.pdf`)}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                          title="Baixar formulário PDF assinado pelo auditor"
+                        >
+                          <Download className="w-4 h-4" /> Baixar PDF
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -2347,7 +2632,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
               </div>
 
               {/* GRÁFICO COMPARATIVO ANUAL MÊS A MÊS: ARMAZÉM VS FROTA VS DISPERSÃO */}
-              <div className="bg-[#0b1222] border border-slate-800 p-5 rounded-2xl space-y-3">
+              <div className="bg-[#0b1222] border border-slate-800 p-5 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
                   <div>
                     <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
@@ -2385,6 +2670,121 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                       <Bar dataKey="frota" name="Real Frota (%)" fill="#6366f1" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* ── TABELA OFICIAL FAROL DOS ITENS DE CONTROLE E DE VERIFICAÇÃO - ARMAZÉM ── */}
+              <div className="bg-[#0b1222] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                {/* CABEÇALHO AZUL MARINHO OFICIAL DPO */}
+                <div className="bg-[#002060] p-3 text-center border-b border-blue-900">
+                  <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                    FAROL DOS ITENS DE CONTROLE E DE VERIFICAÇÃO - ARMAZÉM
+                  </h3>
+                </div>
+
+                {/* TABELA RESPONSIVA FORMATO PLANILHA */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-center border-collapse text-[11px] font-sans">
+                    <thead>
+                      <tr className="bg-[#0f172a] text-white font-bold border-b border-slate-700">
+                        <th rowSpan={2} className="p-2.5 px-3 border-r border-slate-700 text-left min-w-[130px] font-black uppercase text-[10px] text-slate-300">
+                          Indicador
+                        </th>
+                        {MESES_ANO_5S.map((m) => (
+                          <th key={m.value} colSpan={2} className="p-2 border-r border-slate-700 text-center font-bold text-xs bg-[#131d38]">
+                            {m.label}
+                          </th>
+                        ))}
+                      </tr>
+                      <tr className="bg-[#1e293b] text-slate-300 text-[10px] font-bold border-b border-slate-700">
+                        {MESES_ANO_5S.map((m) => (
+                          <React.Fragment key={m.value}>
+                            <th className="py-1 px-2 border-r border-slate-700 text-slate-400 bg-[#0f172a]">
+                              Meta
+                            </th>
+                            <th className="py-1 px-2 border-r border-slate-700 text-indigo-300 bg-[#16203c]">
+                              Real
+                            </th>
+                          </React.Fragment>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {/* LINHA DO 5S */}
+                      <tr className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-2.5 px-3 text-left font-black text-white border-r border-slate-700 bg-[#0f172a] text-xs">
+                          5S
+                        </td>
+                        {MESES_ANO_5S.map((m) => {
+                          const numMes = parseInt(m.value, 10);
+                          const monthChart = chartDataComparativo.find(c => c.mes === m.label);
+                          const frotaData = auditoriasFrota.find(f => f.ano === selectedYear5S && f.mes === m.value);
+                          const realVal = monthChart ? monthChart.frota : (frotaData ? frotaData.notaPercentualFrota : ((m.value === '03' || m.value === '06' || m.value === '08') ? 92 : 88));
+
+                          if (numMes > 8) {
+                            return (
+                              <React.Fragment key={m.value}>
+                                <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-400 text-xs">
+                                  85,00%
+                                </td>
+                                <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-500 text-xs bg-slate-800/20">
+                                  -
+                                </td>
+                              </React.Fragment>
+                            );
+                          }
+
+                          return (
+                            <React.Fragment key={m.value}>
+                              <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-300 text-xs">
+                                85,00%
+                              </td>
+                              <td className="py-2 px-2 border-r border-slate-800 font-mono font-black text-emerald-400 text-xs bg-emerald-500/5">
+                                {realVal},00%
+                              </td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+
+                      {/* LINHA DA DISPERSÃO */}
+                      <tr className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-2.5 px-3 text-left font-black text-amber-300 border-r border-slate-700 bg-[#0f172a] text-xs">
+                          DISPERSÃO 5%
+                        </td>
+                        {MESES_ANO_5S.map((m) => {
+                          const numMes = parseInt(m.value, 10);
+                          const monthChart = chartDataComparativo.find(c => c.mes === m.label);
+                          const isJun = m.value === '06';
+                          const dispVal = monthChart ? monthChart.dispersao : (isJun ? 3 : 4);
+
+                          if (numMes > 8) {
+                            return (
+                              <React.Fragment key={m.value}>
+                                <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-400 text-xs">
+                                  5,00%
+                                </td>
+                                <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-500 text-xs bg-slate-800/20">
+                                  -
+                                </td>
+                              </React.Fragment>
+                            );
+                          }
+
+                          return (
+                            <React.Fragment key={m.value}>
+                              <td className="py-2 px-2 border-r border-slate-800 font-mono text-slate-300 text-xs">
+                                5,00%
+                              </td>
+                              <td className="py-2 px-2 border-r border-slate-800 font-mono font-black text-cyan-300 text-xs bg-cyan-500/5">
+                                {dispVal},00%
+                              </td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -3891,6 +4291,36 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
         <RondaGsaComponent user={user} empresaId={empresa?.id} />
       )}
 
+      {/* MODAL OFICIAL DIGITAL DE AUDITORIA 5S (ADAPTADO MOBILE & PRINT/UPLOAD PDF) */}
+      <Official5SDigitalAuditModal
+        isOpen={is5SDigitalModalOpen}
+        onClose={() => setIs5SDigitalModalOpen(false)}
+        initialAudit={currentAuditoriaFrota}
+        defaultMonth={selectedMonth5S}
+        defaultYear={selectedYear5S}
+        defaultArea="Armazém Geral"
+        defaultAuditor="Pedro Bruno (Setor de Frota)"
+        defaultAuditado="Djeanderson Soares"
+        onSave={(savedAudit) => {
+          setAuditoriasFrota(prev => {
+            const filtered = prev.filter(a => !(a.ano === savedAudit.ano && a.mes === savedAudit.mes));
+            const nextList = [savedAudit, ...filtered];
+            localStorage.setItem('auditorias_frota_5s_mensal', JSON.stringify(nextList));
+            return nextList;
+          });
+          reloadAudits();
+        }}
+        user={user}
+      />
+
+      <Checklist5SModal
+        isOpen={is5SModalOpen}
+        onClose={() => setIs5SModalOpen(false)}
+        defaultSetor={selected5SSetor}
+        user={user}
+        onSaveSuccess={reloadAudits}
+      />
+
       <ImportExport5SModal
         isOpen={is5SImportModalOpen}
         onClose={() => setIs5SImportModalOpen(false)}
@@ -3909,6 +4339,12 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
         defaultIndicador="Conformidade de Qualidade (5S, Temperatura, Ronda GSA e Pragas)"
         defaultMeta="100% Conformidade / 5S ≥ 80%"
         user={user}
+      />
+
+      {/* MODAL PADRÃO DE RECOLHIMENTO DE TEMPERATURA (POP/LUP) */}
+      <PadraoRecolhimentoTemperaturaModal
+        isOpen={isPadraoTempModalOpen}
+        onClose={() => setIsPadraoTempModalOpen(false)}
       />
     </div>
   );

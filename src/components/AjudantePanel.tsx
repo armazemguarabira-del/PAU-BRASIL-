@@ -3,6 +3,7 @@ import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
+import { getTaskRealDurationMinutes, parseDurationToMinutes } from '../utils/pnpCollaboratorUtils';
 
 // Lazy load sub-panels to make the page significantly lighter and faster to load
 const RepackPanel = lazy(() => import('./RepackPanel'));
@@ -283,27 +284,23 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     totalRepackRealMins,
     hasMissedRepackMeta,
     totalRepackQty,
+    repackRitmoCxHora,
     isGatilhoRepack10CxAtivo,
     totalDespejoMetaMins,
     totalDespejoRealMins,
     hasMissedDespejoMeta,
     overallMetaMet
   } = React.useMemo(() => {
-    // Repack: Sum of target time per unit vs Sum of actual realized time
+    // Repack: Soma das metas por embalagem vs Soma dos tempos efetivos de repack (início a fim)
     const rMetaMins = todayRepackEntries.reduce((sum, r) => {
-      const metaUnit = parseTimeToMinutes(String(r.metaEmbalagem || r.meta || '5 min')) || 5;
+      const metaUnit = parseDurationToMinutes(String(r.metaEmbalagem || r.meta || '00:05:00')) || 5;
       const qty = Number(r.quantidade) || 1;
       return sum + (metaUnit * qty);
     }, 0);
 
+    // Soma estritamente apenas os períodos em que o operador esteve em atividade de Repack (início e término de cada lote)
     const rRealMins = todayRepackEntries.reduce((sum, r) => {
-      if (r.duracao) return sum + parseTimeToMinutes(String(r.duracao));
-      if (r.inicio && r.fim) {
-        const i = parseTimeToMinutes(r.inicio);
-        const f = parseTimeToMinutes(r.fim);
-        return sum + Math.max(0, f - i);
-      }
-      return sum;
+      return sum + getTaskRealDurationMinutes(r);
     }, 0);
 
     const rMissed = todayRepackEntries.length > 0 && rRealMins > rMetaMins;
@@ -312,21 +309,15 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     const rCxHora = rHours > 0 ? (rQty / rHours) : 0;
     const rGatilho = todayRepackEntries.length > 0 && rCxHora < 10.0;
 
-    // Despejo: Sum of target time per unit vs Sum of actual realized time
+    // Despejo: Soma de tempo padrão (50 seg/un) vs Tempo real efetivo
     const dMetaMins = todayDespejoEntries.reduce((sum, d) => {
-      const metaUnit = parseTimeToMinutes(String(d.metaEmbalagem || d.meta || '5 min')) || 5;
+      const metaUnit = parseDurationToMinutes(String(d.metaEmbalagem || d.meta || '00:00:50')) || (50 / 60);
       const qty = Number(d.quantidade) || 1;
       return sum + (metaUnit * qty);
     }, 0);
 
     const dRealMins = todayDespejoEntries.reduce((sum, d) => {
-      if (d.duracao) return sum + parseTimeToMinutes(String(d.duracao));
-      if (d.inicio && d.fim) {
-        const i = parseTimeToMinutes(d.inicio);
-        const f = parseTimeToMinutes(d.fim);
-        return sum + Math.max(0, f - i);
-      }
-      return sum;
+      return sum + getTaskRealDurationMinutes(d);
     }, 0);
 
     const dMissed = todayDespejoEntries.length > 0 && dRealMins > dMetaMins;
@@ -337,6 +328,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       totalRepackRealMins: rRealMins,
       hasMissedRepackMeta: rMissed,
       totalRepackQty: rQty,
+      repackRitmoCxHora: rCxHora,
       isGatilhoRepack10CxAtivo: rGatilho,
       totalDespejoMetaMins: dMetaMins,
       totalDespejoRealMins: dRealMins,
@@ -633,7 +625,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                   META REPACK HOJE
                 </span>
                 <span className="font-bold text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
-                  (TEMPO POR UNIDADE)
+                  (TEMPO EFETIVO DE PRODUÇÃO)
                 </span>
               </div>
             </div>
@@ -644,7 +636,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   SEM REGISTROS
                 </span>
-              ) : hasMissedRepackMeta ? (
+              ) : (hasMissedRepackMeta && isGatilhoRepack10CxAtivo) ? (
                 <span className="bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   FORA DA META
@@ -658,10 +650,21 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-4">
-            <span>Soma Meta Produtos:</span>
-            <div className="text-slate-700 dark:text-slate-200 font-bold mt-0.5">
-              {totalRepackMetaMins.toFixed(0)} min | Tempo Realizado: {totalRepackRealMins.toFixed(0)} min
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-baseline justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Ritmo Real:</span>
+              <span className="font-mono font-black text-sm text-indigo-600 dark:text-indigo-400">
+                {repackRitmoCxHora.toFixed(1)} cx/h <span className="text-[10px] font-normal text-slate-400">/ Meta: 10 cx/h</span>
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Tempo de Repack:</span>
+              <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                {totalRepackRealMins.toFixed(0)} min <span className="text-[10px] font-normal text-slate-400">/ Meta somada: {totalRepackMetaMins.toFixed(0)}m</span>
+              </span>
+            </div>
+            <div className="text-[9px] text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">
+              * Considera apenas os períodos de início e término em que o colaborador realizou repack.
             </div>
           </div>
         </div>

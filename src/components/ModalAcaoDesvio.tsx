@@ -111,6 +111,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
   const [pq5, setPq5] = useState<string>('');
   
   // 5W2H
+  const [dataCriacao, setDataCriacao] = useState<string>(new Date().toISOString().split('T')[0]);
   const [oQueFazer, setOQueFazer] = useState<string>('');
   const [responsavelTratativa, setResponsavelTratativa] = useState<string>('');
   const [prazo, setPrazo] = useState<string>(new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
@@ -205,8 +206,9 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
     }
 
     const now = new Date();
-    const dStr = now.toLocaleDateString('pt-BR');
-    const dISO = now.toISOString().split('T')[0];
+    const selectedDate = dataCriacao ? new Date(dataCriacao + 'T12:00:00') : now;
+    const dStr = selectedDate.toLocaleDateString('pt-BR');
+    const dISO = dataCriacao || selectedDate.toISOString().split('T')[0];
     const hStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const novoItem: AcaoDesvioItem = {
@@ -241,7 +243,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
       comoExecutar: comoExecutar || 'Conforme plano de ação aprovado.',
       status: 'Pendente',
       abertoPor: `${user?.nome || 'Colaborador'} (${user?.papel || 'Operação'})`,
-      criadoEm: now.toISOString(),
+      criadoEm: selectedDate.toISOString(),
       produto: produto || undefined,
       codigoProduto: codigoProduto || undefined,
       lote: lote || undefined
@@ -710,7 +712,21 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-red-500" />
+                      <span>Data de Criação (Manual)</span> <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={dataCriacao}
+                      onChange={(e) => setDataCriacao(e.target.value)}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none font-semibold"
+                      required
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
                       Quem é o Responsável? <span className="text-red-500">*</span>
@@ -729,7 +745,10 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Prazo Limite (Quando)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Prazo Limite (Quando)</span> <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="date"
                       value={prazo}
@@ -877,8 +896,9 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                                 <span className="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
                                   Gatilho: {item.tipoGatilho}
                                 </span>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono ml-auto">
-                                  {item.data} • {item.hora} ({item.turno})
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono ml-auto flex items-center gap-1">
+                                  <Calendar className="w-3 h-3 text-slate-400" />
+                                  <span>Criado em: {item.data} • {item.hora} ({item.turno})</span>
                                 </span>
                               </div>
 

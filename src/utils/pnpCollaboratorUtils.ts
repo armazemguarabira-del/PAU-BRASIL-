@@ -20,6 +20,78 @@ export interface CollaboratorRepackActivity {
   status: 'DENTRO DA META' | 'FORA DA META';
 }
 
+/**
+ * Converte string de duração (HH:MM:SS ou MM:SS ou "5 min") para minutos decimais.
+ */
+export function parseDurationToMinutes(durationStr?: string): number {
+  if (!durationStr) return 0;
+  const str = String(durationStr).trim();
+  if (str.includes(':')) {
+    const parts = str.split(':').map(Number);
+    if (parts.length === 3) {
+      // HH:MM:SS -> min
+      return (parts[0] * 60) + parts[1] + (parts[2] / 60);
+    }
+    if (parts.length === 2) {
+      // Se partes forem ex: "01:30" (1h30m = 90min) vs "04:30" (4m30s = 4.5min)
+      if (parts[0] <= 12 && parts[1] < 60) {
+        // Se a primeira parte for pequena (ex 0 ou 1 ou 2), pode ser HH:MM
+        // Porém em tarefas de repack unitárias "05:00" costuma ser 5 minutos.
+        // Se parts[0] > 0 e parts[0] < 5, tratamos como HH:MM se tempo total > 10m
+        return (parts[0] * 60) + parts[1];
+      }
+      return parts[0] + (parts[1] / 60);
+    }
+  }
+  const clean = parseFloat(str.replace(/[^0-9.]/g, ''));
+  return isNaN(clean) ? 0 : clean;
+}
+
+/**
+ * Converte string de horário de relógio (ex: "08:30" ou "14:15:00") em minutos desde 00:00.
+ */
+export function parseClockToMinutes(clockStr?: string): number {
+  if (!clockStr) return 0;
+  const str = String(clockStr).trim();
+  if (str.includes(':')) {
+    const parts = str.split(':').map(Number);
+    return (parts[0] * 60) + (parts[1] || 0) + ((parts[2] || 0) / 60);
+  }
+  return 0;
+}
+
+/**
+ * Calcula a duração em minutos de um período específico entre Início e Término.
+ */
+export function calculatePeriodDurationMinutes(inicio?: string, fim?: string): number {
+  if (!inicio || !fim) return 0;
+  const iMin = parseClockToMinutes(inicio);
+  const fMin = parseClockToMinutes(fim);
+  let diff = fMin - iMin;
+  if (diff < 0) diff += 1440; // Ajuste para virada de meia-noite
+  return diff;
+}
+
+/**
+ * Obtém a duração real em minutos de uma linha de repack ou despejo:
+ * Prioriza a diferença entre início e fim, ou a duração explícita do período.
+ */
+export function getTaskRealDurationMinutes(item: { duracao?: string | number; tempo?: string | number; inicio?: string; fim?: string }): number {
+  if (item.inicio && item.fim) {
+    const period = calculatePeriodDurationMinutes(String(item.inicio), String(item.fim));
+    if (period > 0) return period;
+  }
+  if (item.duracao !== undefined && item.duracao !== null && item.duracao !== '') {
+    const parsed = parseDurationToMinutes(String(item.duracao));
+    if (parsed > 0) return parsed;
+  }
+  if (item.tempo !== undefined && item.tempo !== null && item.tempo !== '') {
+    const parsed = parseDurationToMinutes(String(item.tempo));
+    if (parsed > 0) return parsed;
+  }
+  return 0;
+}
+
 export interface CollaboratorDespejoActivity {
   id?: string;
   data: string;
@@ -347,19 +419,7 @@ export function getAllCollaboratorsPnpSummary(
       const durMeta = metaUnit * q;
       repackMetaMin += durMeta;
 
-      let durReal = 0;
-      if (r.duracao) {
-        const parts = r.duracao.split(':').map(Number);
-        if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
-        else if (parts.length === 3) durReal = parts[0] * 60 + parts[1] + parts[2] / 60;
-      }
-      if (durReal === 0 && r.inicio && r.fim) {
-        const [hi, mi] = r.inicio.split(':').map(Number);
-        const [hf, mf] = r.fim.split(':').map(Number);
-        let dm = (hf * 60 + mf) - (hi * 60 + mi);
-        if (dm < 0) dm += 1440;
-        durReal = dm;
-      }
+      let durReal = getTaskRealDurationMinutes(r);
       if (durReal === 0) durReal = durMeta * 0.95;
 
       repackRealMin += durReal;
@@ -391,21 +451,10 @@ export function getAllCollaboratorsPnpSummary(
     const despejoAtividades: CollaboratorDespejoActivity[] = colabDespejo.map((d, idx) => {
       const q = Number(d.quantidade) || 1;
       despejoTotalItens += q;
-      const meta = q * 3.0;
+      const meta = q * (50 / 60); // 50 segundos por embalagem
       despejoMetaMin += meta;
 
-      let durReal = 0;
-      if (d.tempo) {
-        const parts = d.tempo.split(':').map(Number);
-        if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
-      }
-      if (durReal === 0 && d.inicio && d.fim) {
-        const [hi, mi] = d.inicio.split(':').map(Number);
-        const [hf, mf] = d.fim.split(':').map(Number);
-        let dm = (hf * 60 + mf) - (hi * 60 + mi);
-        if (dm < 0) dm += 1440;
-        durReal = dm;
-      }
+      let durReal = getTaskRealDurationMinutes(d);
       if (durReal === 0) durReal = meta * 0.92;
       despejoRealMin += durReal;
 
@@ -798,11 +847,7 @@ export function getCollaboratorPnpSummary(
     const metaUnit = EMBALAGENS_META_MIN[r.embalagem] || 5.0;
     const durMeta = metaUnit * q;
     repackMetaMin += durMeta;
-    let durReal = 0;
-    if (r.duracao) {
-      const parts = r.duracao.split(':').map(Number);
-      if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
-    }
+    let durReal = getTaskRealDurationMinutes(r);
     if (durReal === 0) durReal = durMeta * 0.95;
     repackRealMin += durReal;
     return {
@@ -826,13 +871,9 @@ export function getCollaboratorPnpSummary(
   const despejoAtividades: CollaboratorDespejoActivity[] = userDespejo.map((d, idx) => {
     const q = Number(d.quantidade) || 1;
     despejoTotalItens += q;
-    const meta = q * 3.0;
+    const meta = q * (50 / 60); // 50 segundos por embalagem
     despejoMetaMin += meta;
-    let durReal = 0;
-    if (d.tempo) {
-      const parts = d.tempo.split(':').map(Number);
-      if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
-    }
+    let durReal = getTaskRealDurationMinutes(d);
     if (durReal === 0) durReal = meta * 0.92;
     despejoRealMin += durReal;
     return {

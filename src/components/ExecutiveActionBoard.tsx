@@ -80,6 +80,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
 
   // Manual Form State
   const [manualForm, setManualForm] = useState({
+    dataCriacao: new Date().toISOString().split('T')[0],
     processo: 'Repack' as AcaoCorretiva['processo'],
     tipoAcao: 'Corretiva' as 'Corretiva' | 'Melhoria',
     prioridade: 'Alta' as 'Alta' | 'Média' | 'Baixa',
@@ -202,8 +203,9 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   const handleCreateManual = (e: React.FormEvent) => {
     e.preventDefault();
     const now = new Date();
-    const dStr = now.toLocaleDateString('pt-BR');
-    const dISO = now.toISOString().split('T')[0];
+    const selectedDate = manualForm.dataCriacao ? new Date(manualForm.dataCriacao + 'T12:00:00') : now;
+    const dStr = selectedDate.toLocaleDateString('pt-BR');
+    const dISO = manualForm.dataCriacao || selectedDate.toISOString().split('T')[0];
     const hStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const newAction: AcaoCorretiva = {
@@ -225,7 +227,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
       prazo: manualForm.prazo,
       comentarioOperador: manualForm.desvioEncontrado,
       simulado: dbMode === 'simulado',
-      criadoEm: now.toISOString(),
+      criadoEm: selectedDate.toISOString(),
       tipoAcao: manualForm.tipoAcao,
       prioridade: manualForm.prioridade,
       cincoPorques: {
@@ -243,7 +245,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
       historicoAlteracoes: [{
         dataHora: `${dStr} ${hStr}`,
         usuario: user?.nome || 'Gestor Executivo',
-        alteracao: `Ação (${manualForm.tipoAcao}) criada manualmente via Painel Executivo.`
+        alteracao: `Ação (${manualForm.tipoAcao}) criada manualmente via Painel Executivo na data ${dStr}.`
       }]
     };
 
@@ -442,6 +444,10 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                     <td className="p-3">
                       <span className="font-black text-xs block text-indigo-400">{item.processo}</span>
                       <span className="text-[10px] text-slate-400 block">{item.indicador}</span>
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-mono">
+                        <Calendar className="w-3 h-3 text-indigo-400" />
+                        <span>Criado: {item.data}{item.hora ? ` ${item.hora}` : ''}</span>
+                      </span>
                     </td>
 
                     <td className="p-3 font-semibold">
@@ -806,7 +812,35 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
+              <div>
+                <label className="block text-[10px] text-slate-400 uppercase mb-0.5 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Data de Criação (Manual)</span> <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={manualForm.dataCriacao}
+                  onChange={e => setManualForm({ ...manualForm, dataCriacao: e.target.value })}
+                  className={`w-full p-2 rounded-lg border font-semibold ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-slate-50 border-slate-300'}`}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-slate-400 uppercase mb-0.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Prazo Limite</span> <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={manualForm.prazo}
+                  onChange={e => setManualForm({ ...manualForm, prazo: e.target.value })}
+                  className={`w-full p-2 rounded-lg border font-semibold ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-slate-50 border-slate-300'}`}
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-[10px] text-slate-400 uppercase mb-0.5">Processo Operacional</label>
                 <select
@@ -844,7 +878,18 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div>
+                <label className="block text-[10px] text-slate-400 uppercase mb-0.5">Responsável pela Execução</label>
+                <input
+                  type="text"
+                  value={manualForm.colaboradorResponsavel}
+                  onChange={e => setManualForm({ ...manualForm, colaboradorResponsavel: e.target.value })}
+                  className={`w-full p-2 rounded-lg border ${isDark ? 'bg-[#0b1222] border-slate-700' : 'bg-slate-50 border-slate-300'}`}
+                  required
+                />
+              </div>
+
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-[10px] text-slate-400 uppercase mb-0.5">Desvio ou Oportunidade</label>
                 <input
                   type="text"
@@ -855,7 +900,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-[10px] text-slate-400 uppercase mb-0.5">Contramedida Requerida</label>
                 <input
                   type="text"

@@ -22,9 +22,11 @@ import {
   Layers,
   HelpCircle,
   TrendingUp,
-  Check
+  Check,
+  CalendarDays
 } from 'lucide-react';
 import { AcaoCorretiva, getAcoesAll, saveAcoes, triggerAutoAcaoCorretiva, getActiveDatabaseMode } from '../utils/simulacaoAcoesUtils';
+import { AcoesGeraisRepository } from '../db';
 import { Usuario } from '../types';
 
 export interface IndicatorActionModalProps {
@@ -62,6 +64,7 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
 
   // Form State
   const resolvedDefaultProcess = defaultProcesso || (allowedProcessos[0] as AcaoCorretiva['processo']) || 'Repack';
+  const todayISO = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     processo: resolvedDefaultProcess,
     tipoAcao: 'Corretiva' as 'Corretiva' | 'Melhoria',
@@ -73,6 +76,7 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
     setor: 'Armazém / Operações',
     colaboradorResponsavel: user?.nome || 'Operador de Turno',
     responsavelTratativa: 'Supervisor de Operações',
+    dataCriacao: todayISO,
     prazo: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
     causaRaiz: 'Método' as AcaoCorretiva['causaRaiz'],
     causaRaizDetalhe: '',
@@ -345,7 +349,7 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
   };
 
   // Handle Submit New Action
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.desvioEncontrado.trim()) {
       alert('Por favor, descreva o desvio ou oportunidade de melhoria encontrada.');
@@ -357,11 +361,16 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
     }
 
     const now = new Date();
+    const dataCriacaoVal = formData.dataCriacao || now.toISOString().split('T')[0];
+    const dataParts = dataCriacaoVal.split('-');
+    const dataFormatadaPtBr = dataParts.length === 3 ? `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}` : now.toLocaleDateString('pt-BR');
+    const horaAtual = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
     const newAcao: AcaoCorretiva = {
       id: `acao-${resolvedDefaultProcess.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`,
-      data: now.toLocaleDateString('pt-BR'),
-      dataISO: now.toISOString().split('T')[0],
-      hora: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      data: dataFormatadaPtBr,
+      dataISO: dataCriacaoVal,
+      hora: horaAtual,
       processo: formData.processo as AcaoCorretiva['processo'],
       setor: formData.setor,
       colaboradorResponsavel: formData.colaboradorResponsavel,
@@ -377,13 +386,13 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
       comentarioOperador: formData.contramedida,
       historicoAlteracoes: [
         {
-          dataHora: `${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+          dataHora: `${dataFormatadaPtBr} ${horaAtual}`,
           usuario: user?.nome || 'Usuário Atual',
-          alteracao: 'Plano de Ação criado manualmente no dashboard.'
+          alteracao: `Plano de Ação registrado na data ${dataFormatadaPtBr}.`
         }
       ],
       simulado: false,
-      criadoEm: now.toISOString(),
+      criadoEm: `${dataCriacaoVal}T${now.toTimeString().split(' ')[0]}`,
       tipoAcao: formData.tipoAcao,
       prioridade: formData.prioridade,
       cincoPorques: {
@@ -398,12 +407,32 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
       aprovacaoGestor: 'Aprovado',
       aceiteColaborador: true,
       abertoPor: `${user?.nome || 'Usuário'} (${user?.cargo || 'Operação'})`,
-      dataAbertura: now.toISOString()
+      dataAbertura: `${dataFormatadaPtBr} ${horaAtual}`
     };
 
     const updated = [newAcao, ...allAcoes];
     saveAcoes(updated);
     setAllAcoes(updated);
+
+    // Also persist to repository for universal sync
+    try {
+      await AcoesGeraisRepository.create({
+        ...newAcao,
+        empresaId: user?.empresaId || 'demo',
+        titulo: newAcao.indicador,
+        descricao: newAcao.desvioEncontrado,
+        responsavel: newAcao.colaboradorResponsavel,
+        dataLimite: newAcao.prazo,
+        dataCriacao: dataCriacaoVal,
+        origem: `Painel de Indicadores — ${indicatorTitle}`
+      } as any, user?.empresaId || 'demo');
+    } catch (err) {
+      console.warn('Repository sync notice:', err);
+    }
+
+    window.dispatchEvent(new Event('af_acoes_updated'));
+    window.dispatchEvent(new Event('local_data_changed'));
+
     setIsCreatingNew(false);
 
     // Reset form
@@ -690,7 +719,21 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Data de Criação (Manual)</span> <span className="text-amber-400">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.dataCriacao}
+                    onChange={(e) => setFormData({ ...formData, dataCriacao: e.target.value })}
+                    className="w-full bg-[#152347] border border-blue-900/60 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-semibold"
+                    required
+                  />
+                </div>
+
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Responsável pela Ação</label>
                   <input
@@ -713,7 +756,10 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Prazo Limite de Conclusão</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Prazo de Conclusão</span> <span className="text-amber-400">*</span>
+                  </label>
                   <input
                     type="date"
                     value={formData.prazo}
@@ -808,8 +854,9 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
                             <span className="text-[11px] font-bold text-amber-400 uppercase font-mono">
                               #{acao.id}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-semibold">
-                              {acao.data} às {acao.hora}
+                            <span className="text-[10px] text-slate-300 font-semibold flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-amber-400" />
+                              <span>Criado em: {acao.data}{acao.hora ? ` às ${acao.hora}` : ''}</span>
                             </span>
                             <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-800 text-slate-300 border border-slate-700">
                               {acao.processo}

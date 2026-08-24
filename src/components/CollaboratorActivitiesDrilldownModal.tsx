@@ -17,7 +17,8 @@ import {
   Truck,
   Timer,
   Layers3,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { CollaboratorPnpSummary } from '../utils/pnpCollaboratorUtils';
 
@@ -800,22 +801,80 @@ export const CollaboratorActivitiesDrilldownModal: React.FC<CollaboratorActiviti
           {/* TAB REPACK DETALHADO (AJUDANTE) */}
           {activeTab === 'repack' && (
             <div className="space-y-4">
+              {/* BANNER EXPLICATIVO DO CÁLCULO DE META */}
+              <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900 dark:text-blue-200">
+                <Sparkles className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-black uppercase text-[11px] text-blue-800 dark:text-blue-300">
+                    Cálculo Oficial de Produtividade de Repack (Tempo Líquido de Produção)
+                  </strong>
+                  <p className="mt-0.5 text-blue-700 dark:text-blue-300 leading-relaxed">
+                    A meta é calculada somando <strong>estritamente os períodos de início e término</strong> de cada lote reembalado. Se o colaborador acumulou 2 horas somando os períodos de repack e produziu 40 caixas, seu ritmo é de <strong>20 cx/h</strong> (atingindo a meta de 10 cx/h), sem diluir nas horas totais do turno.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-slate-50 dark:bg-[#111a30] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                   <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Total de Caixas</span>
                   <p className="text-2xl font-mono font-black text-slate-900 dark:text-white mt-1">{repack.totalCaixas} cx</p>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Volume reembalado</span>
                 </div>
                 <div className="bg-slate-50 dark:bg-[#111a30] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Ritmo (Meta 10 cx/h)</span>
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Ritmo de Repack</span>
                   <p className="text-2xl font-mono font-black text-indigo-600 dark:text-indigo-400 mt-1">{repack.ritmoRealCxH} cx/h</p>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Meta: 10.0 cx/h</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Meta Oficial: 10.0 cx/h</span>
                 </div>
                 <div className="bg-slate-50 dark:bg-[#111a30] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Tempo por Embalagem</span>
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Tempo Líquido Somado</span>
                   <p className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400 mt-1">{repack.tempoRealMin} min</p>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Meta somada: {repack.tempoMetaMin} min</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Meta Somada: {repack.tempoMetaMin} min</span>
                 </div>
               </div>
+
+              {/* TABELA DE ATIVIDADES DE REPACK */}
+              {repack.atividades && repack.atividades.length > 0 ? (
+                <div className="overflow-x-auto bg-white dark:bg-[#111a30] rounded-xl border border-slate-200 dark:border-slate-800">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#0b1222]">
+                        <th className="p-3">Data</th>
+                        <th className="p-3">Embalagem</th>
+                        <th className="p-3 text-center">Horário (Início - Fim)</th>
+                        <th className="p-3 text-center">Tempo Efetivo</th>
+                        <th className="p-3 text-center">Quantidade</th>
+                        <th className="p-3 text-center">Ritmo do Lote</th>
+                        <th className="p-3 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {repack.atividades.map((item, idx) => (
+                        <tr key={`rpk-act-${item.id || idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                          <td className="p-3 font-mono text-slate-700 dark:text-slate-300">{item.data}</td>
+                          <td className="p-3 font-bold text-slate-900 dark:text-white">{item.embalagem}</td>
+                          <td className="p-3 text-center font-mono text-slate-500 dark:text-slate-400">{item.inicio} - {item.fim}</td>
+                          <td className="p-3 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">{item.duracaoRealMin} min</td>
+                          <td className="p-3 text-center font-mono font-black text-indigo-600 dark:text-indigo-400">{item.quantidade} cx</td>
+                          <td className="p-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200">{item.ritmoRealCxH} cx/h</td>
+                          <td className="p-3 text-center">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                              item.status === 'DENTRO DA META' 
+                                ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' 
+                                : 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-6 text-center bg-slate-50 dark:bg-[#111a30] rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs">
+                  Nenhum registro individual de repack encontrado para este colaborador.
+                </div>
+              )}
             </div>
           )}
 

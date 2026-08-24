@@ -20,13 +20,21 @@ interface DespejoPanelProps {
 }
 
 const DESPEJO_EMBALAGENS = [
-  { nome: 'LATA 250', meta: '00:03:30' },
-  { nome: 'LATA 269', meta: '00:03:30' },
-  { nome: 'LATA 350', meta: '00:04:00' },
-  { nome: 'LATA 473', meta: '00:04:00' },
-  { nome: 'LONG NECK', meta: '00:05:00' },
-  { nome: 'PET 1L', meta: '00:04:30' },
-  { nome: 'PET 2L', meta: '00:04:00' },
+  { nome: 'LATA 250', meta: '00:00:50' },
+  { nome: 'LATA 269', meta: '00:00:50' },
+  { nome: 'LATA 350', meta: '00:00:50' },
+  { nome: 'LATA 473', meta: '00:00:50' },
+  { nome: 'LONG NECK', meta: '00:00:50' },
+  { nome: 'PET 1L', meta: '00:00:50' },
+  { nome: 'PET 2L', meta: '00:00:50' },
+  { nome: 'PET 500ml', meta: '00:00:50' },
+  { nome: 'PET 200ml', meta: '00:00:50' },
+  { nome: 'PET 2,5L', meta: '00:00:50' },
+  { nome: 'PET 3,3L', meta: '00:00:50' },
+  { nome: '600 OW', meta: '00:00:50' },
+  { nome: '300 OW', meta: '00:00:50' },
+  { nome: 'GARRAFA 600ml', meta: '00:00:50' },
+  { nome: 'GARRAFA 1L', meta: '00:00:50' },
 ];
 
 export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShiftStart }: DespejoPanelProps) {
