@@ -717,9 +717,23 @@ export function getCollaboratorPnpSummary(
     return _cachedIndividualPnpMap.get(individualCacheKey)!;
   }
 
-  const all = getAllCollaboratorsPnpSummary(empresaId, repackList, despejoList, quebrasList);
-  
-  let found = all.find(c =>
+  // Check if all summary is already computed in memory
+  if (_cachedPnpSummaryResult) {
+    const existing = _cachedPnpSummaryResult.find(c =>
+      c.matricula.toUpperCase() === target ||
+      c.nome.toUpperCase() === target ||
+      normalizeCollaboratorName(c.nome) === normTarget ||
+      c.nome.toUpperCase().includes(target) ||
+      target.includes(c.nome.toUpperCase())
+    );
+    if (existing) {
+      _cachedIndividualPnpMap.set(individualCacheKey, existing);
+      return existing;
+    }
+  }
+
+  // Find candidate in official list
+  const colab = LISTA_COLABORADORES_OFICIAIS.find(c =>
     c.matricula.toUpperCase() === target ||
     c.nome.toUpperCase() === target ||
     normalizeCollaboratorName(c.nome) === normTarget ||
@@ -727,95 +741,207 @@ export function getCollaboratorPnpSummary(
     target.includes(c.nome.toUpperCase())
   );
 
-  if (!found) {
-    const isEmp = target.toLowerCase().includes('empilha') || target.toLowerCase().includes('paulo');
-    found = {
-      matricula: 'EMP-01',
-      nome: target,
-      cargo: isEmp ? 'Operador de Empilhadeira' : 'Operador Logístico',
-      funcaoGroup: isEmp ? 'Empilhador' : 'Ajudante',
-      isEmpilhador: isEmp,
-      turno: 'Turno A',
-      metaPnp: 6.23,
-      realPnp: isEmp ? 6.40 : 6.60,
-      totalHoras: 161.3,
-      diasTrabalhados: 22,
-      volumeTotalHl: isEmp ? 1032.3 : 1064.5,
-      percentualMeta: isEmp ? 102.7 : 105.9,
-      statusMeta: 'Dentro da Meta',
-      efc: {
-        metaPct: 96.0,
-        realPct: 98.2,
-        totalVeiculos: 34,
-        veiculosNoPrazo: 33,
-        tempoMedioMin: 18,
-        status: 'Dentro da Meta',
-        atividades: []
-      },
-      efd: {
-        metaPct: 90.0,
-        realPct: 94.1,
-        totalVeiculos: 28,
-        veiculosNoPrazo: 26,
-        pernoitesTratadas: 2,
-        tempoMedioMin: 22,
-        status: 'Dentro da Meta',
-        atividades: []
-      },
-      tmr: {
-        metaMin: 50.0,
-        realMin: 41.5,
-        totalAtendimentos: 16,
-        atendimentosNoPrazo: 15,
-        eficienciaPct: 120,
-        status: 'Dentro da Meta',
-        atividades: []
-      },
-      ressuprimento: {
-        metaMinPorPallet: 5.0,
-        realMinPorPallet: 4.1,
-        totalPallets: 180,
-        totalTarefas: 32,
-        tempoTotalMin: 738,
-        eficienciaPct: 122,
-        status: 'Dentro da Meta',
-        atividades: []
-      },
-      wqi: {
-        metaPct: 95.0,
-        realPct: 98.4,
-        totalAvariasMes: 0,
-        totalCaixasAvariadas: 0,
-        conformidadeAvarias: 100,
-        popConformidade: 98.0,
-        fefoAderencia: 99.0,
-        status: 'Dentro da Meta',
-        atividades: []
-      },
-      repack: {
-        totalCaixas: 0,
-        tempoRealMin: 0,
-        tempoMetaMin: 0,
-        ritmoRealCxH: 12.0,
-        ritmoMetaCxH: 10.0,
-        eficienciaPct: 100,
-        atividades: []
-      },
-      despejo: {
-        totalItens: 0,
-        tempoRealMin: 0,
-        tempoMetaMin: 0,
-        eficienciaPct: 100,
-        atividades: []
-      },
-      quebras: {
-        totalOcorrencias: 0,
-        totalCaixas: 0,
-        atividades: []
-      },
-      jornadas: []
-    };
+  const isEmp = colab ? (colab.funcaoGroup === 'Empilhador' || colab.cargo.toUpperCase().includes('EMPILHA')) : (target.toLowerCase().includes('empilha') || target.toLowerCase().includes('paulo'));
+
+  // Quick lookup for single collaborator's activities
+  const normName = colab ? normalizeCollaboratorName(colab.nome) : normTarget;
+
+  const rawRetro = parseRetroactiveText().filter(r => normalizeCollaboratorName(r.colaborador) === normName);
+  const storedJornadas = getStoredJornadas(empresaId).filter(j => normalizeCollaboratorName(j.colaboradorNome) === normName);
+  const userRepack = repackList.filter(r => normalizeCollaboratorName(r.operador || '') === normName);
+  const userDespejo = despejoList.filter(d => normalizeCollaboratorName(d.operador || '') === normName);
+  const userQuebras = quebrasList.filter(q => normalizeCollaboratorName(q.colaboradorQuebrou || q.responsavel || '') === normName);
+
+  let totalHoras = 0;
+  const diasSet = new Set<string>();
+  storedJornadas.forEach(j => {
+    diasSet.add(j.dataStr || j.dataISO);
+    totalHoras += Number(j.duracaoHoras) || 7.33;
+  });
+
+  let diasTrabalhados = diasSet.size;
+  if (diasTrabalhados === 0) {
+    diasTrabalhados = rawRetro.length > 0 ? Math.min(22, rawRetro.length) : 1;
+    totalHoras = diasTrabalhados * 7.33;
   }
+
+  let volumeAtividadesHl = 0;
+  userRepack.forEach(r => {
+    const q = Number(r.quantidade) || 0;
+    volumeAtividadesHl += q * 0.18;
+  });
+  userDespejo.forEach(d => {
+    const q = Number(d.quantidade) || 0;
+    volumeAtividadesHl += q * 0.15;
+  });
+
+  let realPnp = 0;
+  if (volumeAtividadesHl > 0 && totalHoras > 0) {
+    const pnpAtividade = volumeAtividadesHl / totalHoras;
+    realPnp = Math.round((6.23 + pnpAtividade) * 100) / 100;
+  } else {
+    realPnp = isEmp ? 6.40 : 6.60;
+  }
+
+  const volumeTotalHl = Math.round(realPnp * totalHoras * 10) / 10;
+  const percentualMeta = Math.round((realPnp / 6.23) * 1000) / 10;
+  let statusMeta: 'Acima da Meta' | 'Dentro da Meta' | 'Abaixo da Meta' = 'Dentro da Meta';
+  if (percentualMeta >= 105) statusMeta = 'Acima da Meta';
+  else if (percentualMeta < 100) statusMeta = 'Abaixo da Meta';
+
+  let repackTotalCx = 0;
+  let repackRealMin = 0;
+  let repackMetaMin = 0;
+  const repackAtividades: CollaboratorRepackActivity[] = userRepack.map((r, idx) => {
+    const q = Number(r.quantidade) || 0;
+    repackTotalCx += q;
+    const metaUnit = EMBALAGENS_META_MIN[r.embalagem] || 5.0;
+    const durMeta = metaUnit * q;
+    repackMetaMin += durMeta;
+    let durReal = 0;
+    if (r.duracao) {
+      const parts = r.duracao.split(':').map(Number);
+      if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
+    }
+    if (durReal === 0) durReal = durMeta * 0.95;
+    repackRealMin += durReal;
+    return {
+      id: r._docId || `rpk-${idx}`,
+      data: r.data || 'Hoje',
+      embalagem: r.embalagem,
+      quantidade: q,
+      inicio: r.inicio || '08:00',
+      fim: r.fim || '09:00',
+      duracaoRealMin: Math.round(durReal),
+      duracaoMetaMin: Math.round(durMeta),
+      ritmoRealCxH: durReal > 0 ? Math.round((q / (durReal / 60)) * 10) / 10 : 10,
+      ritmoMetaCxH: 10.0,
+      status: durReal <= durMeta ? 'DENTRO DA META' : 'FORA DA META'
+    };
+  });
+
+  let despejoTotalItens = 0;
+  let despejoRealMin = 0;
+  let despejoMetaMin = 0;
+  const despejoAtividades: CollaboratorDespejoActivity[] = userDespejo.map((d, idx) => {
+    const q = Number(d.quantidade) || 1;
+    despejoTotalItens += q;
+    const meta = q * 3.0;
+    despejoMetaMin += meta;
+    let durReal = 0;
+    if (d.tempo) {
+      const parts = d.tempo.split(':').map(Number);
+      if (parts.length === 2) durReal = parts[0] * 60 + parts[1];
+    }
+    if (durReal === 0) durReal = meta * 0.92;
+    despejoRealMin += durReal;
+    return {
+      id: d._docId || `dsp-${idx}`,
+      data: d.data || 'Hoje',
+      tipoVasilhame: d.embalagem || 'Vidro / Lata',
+      quantidade: q,
+      motivo: 'Avaria de rota / validade',
+      duracaoRealMin: Math.round(durReal),
+      duracaoMetaMin: Math.round(meta),
+      status: durReal <= meta ? 'DENTRO DA META' : 'FORA DA META'
+    };
+  });
+
+  const quebrasAtividades: CollaboratorQuebraActivity[] = userQuebras.map((q, idx) => ({
+    id: q._docId || `qbr-${idx}`,
+    data: q.data || 'Hoje',
+    produto: q.descricao || 'Cerveja / Refrigerante',
+    quantidade: Number(q.quantidade) || 1,
+    motivo: q.motivo || 'Avaria de manuseio',
+    local: q.area || 'Armazém'
+  }));
+
+  const found: CollaboratorPnpSummary = {
+    matricula: colab?.matricula || 'MAT-01',
+    nome: colab?.nome || target,
+    cargo: colab?.cargo || (isEmp ? 'Operador de Empilhadeira' : 'Operador Logístico'),
+    funcaoGroup: colab?.funcaoGroup as any || (isEmp ? 'Empilhador' : 'Ajudante'),
+    isEmpilhador: isEmp,
+    turno: colab?.turno || 'Turno A',
+    metaPnp: 6.23,
+    realPnp,
+    totalHoras: Math.round(totalHoras * 10) / 10,
+    diasTrabalhados,
+    volumeTotalHl,
+    percentualMeta,
+    statusMeta,
+    efc: {
+      metaPct: 96.0,
+      realPct: 98.2,
+      totalVeiculos: 34,
+      veiculosNoPrazo: 33,
+      tempoMedioMin: 18,
+      status: 'Dentro da Meta',
+      atividades: []
+    },
+    efd: {
+      metaPct: 90.0,
+      realPct: 94.1,
+      totalVeiculos: 28,
+      veiculosNoPrazo: 26,
+      pernoitesTratadas: 2,
+      tempoMedioMin: 22,
+      status: 'Dentro da Meta',
+      atividades: []
+    },
+    tmr: {
+      metaMin: 50.0,
+      realMin: 41.5,
+      totalAtendimentos: 16,
+      atendimentosNoPrazo: 15,
+      eficienciaPct: 120,
+      status: 'Dentro da Meta',
+      atividades: []
+    },
+    ressuprimento: {
+      metaMinPorPallet: 5.0,
+      realMinPorPallet: 4.1,
+      totalPallets: 180,
+      totalTarefas: 32,
+      tempoTotalMin: 738,
+      eficienciaPct: 122,
+      status: 'Dentro da Meta',
+      atividades: []
+    },
+    wqi: {
+      metaPct: 95.0,
+      realPct: userQuebras.length === 0 ? 98.4 : Math.max(85, 96 - userQuebras.length * 1.5),
+      totalAvariasMes: userQuebras.length,
+      totalCaixasAvariadas: userQuebras.reduce((sum, q) => sum + (Number(q.quantidade) || 0), 0),
+      conformidadeAvarias: userQuebras.length === 0 ? 100 : 98.0,
+      popConformidade: 98.0,
+      fefoAderencia: 99.0,
+      status: 'Dentro da Meta',
+      atividades: quebrasAtividades
+    },
+    repack: {
+      totalCaixas: repackTotalCx,
+      tempoRealMin: Math.round(repackRealMin),
+      tempoMetaMin: Math.round(repackMetaMin),
+      ritmoRealCxH: repackRealMin > 0 ? Math.round((repackTotalCx / (repackRealMin / 60)) * 10) / 10 : 12.0,
+      ritmoMetaCxH: 10.0,
+      eficienciaPct: repackRealMin > 0 ? Math.round((repackMetaMin / repackRealMin) * 100) : 100,
+      atividades: repackAtividades
+    },
+    despejo: {
+      totalItens: despejoTotalItens,
+      tempoRealMin: Math.round(despejoRealMin),
+      tempoMetaMin: Math.round(despejoMetaMin),
+      eficienciaPct: despejoRealMin > 0 ? Math.round((despejoMetaMin / despejoRealMin) * 100) : 100,
+      atividades: despejoAtividades
+    },
+    quebras: {
+      totalOcorrencias: userQuebras.length,
+      totalCaixas: userQuebras.reduce((sum, q) => sum + (Number(q.quantidade) || 0), 0),
+      atividades: quebrasAtividades
+    },
+    jornadas: storedJornadas
+  };
 
   _cachedIndividualPnpMap.set(individualCacheKey, found);
   return found;

@@ -29,7 +29,7 @@ interface ValidadesPanelProps {
   hideSugerirMelhoria?: boolean;
 }
 
-export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: ValidadesPanelProps) {
+export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, theme = 'light' }: ValidadesPanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `validades_draft_${empresaId}_${user.nome || 'guest'}`;
 
@@ -153,8 +153,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
     if (!matching || !matching.solicitadoPorConferente) {
       return (
-        <div className="p-2 bg-[#0d1218] border border-[#222d3a] rounded-lg flex items-center justify-between text-xs mt-2">
-          <span className="text-[10px] font-bold text-slate-400">
+        <div className="p-3 bg-slate-50 dark:bg-[#0d1218] border border-slate-200 dark:border-[#222d3a] rounded-xl flex items-center justify-between text-xs mt-2.5 flex-wrap gap-2">
+          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
             Demanda para Empilhador:
           </span>
           <button
@@ -167,7 +167,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
               }
               setFefoDemands(getStoredFefoDemands(empresaId));
             }}
-            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] uppercase rounded flex items-center gap-1 cursor-pointer transition-colors shadow"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
           >
             🚜 Delegar Realocação ao Empilhador
           </button>
@@ -176,21 +176,21 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
     }
 
     return (
-      <div className="p-2 bg-[#0d1218] border border-[#222d3a] rounded-lg flex items-center justify-between text-xs mt-2 flex-wrap gap-2">
-        <span className="text-[10px] font-bold text-slate-400">
+      <div className="p-3 bg-slate-50 dark:bg-[#0d1218] border border-slate-200 dark:border-[#222d3a] rounded-xl flex items-center justify-between text-xs mt-2.5 flex-wrap gap-2">
+        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
           Status Visão Empilhador:
         </span>
         {matching.status === 'done' ? (
-          <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+          <span className="text-[11px] font-black text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/20 px-2.5 py-1 rounded-lg">
             ✓ Realocação Concluída por {matching.operadorExecutor || 'Empilhador'} ({matching.duracaoMin || 1} min)
           </span>
         ) : matching.status === 'in_progress' ? (
-          <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded animate-pulse">
+          <span className="text-[11px] font-black text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/20 px-2.5 py-1 rounded-lg animate-pulse">
             🚜 Em Andamento por {matching.operadorExecutor || 'Empilhador'}
           </span>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+            <span className="text-[11px] font-black text-amber-900 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/20 px-2.5 py-1 rounded-lg">
               ⏳ Solicitado ao Empilhador (Aguardando Atendimento)
             </span>
             <button
@@ -199,7 +199,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                 cancelFefoDemandRequest(empresaId, matching.id);
                 setFefoDemands(getStoredFefoDemands(empresaId));
               }}
-              className="text-[9px] font-bold text-red-400 hover:text-red-300 underline cursor-pointer"
+              className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer ml-1"
             >
               Cancelar
             </button>
@@ -815,38 +815,38 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
       {/* Expiry Risk Level Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="g-card p-3 text-center border-t-2 border-t-[#7f1d1d] bg-[#7f1d1d]/5">
-          <span className="font-sans font-black text-2xl text-red leading-none">{stats.expired}</span>
-          <span className="block text-[8px] text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Vencido</span>
-          <span className="block text-[8px] text-[#6a7d92]/80 font-semibold mt-0.5">⚠️ Perda integral</span>
+        <div className="p-3 text-center rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/70 dark:bg-[#7f1d1d]/10 shadow-xs">
+          <span className="font-sans font-black text-2xl text-red-600 dark:text-red leading-none">{stats.expired}</span>
+          <span className="block text-[9px] text-slate-600 dark:text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Vencido</span>
+          <span className="block text-[9px] text-red-600/90 dark:text-[#6a7d92]/80 font-semibold mt-0.5">⚠️ Perda integral</span>
         </div>
-        <div className="g-card p-3 text-center border-t-2 border-t-[#ef4444] bg-[#ef4444]/5">
-          <span className="font-sans font-black text-2xl text-[#ef4444] leading-none">{stats.crit}</span>
-          <span className="block text-[8px] text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Crítico</span>
-          <span className="block text-[8px] text-[#6a7d92]/80 font-semibold mt-0.5">≤ 30 dias</span>
+        <div className="p-3 text-center rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-[#ef4444]/10 shadow-xs">
+          <span className="font-sans font-black text-2xl text-rose-600 dark:text-[#ef4444] leading-none">{stats.crit}</span>
+          <span className="block text-[9px] text-slate-600 dark:text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Crítico</span>
+          <span className="block text-[9px] text-rose-600/90 dark:text-[#6a7d92]/80 font-semibold mt-0.5">≤ 30 dias</span>
         </div>
-        <div className="g-card p-3 text-center border-t-2 border-t-[#f5a623] bg-[#f5a623]/5">
-          <span className="font-sans font-black text-2xl text-[#f5a623] leading-none">{stats.warn}</span>
-          <span className="block text-[8px] text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Atenção</span>
-          <span className="block text-[8px] text-[#6a7d92]/80 font-semibold mt-0.5">31–45 dias</span>
+        <div className="p-3 text-center rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-[#f5a623]/10 shadow-xs">
+          <span className="font-sans font-black text-2xl text-amber-600 dark:text-[#f5a623] leading-none">{stats.warn}</span>
+          <span className="block text-[9px] text-slate-600 dark:text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Atenção</span>
+          <span className="block text-[9px] text-amber-600/90 dark:text-[#6a7d92]/80 font-semibold mt-0.5">31–45 dias</span>
         </div>
-        <div className="g-card p-3 text-center border-t-2 border-t-[#eab308] bg-[#eab308]/5">
-          <span className="font-sans font-black text-2xl text-[#eab308] leading-none">{stats.alert}</span>
-          <span className="block text-[8px] text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Alerta</span>
-          <span className="block text-[8px] text-[#6a7d92]/80 font-semibold mt-0.5">46–60 dias</span>
+        <div className="p-3 text-center rounded-xl border border-yellow-200 dark:border-yellow-900/50 bg-yellow-50/70 dark:bg-[#eab308]/10 shadow-xs">
+          <span className="font-sans font-black text-2xl text-yellow-600 dark:text-[#eab308] leading-none">{stats.alert}</span>
+          <span className="block text-[9px] text-slate-600 dark:text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Alerta</span>
+          <span className="block text-[9px] text-yellow-600/90 dark:text-[#6a7d92]/80 font-semibold mt-0.5">46–60 dias</span>
         </div>
-        <div className="g-card p-3 text-center border-t-2 border-t-[#22c55e] bg-[#22c55e]/5 col-span-2 md:col-span-1">
-          <span className="font-sans font-black text-2xl text-[#22c55e] leading-none">{stats.ok}</span>
-          <span className="block text-[8px] text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Garantido</span>
-          <span className="block text-[8px] text-[#22c55e]/70 font-semibold mt-0.5">&gt; 60 dias (FEFO OK)</span>
+        <div className="p-3 text-center rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-[#22c55e]/10 shadow-xs col-span-2 md:col-span-1">
+          <span className="font-sans font-black text-2xl text-emerald-600 dark:text-[#22c55e] leading-none">{stats.ok}</span>
+          <span className="block text-[9px] text-slate-600 dark:text-[#6a7d92] uppercase font-bold tracking-wider mt-1">Garantido</span>
+          <span className="block text-[9px] text-emerald-700 dark:text-[#22c55e]/70 font-semibold mt-0.5">&gt; 60 dias (FEFO OK)</span>
         </div>
       </div>
 
       {/* Standard Operating Procedure (POP / SOP) Banner for Operator */}
       <SopBannerViewer operation="fefo" operationName="FEFO / Validades" />
 
-      {/* Navegação de Abas - 100% Responsivo no Celular (Todas as opções visíveis sem corte ou barra de rolagem horizontal) */}
-      <div className="bg-[#11151c] p-2 rounded-2xl border border-[#222d3a] shadow-inner">
+      {/* Navegação de Abas - 100% Responsivo */}
+      <div className="bg-slate-100 dark:bg-[#11151c] p-2 rounded-2xl border border-slate-200 dark:border-[#222d3a] shadow-inner">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2">
           <button 
             type="button"
@@ -854,7 +854,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'form' 
                 ? 'bg-[#8b5cf6] text-white shadow-md shadow-[#8b5cf6]/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-white hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             {editingRow ? '✏️ Editar Lote' : '📝 Cadastrar Lote'}
@@ -866,12 +866,12 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'lista' 
                 ? 'bg-[#8b5cf6] text-white shadow-md shadow-[#8b5cf6]/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-white hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             <span>📋 Lista Estoque</span>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
-              activeTab === 'lista' ? 'bg-white/20 text-white' : 'bg-[#0e1217] text-snow border border-[#222d3a]'
+              activeTab === 'lista' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-[#0e1217] text-slate-800 dark:text-snow border border-slate-300 dark:border-[#222d3a]'
             }`}>
               {filterHistoryForUser(validadesList, user, getRegDateKey).length}
             </span>
@@ -883,7 +883,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'stock_age' 
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-purple-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-purple-700 dark:hover:text-purple-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             📊 Stock Age Index
@@ -895,7 +895,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'futuro_shelf' 
                 ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-amber-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-amber-700 dark:hover:text-amber-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             ⚡ Futuro Shelf (30d)
@@ -907,7 +907,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'escoamento' 
                 ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-rose-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-rose-700 dark:hover:text-rose-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             📉 Escoamento
@@ -919,13 +919,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'fefo_quadro' 
                 ? 'bg-red-600 text-white shadow-md shadow-red-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-red-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-red-700 dark:hover:text-red-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             <span>🚨 Quadro Alertas</span>
             {(quebrasFefoPicking.length + quebrasFefoEstoque.length) > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === 'fefo_quadro' ? 'bg-white/20 text-white' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                activeTab === 'fefo_quadro' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-700 border border-red-300 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30'
               }`}>
                 {quebrasFefoPicking.length + quebrasFefoEstoque.length}
               </span>
@@ -938,7 +938,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'fefo_picking' 
                 ? 'bg-red-600 text-white shadow-md shadow-red-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-red-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-red-700 dark:hover:text-red-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             <span>⚡ Estoque x Picking</span>
@@ -957,13 +957,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             className={`py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center ${
               activeTab === 'fefo_estoque' 
                 ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20 font-black' 
-                : 'bg-[#151b23] text-[#8fa0b5] hover:text-amber-300 hover:bg-[#1f2733] border border-[#222d3a]'
+                : 'bg-white dark:bg-[#151b23] text-slate-700 dark:text-[#8fa0b5] hover:text-amber-700 dark:hover:text-amber-300 hover:bg-slate-50 dark:hover:bg-[#1f2733] border border-slate-200 dark:border-[#222d3a] shadow-xs'
             }`}
           >
             <span>🔍 Estoque x Estoque</span>
             {quebrasFefoEstoque.length > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === 'fefo_estoque' ? 'bg-white/20 text-white' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                activeTab === 'fefo_estoque' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30'
               }`}>
                 {quebrasFefoEstoque.length}
               </span>
@@ -1500,61 +1500,61 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           }}
         />
       ) : activeTab === 'fefo_quadro' ? (
-        /* QUADRO CENTRAL DE ALERTAS DE QUEBRA DE FEFO (TAREFA 24) */
+        /* QUADRO GERAL DE ALERTAS FEFO UNIFICADO */
         <div className="flex flex-col gap-6 font-sans">
           
           {/* Header Banner */}
-          <div className="g-card p-6 border-l-4 border-l-red-500 bg-gradient-to-r from-red-950/30 to-[#151b23]">
+          <div className="bg-white dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] p-5 sm:p-6 rounded-2xl shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] bg-red-600 text-white font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
                     Quadro Central de Alertas
                   </span>
-                  <span className="text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase">
+                  <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 dark:bg-[#222d3a] dark:text-snow dark:border-[#303e4e] px-2 py-0.5 rounded font-bold uppercase">
                     Conferência Operacional FEFO
                   </span>
                 </div>
-                <h2 className="font-sans font-black text-lg tracking-wider uppercase text-snow mt-2 flex items-center gap-2">
+                <h2 className="font-sans font-black text-lg tracking-wider uppercase text-slate-900 dark:text-snow mt-2 flex items-center gap-2">
                   🚨 Dashboard & Quadro de Alertas de Quebra de FEFO
                 </h2>
-                <p className="text-xs text-[#a0aec0] mt-1 max-w-2xl">
+                <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1 max-w-2xl">
                   Centralização em tempo real de todos os desvios de FEFO. Alertas são atualizados automaticamente ao lançar ou importar dados de validade.
                 </p>
               </div>
 
               {/* Quick Metrics Badges */}
               <div className="flex gap-2 flex-wrap">
-                <div className="bg-[#1a222c] border border-red-500/40 p-3 rounded-xl text-center min-w-[120px]">
-                  <span className="block text-xl font-black text-red-400">{quebrasFefoPicking.length}</span>
-                  <span className="text-[9px] font-bold text-[#6a7d92] uppercase">Estoque x Picking</span>
-                  <span className="block text-[8px] font-bold text-red-400/80">Tol. Zero</span>
+                <div className="bg-red-50/80 dark:bg-[#1a222c] border border-red-200 dark:border-red-500/40 p-3 rounded-xl text-center min-w-[120px] shadow-xs">
+                  <span className="block text-xl font-black text-red-600 dark:text-red-400">{quebrasFefoPicking.length}</span>
+                  <span className="text-[9px] font-bold text-slate-600 dark:text-[#6a7d92] uppercase">Estoque x Picking</span>
+                  <span className="block text-[8px] font-bold text-red-600/90 dark:text-red-400/80">Tol. Zero</span>
                 </div>
-                <div className="bg-[#1a222c] border border-amber-500/40 p-3 rounded-xl text-center min-w-[120px]">
-                  <span className="block text-xl font-black text-amber-400">{quebrasFefoEstoque.length}</span>
-                  <span className="text-[9px] font-bold text-[#6a7d92] uppercase">Estoque x Estoque</span>
-                  <span className="block text-[8px] font-bold text-amber-400/80">Tol. 7 Dias</span>
+                <div className="bg-amber-50/80 dark:bg-[#1a222c] border border-amber-200 dark:border-amber-500/40 p-3 rounded-xl text-center min-w-[120px] shadow-xs">
+                  <span className="block text-xl font-black text-amber-600 dark:text-amber-400">{quebrasFefoEstoque.length}</span>
+                  <span className="text-[9px] font-bold text-slate-600 dark:text-[#6a7d92] uppercase">Estoque x Estoque</span>
+                  <span className="block text-[8px] font-bold text-amber-600/90 dark:text-amber-400/80">Tol. 7 Dias</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* SECTION 1: QUEBRAS ESTOQUE X PICKING (TOLERÂNCIA ZERO) */}
-          <div className="g-card p-6 flex flex-col gap-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-4">
+          <div className="bg-white dark:bg-[#151b23] border border-red-200 dark:border-red-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] bg-red-600 text-white font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
+                  <span className="text-[10px] bg-red-600 text-white font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
                     Regra FEFO Estoque x Picking
                   </span>
-                  <span className="text-[9px] bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded font-black uppercase">
+                  <span className="text-[10px] bg-red-100 text-red-700 border border-red-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/40 px-2.5 py-0.5 rounded font-black uppercase">
                     Tolerância ZERO
                   </span>
                 </div>
-                <h3 className="font-sans font-bold text-sm tracking-wider uppercase text-red-400 mt-2">
+                <h3 className="font-sans font-bold text-sm tracking-wider uppercase text-red-600 dark:text-red-400 mt-2">
                   ⚡ Inversões entre Área Picking e Estoque Central ({quebrasFefoPicking.length})
                 </h3>
-                <p className="text-xs text-[#a0aec0] mt-1">
+                <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                   A Área Picking deve conter o lote com a validade mais antiga. Qualquer produto no Estoque Central mais antigo do que o Picking gera alerta imediato.
                 </p>
               </div>
@@ -1565,14 +1565,14 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                     requestAllFefoDemands(empresaId, user.nome || 'Conferente');
                     setFefoDemands(getStoredFefoDemands(empresaId));
                   }}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs uppercase transition-colors shadow cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   🚜 Delegar Todas ao Empilhador
                 </button>
                 <button 
                   type="button"
                   onClick={() => setActiveTab('fefo_picking')}
-                  className="px-3 py-1.5 bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold uppercase transition-colors"
+                  className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-colors cursor-pointer"
                 >
                   Ver Guia Exclusiva →
                 </button>
@@ -1580,48 +1580,48 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             </div>
 
             {quebrasFefoPicking.length === 0 ? (
-              <div className="p-6 bg-[#151b23] border border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg mb-2">
+              <div className="p-8 bg-slate-50 dark:bg-[#151b23] border border-emerald-300 dark:border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center text-lg mb-2">
                   ✓
                 </div>
-                <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                   Área Picking 100% Conforme com o Estoque
                 </h4>
-                <p className="text-xs text-[#a0aec0] mt-1">
+                <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                   Todos os produtos no Picking possuem datas iguais ou mais antigas que os lotes estocados nas ruas do Estoque Central.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-3.5">
                 {quebrasFefoPicking.map((q, idx) => (
-                  <div key={idx} className="bg-[#151b23] border border-red-500/40 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1 space-y-2">
+                  <div key={idx} className="bg-slate-50/70 dark:bg-[#151b23] border border-red-200 dark:border-red-500/40 p-4 sm:p-5 rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1 space-y-2.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-bold text-xs text-snow bg-[#222d3a] px-2 py-0.5 rounded border border-[#303e4e]">
+                        <span className="font-mono font-bold text-xs text-slate-800 bg-white dark:text-snow dark:bg-[#222d3a] px-2.5 py-1 rounded-md border border-slate-300 dark:border-[#303e4e]">
                           {q.codigo}
                         </span>
-                        <span className="font-bold text-xs text-snow">{q.descricao}</span>
-                        <span className="text-[9px] font-black uppercase text-red-400 bg-red-500/20 px-2 py-0.5 rounded border border-red-500/30">
+                        <span className="font-bold text-sm text-slate-900 dark:text-snow">{q.descricao}</span>
+                        <span className="text-[10px] font-black uppercase text-red-700 bg-red-100 border border-red-300 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30 px-2.5 py-0.5 rounded">
                           Quebra Crítica: +{q.diasInversao} dia(s)
                         </span>
                       </div>
 
-                      <p className="text-xs text-red-300 font-bold">
+                      <p className="text-xs text-red-800 dark:text-red-300 font-semibold leading-relaxed bg-red-50/80 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 p-2.5 rounded-lg">
                         {q.mensagem}
                       </p>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
-                        <div className="bg-[#1a222c] p-2 rounded border border-[#2d3a4b]">
-                          <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Validade no Picking</span>
-                          <span className="font-mono font-bold text-snow">{q.validadePicking}</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-[11px]">
+                        <div className="bg-white dark:bg-[#1a222c] p-2.5 rounded-lg border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Validade no Picking</span>
+                          <span className="font-mono font-bold text-sm text-slate-900 dark:text-snow">{q.validadePicking}</span>
                         </div>
-                        <div className="bg-[#1a222c] p-2 rounded border border-[#2d3a4b]">
-                          <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Validade no Estoque ({q.ruaEstoque})</span>
-                          <span className="font-mono font-bold text-red-400">{q.validadeEstoque}</span>
+                        <div className="bg-white dark:bg-[#1a222c] p-2.5 rounded-lg border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Validade no Estoque ({q.ruaEstoque})</span>
+                          <span className="font-mono font-bold text-sm text-red-600 dark:text-red-400">{q.validadeEstoque}</span>
                         </div>
-                        <div className="bg-red-500/20 p-2 rounded border border-red-500/40 col-span-2 sm:col-span-1">
-                          <span className="text-[9px] font-bold text-red-300 uppercase block">Desvio de Tolerância</span>
-                          <span className="font-mono font-bold text-red-400">+{q.diasInversao} dia(s) no Picking</span>
+                        <div className="bg-red-50 dark:bg-red-500/20 p-2.5 rounded-lg border border-red-200 dark:border-red-500/40 col-span-2 sm:col-span-1 shadow-xs">
+                          <span className="text-[10px] font-bold text-red-700 dark:text-red-300 uppercase block tracking-wider">Desvio de Tolerância</span>
+                          <span className="font-mono font-bold text-sm text-red-700 dark:text-red-400">+{q.diasInversao} dia(s) no Picking</span>
                         </div>
                       </div>
 
@@ -1634,13 +1634,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                           setSearchQuery(q.codigo);
                           setActiveTab('lista');
                         }}
-                        className="w-full py-2 px-3 bg-[#222d3a] hover:bg-[#8b5cf6] text-snow hover:text-white rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white dark:bg-[#222d3a] dark:hover:bg-[#8b5cf6] dark:text-snow rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         📋 Ver Lotes no Estoque
                       </button>
                       <button 
                         onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
-                        className="w-full py-2 px-3 bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 px-3 bg-white hover:bg-red-50 text-red-700 border border-red-300 dark:bg-red-500/20 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         🔍 Inspecionar SKU
                       </button>
@@ -1652,21 +1652,21 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
           </div>
 
           {/* SECTION 2: QUEBRAS ESTOQUE X ESTOQUE (TOLERÂNCIA 7 DIAS) */}
-          <div className="g-card p-6 flex flex-col gap-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-4">
+          <div className="bg-white dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded font-black tracking-wider uppercase">
+                  <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
                     Regra FEFO Estoque x Estoque
                   </span>
-                  <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
+                  <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30 px-2.5 py-0.5 rounded font-bold">
                     Tolerância de 7 Dias (1 Semana)
                   </span>
                 </div>
-                <h3 className="font-sans font-bold text-sm tracking-wider uppercase text-amber-400 mt-2">
+                <h3 className="font-sans font-bold text-sm tracking-wider uppercase text-amber-700 dark:text-amber-400 mt-2">
                   🔍 Inversões entre Ruas / Blocos do Estoque Central ({quebrasFefoEstoque.length})
                 </h3>
-                <p className="text-xs text-[#a0aec0] mt-1">
+                <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                   A rua mais próxima do Picking (menor número/rua A1) deve conter o produto com validade mais próxima de vencer. Inversões são sinalizadas se excederem 7 dias.
                 </p>
               </div>
@@ -1677,14 +1677,14 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                     requestAllFefoDemands(empresaId, user.nome || 'Conferente');
                     setFefoDemands(getStoredFefoDemands(empresaId));
                   }}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs uppercase transition-colors shadow cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   🚜 Delegar Todas ao Empilhador
                 </button>
                 <button 
                   type="button"
                   onClick={() => setActiveTab('fefo_estoque')}
-                  className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-white rounded-lg text-xs font-bold uppercase transition-colors"
+                  className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300 dark:hover:bg-amber-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-colors cursor-pointer"
                 >
                   Ver Guia Exclusiva →
                 </button>
@@ -1692,48 +1692,48 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
             </div>
 
             {quebrasFefoEstoque.length === 0 ? (
-              <div className="p-6 bg-[#151b23] border border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg mb-2">
+              <div className="p-8 bg-slate-50 dark:bg-[#151b23] border border-emerald-300 dark:border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center text-lg mb-2">
                   ✓
                 </div>
-                <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                   Sequência das Ruas 100% Conforme
                 </h4>
-                <p className="text-xs text-[#a0aec0] mt-1">
+                <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                   Todas as ruas respeitam a regra de proximidade do Picking ou possuem variações dentro da tolerância aceita de 7 dias.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-3.5">
                 {quebrasFefoEstoque.map((q, idx) => (
-                  <div key={idx} className="bg-[#151b23] border border-amber-500/30 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1 space-y-2">
+                  <div key={idx} className="bg-slate-50/70 dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/30 p-4 sm:p-5 rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1 space-y-2.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-bold text-xs text-snow bg-[#222d3a] px-2 py-0.5 rounded border border-[#303e4e]">
+                        <span className="font-mono font-bold text-xs text-slate-800 bg-white dark:text-snow dark:bg-[#222d3a] px-2.5 py-1 rounded-md border border-slate-300 dark:border-[#303e4e]">
                           {q.codigo}
                         </span>
-                        <span className="font-bold text-xs text-snow">{q.descricao}</span>
-                        <span className="text-[9px] font-black uppercase text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">
+                        <span className="font-bold text-sm text-slate-900 dark:text-snow">{q.descricao}</span>
+                        <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 border border-amber-300 dark:text-amber-400 dark:bg-amber-500/20 dark:border-amber-500/30 px-2.5 py-0.5 rounded">
                           Inversão: +{q.diasInversao} dias
                         </span>
                       </div>
 
-                      <p className="text-xs text-amber-300 font-medium">
+                      <p className="text-xs text-amber-900 dark:text-amber-300 font-semibold leading-relaxed bg-amber-50/80 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 p-2.5 rounded-lg">
                         {q.mensagem}
                       </p>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
-                        <div className="bg-[#1a222c] p-2 rounded border border-[#2d3a4b]">
-                          <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Rua Próxima ({q.ruaProxima})</span>
-                          <span className="font-mono font-bold text-snow">{q.validadeRuaProxima}</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-[11px]">
+                        <div className="bg-white dark:bg-[#1a222c] p-2.5 rounded-lg border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Rua Próxima ({q.ruaProxima})</span>
+                          <span className="font-mono font-bold text-sm text-slate-900 dark:text-snow">{q.validadeRuaProxima}</span>
                         </div>
-                        <div className="bg-[#1a222c] p-2 rounded border border-[#2d3a4b]">
-                          <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Rua Distante ({q.ruaDistante})</span>
-                          <span className="font-mono font-bold text-amber-400">{q.validadeRuaDistante}</span>
+                        <div className="bg-white dark:bg-[#1a222c] p-2.5 rounded-lg border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Rua Distante ({q.ruaDistante})</span>
+                          <span className="font-mono font-bold text-sm text-amber-600 dark:text-amber-400">{q.validadeRuaDistante}</span>
                         </div>
-                        <div className="bg-amber-500/10 p-2 rounded border border-amber-500/30 col-span-2 sm:col-span-1">
-                          <span className="text-[9px] font-bold text-amber-300 uppercase block">Inversão Excedente</span>
-                          <span className="font-mono font-bold text-amber-400">+{q.diasInversao} dias</span>
+                        <div className="bg-amber-50 dark:bg-amber-500/10 p-2.5 rounded-lg border border-amber-200 dark:border-amber-500/30 col-span-2 sm:col-span-1 shadow-xs">
+                          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase block tracking-wider">Inversão Excedente</span>
+                          <span className="font-mono font-bold text-sm text-amber-800 dark:text-amber-400">+{q.diasInversao} dias</span>
                         </div>
                       </div>
 
@@ -1746,13 +1746,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                           setSearchQuery(q.codigo);
                           setActiveTab('lista');
                         }}
-                        className="w-full py-2 px-3 bg-[#222d3a] hover:bg-[#8b5cf6] text-snow hover:text-white rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white dark:bg-[#222d3a] dark:hover:bg-[#8b5cf6] dark:text-snow rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         📋 Ver Lotes no Estoque
                       </button>
                       <button 
                         onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
-                        className="w-full py-2 px-3 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-white rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 px-3 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         🔍 Inspecionar SKU
                       </button>
@@ -1765,21 +1765,21 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
         </div>
       ) : activeTab === 'fefo_picking' ? (
         /* GUIA ESPECÍFICA ESTOQUE X PICKING (TAREFA 24) */
-        <div className="g-card p-6 flex flex-col gap-5 font-sans">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-4">
+        <div className="bg-white dark:bg-[#151b23] border border-red-200 dark:border-red-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 font-sans">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] bg-red-600 text-white font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
+                <span className="text-[10px] bg-red-600 text-white font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
                   Guia Exclusiva Estoque x Picking
                 </span>
-                <span className="text-[9px] bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded font-black uppercase">
+                <span className="text-[10px] bg-red-100 text-red-700 border border-red-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/40 px-2.5 py-0.5 rounded font-black uppercase">
                   Tolerância ZERO
                 </span>
               </div>
-              <h3 className="font-sans font-bold text-base tracking-wider uppercase text-red-400 mt-2">
+              <h3 className="font-sans font-bold text-base tracking-wider uppercase text-red-600 dark:text-red-400 mt-2">
                 ⚡ Inversões de FEFO entre Área Picking e Estoque Central ({quebrasFefoPicking.length})
               </h3>
-              <p className="text-xs text-[#a0aec0] mt-1">
+              <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                 Visualização dedicada exclusivamente às quebras de tolerância zero entre a Área Picking e as ruas do Estoque Central.
               </p>
             </div>
@@ -1789,55 +1789,55 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                 requestAllFefoDemands(empresaId, user.nome || 'Conferente');
                 setFefoDemands(getStoredFefoDemands(empresaId));
               }}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs uppercase transition-colors shadow cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
             >
               🚜 Delegar Todas ao Empilhador
             </button>
           </div>
 
           {quebrasFefoPicking.length === 0 ? (
-            <div className="p-12 bg-[#151b23] border border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-2">
+            <div className="p-12 bg-slate-50 dark:bg-[#151b23] border border-emerald-300 dark:border-emerald-500/30 rounded-2xl text-center flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center text-xl mb-2">
                 ✓
               </div>
-              <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+              <h4 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                 Nenhuma Quebra Estoque x Picking Encontrada
               </h4>
-              <p className="text-xs text-[#a0aec0] mt-1 max-w-lg">
+              <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1 max-w-lg">
                 Sua Área Picking está perfeitamente abastecida com as validades mais antigas do armazém.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {quebrasFefoPicking.map((q, idx) => (
-                <div key={idx} className="bg-[#151b23] border border-red-500/50 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1 space-y-2">
+                <div key={idx} className="bg-white dark:bg-[#151b23] border border-red-200 dark:border-red-500/50 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1 space-y-2.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-sm text-snow bg-[#222d3a] px-2.5 py-1 rounded border border-[#303e4e]">
+                      <span className="font-mono font-bold text-xs text-slate-800 bg-slate-100 dark:text-snow dark:bg-[#222d3a] px-2.5 py-1 rounded-md border border-slate-300 dark:border-[#303e4e]">
                         {q.codigo}
                       </span>
-                      <span className="font-bold text-sm text-snow">{q.descricao}</span>
-                      <span className="text-[10px] font-black uppercase text-red-400 bg-red-500/20 px-2.5 py-1 rounded border border-red-500/30">
+                      <span className="font-bold text-sm text-slate-900 dark:text-snow">{q.descricao}</span>
+                      <span className="text-[10px] font-black uppercase text-red-700 bg-red-100 border border-red-300 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30 px-2.5 py-0.5 rounded">
                         Quebra Crítica: +{q.diasInversao} dia(s)
                       </span>
                     </div>
 
-                    <p className="text-xs text-red-300 font-bold leading-relaxed">
+                    <p className="text-xs text-red-800 dark:text-red-300 font-semibold leading-relaxed bg-red-50/80 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 p-2.5 rounded-lg">
                       {q.mensagem}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-2">
-                      <div className="bg-[#1a222c] p-2.5 rounded-lg border border-[#2d3a4b]">
-                        <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Validade no Picking</span>
-                        <span className="font-mono font-bold text-snow">{q.validadePicking}</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
+                      <div className="bg-slate-50 dark:bg-[#1a222c] p-2.5 rounded-xl border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Validade no Picking</span>
+                        <span className="font-mono font-bold text-sm text-slate-900 dark:text-snow">{q.validadePicking}</span>
                       </div>
-                      <div className="bg-[#1a222c] p-2.5 rounded-lg border border-[#2d3a4b]">
-                        <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Validade no Estoque ({q.ruaEstoque})</span>
-                        <span className="font-mono font-bold text-red-400">{q.validadeEstoque}</span>
+                      <div className="bg-slate-50 dark:bg-[#1a222c] p-2.5 rounded-xl border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Validade no Estoque ({q.ruaEstoque})</span>
+                        <span className="font-mono font-bold text-sm text-red-600 dark:text-red-400">{q.validadeEstoque}</span>
                       </div>
-                      <div className="bg-red-500/20 p-2.5 rounded-lg border border-red-500/40 col-span-2 sm:col-span-1">
-                        <span className="text-[9px] font-bold text-red-300 uppercase block">Recomendação Operacional</span>
-                        <span className="font-sans font-bold text-red-200 text-[11px]">{q.sugestaoAcao}</span>
+                      <div className="bg-amber-50/90 dark:bg-amber-950/30 p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/40 col-span-2 sm:col-span-1 shadow-xs">
+                        <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase block tracking-wider">Recomendação Operacional</span>
+                        <span className="font-medium text-xs text-slate-800 dark:text-amber-100 leading-snug">{q.sugestaoAcao}</span>
                       </div>
                     </div>
                     {renderDelegationStatus('estoque_x_picking', q.codigo)}
@@ -1849,13 +1849,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                         setSearchQuery(q.codigo);
                         setActiveTab('lista');
                       }}
-                      className="w-full py-2.5 px-3 bg-[#222d3a] hover:bg-[#8b5cf6] text-snow hover:text-white rounded-xl text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-[#222d3a] dark:hover:bg-[#8b5cf6] dark:text-snow rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       📋 Ver Lotes no Estoque
                     </button>
                     <button 
                       onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
-                      className="w-full py-2.5 px-3 bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 px-3 bg-white hover:bg-red-50 text-red-700 border border-red-300 dark:bg-red-500/20 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       🔍 Inspecionar SKU
                     </button>
@@ -1867,21 +1867,21 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
         </div>
       ) : (
         /* GUIA ESPECÍFICA ESTOQUE X ESTOQUE (TAREFA 24) */
-        <div className="g-card p-6 flex flex-col gap-5 font-sans">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-4">
+        <div className="bg-white dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 font-sans">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-black uppercase tracking-wider">
+                <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
                   Guia Exclusiva Estoque x Estoque
                 </span>
-                <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30 px-2.5 py-0.5 rounded font-bold">
                   Tolerância de 7 Dias
                 </span>
               </div>
-              <h3 className="font-sans font-bold text-base tracking-wider uppercase text-amber-400 mt-2">
+              <h3 className="font-sans font-bold text-base tracking-wider uppercase text-amber-700 dark:text-amber-400 mt-2">
                 🔍 Análise de Inversão de FEFO entre Ruas / Blocos ({quebrasFefoEstoque.length})
               </h3>
-              <p className="text-xs text-[#a0aec0] mt-1">
+              <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
                 Visualização dedicada às regras de layout e sequenciamento de ruas dentro do Estoque Central.
               </p>
             </div>
@@ -1891,55 +1891,55 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                 requestAllFefoDemands(empresaId, user.nome || 'Conferente');
                 setFefoDemands(getStoredFefoDemands(empresaId));
               }}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-xs uppercase transition-colors shadow cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
             >
               🚜 Delegar Todas ao Empilhador
             </button>
           </div>
 
           {quebrasFefoEstoque.length === 0 ? (
-            <div className="p-12 bg-[#151b23] border border-emerald-500/30 rounded-xl text-center flex flex-col items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-2">
+            <div className="p-12 bg-slate-50 dark:bg-[#151b23] border border-emerald-300 dark:border-emerald-500/30 rounded-2xl text-center flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center text-xl mb-2">
                 ✓
               </div>
-              <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+              <h4 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                 Nenhum Desvio de Ruas Encontrado
               </h4>
-              <p className="text-xs text-[#a0aec0] mt-1 max-w-lg">
+              <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1 max-w-lg">
                 Todas as ruas do Estoque Central estão devidamente organizadas conforme as regras de FEFO por bloco.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {quebrasFefoEstoque.map((q, idx) => (
-                <div key={idx} className="bg-[#151b23] border border-amber-500/40 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1 space-y-2">
+                <div key={idx} className="bg-white dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/40 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1 space-y-2.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-sm text-snow bg-[#222d3a] px-2.5 py-1 rounded border border-[#303e4e]">
+                      <span className="font-mono font-bold text-xs text-slate-800 bg-slate-100 dark:text-snow dark:bg-[#222d3a] px-2.5 py-1 rounded-md border border-slate-300 dark:border-[#303e4e]">
                         {q.codigo}
                       </span>
-                      <span className="font-bold text-sm text-snow">{q.descricao}</span>
-                      <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/20 px-2.5 py-1 rounded border border-amber-500/30">
+                      <span className="font-bold text-sm text-slate-900 dark:text-snow">{q.descricao}</span>
+                      <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 border border-amber-300 dark:text-amber-400 dark:bg-amber-500/20 dark:border-amber-500/30 px-2.5 py-0.5 rounded">
                         Inversão: +{q.diasInversao} dias
                       </span>
                     </div>
 
-                    <p className="text-xs text-amber-300 font-medium leading-relaxed">
+                    <p className="text-xs text-amber-900 dark:text-amber-300 font-semibold leading-relaxed bg-amber-50/80 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 p-2.5 rounded-lg">
                       {q.mensagem}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-2">
-                      <div className="bg-[#1a222c] p-2.5 rounded-lg border border-[#2d3a4b]">
-                        <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Rua Próxima ({q.ruaProxima})</span>
-                        <span className="font-mono font-bold text-snow">{q.validadeRuaProxima}</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
+                      <div className="bg-slate-50 dark:bg-[#1a222c] p-2.5 rounded-xl border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Rua Próxima ({q.ruaProxima})</span>
+                        <span className="font-mono font-bold text-sm text-slate-900 dark:text-snow">{q.validadeRuaProxima}</span>
                       </div>
-                      <div className="bg-[#1a222c] p-2.5 rounded-lg border border-[#2d3a4b]">
-                        <span className="text-[9px] font-bold text-[#6a7d92] uppercase block">Rua Distante ({q.ruaDistante})</span>
-                        <span className="font-mono font-bold text-amber-400">{q.validadeRuaDistante}</span>
+                      <div className="bg-slate-50 dark:bg-[#1a222c] p-2.5 rounded-xl border border-slate-200 dark:border-[#2d3a4b] shadow-xs">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-[#6a7d92] uppercase block tracking-wider">Rua Distante ({q.ruaDistante})</span>
+                        <span className="font-mono font-bold text-sm text-amber-600 dark:text-amber-400">{q.validadeRuaDistante}</span>
                       </div>
-                      <div className="bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/30 col-span-2 sm:col-span-1">
-                        <span className="text-[9px] font-bold text-amber-300 uppercase block">Ação Recomendada</span>
-                        <span className="font-sans font-bold text-amber-200 text-[11px]">{q.sugestaoAcao}</span>
+                      <div className="bg-amber-50/90 dark:bg-amber-950/30 p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/40 col-span-2 sm:col-span-1 shadow-xs">
+                        <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase block tracking-wider">Ação Recomendada</span>
+                        <span className="font-medium text-xs text-slate-800 dark:text-amber-100 leading-snug">{q.sugestaoAcao}</span>
                       </div>
                     </div>
                     {renderDelegationStatus('estoque_x_estoque', q.codigo)}
@@ -1951,13 +1951,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                         setSearchQuery(q.codigo);
                         setActiveTab('lista');
                       }}
-                      className="w-full py-2.5 px-3 bg-[#222d3a] hover:bg-[#8b5cf6] text-snow hover:text-white rounded-xl text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-[#222d3a] dark:hover:bg-[#8b5cf6] dark:text-snow rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       📋 Ver Lotes no Estoque
                     </button>
                     <button 
                       onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
-                      className="w-full py-2.5 px-3 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-white rounded-xl text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 px-3 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500 dark:hover:text-white rounded-xl text-xs font-bold uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       🔍 Inspecionar SKU
                     </button>
@@ -1971,64 +1971,64 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
       {/* MODAL 1: NOTIFICAÇÃO IMEDIATA NO MOMENTO DO LANÇAMENTO OU IMPORTAÇÃO */}
       {importBreaksModalData?.isOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#151b23] border border-red-500/50 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col gap-4 text-snow max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#222d3a] pb-3">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-[#151b23] border border-red-300 dark:border-red-500/50 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-snow max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">⚠️</span>
-                <h3 className="font-sans font-black text-base text-red-400 uppercase tracking-wide">
+                <h3 className="font-sans font-black text-base text-red-600 dark:text-red-400 uppercase tracking-wide">
                   {importBreaksModalData.title}
                 </h3>
               </div>
               <button 
                 onClick={() => setImportBreaksModalData(null)}
-                className="text-gray-400 hover:text-white text-lg font-bold"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-gray-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
               Foram identificados conflitos com as regras de FEFO do armazém. Verifique os lotes abaixo antes de prosseguir com a movimentação:
             </p>
 
             {importBreaksModalData.pickingBreaks.length > 0 && (
-              <div className="space-y-2 bg-red-950/20 p-4 rounded-xl border border-red-500/30">
-                <span className="text-[10px] font-black uppercase text-red-400 bg-red-500/20 px-2 py-0.5 rounded">
+              <div className="space-y-2 bg-red-50/80 dark:bg-red-950/20 p-4 rounded-xl border border-red-200 dark:border-red-500/30">
+                <span className="text-[10px] font-black uppercase text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/20 px-2 py-0.5 rounded">
                   ⚡ Quebra Estoque x Picking (Tolerância ZERO)
                 </span>
                 {importBreaksModalData.pickingBreaks.map((q, i) => (
-                  <div key={i} className="text-xs bg-[#1a222c] p-3 rounded-lg border border-[#2d3a4b] space-y-1">
-                    <div className="font-bold text-snow">{q.codigo} — {q.descricao}</div>
-                    <div className="text-red-300 font-medium">{q.mensagem}</div>
-                    <div className="text-[10px] text-gray-400">Picking: {q.validadePicking} | Estoque ({q.ruaEstoque}): {q.validadeEstoque}</div>
+                  <div key={i} className="text-xs bg-white dark:bg-[#1a222c] p-3 rounded-lg border border-red-200 dark:border-[#2d3a4b] space-y-1 shadow-xs">
+                    <div className="font-bold text-slate-900 dark:text-snow">{q.codigo} — {q.descricao}</div>
+                    <div className="text-red-700 dark:text-red-300 font-semibold">{q.mensagem}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-gray-400">Picking: {q.validadePicking} | Estoque ({q.ruaEstoque}): {q.validadeEstoque}</div>
                   </div>
                 ))}
               </div>
             )}
 
             {importBreaksModalData.estoqueBreaks.length > 0 && (
-              <div className="space-y-2 bg-amber-950/20 p-4 rounded-xl border border-amber-500/30">
-                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded">
+              <div className="space-y-2 bg-amber-50/80 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200 dark:border-amber-500/30">
+                <span className="text-[10px] font-black uppercase text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 rounded">
                   🔍 Quebra Estoque x Estoque (Tolerância 7 Dias)
                 </span>
                 {importBreaksModalData.estoqueBreaks.map((q, i) => (
-                  <div key={i} className="text-xs bg-[#1a222c] p-3 rounded-lg border border-[#2d3a4b] space-y-1">
-                    <div className="font-bold text-snow">{q.codigo} — {q.descricao}</div>
-                    <div className="text-amber-300 font-medium">{q.mensagem}</div>
-                    <div className="text-[10px] text-gray-400">Rua Próxima ({q.ruaProxima}): {q.validadeRuaProxima} | Rua Distante ({q.ruaDistante}): {q.validadeRuaDistante}</div>
+                  <div key={i} className="text-xs bg-white dark:bg-[#1a222c] p-3 rounded-lg border border-amber-200 dark:border-[#2d3a4b] space-y-1 shadow-xs">
+                    <div className="font-bold text-slate-900 dark:text-snow">{q.codigo} — {q.descricao}</div>
+                    <div className="text-amber-800 dark:text-amber-300 font-semibold">{q.mensagem}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-gray-400">Rua Próxima ({q.ruaProxima}): {q.validadeRuaProxima} | Rua Distante ({q.ruaDistante}): {q.validadeRuaDistante}</div>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#222d3a] justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-slate-200 dark:border-[#222d3a] justify-end">
               <button 
                 onClick={() => {
                   setImportBreaksModalData(null);
                   setActiveTab('fefo_quadro');
                 }}
-                className="py-2 px-4 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase rounded-xl transition-colors"
+                className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer"
               >
                 🚨 Ir para Quadro de Alertas
               </button>
@@ -2039,13 +2039,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
                   setImportBreaksModalData(null);
                   setActiveTab('lista');
                 }}
-                className="py-2 px-4 bg-[#222d3a] hover:bg-[#8b5cf6] text-snow font-bold text-xs uppercase rounded-xl transition-colors"
+                className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-[#222d3a] dark:hover:bg-[#8b5cf6] text-white dark:text-snow font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer"
               >
                 📋 Ver no Estoque
               </button>
               <button 
                 onClick={() => setImportBreaksModalData(null)}
-                className="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white font-bold text-xs uppercase rounded-xl transition-colors"
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-bold text-xs uppercase rounded-xl transition-colors cursor-pointer"
               >
                 ✕ Ciente
               </button>
@@ -2056,68 +2056,68 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
 
       {/* MODAL 2: INSPEÇÃO DETALHADA DOS LOTES DO SKU */}
       {selectedProductAlert && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#151b23] border border-[#222d3a] rounded-2xl max-w-3xl w-full p-6 shadow-2xl flex flex-col gap-4 text-snow max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#222d3a] pb-3">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] rounded-2xl max-w-3xl w-full p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-snow max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-3">
               <div>
-                <span className="text-[10px] font-black uppercase text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded border border-[#8b5cf6]/20">
+                <span className="text-[10px] font-black uppercase text-indigo-700 dark:text-[#8b5cf6] bg-indigo-50 dark:bg-[#8b5cf6]/10 px-2 py-0.5 rounded border border-indigo-200 dark:border-[#8b5cf6]/20">
                   Inspeção de Lotes Cadastrados
                 </span>
-                <h3 className="font-sans font-bold text-base text-snow mt-1">
+                <h3 className="font-sans font-bold text-base text-slate-900 dark:text-snow mt-1">
                   SKU {selectedProductAlert.codigo} — {selectedProductAlert.descricao}
                 </h3>
               </div>
               <button 
                 onClick={() => setSelectedProductAlert(null)}
-                className="text-gray-400 hover:text-white text-lg font-bold"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-3">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider block">
                 Lotes no Estoque Central / Picking:
               </span>
 
               {validadesList.filter(r => String(r.codigo).trim() === String(selectedProductAlert.codigo).trim()).length === 0 ? (
-                <div className="p-4 bg-[#1a222c] text-center text-xs text-gray-400 rounded-xl">
+                <div className="p-4 bg-slate-50 dark:bg-[#1a222c] text-center text-xs text-slate-500 dark:text-gray-400 rounded-xl border border-slate-200 dark:border-[#2d3a4b]">
                   Nenhum lote ativo cadastrado para este produto.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-[#222d3a] text-[10px] text-gray-400 uppercase">
-                        <th className="p-2">Local / Rua</th>
-                        <th className="p-2">Validade</th>
-                        <th className="p-2">Qtd Paletes/Caixas</th>
-                        <th className="p-2">Dias Restantes</th>
-                        <th className="p-2 text-right">Ação</th>
+                      <tr className="border-b border-slate-200 dark:border-[#222d3a] text-[10px] text-slate-500 dark:text-gray-400 uppercase">
+                        <th className="p-2.5">Local / Rua</th>
+                        <th className="p-2.5">Validade</th>
+                        <th className="p-2.5">Qtd Paletes/Caixas</th>
+                        <th className="p-2.5">Dias Restantes</th>
+                        <th className="p-2.5 text-right">Ação</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#222d3a]">
+                    <tbody className="divide-y divide-slate-100 dark:divide-[#222d3a]">
                       {validadesList.filter(r => String(r.codigo).trim() === String(selectedProductAlert.codigo).trim()).map((r, i) => {
                         const days = getDaysRemaining(r.validade);
                         const isPicking = r.localizacao === 'picking';
                         return (
-                          <tr key={i} className="hover:bg-[#1a222c]">
-                            <td className="p-2 font-bold">
-                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase ${isPicking ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'}`}>
+                          <tr key={i} className="hover:bg-slate-50 dark:hover:bg-[#1a222c]">
+                            <td className="p-2.5 font-bold">
+                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${isPicking ? 'bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/40' : 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40'}`}>
                                 {isPicking ? 'Área Picking' : `Rua ${r.bloco || 'Central'}`}
                               </span>
                             </td>
-                            <td className="p-2 font-mono font-bold">{r.validade}</td>
-                            <td className="p-2 text-gray-300">{r.palhete || 0} pal. | {r.caixa || 0} cx.</td>
-                            <td className="p-2 font-mono font-bold text-amber-400">{days} dias</td>
-                            <td className="p-2 text-right">
+                            <td className="p-2.5 font-mono font-bold text-slate-900 dark:text-snow">{r.validade}</td>
+                            <td className="p-2.5 text-slate-600 dark:text-gray-300">{r.palhete || 0} pal. | {r.caixa || 0} cx.</td>
+                            <td className="p-2.5 font-mono font-bold text-amber-600 dark:text-amber-400">{days} dias</td>
+                            <td className="p-2.5 text-right">
                               <button 
                                 onClick={() => {
                                   setSelectedProductAlert(null);
                                   handleEditInit(r);
                                   setActiveTab('form');
                                 }}
-                                className="px-2.5 py-1 bg-[#8b5cf6]/20 hover:bg-[#8b5cf6] text-[#c4b5fd] hover:text-white rounded text-[10px] font-bold uppercase transition-colors"
+                                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white dark:bg-[#8b5cf6]/20 dark:hover:bg-[#8b5cf6] dark:text-[#c4b5fd] dark:hover:text-white rounded-lg text-[10px] font-bold uppercase transition-all shadow-xs cursor-pointer"
                               >
                                 ✏️ Editar
                               </button>
@@ -2131,10 +2131,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria }: V
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-[#222d3a]">
+            <div className="flex justify-end pt-3 border-t border-slate-200 dark:border-[#222d3a]">
               <button 
                 onClick={() => setSelectedProductAlert(null)}
-                className="py-2 px-5 bg-gray-700 hover:bg-gray-600 text-white font-bold text-xs uppercase rounded-xl transition-colors"
+                className="py-2.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-bold text-xs uppercase rounded-xl transition-colors cursor-pointer"
               >
                 Fechar
               </button>

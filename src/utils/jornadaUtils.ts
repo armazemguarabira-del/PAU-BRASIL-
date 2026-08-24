@@ -11,6 +11,7 @@ import {
   getHeadcountEsperado,
   getMetaOficialMes
 } from '../data/wlpRetroactiveData';
+import { getCachedLocalStorage, setCachedLocalStorage } from './storageCache';
 
 export interface JornadaRecord {
   id: string;
@@ -431,12 +432,9 @@ export function getStoredJornadas(empresaId: string = 'demo'): JornadaRecord[] {
   let baseJornadas: JornadaRecord[] = [];
 
   try {
-    const saved = localStorage.getItem(key) || localStorage.getItem(`jornadas_colaboradores_${empresaId}`);
-    if (saved !== null) {
-      let parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        baseJornadas = parsed.filter((j: JornadaRecord) => j && j.id && !j.id.startsWith('jrn-gen-'));
-      }
+    const parsed = getCachedLocalStorage<any[]>(key, null) || getCachedLocalStorage<any[]>(`jornadas_colaboradores_${empresaId}`, null);
+    if (parsed !== null && Array.isArray(parsed)) {
+      baseJornadas = parsed.filter((j: JornadaRecord) => j && j.id && !j.id.startsWith('jrn-gen-'));
     }
   } catch (e) {}
 
@@ -458,45 +456,42 @@ export function getStoredJornadas(empresaId: string = 'demo'): JornadaRecord[] {
 
     baseJornadas = Array.from(existingMap.values());
     try {
-      localStorage.setItem(key, JSON.stringify(baseJornadas));
-      localStorage.setItem(`jornadas_colaboradores_${empresaId}`, JSON.stringify(baseJornadas));
+      setCachedLocalStorage(key, baseJornadas);
+      setCachedLocalStorage(`jornadas_colaboradores_${empresaId}`, baseJornadas);
     } catch (e) {}
   }
 
   // Merge with permanent user imported datasets if any
   try {
     const permKey = `wlp_permanent_imported_dataset_${empresaId}`;
-    const savedPerm = localStorage.getItem(permKey);
-    if (savedPerm) {
-      const permRows: any[] = JSON.parse(savedPerm);
-      if (Array.isArray(permRows) && permRows.length > 0) {
-        const existingMap = new Map<string, JornadaRecord>();
-        baseJornadas.forEach(j => {
-          const norm = normalizeCollaboratorName(j.colaboradorNome);
-          existingMap.set(`${j.dataISO}__${norm}`, j);
-        });
+    const permRows = getCachedLocalStorage<any[]>(permKey, null);
+    if (permRows && Array.isArray(permRows) && permRows.length > 0) {
+      const existingMap = new Map<string, JornadaRecord>();
+      baseJornadas.forEach(j => {
+        const norm = normalizeCollaboratorName(j.colaboradorNome);
+        existingMap.set(`${j.dataISO}__${norm}`, j);
+      });
 
-        permRows.forEach(pr => {
-          const norm = normalizeCollaboratorName(pr.colaboradorNome);
-          const k = `${pr.dataISO}__${norm}`;
-          existingMap.set(k, {
-            id: `jrn-${pr.dataISO}-${encodeURIComponent(norm).toLowerCase().replace(/%20/g, '-')}`,
-            colaboradorNome: norm,
-            cargo: pr.cargo || 'Ajudante',
-            dataStr: pr.dataStr,
-            dataISO: pr.dataISO,
-            mesAno: pr.mesAno,
-            horaInicio: pr.horaInicio,
-            horaFim: pr.horaFim,
-            duracaoHoras: pr.duracaoHoras,
-            empresaId,
-            observacoes: 'Registro importado salvo em código/banco',
-            criadoEm: pr.importedAt || new Date().toISOString()
-          });
+      permRows.forEach(pr => {
+        const norm = normalizeCollaboratorName(pr.colaboradorNome);
+        const k = `${pr.dataISO}__${norm}`;
+        existingMap.set(k, {
+          id: `jrn-${pr.dataISO}-${encodeURIComponent(norm).toLowerCase().replace(/%20/g, '-')}`,
+          colaboradorNome: norm,
+          cargo: pr.cargo || 'Ajudante',
+          dataStr: pr.dataStr,
+          dataISO: pr.dataISO,
+          mesAno: pr.mesAno,
+          horaInicio: pr.horaInicio,
+          horaFim: pr.horaFim,
+          duracaoHoras: pr.duracaoHoras,
+          empresaId,
+          observacoes: 'Registro importado salvo em código/banco',
+          criadoEm: pr.importedAt || new Date().toISOString()
         });
+      });
 
-        baseJornadas = Array.from(existingMap.values());
-      }
+      baseJornadas = Array.from(existingMap.values());
     }
   } catch (e) {}
 
@@ -518,7 +513,7 @@ export function saveJornadaRecord(record: JornadaRecord): void {
     updated = [record, ...list];
   }
 
-  localStorage.setItem(key, JSON.stringify(updated));
+  setCachedLocalStorage(key, updated);
 
   // Sync to Firestore if available
   if (db) {

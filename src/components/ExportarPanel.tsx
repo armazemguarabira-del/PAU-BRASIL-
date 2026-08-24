@@ -39,7 +39,10 @@ import {
   Clock,
   TrendingUp,
   Info,
-  FileCode
+  FileCode,
+  Tag,
+  Layers,
+  Truck
 } from 'lucide-react';
 import RetroactiveQuebrasJsonImport from './RetroactiveQuebrasJsonImport';
 import RetroactiveRepackJsonImport from './RetroactiveRepackJsonImport';
@@ -586,6 +589,191 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
     })));
     XLSX.utils.book_append_sheet(wb, ws, 'Repack');
     XLSX.writeFile(wb, `Repack_${startDate}_ate_${endDate}.xlsx`);
+  };
+
+  const getDaysRemainingHelper = (expDate: string): number => {
+    if (!expDate) return 0;
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let target: Date;
+      if (expDate.includes('/')) {
+        const parts = expDate.split('/');
+        target = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      } else {
+        target = new Date(expDate + 'T00:00:00');
+      }
+      return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  const getStatusFEFOHelper = (days: number): string => {
+    if (days < 0) return '🔴 VENCIDO';
+    if (days <= 15) return '🔴 CRÍTICO (≤15d)';
+    if (days <= 30) return '🟠 ALERTA (16-30d)';
+    if (days <= 60) return '🟡 ATENÇÃO (31-60d)';
+    return '🟢 NORMAL (>60d)';
+  };
+
+  const getSourceValidades = (): ValidadeRow[] => {
+    let source: ValidadeRow[] = validades && validades.length > 0 ? validades : [];
+    if (source.length === 0) {
+      try {
+        const s1 = localStorage.getItem(`validades_${empresaId}`);
+        if (s1) source = JSON.parse(s1);
+      } catch (e) {}
+    }
+    if (source.length === 0) {
+      try {
+        const s2 = localStorage.getItem(`armazem_validades_${empresaId}`);
+        if (s2) source = JSON.parse(s2);
+      } catch (e) {}
+    }
+    return source;
+  };
+
+  const exportValidadesExcel = () => {
+    const sourceValidades = getSourceValidades();
+    if (sourceValidades.length === 0) {
+      alert('Nenhum registro de validade cadastrado para exportação.');
+      return;
+    }
+
+    // Filtra pelo intervalo de data de coleta ou pela própria validade
+    const filtered = sourceValidades.filter(v => {
+      const matchColeta = v.dataColeta ? isWithinInterval(v.dataColeta, startDate, endDate) : false;
+      const matchValidade = v.validade ? isWithinInterval(v.validade, startDate, endDate) : false;
+      return matchColeta || matchValidade;
+    });
+
+    const rowsToExport = filtered.length > 0 ? filtered : sourceValidades;
+
+    const formattedData = rowsToExport.map(r => {
+      const days = typeof r.diasParaVencer === 'number' ? r.diasParaVencer : getDaysRemainingHelper(r.validade);
+      const isPicking = r.localizacao === 'picking';
+      const isPnc = r.localizacao === 'pnc';
+      const isRepack = r.localizacao === 'repack';
+      const localStr = isPicking ? 'Área de Picking' : isPnc ? 'Área PNC' : isRepack ? 'Repack' : 'Estoque Central';
+      const totalQtd = r.quantidade !== undefined ? r.quantidade : ((r.palhete || 0) * (r.lastro || 1) * (r.caixa || 0));
+
+      return {
+        'Código SKU': r.codigo || '',
+        'Descrição do Produto': r.descricao || '',
+        'Validade': r.validade || '',
+        'Dias Restantes': days,
+        'Status FEFO': getStatusFEFOHelper(days),
+        'Local': localStr,
+        'Rua / Bloco / Posição': r.bloco || (isPicking ? 'Picking' : 'Central'),
+        'Paletes': r.palhete || 0,
+        'Lastro': r.lastro || 0,
+        'Caixas': r.caixa || 0,
+        'Qtd Total': totalQtd,
+        'Lote': r.lote || '-',
+        'Responsável': r.responsavel || '-',
+        'Data de Coleta': r.dataColeta || '-'
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Validades_FEFO');
+    const isFiltered = filtered.length > 0;
+    const fileName = isFiltered 
+      ? `Validades_FEFO_${startDate}_ate_${endDate}.xlsx` 
+      : `Validades_FEFO_Inventario_Geral_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+  const exportValidadesCSV = () => {
+    const sourceValidades = getSourceValidades();
+    if (sourceValidades.length === 0) {
+      alert('Nenhum registro de validade cadastrado para exportação.');
+      return;
+    }
+
+    const filtered = sourceValidades.filter(v => {
+      const matchColeta = v.dataColeta ? isWithinInterval(v.dataColeta, startDate, endDate) : false;
+      const matchValidade = v.validade ? isWithinInterval(v.validade, startDate, endDate) : false;
+      return matchColeta || matchValidade;
+    });
+
+    const rowsToExport = filtered.length > 0 ? filtered : sourceValidades;
+    const headers = ['Código SKU', 'Descrição', 'Validade', 'Dias Restantes', 'Status FEFO', 'Local', 'Rua / Bloco', 'Paletes', 'Lastro', 'Caixas', 'Qtd Total', 'Lote', 'Responsável', 'Data Coleta'];
+    
+    const rows = rowsToExport.map(r => {
+      const days = typeof r.diasParaVencer === 'number' ? r.diasParaVencer : getDaysRemainingHelper(r.validade);
+      const isPicking = r.localizacao === 'picking';
+      const isPnc = r.localizacao === 'pnc';
+      const isRepack = r.localizacao === 'repack';
+      const localStr = isPicking ? 'Área de Picking' : isPnc ? 'Área PNC' : isRepack ? 'Repack' : 'Estoque Central';
+      const totalQtd = r.quantidade !== undefined ? r.quantidade : ((r.palhete || 0) * (r.lastro || 1) * (r.caixa || 0));
+
+      return [
+        `"${r.codigo || ''}"`,
+        `"${(r.descricao || '').replace(/"/g, '""')}"`,
+        `"${r.validade || ''}"`,
+        days,
+        `"${getStatusFEFOHelper(days)}"`,
+        `"${localStr}"`,
+        `"${r.bloco || (isPicking ? 'Picking' : 'Central')}"`,
+        r.palhete || 0,
+        r.lastro || 0,
+        r.caixa || 0,
+        totalQtd,
+        `"${r.lote || '-'}"`,
+        `"${r.responsavel || '-'}"`,
+        `"${r.dataColeta || '-'}"`
+      ];
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n');
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = filtered.length > 0 
+      ? `Validades_FEFO_${startDate}_ate_${endDate}.csv`
+      : `Validades_FEFO_Inventario_Geral_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const exportQuebrasExcel = () => {
+    const filtered = quebras.filter(q => isWithinInterval(q.dataISO || q.data, startDate, endDate));
+    if (filtered.length === 0) { alert('Nenhum registro de quebras no período.'); return; }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(filtered.map(q => ({
+      Data: q.data,
+      SKU: q.codProduto,
+      Descrição: q.descricao,
+      Quantidade: q.quantidade,
+      Área: q.area,
+      Turno: q.turno,
+      'Cód. Quebra': q.codQuebra,
+      Motivo: q.motivo,
+      Colaborador: q.colaboradorQuebrou || q.responsavel || '-'
+    })));
+    XLSX.utils.book_append_sheet(wb, ws, 'Quebras');
+    XLSX.writeFile(wb, `Quebras_${startDate}_ate_${endDate}.xlsx`);
+  };
+
+  const exportArmazemExcel = () => {
+    const filtered = armazem.filter(a => isWithinInterval(a.dataISO || a.data, startDate, endDate));
+    if (filtered.length === 0) { alert('Nenhum registro de carretas/armazém no período.'); return; }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(filtered.map(a => ({
+      Data: a.data,
+      Operação: a.operacao,
+      Início: a.inicio,
+      Fim: a.fim,
+      Status: a.status,
+      Empilhador: a.empilhador,
+      Turno: a.turno,
+      Placa: a.placa,
+      Tipo: a.tipo,
+      Paletes: a.palhete
+    })));
+    XLSX.utils.book_append_sheet(wb, ws, 'Armazem');
+    XLSX.writeFile(wb, `Armazem_${startDate}_ate_${endDate}.xlsx`);
   };
 
   return (
@@ -1233,16 +1421,18 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
 
       {/* ── 5. SUB-ABA: EXPORTAR RELATÓRIOS ── */}
       {activeMainSubTab === 'exportar-relatorios' && (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6 max-w-5xl mx-auto">
           {/* INTERVAL FILTER CARD */}
-          <div className="bg-[#111a30] border border-amber-500/20 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Calendar className="w-5 h-5 text-amber-400" />
+          <div className="bg-white dark:bg-[#111a30] border border-blue-200 dark:border-amber-500/20 rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <div className="p-2 bg-blue-50 dark:bg-amber-500/10 text-blue-600 dark:text-amber-400 rounded-xl border border-blue-100 dark:border-amber-500/20">
+                <Calendar className="w-5 h-5" />
+              </div>
               <div>
-                <h3 className="font-black text-sm text-amber-400 uppercase tracking-wider">
+                <h3 className="font-black text-sm text-blue-700 dark:text-amber-400 uppercase tracking-wider">
                   Intervalo dos Relatórios
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Filtre os dados por período para exportação.
                 </p>
               </div>
@@ -1251,22 +1441,22 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
             <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end justify-between">
               <div className="flex items-center gap-3">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">De</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1">De</span>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="bg-[#0b1222] border border-slate-800 text-white rounded-xl px-3 py-2 text-xs font-mono font-bold outline-none"
+                    className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-mono font-bold outline-none focus:border-blue-500 dark:focus:border-amber-500 transition-colors shadow-xs"
                   />
                 </div>
-                <span className="text-slate-500 font-bold self-end pb-2">→</span>
+                <span className="text-slate-400 dark:text-slate-500 font-bold self-end pb-2">→</span>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Até</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1">Até</span>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="bg-[#0b1222] border border-slate-800 text-white rounded-xl px-3 py-2 text-xs font-mono font-bold outline-none"
+                    className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-mono font-bold outline-none focus:border-blue-500 dark:focus:border-amber-500 transition-colors shadow-xs"
                   />
                 </div>
               </div>
@@ -1274,19 +1464,19 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { const today = new Date().toISOString().split('T')[0]; setStartDate(today); setEndDate(today); }}
-                  className="px-3 py-2 bg-[#0b1222] border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer transition-all"
                 >
                   Hoje
                 </button>
                 <button
                   onClick={() => { const today = new Date(); const lw = new Date(today.getTime() - 7 * 86400000); setStartDate(lw.toISOString().split('T')[0]); setEndDate(today.toISOString().split('T')[0]); }}
-                  className="px-3 py-2 bg-[#0b1222] border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer transition-all"
                 >
                   Semana
                 </button>
                 <button
                   onClick={() => { const today = new Date(); const lm = new Date(today.getTime() - 30 * 86400000); setStartDate(lm.toISOString().split('T')[0]); setEndDate(today.toISOString().split('T')[0]); }}
-                  className="px-3 py-2 bg-[#0b1222] border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase rounded-xl cursor-pointer transition-all"
                 >
                   Mês
                 </button>
@@ -1295,48 +1485,113 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
           </div>
 
           {/* EXPORT BUTTONS GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-3">
-              <h4 className="font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-4 h-4 text-sky-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            {/* VALIDADES (FEFO) CARD */}
+            <div className="bg-white dark:bg-[#111a30] border-2 border-purple-300 dark:border-purple-500/40 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-purple-600 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg tracking-wider">
+                FEFO / Lotes
+              </div>
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <Tag className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                Validades (FEFO)
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Exporta inventário de lotes, datas de validade, dias restantes e posições.
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  onClick={exportValidadesExcel}
+                  className="py-2.5 px-2 bg-purple-50 hover:bg-purple-600 text-purple-700 hover:text-white dark:bg-purple-950/30 dark:hover:bg-purple-600 dark:text-purple-300 dark:hover:text-white font-black text-[11px] uppercase rounded-xl cursor-pointer border border-purple-200 dark:border-purple-500/30 transition-all flex items-center justify-center gap-1 shadow-xs"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  Excel (.xlsx)
+                </button>
+                <button
+                  onClick={exportValidadesCSV}
+                  className="py-2.5 px-2 bg-slate-100 hover:bg-slate-800 text-slate-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:hover:text-white font-black text-[11px] uppercase rounded-xl cursor-pointer border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-1 shadow-xs"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  CSV (.csv)
+                </button>
+              </div>
+            </div>
+
+            {/* PICKING CSV */}
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 Picking CSV
               </h4>
-              <p className="text-[11px] text-slate-400">Exporta tarefas e produtividade de separadores.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Exporta tarefas e produtividade de separadores.</p>
               <button
                 onClick={exportPickingCSV}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-slate-700"
+                className="w-full py-2.5 bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-sky-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-sky-200 dark:border-slate-700 transition-all shadow-xs"
               >
                 Baixar CSV
               </button>
             </div>
 
-            <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-3">
-              <h4 className="font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            {/* DESPEJO EXCEL */}
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Despejo Excel
               </h4>
-              <p className="text-[11px] text-slate-400">Exporta escoamento e produtividade na bombona.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Exporta escoamento e produtividade na bombona.</p>
               <button
                 onClick={exportDespejoExcel}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-slate-700"
+                className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-emerald-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-emerald-200 dark:border-slate-700 transition-all shadow-xs"
               >
                 Baixar Excel
               </button>
             </div>
 
-            <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-5 space-y-3">
-              <h4 className="font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-amber-400" />
+            {/* REPACK EXCEL */}
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 Repack Excel
               </h4>
-              <p className="text-[11px] text-slate-400">Exporta montagens e produtividade de repacks.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Exporta montagens e produtividade de repacks.</p>
               <button
                 onClick={exportRepackExcel}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-slate-700"
+                className="w-full py-2.5 bg-amber-50 hover:bg-amber-600 text-amber-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-amber-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-amber-200 dark:border-slate-700 transition-all shadow-xs"
               >
                 Baixar Excel
               </button>
             </div>
+
+            {/* QUEBRAS & AVARIAS EXCEL */}
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                Quebras & Avarias
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Exporta quebras, causas, turnos e responsáveis.</p>
+              <button
+                onClick={exportQuebrasExcel}
+                className="w-full py-2.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-rose-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-rose-200 dark:border-slate-700 transition-all shadow-xs"
+              >
+                Baixar Excel
+              </button>
+            </div>
+
+            {/* ARMAZÉM / CARRETAS EXCEL */}
+            <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <Truck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                Armazém & Carretas
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Exporta movimentações, placas, empilhadores e paletes.</p>
+              <button
+                onClick={exportArmazemExcel}
+                className="w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-blue-400 font-black text-xs uppercase rounded-xl cursor-pointer border border-blue-200 dark:border-slate-700 transition-all shadow-xs"
+              >
+                Baixar Excel
+              </button>
+            </div>
+
           </div>
         </div>
       )}

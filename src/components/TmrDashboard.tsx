@@ -8,6 +8,7 @@ import { ManualInstrucaoCard, MetricDefinition } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
 import { SopBannerViewer } from './SopBannerViewer';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { ImportTmrJsonModal } from './ImportTmrJsonModal';
 import { 
   Clock, 
   Truck, 
@@ -22,6 +23,7 @@ import {
   Award,
   BarChart3,
   FileText,
+  FileCode,
   Filter,
   Users,
   Trophy
@@ -54,6 +56,7 @@ export default function TmrDashboard({ user, empresa, theme = 'dark', onBack }: 
   const [efcVehicles, setEfcVehicles] = useState<EfcEfdVehicle[]>(() => getStoredEfcVehicles(empresaId));
   const [showPopModal, setShowPopModal] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [dateFilter, setDateFilter] = useState<'hoje' | '7dias' | 'mes' | 'todos'>('todos');
 
   useEffect(() => {
@@ -310,13 +313,22 @@ export default function TmrDashboard({ user, empresa, theme = 'dark', onBack }: 
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* POP BUTTON */}
           <button
             onClick={() => setShowPopModal(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 text-blue-300 border border-blue-500/30 hover:bg-blue-600/30 rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             <FileText className="w-4 h-4 text-blue-400" /> POP TMR
+          </button>
+
+          {/* BOTAO IMPORTAR JSON TMR */}
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black transition-all cursor-pointer shadow-md uppercase tracking-wider"
+            title="Importar arquivo JSON para alimentar o histórico de TMRs Concluídos"
+          >
+            <FileCode className="w-4 h-4" /> Importar JSON
           </button>
 
           <button
@@ -720,6 +732,17 @@ export default function TmrDashboard({ user, empresa, theme = 'dark', onBack }: 
         defaultIndicador="Tempo Médio de Revenda e Produtividade de Ressuprimento"
         defaultMeta="≤ 50 min (Recargas) / ≤ 150 min (Carretas)"
         user={user}
+      />
+
+      {/* MODAL DE IMPORTAÇÃO JSON DE HISTÓRICO TMR CONCLUÍDOS */}
+      <ImportTmrJsonModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        empresaId={empresaId}
+        onSuccess={() => {
+          setTmrDemands(getStoredTmrDemands(empresaId));
+        }}
+        theme={theme}
       />
     </div>
   );

@@ -48,7 +48,8 @@ import { Checklist5SModal, ImportExport5SModal, generateYTD5SAudits, Audit5SReco
 import { getStored5SAudits } from '../utils/fiveSStore';
 import { RondaGsaComponent } from './RondaGsaComponent';
 import { IndicatorActionModal } from './IndicatorActionModal';
-import { exportChecklist5SOfficialPdf } from '../utils/exportChecklist5SPdf';
+import { exportChecklist5SOfficialPdf, getDefaultScoresForPercentage } from '../utils/exportChecklist5SPdf';
+import { Official5SDigitalAuditModal } from './Official5SDigitalAuditModal';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
 import { AcoesGeraisRepository } from '../db';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
@@ -258,18 +259,133 @@ export interface AuditoriaFrotaMensal {
   pdfFileName?: string;
   pdfFileDataUrl?: string;
   criadoEm: string;
+  scores?: Record<number, number>;
+  areaAuditada?: string;
+  auditadoNome?: string;
 }
 
 export const generateInitialAuditoriasFrota = (): AuditoriaFrotaMensal[] => {
   return [
-    { id: 'frota-2026-01', mesAno: '01/2026', ano: '2026', mes: '01', dataAuditoria: '2026-01-28', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 88, observacoes: 'Auditoria mensal do armazém conforme padrão DPO.', pdfFileName: 'Auditoria_Frota_Armazem_01_2026_Assinada.pdf', criadoEm: '2026-01-28T10:00:00Z' },
-    { id: 'frota-2026-02', mesAno: '02/2026', ano: '2026', mes: '02', dataAuditoria: '2026-02-25', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 88, observacoes: 'Organização do pátio e picking bem estruturados.', pdfFileName: 'Auditoria_Frota_Armazem_02_2026_Assinada.pdf', criadoEm: '2026-02-25T10:00:00Z' },
-    { id: 'frota-2026-03', mesAno: '03/2026', ano: '2026', mes: '03', dataAuditoria: '2026-03-27', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 90, observacoes: 'Conformidade de faixas de pedestre e segregação.', pdfFileName: 'Auditoria_Frota_Armazem_03_2026_Assinada.pdf', criadoEm: '2026-03-27T10:00:00Z' },
-    { id: 'frota-2026-04', mesAno: '04/2026', ano: '2026', mes: '04', dataAuditoria: '2026-04-28', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 88, observacoes: 'Atenção para acúmulo de paletes no descarte.', pdfFileName: 'Auditoria_Frota_Armazem_04_2026_Assinada.pdf', criadoEm: '2026-04-28T10:00:00Z' },
-    { id: 'frota-2026-05', mesAno: '05/2026', ano: '2026', mes: '05', dataAuditoria: '2026-05-27', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 89, observacoes: 'Setores de devolução e refugo bem segregados.', pdfFileName: 'Auditoria_Frota_Armazem_05_2026_Assinada.pdf', criadoEm: '2026-05-27T10:00:00Z' },
-    { id: 'frota-2026-06', mesAno: '06/2026', ano: '2026', mes: '06', dataAuditoria: '2026-06-26', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 91, observacoes: 'Excelente pontuação de 5S no armazém.', pdfFileName: 'Auditoria_Frota_Armazem_06_2026_Assinada.pdf', criadoEm: '2026-06-26T10:00:00Z' },
-    { id: 'frota-2026-07', mesAno: '07/2026', ano: '2026', mes: '07', dataAuditoria: '2026-07-29', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 89, observacoes: 'Auditoria cruzada realizada. Conforme padrão.', pdfFileName: 'Auditoria_Frota_Armazem_07_2026_Assinada.pdf', criadoEm: '2026-07-29T10:00:00Z' },
-    { id: 'frota-2026-08', mesAno: '08/2026', ano: '2026', mes: '08', dataAuditoria: '2026-08-14', auditorResponsavel: 'Pedro Bruno (Setor de Frota)', notaPercentualFrota: 90, observacoes: 'Auditoria do mês de Agosto em andamento, conformidade positiva.', pdfFileName: 'Auditoria_Frota_Armazem_08_2026_Assinada.pdf', criadoEm: '2026-08-14T10:00:00Z' }
+    { 
+      id: 'frota-2026-01', 
+      mesAno: '01/2026', 
+      ano: '2026', 
+      mes: '01', 
+      dataAuditoria: '2026-01-28', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 88, 
+      observacoes: 'Auditoria mensal do armazém conforme padrão DPO. 5S realizado com sucesso.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_01_2026_Assinada.pdf', 
+      criadoEm: '2026-01-28T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(88, 1)
+    },
+    { 
+      id: 'frota-2026-02', 
+      mesAno: '02/2026', 
+      ano: '2026', 
+      mes: '02', 
+      dataAuditoria: '2026-02-25', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 88, 
+      observacoes: 'Organização do pátio e picking bem estruturados. Setor organizado.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_02_2026_Assinada.pdf', 
+      criadoEm: '2026-02-25T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(88, 2)
+    },
+    { 
+      id: 'frota-2026-03', 
+      mesAno: '03/2026', 
+      ano: '2026', 
+      mes: '03', 
+      dataAuditoria: '2026-03-27', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 92, 
+      observacoes: 'Conformidade de faixas de pedestre e segregação. Área limpa.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_03_2026_Assinada.pdf', 
+      criadoEm: '2026-03-27T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(92, 3)
+    },
+    { 
+      id: 'frota-2026-04', 
+      mesAno: '04/2026', 
+      ano: '2026', 
+      mes: '04', 
+      dataAuditoria: '2026-04-28', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 88, 
+      observacoes: 'Atenção para acúmulo de paletes no descarte. Chec list feito.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_04_2026_Assinada.pdf', 
+      criadoEm: '2026-04-28T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(88, 4)
+    },
+    { 
+      id: 'frota-2026-05', 
+      mesAno: '05/2026', 
+      ano: '2026', 
+      mes: '05', 
+      dataAuditoria: '2026-05-27', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 88, 
+      observacoes: 'Setores de devolução e refugo bem segregados. 5S realisado.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_05_2026_Assinada.pdf', 
+      criadoEm: '2026-05-27T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(88, 5)
+    },
+    { 
+      id: 'frota-2026-06', 
+      mesAno: '06/2026', 
+      ano: '2026', 
+      mes: '06', 
+      dataAuditoria: '2026-06-26', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 92, 
+      observacoes: 'Excelente pontuação de 5S no armazém. 5S realizado com sucesso.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_06_2026_Assinada.pdf', 
+      criadoEm: '2026-06-26T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(92, 6)
+    },
+    { 
+      id: 'frota-2026-07', 
+      mesAno: '07/2026', 
+      ano: '2026', 
+      mes: '07', 
+      dataAuditoria: '2026-07-29', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 88, 
+      observacoes: 'Auditoria cruzada realizada. Conforme padrão. Setor organizado.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_07_2026_Assinada.pdf', 
+      criadoEm: '2026-07-29T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(88, 7)
+    },
+    { 
+      id: 'frota-2026-08', 
+      mesAno: '08/2026', 
+      ano: '2026', 
+      mes: '08', 
+      dataAuditoria: '2026-08-14', 
+      auditorResponsavel: 'Pedro Bruno (Setor de Frota)', 
+      notaPercentualFrota: 92, 
+      observacoes: 'Auditoria do mês de Agosto em andamento, conformidade positiva e área limpa.', 
+      pdfFileName: 'Auditoria_Frota_Armazem_08_2026_Assinada.pdf', 
+      criadoEm: '2026-08-14T10:00:00Z',
+      areaAuditada: 'Armazém Geral (Guarabira - PB)',
+      auditadoNome: 'KATHYEL ROCHA DA SILVA / Equipe de Operações',
+      scores: getDefaultScoresForPercentage(92, 8)
+    }
   ];
 };
 
@@ -2793,7 +2909,6 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                         <th className="p-3">Data</th>
                         <th className="p-3">Área / Setor</th>
                         <th className="p-3">Operador Responsável</th>
-                        <th className="p-3">Auditor / Líder</th>
                         <th className="p-3 text-center">Pontuação</th>
                         <th className="p-3 text-center">Nota %</th>
                         <th className="p-3">Observação / Não Conformidades</th>
@@ -2803,7 +2918,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                     <tbody className="divide-y divide-slate-800 text-slate-300 font-sans text-xs">
                       {list.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-6 text-center text-slate-500 italic">
+                          <td colSpan={7} className="p-6 text-center text-slate-500 italic">
                             Nenhuma auditoria encontrada com os filtros selecionados.
                           </td>
                         </tr>
@@ -2813,15 +2928,14 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                             <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{audit.dataFormatted || audit.dataISO}</td>
                             <td className="p-3 font-bold text-amber-300">{audit.setor}</td>
                             <td className="p-3 font-bold text-slate-200">{audit.operador}</td>
-                            <td className="p-3 text-slate-400">{audit.liderAuditor || 'Líder de Turno'}</td>
                             <td className="p-3 text-center font-mono font-bold text-slate-300">{audit.pontos || 10}/10</td>
                             <td className="p-3 text-center font-mono font-black">
                               <span className={`px-2 py-0.5 rounded ${audit.notaPercentual >= 80 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>
                                 {audit.notaPercentual || 100}%
                               </span>
                             </td>
-                            <td className="p-3 text-slate-400 italic text-[11px] max-w-xs truncate">
-                              {audit.observacoesNaoConforme || 'Conforme padrão 5S.'}
+                            <td className="p-3 text-slate-300 font-medium text-[11px] max-w-xs truncate">
+                              {audit.observacoesNaoConforme || '5s realizado com sucesso'}
                             </td>
                             <td className="p-3 text-center">
                               <button
@@ -3141,7 +3255,6 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                         <tr className="text-amber-300 text-[10px] uppercase border-b border-slate-800 font-black">
                           <th className="p-2.5">Data (Dia Útil)</th>
                           <th className="p-2.5">Área / Setor</th>
-                          <th className="p-2.5">Quem Aplicou</th>
                           <th className="p-2.5 text-center">Pontos</th>
                           <th className="p-2.5 text-center">Nota %</th>
                           <th className="p-2.5">Observações da Rotina</th>
@@ -3151,7 +3264,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                       <tbody className="divide-y divide-slate-800 text-slate-300 text-xs">
                         {colabAudits.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="p-6 text-center text-slate-500 italic">
+                            <td colSpan={6} className="p-6 text-center text-slate-500 italic">
                               Nenhuma auditoria encontrada com os filtros selecionados.
                             </td>
                           </tr>
@@ -3167,7 +3280,6 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                                   {audit.dataFormatted || audit.dataISO} <span className="text-[10px] text-amber-400 font-bold">({weekDayName})</span>
                                 </td>
                                 <td className="p-2.5 font-bold text-amber-300">{audit.setor}</td>
-                                <td className="p-2.5 text-slate-300">{audit.liderAuditor || 'Pedro Bruno (Frota)'}</td>
                                 <td className="p-2.5 text-center font-mono font-bold text-slate-300">{audit.pontos || 10}/10</td>
                                 <td className="p-2.5 text-center font-mono font-black">
                                   <span className={`px-2 py-0.5 rounded text-[11px] ${
@@ -3178,8 +3290,8 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                                     {audit.notaPercentual || 100}%
                                   </span>
                                 </td>
-                                <td className="p-2.5 text-slate-400 italic text-[11px] max-w-xs truncate">
-                                  {audit.observacoesNaoConforme || 'Rotina de organização e limpeza executada no padrão 5S.'}
+                                <td className="p-2.5 text-slate-300 font-medium text-[11px] max-w-xs truncate">
+                                  {audit.observacoesNaoConforme || '5s realisado'}
                                 </td>
                                 <td className="p-2.5 text-center">
                                   <button
@@ -3251,7 +3363,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                           Detalhamento do Checklist 5S • {audit.setor}
                         </h4>
                         <p className="text-xs text-slate-400">
-                          Data: <strong className="text-white">{audit.dataFormatted || audit.dataISO}</strong> • Responsável: <strong className="text-amber-300">{audit.operador}</strong> • Auditor: <strong className="text-sky-300">{audit.liderAuditor || 'Pedro Bruno (Frota)'}</strong>
+                          Data: <strong className="text-white">{audit.dataFormatted || audit.dataISO}</strong> • Responsável: <strong className="text-amber-300">{audit.operador}</strong> • Setor: <strong className="text-sky-300">{audit.setor}</strong>
                         </p>
                       </div>
                     </div>
@@ -3308,7 +3420,7 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
                   <div className="p-3 bg-[#111a30] border border-slate-800 rounded-xl text-xs text-slate-300 shrink-0">
                     <span className="block font-bold text-[10px] uppercase text-slate-400 mb-0.5">Observações / Não Conformidades Registradas</span>
                     <p className="italic text-slate-300">
-                      {audit.observacoesNaoConforme || 'Rotina 5S concluída com sucesso. Área organizada e conforme os padrões exigidos.'}
+                      {audit.observacoesNaoConforme || '5s realizado com sucesso'}
                     </p>
                   </div>
 

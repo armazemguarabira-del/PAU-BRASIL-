@@ -29,6 +29,9 @@ import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplica
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
 import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
+import { ImportTmrJsonModal } from './ImportTmrJsonModal';
+import { ImportRrJsonModal } from './ImportRrJsonModal';
+import { getStoredTasks } from '../utils/rrManager';
 import { 
   Truck, 
   Clock, 
@@ -39,10 +42,12 @@ import {
   Package, 
   Layers, 
   UserCheck, 
+  Users,
   Activity,
   ChevronDown,
   History,
   FileText,
+  FileCode,
   X,
   Award,
   Download,
@@ -51,7 +56,8 @@ import {
   ShieldCheck,
   Zap,
   Power,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 interface EmpilhadorPanelProps {
@@ -196,6 +202,10 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   const [tmrHistoryView, setTmrHistoryView] = useState<boolean>(false);
   const [rrHistoryView, setRrHistoryView] = useState<boolean>(false);
   const [fefoHistoryView, setFefoHistoryView] = useState<boolean>(false);
+  
+  // TMR & RR JSON Import Modal State
+  const [showImportTmrModal, setShowImportTmrModal] = useState<boolean>(false);
+  const [showImportRrModal, setShowImportRrModal] = useState<boolean>(false);
 
   // EFC / EFD Vehicles state
   const [efcVehicles, setEfcVehicles] = useState<EfcEfdVehicle[]>(() => getStoredEfcVehicles(empresaId));
@@ -217,7 +227,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   // Picking Tasks state
   const [tasks, setTasks] = useState<Tarefa[]>([]);
 
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['tarefas', 'validades', 'colaboradores']);
 
   // Load and subscribe to real-time events with debounced FEFO reload
   useEffect(() => {
@@ -891,15 +901,33 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
 
   const myCompletedTmr = useMemo(() => {
-    return [
-      ...tmrDemands.filter(t => t.status === 'done' && isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores)),
-      ...completedRecargasEfc
-    ];
-  }, [tmrDemands, activeOperatorClean, completedRecargasEfc, empresaData.colaboradores]);
+    const doneTmr = tmrDemands.filter(t => t.status === 'done');
+
+    const doneRecargas = efcVehicles.filter(v => {
+      return (v.isRecarga || v.tipoCarga === 'Recarga') && v.statusCarregamento === 'Finalizado';
+    }).map(v => {
+      const vAny = v as any;
+      return {
+        id: v.id,
+        carreta: v.placa || 'Recarga EFC',
+        revendaNome: v.tipoCarga || 'Recarga',
+        tipoDemanda: 'Recarga' as const,
+        status: 'done' as const,
+        duracaoMin: v.duracaoCarregamentoMin || 15,
+        operadorExecutor: v.operadorExecutorCarregamento || activeOperatorClean,
+        operadorDesignado: v.operadorExecutorCarregamento || activeOperatorClean,
+        iniciadoEm: vAny.dataHoraInicio || vAny.criadoEm || vAny.horarioInicioReal || undefined,
+        finalizadoEm: vAny.dataHoraFim || vAny.horarioFimReal || undefined,
+        instrucoes: 'Recarga EFC'
+      };
+    });
+
+    return [...doneTmr, ...doneRecargas];
+  }, [tmrDemands, activeOperatorClean, efcVehicles]);
 
   const myCompletedPicking = useMemo(() => {
-    return tasks.filter(t => t.status === 'done' && isSameCollaborator(t.operador, activeOperatorClean, empresaData.colaboradores));
-  }, [tasks, activeOperatorClean, empresaData.colaboradores]);
+    return tasks.filter(t => t.status === 'done');
+  }, [tasks]);
 
   const myCompletedFefo = useMemo(() => {
     return fefoDemands.filter(t => t.status === 'done' && isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores));
@@ -1236,32 +1264,45 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
             {/* ABA 2: TMR REVENDAS / DELEGADAS PELO CONFERENTE */}
             {demandTab === 'tmr' && (
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#0d1218] p-2.5 rounded-xl border border-purple-500/30">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-[#0d1218] p-3 rounded-xl border border-purple-500/30">
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => setTmrHistoryView(false)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                        !tmrHistoryView ? 'bg-purple-600 text-white font-black' : 'text-slate-400 hover:text-white bg-slate-900/60'
+                        !tmrHistoryView ? 'bg-purple-600 text-white font-black shadow-md' : 'text-slate-400 hover:text-white bg-slate-900/60'
                       }`}
                     >
                       <Layers className="w-3.5 h-3.5" />
-                      <span>Demandas TMR Ativas ({myAssignedTmr.filter(t => t.status !== 'done').length})</span>
+                      <span>Demandas Ativas ({myAssignedTmr.filter(t => t.status !== 'done').length})</span>
                     </button>
 
                     <button
                       onClick={() => setTmrHistoryView(true)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                        tmrHistoryView ? 'bg-cyan-600 text-white font-black' : 'text-slate-400 hover:text-white bg-slate-900/60'
+                        tmrHistoryView ? 'bg-cyan-600 text-white font-black shadow-md' : 'text-slate-400 hover:text-white bg-slate-900/60'
                       }`}
                     >
                       <History className="w-3.5 h-3.5" />
-                      <span>Histórico TMR Concluído ({myCompletedTmr.length})</span>
+                      <span>Histórico Concluído ({myCompletedTmr.length})</span>
                     </button>
                   </div>
 
-                  <span className="text-[10px] text-purple-300 font-mono font-bold bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-800/40">
-                    SLA Meta TMR: ≤ 150 min Carretas · ≤ 50 min Recarga
-                  </span>
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                    <span className="text-[10px] text-purple-300 font-mono font-bold bg-purple-950/60 px-2.5 py-1.5 rounded-lg border border-purple-800/40 hidden sm:inline-block">
+                      SLA Meta: ≤ 150m Carretas · ≤ 50m Recarga
+                    </span>
+
+                    {/* BOTAO IMPORTAR JSON TMR */}
+                    <button
+                      type="button"
+                      onClick={() => setShowImportTmrModal(true)}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md active:scale-95"
+                      title="Importar arquivo JSON de Histórico TMR Concluídos"
+                    >
+                      <FileCode className="w-3.5 h-3.5" />
+                      <span>Importar JSON</span>
+                    </button>
+                  </div>
                 </div>
 
                 {!tmrHistoryView ? (
@@ -1355,26 +1396,86 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-3 max-h-[520px] overflow-y-auto">
                     {myCompletedTmr.length === 0 ? (
-                      <p className="text-xs text-slate-500 text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530]">
-                        Nenhuma demanda TMR concluída registrada ainda.
-                      </p>
-                    ) : (
-                      myCompletedTmr.map(t => (
-                        <div key={`tmr_hist_${t.id}`} className="p-3 bg-[#11151c] border border-purple-500/30 rounded-xl flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-mono text-purple-300 font-bold text-[10px] block">
-                              Carreta: {(t as any).carreta || (t as any).id} — {(t as any).revendaNome || 'TMR Revenda'}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block">Concluído por: {activeOperatorClean}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-emerald-400 font-bold block">✓ Concluído</span>
-                            <span className="text-[10px] font-mono text-slate-400">Duração: {t.duracaoMin || 15} min</span>
-                          </div>
+                      <div className="text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530] flex flex-col items-center justify-center gap-3">
+                        <div className="p-3 rounded-full bg-purple-500/10 text-purple-400">
+                          <History className="w-8 h-8" />
                         </div>
-                      ))
+                        <div className="flex flex-col gap-1 text-center">
+                          <p className="text-xs text-slate-300 font-bold">Nenhuma demanda TMR concluída registrada ainda.</p>
+                          <span className="text-[11px] text-slate-500 max-w-md">
+                            Alimente o histórico importando arquivos JSON com Carreta, Empilhador, Turno, Início e Fim.
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowImportTmrModal(true)}
+                          className="mt-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg flex items-center gap-2 cursor-pointer transition-all"
+                        >
+                          <FileCode className="w-4 h-4" />
+                          <span>Importar Arquivo JSON de TMR</span>
+                        </button>
+                      </div>
+                    ) : (
+                      myCompletedTmr.map(t => {
+                        const tAny = t as any;
+                        const isCarreta = !tAny.tipoDemanda || tAny.tipoDemanda === 'Carreta' || (tAny.carreta && !tAny.carreta.toLowerCase().includes('recarga'));
+                        const slaLimit = isCarreta ? 150 : 50;
+                        const duration = t.duracaoMin || 0;
+                        const isWithinSla = duration <= slaLimit;
+                        const instrucoes = tAny.instrucoes || '';
+
+                        return (
+                          <div 
+                            key={`tmr_hist_${t.id}`} 
+                            className="p-3.5 bg-[#11151c] border border-purple-500/30 hover:border-purple-500/60 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition-all shadow-sm"
+                          >
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono text-amber-300 font-black text-xs px-2 py-0.5 bg-amber-500/10 rounded border border-amber-500/20">
+                                  Carreta: {tAny.carreta || tAny.id}
+                                </span>
+                                <span className="text-xs font-bold text-white">
+                                  {tAny.revendaNome || 'TMR Carregamento'}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  {instrucoes.includes('Turno') ? instrucoes.replace(' · Importado via JSON', '') : 'Turno Operacional'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 flex-wrap">
+                                <span>
+                                  Empilhador: <strong className="text-slate-200 font-bold">{t.operadorExecutor || t.operadorDesignado || activeOperatorClean}</strong>
+                                </span>
+                                {t.iniciadoEm && (
+                                  <span>
+                                    Início: <strong className="text-slate-300 font-mono">{new Date(t.iniciadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                                  </span>
+                                )}
+                                {t.finalizadoEm && (
+                                  <span>
+                                    Fim: <strong className="text-slate-300 font-mono">{new Date(t.finalizadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center sm:flex-col items-end gap-1.5 shrink-0 border-t sm:border-t-0 border-slate-800 pt-2 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                isWithinSla 
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              }`}>
+                                {isWithinSla ? '✓ No Prazo SLA' : '⚠ Excedeu SLA'}
+                              </span>
+                              <span className="text-xs font-mono font-black text-white">
+                                {duration} min <span className="text-[10px] text-slate-400 font-normal">/ meta {slaLimit}m</span>
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 )}
@@ -1383,7 +1484,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
             {demandTab === 'rr' && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#0d1218] p-2.5 rounded-xl border border-emerald-500/30">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => setRrHistoryView(false)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -1405,9 +1506,21 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                     </button>
                   </div>
 
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
-                    Meta SLA: ≤ 5 min por palete despachado
-                  </span>
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                    {/* BOTAO IMPORTAR JSON R/R */}
+                    <button
+                      onClick={() => setShowImportRrModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black transition-all cursor-pointer shadow-md uppercase tracking-wider"
+                      title="Importar arquivo JSON para alimentar o histórico de Ressuprimento R&R Concluído"
+                    >
+                      <FileCode className="w-3.5 h-3.5" />
+                      <span>Importar JSON R/R</span>
+                    </button>
+
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                      Meta SLA: ≤ 5 min/pl
+                    </span>
+                  </div>
                 </div>
 
                 {!rrHistoryView ? (
@@ -1469,22 +1582,80 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                 ) : (
                   <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto">
                     {myCompletedPicking.length === 0 ? (
-                      <p className="text-xs text-slate-500 text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530]">
-                        Nenhum ressuprimento concluído registrado nesta sessão.
-                      </p>
+                      <div className="text-center p-8 bg-[#11151c] rounded-xl border border-[#1c2530] flex flex-col items-center gap-3">
+                        <Package className="w-8 h-8 text-emerald-500/50" />
+                        <p className="text-xs text-slate-400">
+                          Nenhum ressuprimento concluído registrado nesta sessão.
+                        </p>
+                        <button
+                          onClick={() => setShowImportRrModal(true)}
+                          className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2"
+                        >
+                          <FileCode className="w-4 h-4" />
+                          <span>Importar Histórico JSON R&R</span>
+                        </button>
+                      </div>
                     ) : (
-                      myCompletedPicking.map(t => (
-                        <div key={`rr_hist_${t.id}`} className="p-3 bg-[#11151c] border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-mono text-amber-400 font-bold text-[10px] block">SKU: {t.codigo} — {t.descricao}</span>
-                            <span className="text-[10px] text-slate-400 block">Conferente: {t.conferente}</span>
+                      myCompletedPicking.map(t => {
+                        const duration = t.duracaoMin || 1;
+                        const isWithinSla = duration <= 5;
+                        const tAny = t as any;
+                        const operacao = tAny.tipoOperacao || tAny.operacao || 'Ressuprimento';
+
+                        return (
+                          <div 
+                            key={`rr_hist_${t.id}`} 
+                            className="p-3 bg-[#11151c] border border-emerald-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono text-amber-300 font-black text-xs px-2 py-0.5 bg-amber-500/10 rounded border border-amber-500/20">
+                                  SKU {t.codigo}
+                                </span>
+                                <span className="text-xs font-bold text-white max-w-[320px] truncate" title={t.descricao}>
+                                  {t.descricao}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                  {operacao}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-[10px] text-slate-400 flex-wrap mt-0.5">
+                                <span>Operador: <strong className="text-slate-200">{t.operador}</strong></span>
+                                <span>•</span>
+                                <span>Conferente: <strong className="text-slate-200">{t.conferente}</strong></span>
+                                <span>•</span>
+                                <span>Qtd: <strong className="text-amber-400 font-mono">{t.quantidade || t.caixas || 1} cx/pal</strong></span>
+                                {t.iniciadoEm && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Início: <strong className="text-slate-300 font-mono">{new Date(t.iniciadoEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+                                  </>
+                                )}
+                                {t.finalizadoEm && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Fim: <strong className="text-slate-300 font-mono">{new Date(t.finalizadoEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-1 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                                isWithinSla 
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              }`}>
+                                {isWithinSla ? '✓ No Prazo (≤5m)' : '⚠ Excedeu SLA (>5m)'}
+                              </span>
+                              <span className="text-xs font-mono font-black text-white">
+                                {duration} min <span className="text-[10px] text-slate-400 font-normal">/ meta 5m</span>
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-emerald-400 font-bold block">✓ Concluído</span>
-                            <span className="text-[10px] font-mono text-slate-400">Duração: {t.duracaoMin || 1} min</span>
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 )}
@@ -1954,6 +2125,30 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
               </div>
             </div>
           )}
+
+          {/* MODAL DE IMPORTAÇÃO JSON DE TMR HISTÓRICO CONCLUÍDO */}
+          <ImportTmrJsonModal
+            isOpen={showImportTmrModal}
+            onClose={() => setShowImportTmrModal(false)}
+            empresaId={empresaId}
+            onSuccess={() => {
+              setTmrDemands(getStoredTmrDemands(empresaId));
+              setTmrHistoryView(true);
+            }}
+            theme={theme}
+          />
+
+          {/* MODAL DE IMPORTAÇÃO JSON DE HISTÓRICO RESSUPRIMENTO (R&R) CONCLUÍDO */}
+          <ImportRrJsonModal
+            isOpen={showImportRrModal}
+            onClose={() => setShowImportRrModal(false)}
+            empresaId={empresaId}
+            onSuccess={() => {
+              setTasks(getStoredTasks(empresaId));
+              setRrHistoryView(true);
+            }}
+            theme={theme}
+          />
 
         </div>
       )}

@@ -89,17 +89,23 @@ const COLLECTION_MAPPING: Record<string, keyof Omit<EmpresaDataState, 'loaded' |
   quebras: 'quebras',
   validades: 'validades',
   armazem: 'armazem',
+  blitz: 'blitz',
   blitz_refugo: 'blitz',
   tarefas: 'tarefas',
   usuarios: 'usuarios',
   acoes: 'acoes',
   colaboradores: 'colaboradores',
   produtos: 'produtos',
+  dpoAudits: 'dpoAudits',
   dpo_audits: 'dpoAudits',
+  repackValidades: 'repackValidades',
   repack_validades: 'repackValidades',
   acessos: 'acessos',
+  repackActionPlans: 'repackActionPlans',
   repack_action_plans: 'repackActionPlans',
+  repackA3Boards: 'repackA3Boards',
   repack_a3_boards: 'repackA3Boards',
+  kpiTrees: 'kpiTrees',
   kpi_trees: 'kpiTrees',
 };
 
@@ -214,7 +220,7 @@ export function EmpresaDataProvider({
 
   useEffect(() => {
     if (state.loaded && empresaId) {
-      triggerAutoSyncFromState(state, empresaId);
+      triggerAutoSyncFromState(state, empresaId, 10000);
     }
   }, [state, empresaId]);
 
@@ -246,31 +252,63 @@ export function EmpresaDataProvider({
   );
 }
 
+export function useViewUnitMode() {
+  const ctx = useContext(EmpresaDataContext);
+  return {
+    viewUnitMode: ctx.viewUnitMode,
+    setViewUnitMode: ctx.setViewUnitMode,
+  };
+}
+
 /**
- * Hook retrocompatível com a fonte de dados global da empresa logada.
- * Subscreve sob demanda às coleções ativas via sincronização incremental (Cache + Delta).
+ * Hook flexível com a fonte de dados da empresa logada.
+ * Se collections for passado (ex: ['tarefas', 'colaboradores']), subscreve APENAS àquelas coleções.
+ * Se collections for um array vazio ([]), não subscreve a nenhuma coleção (apenas acessa o estado/métodos).
+ * Se collections for omitido, subscreve apenas às coleções essenciais por padrão para máxima performance.
  */
-export function useEmpresaData() {
+export function useEmpresaData(collections?: (keyof typeof COLLECTION_MAPPING)[]) {
   const ctx = useContext(EmpresaDataContext);
   const { subscribeCollection, empresaId } = ctx;
+
+  const collectionsKey = collections !== undefined
+    ? [...collections].sort().join(',')
+    : 'DEFAULT';
 
   useEffect(() => {
     if (!empresaId) return;
 
-    // Subscreve incrementalmente a todas as coleções do state para os componentes retrocompatíveis
-    const cleanups = Object.entries(COLLECTION_MAPPING).map(([nome, chave]) =>
+    // Se passou array vazio [], não subscreve a nada
+    if (collections !== undefined && collections.length === 0) {
+      return;
+    }
+
+    let entriesToSubscribe: [string, keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection' | 'viewUnitMode' | 'setViewUnitMode'>][] = [];
+
+    if (collections && collections.length > 0) {
+      entriesToSubscribe = collections
+        .map(nome => [nome, COLLECTION_MAPPING[nome] || nome] as [string, keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection' | 'viewUnitMode' | 'setViewUnitMode'>])
+        .filter(([_, chave]) => Boolean(chave));
+    } else {
+      // Default: coleções essenciais leves
+      const defaultEssentials: (keyof typeof COLLECTION_MAPPING)[] = ['produtos', 'colaboradores', 'acoes', 'validades'];
+      entriesToSubscribe = defaultEssentials
+        .map(nome => [nome, COLLECTION_MAPPING[nome] || nome] as [string, keyof Omit<EmpresaDataState, 'loaded' | 'empresaId' | 'subscribeCollection' | 'viewUnitMode' | 'setViewUnitMode'>])
+        .filter(([_, chave]) => Boolean(chave));
+    }
+
+    const cleanups = entriesToSubscribe.map(([nome, chave]) =>
       subscribeCollection(nome, chave)
     );
 
     return () => {
       cleanups.forEach((c) => c());
     };
-  }, [subscribeCollection, empresaId]);
+  }, [subscribeCollection, empresaId, collectionsKey]);
 
   return ctx;
 }
 
-/** Hooks Modulares por Domínio (Fase 3): Carregados somente quando o painel correspondente é montado */
+/** Hooks Modulares por Domínio: Carregados sob demanda somente quando o painel correspondente é montado */
 
 export function useRepackData() {
   const ctx = useContext(EmpresaDataContext);
@@ -279,6 +317,15 @@ export function useRepackData() {
     return ctx.subscribeCollection('repack', 'repack');
   }, [ctx.empresaId, ctx.subscribeCollection]);
   return ctx.repack;
+}
+
+export function useRepackValidadesData() {
+  const ctx = useContext(EmpresaDataContext);
+  useEffect(() => {
+    if (!ctx.empresaId) return;
+    return ctx.subscribeCollection('repack_validades', 'repackValidades');
+  }, [ctx.empresaId, ctx.subscribeCollection]);
+  return ctx.repackValidades;
 }
 
 export function useDespejoData() {
@@ -297,6 +344,15 @@ export function useQuebrasData() {
     return ctx.subscribeCollection('quebras', 'quebras');
   }, [ctx.empresaId, ctx.subscribeCollection]);
   return ctx.quebras;
+}
+
+export function useKpiTreesData() {
+  const ctx = useContext(EmpresaDataContext);
+  useEffect(() => {
+    if (!ctx.empresaId) return;
+    return ctx.subscribeCollection('kpi_trees', 'kpiTrees');
+  }, [ctx.empresaId, ctx.subscribeCollection]);
+  return ctx.kpiTrees;
 }
 
 export function useValidadesData() {

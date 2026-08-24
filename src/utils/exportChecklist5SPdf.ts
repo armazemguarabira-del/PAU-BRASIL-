@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 
 export interface Item5SOfficial {
   id: number;
-  senso: 'Seleção' | 'Organização' | 'Limpeza' | 'Padronização' | 'Auto-Disciplir';
+  senso: 'Seleção' | 'Organização' | 'Limpeza' | 'Padronização' | 'Auto-Disciplina';
   checkItem: string;
   descricao: string;
 }
@@ -37,12 +37,39 @@ export const CHECKLIST_5S_OFFICIAL_ITEMS: Item5SOfficial[] = [
   { id: 20, senso: 'Padronização', checkItem: '3S', descricao: 'A área tem uma rotina de limpeza detalhada, com papéis e responsabilidades definidas, em uma frequência diária, semanal e mensal? (Cronograma de Limpeza, Retirada de Caçambas, Controle de Pragas, etc)' },
 
   // AUTO-DISCIPLINA (21 a 25)
-  { id: 21, senso: 'Auto-Disciplir', checkItem: '5S Monitoramento', descricao: 'As áreas possuem rotina mensal de auditoria?' },
-  { id: 22, senso: 'Auto-Disciplir', checkItem: 'Auditoria', descricao: 'Há um plano de ação das auditorias de 5s? Os resultados estão acima de 85%?' },
-  { id: 23, senso: 'Auto-Disciplir', checkItem: 'Gestão a Vista', descricao: 'Os quadros de gestão a vista de 5S estão atualizados?' },
-  { id: 24, senso: 'Auto-Disciplir', checkItem: 'Evolução', descricao: 'Há um plano de ação para resolver os problemas de 5S da área?' },
-  { id: 25, senso: 'Auto-Disciplir', checkItem: 'Evolução', descricao: 'A área pode mostrar evolução nos resultados de 5S?' }
+  { id: 21, senso: 'Auto-Disciplina', checkItem: '5S Monitoramento', descricao: 'As áreas possuem rotina mensal de auditoria?' },
+  { id: 22, senso: 'Auto-Disciplina', checkItem: 'Auditoria', descricao: 'Há um plano de ação das auditorias de 5s? Os resultados estão acima de 85%?' },
+  { id: 23, senso: 'Auto-Disciplina', checkItem: 'Gestão a Vista', descricao: 'Os quadros de gestão a vista de 5S estão atualizados?' },
+  { id: 24, senso: 'Auto-Disciplina', checkItem: 'Evolução', descricao: 'Há um plano de ação para resolver os problemas de 5S da área?' },
+  { id: 25, senso: 'Auto-Disciplina', checkItem: 'Evolução', descricao: 'A área pode mostrar evolução nos resultados de 5S?' }
 ];
+
+export const getDefaultScoresForPercentage = (targetPct: number = 88, seed: number = 1): Record<number, number> => {
+  // Total 25 items
+  const scores: Record<number, number> = {};
+  // Calculate how many items must be 1 (OK)
+  // 88% -> 22/25 OK, 3 NOK
+  // 92% -> 23/25 OK, 2 NOK
+  // 96% -> 24/25 OK, 1 NOK
+  // 100% -> 25/25 OK, 0 NOK
+  // 84% -> 21/25 OK, 4 NOK
+  const totalOk = Math.min(25, Math.max(0, Math.round((targetPct / 100) * 25)));
+  const totalNok = 25 - totalOk;
+
+  // Set all to 1 initially
+  for (let i = 1; i <= 25; i++) {
+    scores[i] = 1;
+  }
+
+  // Pick realistic NOK items based on seed (e.g. items 5, 12, 17, 23)
+  const candidateNokIndices = [5, 12, 17, 7, 16, 24, 11, 4];
+  for (let k = 0; k < totalNok; k++) {
+    const itemIndex = candidateNokIndices[(k + seed) % candidateNokIndices.length];
+    scores[itemIndex] = 0;
+  }
+
+  return scores;
+};
 
 export interface ExportChecklist5SOptions {
   auditor?: string;
@@ -149,7 +176,7 @@ export function exportChecklist5SOfficialPdf(options?: ExportChecklist5SOptions)
     { name: 'Organização', items: CHECKLIST_5S_OFFICIAL_ITEMS.filter(i => i.senso === 'Organização') },
     { name: 'Limpeza', items: CHECKLIST_5S_OFFICIAL_ITEMS.filter(i => i.senso === 'Limpeza') },
     { name: 'Padronização', items: CHECKLIST_5S_OFFICIAL_ITEMS.filter(i => i.senso === 'Padronização') },
-    { name: 'Auto-Disciplir', nameDisplay: 'Auto-Disciplir', items: CHECKLIST_5S_OFFICIAL_ITEMS.filter(i => i.senso === 'Auto-Disciplir') },
+    { name: 'Auto-Disciplina', nameDisplay: 'Auto-Disciplina', items: CHECKLIST_5S_OFFICIAL_ITEMS.filter(i => i.senso === 'Auto-Disciplina') },
   ];
 
   doc.setFont('helvetica', 'normal');

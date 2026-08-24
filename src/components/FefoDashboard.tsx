@@ -4,6 +4,7 @@ import { IndicatorActionModal } from './IndicatorActionModal';
 import React, { useState, useEffect, useMemo } from 'react';
 import { calculateStockAgeIndex, calculateStockAgeSummary } from '../utils/calculateStockAgeIndex';
 import { MATRIZ_BLOCOS_CONFIG, validarPosicionamentoLayout, getDistanciaPickingScore, getBlocoIdealParaCurva, calcularQuebrasFefoEstoqueXEstoque, calcularQuebrasFefoEstoqueXPicking } from '../utils/matrizBlocos';
+import { calcularTotalCaixas as calcCaixasPkg } from '../data/coletaPackagingData';
 import * as XLSX from 'xlsx';
 import { 
   BarChart, 
@@ -273,14 +274,14 @@ const BLOCKS_DATA: Record<string, BlockData> = {
   A2: { id: 'A2', avgValidity: 95, menorValidade: 91, skuCount: 18, pallets: 170, criticalPct: 5, riskIndex: 25, ranges: { critical: 8, alertMedium: 22, alertLow: 45, safe: 95 } },
   A3: { id: 'A3', avgValidity: 72, menorValidade: 65, skuCount: 22, pallets: 180, criticalPct: 14, riskIndex: 48, ranges: { critical: 25, alertMedium: 35, alertLow: 80, safe: 40 } },
   A4: { id: 'A4', avgValidity: 25, menorValidade: 12, skuCount: 28, pallets: 155, criticalPct: 61, riskIndex: 94, ranges: { critical: 95, alertMedium: 40, alertLow: 15, safe: 5 } },
+  A5: { id: 'A5', avgValidity: 110, menorValidade: 100, skuCount: 12, pallets: 140, criticalPct: 2, riskIndex: 12, ranges: { critical: 2, alertMedium: 10, alertLow: 28, safe: 100 } },
+  A6: { id: 'A6', avgValidity: 125, menorValidade: 115, skuCount: 10, pallets: 130, criticalPct: 0, riskIndex: 8, ranges: { critical: 0, alertMedium: 8, alertLow: 22, safe: 100 } },
   B1: { id: 'B1', avgValidity: 115, menorValidade: 104, skuCount: 12, pallets: 167, criticalPct: 1, riskIndex: 10, ranges: { critical: 2, alertMedium: 10, alertLow: 25, safe: 130 } },
   B2: { id: 'B2', avgValidity: 68, menorValidade: 62, skuCount: 24, pallets: 168, criticalPct: 12, riskIndex: 45, ranges: { critical: 20, alertMedium: 48, alertLow: 65, safe: 35 } },
   B3: { id: 'B3', avgValidity: 42, menorValidade: 38, skuCount: 26, pallets: 165, criticalPct: 27, riskIndex: 65, ranges: { critical: 45, alertMedium: 60, alertLow: 40, safe: 20 } },
-  B4: { id: 'B4', avgValidity: 28, menorValidade: 18, skuCount: 30, pallets: 168, criticalPct: 52, riskIndex: 88, ranges: { critical: 88, alertMedium: 50, alertLow: 20, safe: 10 } },
   C1: { id: 'C1', avgValidity: 120, menorValidade: 112, skuCount: 10, pallets: 166, criticalPct: 1, riskIndex: 8, ranges: { critical: 1, alertMedium: 5, alertLow: 15, safe: 145 } },
   C2: { id: 'C2', avgValidity: 92, menorValidade: 92, skuCount: 16, pallets: 190, criticalPct: 5, riskIndex: 28, ranges: { critical: 10, alertMedium: 25, alertLow: 70, safe: 85 } },
-  C3: { id: 'C3', avgValidity: 78, menorValidade: 64, skuCount: 20, pallets: 175, criticalPct: 17, riskIndex: 55, ranges: { critical: 30, alertMedium: 55, alertLow: 60, safe: 30 } },
-  C4: { id: 'C4', avgValidity: 15, menorValidade: 5, skuCount: 32, pallets: 152, criticalPct: 72, riskIndex: 98, ranges: { critical: 110, alertMedium: 30, alertLow: 10, safe: 2 } }
+  C3: { id: 'C3', avgValidity: 78, menorValidade: 64, skuCount: 20, pallets: 175, criticalPct: 17, riskIndex: 55, ranges: { critical: 30, alertMedium: 55, alertLow: 60, safe: 30 } }
 };
 
 const getDaysInMonth = (year: number, month: number) => {
@@ -294,7 +295,7 @@ const getFirstDayOfMonth = (year: number, month: number) => {
 export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardProps) {
   const [activeTab, setActiveTab] = useState<FefoPage>('validades');
   const [viewUnit, setViewUnit] = useState<'u' | 'he'>('u');
-  const [selectedBlock, setSelectedBlock] = useState<string>('A4');
+  const [selectedBlock, setSelectedBlock] = useState<string>('A1');
   const [showSopViewer, setShowSopViewer] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
@@ -614,6 +615,11 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
           if (y.length === 2) y = '20' + y;
           normDate = `${y}-${m}-${d}`;
         }
+      } else if (normDate.includes('-')) {
+        const parts = normDate.split('-');
+        if (parts.length === 3 && parts[0].length === 2 && parts[2].length === 4) {
+          normDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
       }
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -626,17 +632,16 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
   };
 
   const calculateTotalCaixas = (v: ValidadeRow): number => {
+    const q = Number((v as any).quantidade) || 0;
+    if (q > 0) return q;
+
     const p = Number(v.palhete) || 0;
     const l = Number(v.lastro) || 0;
     const c = Number(v.caixa) || 0;
-    const q = Number((v as any).quantidade) || 0;
 
-    if (p > 0 && l > 0 && c > 0) return p * l * c;
-    if (p > 0 && l > 0) return p * l;
-    if (p > 0 && c > 0) return p * c;
-    if (p > 0) return p;
-    if (c > 0) return c;
-    if (q > 0) return q;
+    if (p > 0 || l > 0 || c > 0) {
+      return calcCaixasPkg(v.codigo, p, l, c);
+    }
     return 1;
   };
 
@@ -783,15 +788,37 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
 
   // Dynamic blocks data derived directly from compiledValidades
   const dynamicBlocksData = useMemo(() => {
-    const result: Record<string, BlockData> = { ...BLOCKS_DATA };
+    const result: Record<string, BlockData> = {};
 
+    // If no real collections exist at all, return default initial blocks
     if (compiledValidades.length === 0) {
-      return result;
+      return { ...BLOCKS_DATA };
     }
+
+    // Initialize all standard warehouse blocks (A1..A6, B1..B3, C1..C3) with 0 stats
+    const standardGrid = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3'];
+    standardGrid.forEach(id => {
+      result[id] = {
+        id,
+        avgValidity: 0,
+        menorValidade: 0,
+        skuCount: 0,
+        pallets: 0,
+        criticalPct: 0,
+        riskIndex: 0,
+        ranges: { critical: 0, alertMedium: 0, alertLow: 0, safe: 0 }
+      };
+    });
 
     const blockGroups: Record<string, typeof compiledValidades> = {};
     compiledValidades.forEach(v => {
-      const bKey = (v.bloco || 'A1').trim().toUpperCase();
+      let bKey = (v.bloco || '').trim().toUpperCase();
+      if (!bKey) {
+        const loc = (v.localizacao || '').toLowerCase();
+        if (loc.includes('pick')) bKey = 'PICKING';
+        else if (loc.includes('pnc')) bKey = 'PNC';
+        else bKey = 'A1';
+      }
       if (!blockGroups[bKey]) blockGroups[bKey] = [];
       blockGroups[bKey].push(v);
     });
@@ -801,17 +828,30 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
       
       const skuCount = new Set(rows.map(r => r.codigo)).size;
       const pallets = rows.reduce((acc, r) => acc + (Number(r.palhete) || 1), 0);
-      const totalDays = rows.reduce((acc, r) => acc + r.days, 0);
-      const avgValidity = Math.round(totalDays / rows.length);
-      const menorValidade = Math.min(...rows.map(r => r.days));
+      const totalUnities = rows.reduce((acc, r) => acc + r.totalUnities, 0);
+      const totalDays = rows.reduce((acc, r) => acc + (r.days * r.totalUnities), 0);
+      const avgValidity = totalUnities > 0 ? Math.round(totalDays / totalUnities) : (rows.length > 0 ? Math.round(rows.reduce((acc, r) => acc + r.days, 0) / rows.length) : 0);
+      const menorValidade = rows.length > 0 ? Math.min(...rows.map(r => r.days)) : 0;
 
       const criticalRows = rows.filter(r => r.days <= 30);
       const alertMediumRows = rows.filter(r => r.days > 30 && r.days <= 60);
       const alertLowRows = rows.filter(r => r.days > 60 && r.days <= 90);
       const safeRows = rows.filter(r => r.days > 90);
 
-      const criticalPct = Math.round((criticalRows.length / rows.length) * 100);
-      const riskIndex = Math.min(100, Math.max(0, Math.round(100 - avgValidity)));
+      const criticalUnits = criticalRows.reduce((acc, r) => acc + r.totalUnities, 0);
+      const alertMediumUnits = alertMediumRows.reduce((acc, r) => acc + r.totalUnities, 0);
+      const alertLowUnits = alertLowRows.reduce((acc, r) => acc + r.totalUnities, 0);
+      const safeUnits = safeRows.reduce((acc, r) => acc + r.totalUnities, 0);
+
+      const criticalPct = totalUnities > 0 
+        ? Math.round((criticalUnits / totalUnities) * 100) 
+        : (rows.length > 0 ? Math.round((criticalRows.length / rows.length) * 100) : 0);
+
+      // Balanced Risk Index: 0 to 100 based on critical concentration and shortest shelf-life
+      const critRatio = totalUnities > 0 ? (criticalUnits / totalUnities) : (criticalRows.length / Math.max(1, rows.length));
+      const medRatio = totalUnities > 0 ? (alertMediumUnits / totalUnities) : (alertMediumRows.length / Math.max(1, rows.length));
+      const menorValScore = menorValidade <= 0 ? 100 : Math.max(0, 100 - menorValidade);
+      const riskIndex = Math.min(100, Math.max(0, Math.round(critRatio * 60 + medRatio * 25 + (menorValScore / 100) * 15)));
 
       result[bKey] = {
         id: bKey,
@@ -822,10 +862,10 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
         criticalPct,
         riskIndex,
         ranges: {
-          critical: criticalRows.reduce((acc, r) => acc + r.totalUnities, 0),
-          alertMedium: alertMediumRows.reduce((acc, r) => acc + r.totalUnities, 0),
-          alertLow: alertLowRows.reduce((acc, r) => acc + r.totalUnities, 0),
-          safe: safeRows.reduce((acc, r) => acc + r.totalUnities, 0),
+          critical: criticalUnits,
+          alertMedium: alertMediumUnits,
+          alertLow: alertLowUnits,
+          safe: safeUnits,
         }
       };
     });
@@ -1173,7 +1213,7 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
         'Status FEFO': statusStr,
         'Paletes (PL)': item.palhete || 0,
         'Caixas (CX)': item.caixa || 0,
-        'Quantidade Total (UN)': item.totalUnitiesRaw
+        'Quantidade Total (CX)': item.totalUnitiesRaw
       };
     });
 
@@ -1782,105 +1822,105 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
       />
 
       {/* 1.3 KPI SUMMARY HEADER (Display on top of dashboard) */}
-      <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-md flex flex-col gap-5 border border-slate-800">
+      <div className="bg-white text-slate-900 p-5 rounded-2xl shadow-sm flex flex-col gap-5 border border-slate-200">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           
           {/* Card 1: Stock Age Index Mês Atual */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">STOCK AGE INDEX (MÊS ATUAL)</span>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-slate-500">STOCK AGE INDEX (MÊS ATUAL)</span>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className={`text-3xl font-black ${kpiSummary.stockAgeAtual >= 75 ? 'text-emerald-400' : kpiSummary.stockAgeAtual >= 60 ? 'text-amber-400' : 'text-rose-500'}`}>
+              <span className={`text-3xl font-black ${kpiSummary.stockAgeAtual >= 75 ? 'text-emerald-600' : kpiSummary.stockAgeAtual >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                 {kpiSummary.stockAgeAtual}%
               </span>
-              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${kpiSummary.stockAgeAtual >= 75 ? 'bg-emerald-500/20 text-emerald-300' : kpiSummary.stockAgeAtual >= 60 ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}`}>
+              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${kpiSummary.stockAgeAtual >= 75 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : kpiSummary.stockAgeAtual >= 60 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}`}>
                 {kpiSummary.faixaStockAge === 'ok' ? 'OK (>75%)' : kpiSummary.faixaStockAge === 'atencao' ? 'ATENÇÃO' : 'CRÍTICO (<60%)'}
               </span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-500 font-bold mt-2 border-t border-slate-200 pt-1.5 flex justify-between">
               <span>Meta Mínima:</span>
-              <span className="text-emerald-400 font-extrabold">&ge; 75%</span>
+              <span className="text-emerald-700 font-extrabold">&ge; 75%</span>
             </div>
           </div>
 
           {/* Card 2: Itens Críticos */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">ITENS CRÍTICOS (&lt;60%)</span>
+          <div className="bg-rose-50/60 p-4 rounded-xl border border-rose-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-rose-800">ITENS CRÍTICOS (&lt;60%)</span>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl font-black text-rose-400">{kpiSummary.criticoSkusCount}</span>
-              <span className="text-[10px] font-bold text-slate-300">SKUs</span>
+              <span className="text-3xl font-black text-rose-600">{kpiSummary.criticoSkusCount}</span>
+              <span className="text-[10px] font-bold text-slate-600">SKUs</span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-600 font-bold mt-2 border-t border-rose-200/80 pt-1.5 flex justify-between">
               <span>Volume Crítico:</span>
-              <span className="text-rose-400 font-extrabold">{kpiSummary.criticoCaixasCount.toLocaleString('pt-BR')} cx</span>
+              <span className="text-rose-700 font-extrabold">{kpiSummary.criticoCaixasCount.toLocaleString('pt-BR')} cx</span>
             </div>
           </div>
 
           {/* Card 3: Valoração */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">VALORAÇÃO DE ESTOQUE</span>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-slate-500">VALORAÇÃO DE ESTOQUE</span>
             <div className="flex flex-col mt-1">
-              <span className="text-xs font-black text-rose-400">R$ {kpiSummary.valorationCritico.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-              <span className="text-[9px] font-bold text-slate-400">em risco crítico</span>
+              <span className="text-xs font-black text-rose-600">R$ {kpiSummary.valorationCritico.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              <span className="text-[9px] font-bold text-slate-500">em risco crítico</span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-500 font-bold mt-2 border-t border-slate-200 pt-1.5 flex justify-between">
               <span>Valoração Total:</span>
-              <span className="text-slate-200 font-extrabold">R$ {kpiSummary.valorationTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              <span className="text-slate-800 font-extrabold">R$ {kpiSummary.valorationTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
 
           {/* Card 4: Hectolitro Total */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">HECTOLITROS TOTAL (HL)</span>
+          <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-sky-800">HECTOLITROS TOTAL (HL)</span>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-3xl font-black text-sky-400">{kpiSummary.hectolitroTotal.toLocaleString('pt-BR')}</span>
-              <span className="text-[10px] font-bold text-sky-200">HL</span>
+              <span className="text-3xl font-black text-sky-700">{kpiSummary.hectolitroTotal.toLocaleString('pt-BR')}</span>
+              <span className="text-[10px] font-bold text-sky-900">HL</span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-600 font-bold mt-2 border-t border-sky-200/80 pt-1.5 flex justify-between">
               <span>Volume Total:</span>
-              <span className="text-sky-300 font-extrabold">{validadesRecolhidasDeduplicadas.reduce((a, b) => a + b.quantidade, 0).toLocaleString('pt-BR')} cx</span>
+              <span className="text-sky-800 font-extrabold">{validadesRecolhidasDeduplicadas.reduce((a, b) => a + b.quantidade, 0).toLocaleString('pt-BR')} cx</span>
             </div>
           </div>
 
           {/* Card 5: Quebras de FEFO */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">QUEBRAS DE FEFO</span>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-slate-500">QUEBRAS DE FEFO</span>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className={`text-3xl font-black ${kpiSummary.quebrasFefoTotal > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <span className={`text-3xl font-black ${kpiSummary.quebrasFefoTotal > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
                 {kpiSummary.quebrasFefoTotal}
               </span>
-              <span className="text-[10px] font-bold text-slate-300">desvios</span>
+              <span className="text-[10px] font-bold text-slate-600">desvios</span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-500 font-bold mt-2 border-t border-slate-200 pt-1.5 flex justify-between">
               <span>Status:</span>
-              <span className={kpiSummary.quebrasFefoTotal > 0 ? "text-amber-400 font-black" : "text-emerald-400 font-black"}>
+              <span className={kpiSummary.quebrasFefoTotal > 0 ? "text-amber-700 font-black" : "text-emerald-700 font-black"}>
                 {kpiSummary.quebrasFefoTotal > 0 ? 'Ação Necessária' : 'Zero Quebras'}
               </span>
             </div>
           </div>
 
           {/* Card 6: Aderência ao Giro */}
-          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 flex flex-col justify-between">
-            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">% ADERÊNCIA AO GIRO</span>
+          <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 flex flex-col justify-between shadow-2xs">
+            <span className="text-[9px] uppercase font-black tracking-widest text-emerald-800">% ADERÊNCIA AO GIRO</span>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className={`text-3xl font-black ${kpiSummary.aderenciaGiroPct >= 90 ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <span className={`text-3xl font-black ${kpiSummary.aderenciaGiroPct >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
                 {kpiSummary.aderenciaGiroPct}%
               </span>
             </div>
-            <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-700/40 pt-1.5 flex justify-between">
+            <div className="text-[9px] text-slate-600 font-bold mt-2 border-t border-emerald-200/80 pt-1.5 flex justify-between">
               <span>Operação Empilhador:</span>
-              <span className="text-emerald-400 font-black">Concluídos</span>
+              <span className="text-emerald-700 font-black">Concluídos</span>
             </div>
           </div>
 
         </div>
 
         {/* Mini 12-Month Chart */}
-        <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col gap-2">
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2 shadow-2xs">
           <div className="flex justify-between items-center px-1">
-            <span className="text-[10px] uppercase font-black tracking-widest text-slate-300">
+            <span className="text-[10px] uppercase font-black tracking-widest text-slate-700">
               📈 HISTÓRICO STOCK AGE INDEX ANUAL (JAN-DEZ)
             </span>
-            <span className="text-[9px] font-extrabold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+            <span className="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
               Média do Ano: {kpiSummary.stockAgeAtual}%
             </span>
           </div>
@@ -1889,14 +1929,14 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
               <AreaChart data={kpiSummary.monthlyChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorStockAge" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.7}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.05}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="#334155" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mes" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#fff', fontSize: '10px' }} />
+                <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="mes" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
+                <YAxis domain={[0, 100]} stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a', fontSize: '10px', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                 <Area type="monotone" dataKey="index" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#colorStockAge)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -2246,7 +2286,7 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                           <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-700">
                             {item.palhete > 0 && <span className="font-bold text-purple-700 mr-1.5">🪵 {item.palhete} pl</span>}
                             {item.caixa > 0 && <span className="font-bold text-slate-700">📦 {item.caixa} cx</span>}
-                            {item.palhete === 0 && item.caixa === 0 && <span className="font-bold">{item.totalUnitiesRaw} un</span>}
+                            {item.palhete === 0 && item.caixa === 0 && <span className="font-bold">{item.totalUnitiesRaw} cx</span>}
                           </td>
                         </tr>
                       );
@@ -2516,33 +2556,70 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
           ───────────────────────────────────────────────────────────────── */}
       {activeTab === 'estoque-estoque' && (() => {
         const blocksArray = Object.values(dynamicBlocksData) as BlockData[];
+        const activeBlocks = blocksArray.filter(b => b.skuCount > 0 || (b.ranges.critical + b.ranges.alertMedium + b.ranges.alertLow + b.ranges.safe) > 0);
+        const displayBlocks = activeBlocks.length > 0 ? activeBlocks : blocksArray;
 
-        // 1. Average Validity Data: A1 to C4
-        const avgValidityData = blocksArray.map(b => ({
+        // Helper to get sorted items for any block (lowest remaining shelf-life / critical first)
+        const getBlockItems = (blockId: string) => {
+          return compiledValidades
+            .filter(v => {
+              const rawB = (v.bloco || (v.localizacao === 'picking' ? 'PICKING' : 'A1')).trim().toUpperCase();
+              return rawB === blockId.toUpperCase();
+            })
+            .sort((a, b) => a.days - b.days);
+        };
+
+        // 1. Average Validity Data
+        const avgValidityData = displayBlocks.map(b => ({
           name: b.id,
           avgValidity: b.avgValidity,
+          pallets: b.pallets,
+          items: getBlockItems(b.id),
           color: b.avgValidity > 90 ? '#10b981' : b.avgValidity > 30 ? '#eab308' : '#ef4444'
         }));
 
         // 2. Range Distribution Data
-        const rangeDistributionData = blocksArray.map(b => ({
+        const rangeDistributionData = displayBlocks.map(b => ({
           name: b.id,
           '0-30 dias': b.ranges.critical,
           '31-60 dias': b.ranges.alertMedium,
           '61-90 dias': b.ranges.alertLow,
           '>90 dias': b.ranges.safe,
+          pallets: b.pallets,
+          items: getBlockItems(b.id),
         }));
 
         // 3. Risk Ranking Data: sorted by riskIndex descending
-        const riskRankingData = [...blocksArray]
+        const riskRankingData = [...displayBlocks]
           .sort((a, b) => b.riskIndex - a.riskIndex)
           .map(b => ({
             name: b.id,
             riskIndex: b.riskIndex,
             pallets: b.pallets,
             menorValidade: b.menorValidade,
-            color: b.riskIndex >= 70 ? '#ef4444' : b.riskIndex >= 40 ? '#f97316' : '#10b981'
+            avgValidity: b.avgValidity,
+            items: getBlockItems(b.id),
+            color: b.riskIndex >= 60 ? '#ef4444' : b.riskIndex >= 30 ? '#f97316' : '#10b981'
           }));
+
+        // Block SKUs for detail card sorted with highest criticality (lowest days) first
+        const selectedBlockRows = compiledValidades
+          .filter(v => {
+            const rawB = (v.bloco || (v.localizacao === 'picking' ? 'PICKING' : 'A1')).trim().toUpperCase();
+            return rawB === selectedBlock.toUpperCase();
+          })
+          .sort((a, b) => a.days - b.days);
+
+        const selectedBlockData = dynamicBlocksData[selectedBlock] || {
+          id: selectedBlock,
+          avgValidity: 0,
+          menorValidade: 0,
+          skuCount: 0,
+          pallets: 0,
+          criticalPct: 0,
+          riskIndex: 0,
+          ranges: { critical: 0, alertMedium: 0, alertLow: 0, safe: 0 }
+        };
 
         return (
           <div className="flex flex-col gap-6">
@@ -2560,26 +2637,75 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                     Validade Média por Bloco
                   </h3>
                   <p className="text-[10px] text-gray-400 font-bold mt-0.5">
-                    Comparação da validade média em dias. Cores em escala: Verde (Alta), Amarelo (Média), Vermelho (Baixa).
+                    Comparação da validade média em dias por bloco com base na coleta real. Cores: Verde (&gt;90d), Amarelo (31-90d), Vermelho (≤30d).
                   </p>
                 </div>
 
                 <div className="h-64 w-full mt-4">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={avgValidityData} margin={{ top: 15, right: 10, left: -25, bottom: 5 }}>
+                    <BarChart data={avgValidityData} margin={{ top: 15, right: 15, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} fontWeight="bold" />
-                      <YAxis stroke="#94a3b8" fontSize={9} label={{ value: 'Média de Dias', angle: -90, position: 'insideLeft', style: { fontSize: 8, fill: '#94a3b8', fontWeight: 'bold' } }} />
+                      <YAxis stroke="#94a3b8" fontSize={9} width={35} label={{ value: 'Média (dias)', angle: -90, position: 'insideLeft', style: { fontSize: 8, fill: '#94a3b8', fontWeight: 'bold' } }} />
                       <Tooltip 
+                        wrapperStyle={{ zIndex: 1000, pointerEvents: 'none' }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
+                            const items: typeof compiledValidades = data.items || [];
+                            const totalBoxes = items.reduce((acc, it) => acc + (it.totalUnitiesRaw || 0), 0);
+
                             return (
-                              <div className="bg-white p-2.5 border border-slate-200 rounded-lg shadow-md text-xs font-sans">
-                                <p className="font-black text-[#032b5e] uppercase mb-1">Bloco {data.name}</p>
-                                <p className="text-slate-500 font-bold text-[10px]">
-                                  Validade Média: <span className="text-slate-800 font-mono font-black">{data.avgValidity} dias</span>
-                                </p>
+                              <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl text-xs font-sans w-72 z-50">
+                                <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                                  <p className="font-black text-[#032b5e] uppercase">Bloco {data.name}</p>
+                                  <span className="text-[10px] font-bold font-mono text-slate-500">
+                                    {data.pallets || 0} pal • {totalBoxes} cx
+                                  </span>
+                                </div>
+                                <div className="my-2 bg-slate-50 p-2 rounded-lg text-[10px] text-slate-600 flex justify-between items-center">
+                                  <span>Validade Média:</span>
+                                  <span className="font-black font-mono text-slate-800">{data.avgValidity} dias</span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1.5 flex justify-between">
+                                    <span>Itens no Bloco ({items.length})</span>
+                                    <span>FEFO</span>
+                                  </p>
+                                  {items.length === 0 ? (
+                                    <p className="text-[10px] text-slate-400 italic text-center py-1">Nenhum item registrado.</p>
+                                  ) : (
+                                    <div className="space-y-1.5 max-h-40 overflow-y-auto divide-y divide-slate-100">
+                                      {items.slice(0, 4).map((it, idx) => (
+                                        <div key={idx} className="pt-1.5 first:pt-0">
+                                          <div className="flex items-start justify-between gap-1">
+                                            <p className="text-[10px] font-bold text-slate-800 truncate flex-1" title={it.descricao}>
+                                              {it.descricao}
+                                            </p>
+                                            <span className={`text-[9px] font-bold font-mono px-1 py-0.2 rounded border ${
+                                              it.days <= 30 ? 'bg-red-50 text-red-700 border-red-200' :
+                                              it.days <= 60 ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                              it.days <= 90 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                              'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                            }`}>
+                                              {it.days < 0 ? 'Vencido' : `${it.days}d`}
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-0.5">
+                                            <span>Lote: {it.lote || '—'} • {it.validade}</span>
+                                            <span className="font-bold text-slate-600">{it.totalUnitiesRaw} cx</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      {items.length > 4 && (
+                                        <p className="text-[9px] text-center font-bold text-blue-600 pt-1">
+                                          + {items.length - 4} outros itens
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           }
@@ -2615,27 +2741,70 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                     Distribuição de Validades por Bloco
                   </h3>
                   <p className="text-[10px] text-gray-400 font-bold mt-0.5">
-                    Quantidade de paletes/caixas em cada bloco divididos por faixas de prazo de validade.
+                    Quantidade de caixas em cada bloco divididos por faixas de prazo de validade.
                   </p>
                 </div>
 
                 <div className="h-64 w-full mt-4">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={rangeDistributionData} margin={{ top: 15, right: 10, left: -25, bottom: 5 }}>
+                    <BarChart data={rangeDistributionData} margin={{ top: 15, right: 15, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} fontWeight="bold" />
-                      <YAxis stroke="#94a3b8" fontSize={9} />
+                      <YAxis stroke="#94a3b8" fontSize={9} width={35} />
                       <Tooltip 
+                        wrapperStyle={{ zIndex: 1000, pointerEvents: 'none' }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
+                            const items: typeof compiledValidades = data.items || [];
                             return (
-                              <div className="bg-white p-2.5 border border-slate-200 rounded-lg shadow-md text-xs font-sans">
-                                <p className="font-black text-[#032b5e] uppercase mb-1.5">Bloco {data.name}</p>
-                                <p className="text-red-600 font-bold text-[10px]">0-30 dias: <span className="font-black font-mono">{data['0-30 dias']} un</span></p>
-                                <p className="text-orange-500 font-bold text-[10px]">31-60 dias: <span className="font-black font-mono">{data['31-60 dias']} un</span></p>
-                                <p className="text-yellow-500 font-bold text-[10px]">61-90 dias: <span className="font-black font-mono">{data['61-90 dias']} un</span></p>
-                                <p className="text-emerald-600 font-bold text-[10px]">&gt;90 dias: <span className="font-black font-mono">{data['>90 dias']} un</span></p>
+                              <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl text-xs font-sans w-72 z-50">
+                                <p className="font-black text-[#032b5e] uppercase mb-1.5 pb-1 border-b border-slate-100">Bloco {data.name}</p>
+                                <div className="grid grid-cols-2 gap-1 text-[10px] mb-2">
+                                  <span className="text-red-600 font-bold">0-30d: <strong className="font-mono">{data['0-30 dias']} cx</strong></span>
+                                  <span className="text-orange-500 font-bold">31-60d: <strong className="font-mono">{data['31-60 dias']} cx</strong></span>
+                                  <span className="text-yellow-600 font-bold">61-90d: <strong className="font-mono">{data['61-90 dias']} cx</strong></span>
+                                  <span className="text-emerald-600 font-bold">&gt;90d: <strong className="font-mono">{data['>90 dias']} cx</strong></span>
+                                </div>
+
+                                <div className="pt-1.5 border-t border-slate-100">
+                                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1 flex justify-between">
+                                    <span>Lotes no Bloco ({items.length})</span>
+                                    <span>FEFO</span>
+                                  </p>
+                                  {items.length === 0 ? (
+                                    <p className="text-[10px] text-slate-400 italic text-center py-1">Nenhum item registrado.</p>
+                                  ) : (
+                                    <div className="space-y-1.5 max-h-36 overflow-y-auto divide-y divide-slate-100">
+                                      {items.slice(0, 4).map((it, idx) => (
+                                        <div key={idx} className="pt-1 first:pt-0">
+                                          <div className="flex items-start justify-between gap-1">
+                                            <p className="text-[10px] font-bold text-slate-800 truncate flex-1" title={it.descricao}>
+                                              {it.descricao}
+                                            </p>
+                                            <span className={`text-[8px] font-bold font-mono px-1 rounded ${
+                                              it.days <= 30 ? 'bg-red-100 text-red-700' :
+                                              it.days <= 60 ? 'bg-orange-100 text-orange-700' :
+                                              it.days <= 90 ? 'bg-yellow-100 text-yellow-700' :
+                                              'bg-emerald-100 text-emerald-700'
+                                            }`}>
+                                              {it.days < 0 ? 'Vencido' : `${it.days}d`}
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between text-[9px] text-slate-400 font-mono">
+                                            <span>Lote: {it.lote || '—'}</span>
+                                            <span className="font-bold text-slate-600">{it.totalUnitiesRaw} cx</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      {items.length > 4 && (
+                                        <p className="text-[9px] text-center font-bold text-blue-600 pt-1">
+                                          + {items.length - 4} outros itens
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           }
@@ -2651,12 +2820,30 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-red-50 border border-red-100 p-2.5 rounded-lg mt-3 text-[10px] text-red-700 font-bold leading-relaxed">
-                  ⚠️ <strong>Destaque Operacional:</strong> Os blocos com maior concentração na faixa de <strong>0-30 dias</strong> são: 
-                  <span className="bg-red-600 text-white font-black font-mono px-1.5 py-0.5 rounded ml-1.5 mr-1">C4 (110)</span>,
-                  <span className="bg-red-600 text-white font-black font-mono px-1.5 py-0.5 rounded mr-1">A4 (95)</span>, e 
-                  <span className="bg-red-600 text-white font-black font-mono px-1.5 py-0.5 rounded">B4 (88)</span>.
-                </div>
+                {(() => {
+                  const criticalBlocks = displayBlocks
+                    .filter(b => b.ranges.critical > 0)
+                    .sort((a, b) => b.ranges.critical - a.ranges.critical);
+
+                  if (criticalBlocks.length > 0) {
+                    return (
+                      <div className="bg-red-50 border border-red-200 p-2.5 rounded-lg mt-3 text-[10px] text-red-700 font-bold leading-relaxed flex items-center flex-wrap gap-1">
+                        <span>⚠️ <strong>Destaque Operacional:</strong> Os blocos com maior concentração na faixa de <strong>0-30 dias</strong> são:</span>
+                        {criticalBlocks.slice(0, 4).map(b => (
+                          <span key={b.id} className="bg-red-600 text-white font-black font-mono px-1.5 py-0.5 rounded">
+                            {b.id} ({b.ranges.critical.toLocaleString()} cx)
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg mt-3 text-[10px] text-emerald-700 font-bold leading-relaxed flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span><strong>Destaque Operacional:</strong> Nenhum bloco possui estoque crítico na faixa de 0-30 dias. Todos os lotes estão em faixas seguras.</span>
+                    </div>
+                  );
+                })()}
               </div>
 
             </div>
@@ -2673,36 +2860,106 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                     Ranking de Risco por Bloco
                   </h3>
                   <p className="text-[10px] text-gray-400 font-bold mt-0.5">
-                    Ordenação do maior para o menor risco, baseado na quantidade total e dias restantes. Destaque em vermelho para os blocos críticos.
+                    Ordenação do maior para o menor risco, baseado na proporção de lotes críticos e menor validade.
                   </p>
                 </div>
 
-                <div className="h-64 w-full mt-4">
+                <div className="w-full mt-4" style={{ height: Math.max(270, riskRankingData.length * 30) }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={riskRankingData} layout="vertical" margin={{ top: 5, right: 15, left: -25, bottom: 5 }}>
+                    <BarChart data={riskRankingData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis type="number" stroke="#94a3b8" fontSize={9} fontWeight="bold" domain={[0, 100]} label={{ value: 'Índice de Risco', position: 'insideBottom', offset: -5, style: { fontSize: 8, fill: '#94a3b8', fontWeight: 'bold' } }} />
-                      <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={10} fontWeight="bold" width={35} />
+                      <XAxis type="number" stroke="#94a3b8" fontSize={9} fontWeight="bold" domain={[0, 100]} label={{ value: 'Índice de Risco (0-100)', position: 'insideBottom', offset: -5, style: { fontSize: 8, fill: '#94a3b8', fontWeight: 'bold' } }} />
+                      <YAxis type="category" dataKey="name" stroke="#475569" fontSize={10} fontWeight="bold" width={38} interval={0} />
                       <Tooltip 
+                        wrapperStyle={{ zIndex: 1000, pointerEvents: 'none' }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
-                            const riskStatus = data.riskIndex >= 70 ? 'CRÍTICO' : data.riskIndex >= 40 ? 'MÉDIO' : 'SEGURO';
+                            const riskStatus = data.riskIndex >= 60 ? 'CRÍTICO' : data.riskIndex >= 30 ? 'MÉDIO' : 'SEGURO';
+                            const items: typeof compiledValidades = data.items || [];
+                            const totalBoxes = items.reduce((acc, it) => acc + (it.totalUnitiesRaw || 0), 0);
+                            const criticalCount = items.filter(it => it.days <= 30).length;
+
                             return (
-                              <div className="bg-white p-2.5 border border-slate-200 rounded-lg shadow-md text-xs font-sans">
-                                <p className="font-black text-[#032b5e] uppercase mb-1">Bloco {data.name}</p>
-                                <p className="text-slate-500 font-bold text-[10px]">
-                                  Índice de Risco: <span className="text-slate-800 font-mono font-black">{data.riskIndex}/100</span>
-                                </p>
-                                <p className="text-slate-500 font-bold text-[10px]">
-                                  Menor Validade: <span className="text-slate-800 font-mono font-bold">{data.menorValidade} dias</span>
-                                </p>
-                                <p className="text-slate-500 font-bold text-[10px]">
-                                  Volume Estocado: <span className="text-slate-800 font-mono font-bold">{data.pallets} paletes</span>
-                                </p>
-                                <p className="text-[9px] font-black uppercase text-white px-1.5 py-0.5 rounded mt-1.5 text-center" style={{ backgroundColor: data.color }}>
-                                  STATUS: {riskStatus}
-                                </p>
+                              <div className="bg-white p-3.5 border border-slate-200 rounded-xl shadow-2xl text-xs font-sans w-80 sm:w-88 z-50">
+                                {/* Header */}
+                                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                  <div>
+                                    <p className="font-black text-[#032b5e] uppercase text-xs">Bloco {data.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-mono">{data.pallets} paletes • {totalBoxes} cx</p>
+                                  </div>
+                                  <span 
+                                    className="text-[9px] font-black uppercase text-white px-2 py-0.5 rounded-full shadow-2xs" 
+                                    style={{ backgroundColor: data.color }}
+                                  >
+                                    {riskStatus} ({data.riskIndex}/100)
+                                  </span>
+                                </div>
+
+                                {/* Key Metrics Grid */}
+                                <div className="grid grid-cols-2 gap-2 my-2.5 p-2 bg-slate-50 rounded-lg border border-slate-100 text-[10px]">
+                                  <div>
+                                    <span className="text-slate-400 block font-medium">Menor Validade:</span>
+                                    <strong className="text-slate-800 font-mono text-[11px]">{data.menorValidade} dias</strong>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block font-medium">Lotes Críticos (≤30d):</span>
+                                    <strong className={`font-mono text-[11px] ${criticalCount > 0 ? 'text-red-600 font-black' : 'text-slate-700'}`}>
+                                      {criticalCount} lotes
+                                    </strong>
+                                  </div>
+                                </div>
+
+                                {/* Items / Lotes list */}
+                                <div className="mt-2.5">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                                      📦 Itens no Bloco ({items.length})
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-medium">Ordem FEFO</span>
+                                  </div>
+
+                                  {items.length === 0 ? (
+                                    <p className="text-[10px] text-slate-400 italic py-1.5 text-center">Nenhum lote estocado neste bloco.</p>
+                                  ) : (
+                                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 divide-y divide-slate-100">
+                                      {items.slice(0, 5).map((it, idx) => {
+                                        const isCrit = it.days <= 30;
+                                        const isAlert = it.days > 30 && it.days <= 60;
+                                        const isWarn = it.days > 60 && it.days <= 90;
+                                        const tagColor = isCrit ? 'bg-red-100 text-red-700 border-red-200' : isAlert ? 'bg-orange-100 text-orange-700 border-orange-200' : isWarn ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                                        
+                                        return (
+                                          <div key={`${it.codigo}-${it.lote}-${idx}`} className="pt-1.5 first:pt-0">
+                                            <div className="flex items-start justify-between gap-1.5">
+                                              <div className="truncate flex-1">
+                                                <p className="text-[11px] font-bold text-slate-800 truncate" title={it.descricao}>
+                                                  {it.descricao}
+                                                </p>
+                                                <p className="text-[9px] font-mono text-slate-400">
+                                                  SKU: {it.codigo} • Lote: <strong className="text-slate-600">{it.lote || '—'}</strong>
+                                                </p>
+                                              </div>
+                                              <span className={`text-[9px] font-bold font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${tagColor}`}>
+                                                {it.days < 0 ? '⛔ Vencido' : `${it.days}d`}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-[9px] text-slate-500 font-mono mt-0.5">
+                                              <span>📅 {it.validade}</span>
+                                              <span className="font-bold text-slate-700">{it.totalUnitiesRaw} cx ({Number(it.palhete) || 1} pal)</span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+
+                                      {items.length > 5 && (
+                                        <p className="text-[9px] text-center font-bold text-blue-600 pt-1.5">
+                                          + {items.length - 5} {items.length - 5 === 1 ? 'outro item' : 'outros itens'} no bloco
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           }
@@ -2719,161 +2976,340 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                 </div>
 
                 <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[10px] text-slate-500 leading-normal font-medium">
-                  💡 <strong>Diretriz Operacional:</strong> Os blocos vermelhos indicam que os lotes estocados requerem <strong>expedição imediata</strong> ou <strong>transferência prioritária para picking</strong> para evitar quebra de validade.
+                  💡 <strong>Diretriz Operacional:</strong> Os blocos em vermelho indicam que os lotes estocados requerem <strong>expedição imediata</strong> ou <strong>transferência prioritária para picking</strong>.
                 </div>
               </div>
 
               {/* 4. Heat Map de Validade dos Blocos */}
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded font-black tracking-wider uppercase">
-                    Layout Físico
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded font-black tracking-wider uppercase">
+                      Layout Físico (A1–A6, B1–B3, C1–C3)
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold">
+                      Clique no bloco para auditar itens
+                    </span>
+                  </div>
                   <h3 className="font-sans font-black text-xs uppercase text-[#032b5e] tracking-wider mt-2.5">
-                    Mapa de Validade por Bloco
+                    Mapa Físico de Validade por Bloco
                   </h3>
                   <p className="text-[10px] text-gray-400 font-bold mt-0.5">
-                    Representação física do armazém. Clique em um bloco para ver a auditoria detalhada de SKUs, paletes e menor validade.
+                    Representação física do armazém. Ao selecionar um bloco, os produtos são listados com prioridade máxima para os lotes mais críticos (menor validade).
                   </p>
                 </div>
 
                 {/* Interactive Warehouse Grid and details side-by-side */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-4">
                   
-                  {/* 3x4 Grid Layout of the Warehouse */}
-                  <div className="md:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col justify-center">
-                    <div className="text-center font-black text-[9px] uppercase tracking-wider text-slate-400 mb-2 font-mono">
-                      ▲ CORREDOR OPERACIONAL / ENTRADA ▲
+                  {/* Grid Layout of the Warehouse (A1-A6, B1-B3, C1-C3) */}
+                  <div className="lg:col-span-6 bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3">
+                    <div className="text-center font-black text-[9px] uppercase tracking-wider text-slate-500 font-mono py-1 bg-slate-200/70 rounded-md border border-slate-300 flex items-center justify-center gap-1.5">
+                      <span>▲ CORREDOR OPERACIONAL / ENTRADA DO PICKING ▲</span>
                     </div>
                     
-                    <div className="grid grid-cols-4 gap-2">
-                      {/* Headers */}
-                      <div className="col-span-4 grid grid-cols-4 gap-2 text-center text-[9px] font-bold text-slate-400 uppercase font-mono">
-                        <span>SEC 1</span>
-                        <span>SEC 2</span>
-                        <span>SEC 3</span>
-                        <span>SEC 4</span>
+                    {/* Bloco A: A1 - A6 */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-black text-emerald-800 uppercase px-0.5">
+                        <span>Bloco A (Ruas A1 a A6 — Curva A / Alta Rotatividade)</span>
+                        <span className="text-[8px] font-mono text-emerald-600 font-bold">6 Ruas</span>
                       </div>
+                      <div className="grid grid-cols-6 gap-1.5">
+                        {['A1', 'A2', 'A3', 'A4', 'A5', 'A6'].map((id) => {
+                          const b = dynamicBlocksData[id];
+                          const isSelected = selectedBlock === id;
+                          const hasItems = b && b.skuCount > 0;
+                          let colorClass = 'bg-slate-100 text-slate-400 border border-dashed border-slate-300 hover:bg-slate-200';
+                          if (hasItems) {
+                            if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600 shadow-sm';
+                            else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600 shadow-sm';
+                            else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-sm';
+                            else colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm';
+                          }
 
-                      {/* Row A */}
-                      {['A1', 'A2', 'A3', 'A4'].map((id) => {
-                        const b = dynamicBlocksData[id] || BLOCKS_DATA[id];
-                        const isSelected = selectedBlock === id;
-                        let colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600';
-                        if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600';
-                        else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600';
-                        else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-800 hover:bg-yellow-600';
-
-                        return (
-                          <button
-                            key={id}
-                            onClick={() => setSelectedBlock(id)}
-                            className={`p-3 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
-                              isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10' : 'opacity-90 shadow-sm'
-                            }`}
-                          >
-                            <span className="font-black text-xs">{id}</span>
-                            <span className="text-[8px] font-bold font-mono mt-0.5">{b.menorValidade} dias</span>
-                          </button>
-                        );
-                      })}
-
-                      {/* Row B */}
-                      {['B1', 'B2', 'B3', 'B4'].map((id) => {
-                        const b = dynamicBlocksData[id] || BLOCKS_DATA[id];
-                        const isSelected = selectedBlock === id;
-                        let colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600';
-                        if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600';
-                        else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600';
-                        else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-800 hover:bg-yellow-600';
-
-                        return (
-                          <button
-                            key={id}
-                            onClick={() => setSelectedBlock(id)}
-                            className={`p-3 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
-                              isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10' : 'opacity-90 shadow-sm'
-                            }`}
-                          >
-                            <span className="font-black text-xs">{id}</span>
-                            <span className="text-[8px] font-bold font-mono mt-0.5">{b.menorValidade} dias</span>
-                          </button>
-                        );
-                      })}
-
-                      {/* Row C */}
-                      {['C1', 'C2', 'C3', 'C4'].map((id) => {
-                        const b = dynamicBlocksData[id] || BLOCKS_DATA[id];
-                        const isSelected = selectedBlock === id;
-                        let colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600';
-                        if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600';
-                        else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600';
-                        else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-800 hover:bg-yellow-600';
-
-                        return (
-                          <button
-                            key={id}
-                            onClick={() => setSelectedBlock(id)}
-                            className={`p-3 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
-                              isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10' : 'opacity-90 shadow-sm'
-                            }`}
-                          >
-                            <span className="font-black text-xs">{id}</span>
-                            <span className="text-[8px] font-bold font-mono mt-0.5">{b.menorValidade} dias</span>
-                          </button>
-                        );
-                      })}
+                          return (
+                            <button
+                              key={id}
+                              onClick={() => setSelectedBlock(id)}
+                              className={`p-2 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
+                                isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10 font-bold' : 'opacity-95'
+                              }`}
+                            >
+                              <span className="font-black text-xs">{id}</span>
+                              <span className="text-[8px] font-bold font-mono mt-0.5 whitespace-nowrap">
+                                {hasItems ? (b.menorValidade <= 0 ? 'VENCIDO' : `${b.menorValidade}d`) : 'Vazio'}
+                              </span>
+                              {hasItems && (
+                                <span className="text-[7px] font-medium opacity-85 mt-0.5">
+                                  {b.skuCount} {b.skuCount === 1 ? 'SKU' : 'SKUs'}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    <div className="flex justify-center items-center gap-2 mt-3 flex-wrap text-[8px] font-black uppercase text-slate-400 tracking-wider">
+                    {/* Bloco B: B1 - B3 */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-black text-sky-800 uppercase px-0.5">
+                        <span>Bloco B (Ruas B1 a B3 — Curva B / Médio Giro)</span>
+                        <span className="text-[8px] font-mono text-sky-600 font-bold">3 Ruas</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['B1', 'B2', 'B3'].map((id) => {
+                          const b = dynamicBlocksData[id];
+                          const isSelected = selectedBlock === id;
+                          const hasItems = b && b.skuCount > 0;
+                          let colorClass = 'bg-slate-100 text-slate-400 border border-dashed border-slate-300 hover:bg-slate-200';
+                          if (hasItems) {
+                            if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600 shadow-sm';
+                            else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600 shadow-sm';
+                            else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-sm';
+                            else colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm';
+                          }
+
+                          return (
+                            <button
+                              key={id}
+                              onClick={() => setSelectedBlock(id)}
+                              className={`p-2.5 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
+                                isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10 font-bold' : 'opacity-95'
+                              }`}
+                            >
+                              <span className="font-black text-xs">{id}</span>
+                              <span className="text-[8px] font-bold font-mono mt-0.5 whitespace-nowrap">
+                                {hasItems ? (b.menorValidade <= 0 ? 'VENCIDO' : `${b.menorValidade} dias`) : 'Vazio'}
+                              </span>
+                              {hasItems && (
+                                <span className="text-[8px] font-medium opacity-90 mt-0.5">
+                                  {b.skuCount} SKUs ({b.pallets} pal)
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Bloco C: C1 - C3 */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-black text-amber-800 uppercase px-0.5">
+                        <span>Bloco C (Ruas C1 a C3 — Curva C / Menor Giro / Fundo)</span>
+                        <span className="text-[8px] font-mono text-amber-600 font-bold">3 Ruas</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['C1', 'C2', 'C3'].map((id) => {
+                          const b = dynamicBlocksData[id];
+                          const isSelected = selectedBlock === id;
+                          const hasItems = b && b.skuCount > 0;
+                          let colorClass = 'bg-slate-100 text-slate-400 border border-dashed border-slate-300 hover:bg-slate-200';
+                          if (hasItems) {
+                            if (b.menorValidade <= 30) colorClass = 'bg-red-500 text-white hover:bg-red-600 shadow-sm';
+                            else if (b.menorValidade <= 60) colorClass = 'bg-orange-500 text-white hover:bg-orange-600 shadow-sm';
+                            else if (b.menorValidade <= 90) colorClass = 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-sm';
+                            else colorClass = 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm';
+                          }
+
+                          return (
+                            <button
+                              key={id}
+                              onClick={() => setSelectedBlock(id)}
+                              className={`p-2.5 rounded-lg text-center font-sans transition-all duration-150 relative cursor-pointer border-none flex flex-col items-center justify-center ${colorClass} ${
+                                isSelected ? 'ring-4 ring-offset-2 ring-slate-800 shadow-lg scale-105 z-10 font-bold' : 'opacity-95'
+                              }`}
+                            >
+                              <span className="font-black text-xs">{id}</span>
+                              <span className="text-[8px] font-bold font-mono mt-0.5 whitespace-nowrap">
+                                {hasItems ? (b.menorValidade <= 0 ? 'VENCIDO' : `${b.menorValidade} dias`) : 'Vazio'}
+                              </span>
+                              {hasItems && (
+                                <span className="text-[8px] font-medium opacity-90 mt-0.5">
+                                  {b.skuCount} SKUs ({b.pallets} pal)
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex justify-center items-center gap-2 pt-2 border-t border-slate-200 flex-wrap text-[8px] font-black uppercase text-slate-400 tracking-wider">
                       <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-500 rounded" /> &gt;90d</span>
                       <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-yellow-500 rounded" /> 61-90d</span>
                       <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-orange-500 rounded" /> 31-60d</span>
                       <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-red-500 rounded" /> ≤30d</span>
+                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-slate-200 border border-slate-300 rounded" /> Vazio</span>
                     </div>
                   </div>
 
                   {/* Audit details side card for selected block */}
-                  <div className="md:col-span-5 bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between font-sans">
+                  <div className="lg:col-span-6 bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between font-sans shadow-sm">
                     <div>
-                      <h4 className="text-[10px] font-black text-[#032b5e] uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-200">
-                        Detalhamento: Bloco {selectedBlock}
-                      </h4>
+                      {/* Header */}
+                      <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
+                        <div>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Inspecionando Localização</span>
+                          <h4 className="text-sm font-black text-[#032b5e] uppercase tracking-wider">
+                            Bloco {selectedBlock}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700 shadow-2xs">
+                            {selectedBlockRows.length} lotes
+                          </span>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${
+                            selectedBlockData.skuCount === 0
+                              ? 'bg-slate-200 text-slate-600'
+                              : selectedBlockData.menorValidade <= 30
+                              ? 'bg-red-500 text-white'
+                              : selectedBlockData.menorValidade <= 60
+                              ? 'bg-orange-500 text-white'
+                              : selectedBlockData.menorValidade <= 90
+                              ? 'bg-yellow-500 text-slate-900'
+                              : 'bg-emerald-500 text-white'
+                          }`}>
+                            {selectedBlockData.skuCount === 0 ? 'Vazio' : selectedBlockData.menorValidade <= 0 ? 'Vencido' : `${selectedBlockData.menorValidade}d Min`}
+                          </span>
+                        </div>
+                      </div>
                       
-                      <div className="space-y-2 text-xs">
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-slate-500 font-bold text-[10px] uppercase">SKUs Ativos</span>
-                          <span className="font-mono font-black text-slate-800">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).skuCount || 0} SKUs</span>
+                      {/* Stat Metrics */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-slate-400 font-bold text-[8px] uppercase block">SKUs Ativos</span>
+                          <span className="font-mono font-black text-xs text-slate-800">{selectedBlockData.skuCount || 0} SKUs</span>
                         </div>
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-slate-500 font-bold text-[10px] uppercase">Paletes Totais</span>
-                          <span className="font-mono font-black text-slate-800">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).pallets || 0} un</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-slate-400 font-bold text-[8px] uppercase block">Paletes / Caixas</span>
+                          <span className="font-mono font-black text-xs text-slate-800">{selectedBlockData.pallets || 0} pal</span>
+                          <span className="text-[9px] font-mono text-slate-500 block">({selectedBlockRows.reduce((a, b) => a + b.totalUnities, 0).toLocaleString()} cx)</span>
                         </div>
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-slate-500 font-bold text-[10px] uppercase">Menor Validade</span>
-                          <span className="font-mono font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).menorValidade || 0} dias</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-slate-400 font-bold text-[8px] uppercase block">Menor Validade</span>
+                          <span className={`font-mono font-black text-xs block ${
+                            selectedBlockData.skuCount > 0 && selectedBlockData.menorValidade <= 30
+                              ? 'text-red-600'
+                              : selectedBlockData.skuCount > 0 && selectedBlockData.menorValidade <= 60
+                              ? 'text-orange-600'
+                              : 'text-slate-800'
+                          }`}>
+                            {selectedBlockData.skuCount > 0 ? (selectedBlockData.menorValidade <= 0 ? '⛔ 0 dias' : `${selectedBlockData.menorValidade} dias`) : '-'}
+                          </span>
                         </div>
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-slate-500 font-bold text-[10px] uppercase">Validade Média</span>
-                          <span className="font-mono font-black text-slate-800">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).avgValidity || 0} dias</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-slate-400 font-bold text-[8px] uppercase block">Média Validade</span>
+                          <span className="font-mono font-black text-xs text-slate-800">
+                            {selectedBlockData.skuCount > 0 ? `${selectedBlockData.avgValidity} dias` : '-'}
+                          </span>
                         </div>
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-slate-500 font-bold text-[10px] uppercase">Lotes Críticos (≤30d)</span>
-                          <span className="font-mono font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).criticalPct || 0}%</span>
+                      </div>
+
+                      {/* Products List Ordered by Criticality (Lowest Days First) */}
+                      <div className="pt-2 border-t border-slate-200">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <p className="text-[10px] font-black text-slate-700 uppercase flex items-center gap-1.5">
+                            <span>📦 Produtos no Bloco {selectedBlock}:</span>
+                            <span className="text-[8px] bg-red-100 text-red-700 px-1.5 py-0.2 rounded font-mono font-bold">
+                              Maior Criticidade 1º
+                            </span>
+                          </p>
+                          <span className="text-[9px] text-slate-400 font-mono">
+                            {selectedBlockRows.length} item(ns)
+                          </span>
                         </div>
+
+                        {selectedBlockRows.length === 0 ? (
+                          <div className="p-4 bg-white rounded-lg border border-dashed border-slate-300 text-center text-slate-400 text-xs">
+                            <span className="text-lg block mb-1">📭</span>
+                            Nenhum lote estocado no <strong>Bloco {selectedBlock}</strong> na coleta atual.
+                          </div>
+                        ) : (
+                          <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                            {selectedBlockRows.map((r, i) => {
+                              const isExpired = r.days <= 0;
+                              const isCritical = r.days <= 30;
+                              const isAlert = r.days <= 60;
+                              const isAttention = r.days <= 90;
+                              
+                              let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                              let badgeText = `${r.days}d`;
+                              if (isExpired) {
+                                badgeColor = 'bg-rose-600 text-white font-black border-rose-700 animate-pulse';
+                                badgeText = '⛔ VENCIDO (0d)';
+                              } else if (isCritical) {
+                                badgeColor = 'bg-red-500 text-white font-black border-red-600';
+                                badgeText = `🔴 ${r.days}d (Crítico)`;
+                              } else if (isAlert) {
+                                badgeColor = 'bg-orange-500 text-white font-bold border-orange-600';
+                                badgeText = `🟠 ${r.days}d (Alerta)`;
+                              } else if (isAttention) {
+                                badgeColor = 'bg-yellow-400 text-slate-900 font-bold border-yellow-500';
+                                badgeText = `🟡 ${r.days}d`;
+                              }
+
+                              return (
+                                <div 
+                                  key={i} 
+                                  className={`p-2 rounded-lg border transition-all text-xs ${
+                                    isCritical || isExpired
+                                      ? 'bg-red-50/70 border-red-200 hover:bg-red-50'
+                                      : isAlert
+                                      ? 'bg-orange-50/50 border-orange-200 hover:bg-orange-50'
+                                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="font-mono text-[9px] font-black text-slate-400 bg-slate-100 px-1 rounded">
+                                          #{i + 1}
+                                        </span>
+                                        <span className="font-mono text-[10px] font-bold text-slate-500">
+                                          {r.codigo}
+                                        </span>
+                                        {r.lote && (
+                                          <span className="text-[9px] font-mono bg-slate-100 px-1 py-0.2 rounded text-slate-600 border border-slate-200">
+                                            Lote: {r.lote}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <h5 className="font-bold text-slate-800 text-xs mt-0.5 truncate" title={r.descricao}>
+                                        {r.descricao}
+                                      </h5>
+                                      <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-500 font-mono">
+                                        <span>📅 Validade: <strong className="text-slate-700">{r.validade}</strong></span>
+                                        <span>•</span>
+                                        <span>📦 {Number(r.palhete) || 1} pal ({r.totalUnities.toLocaleString()} cx)</span>
+                                      </div>
+                                    </div>
+
+                                    {/* Priority Badge */}
+                                    <div className="text-right shrink-0">
+                                      <span className={`inline-block text-[9px] px-2 py-0.5 rounded border font-mono ${badgeColor}`}>
+                                        {badgeText}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Progress bar representing critical % */}
                     <div className="mt-3 pt-2 border-t border-slate-200">
-                      <div className="flex justify-between text-[9px] font-bold text-slate-400 mb-1">
-                        <span>PERCENTUAL CRÍTICO (≤30d)</span>
-                        <span className="text-red-500 font-black">{(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).criticalPct || 0}%</span>
+                      <div className="flex justify-between text-[9px] font-bold text-slate-500 mb-1">
+                        <span>PERCENTUAL CRÍTICO (≤30d) NO BLOCO {selectedBlock}</span>
+                        <span className="text-red-500 font-black">{selectedBlockData.criticalPct || 0}%</span>
                       </div>
                       <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full ${((dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).criticalPct || 0) > 50 ? 'bg-red-500' : 'bg-amber-500'} transition-all duration-300`} 
-                          style={{ width: `${(dynamicBlocksData[selectedBlock] || BLOCKS_DATA[selectedBlock] || {}).criticalPct || 0}%` }} 
+                          className={`h-full ${(selectedBlockData.criticalPct || 0) > 50 ? 'bg-red-500' : 'bg-amber-500'} transition-all duration-300`} 
+                          style={{ width: `${selectedBlockData.criticalPct || 0}%` }} 
                         />
                       </div>
                     </div>
@@ -3057,7 +3493,7 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                   <tbody className="divide-y divide-gray-100">
                     <tr className="hover:bg-slate-50/50">
                       <td className="p-3 font-bold text-slate-800">Validade Média por Bloco</td>
-                      <td className="p-3 text-slate-600">Comparar a validade média entre os blocos A1–C4</td>
+                      <td className="p-3 text-slate-600">Comparar a validade média entre os blocos A1–C3</td>
                       <td className="p-3 text-slate-700 font-medium">Identificar blocos com estoque mais antigo.</td>
                     </tr>
                     <tr className="hover:bg-slate-50/50">
@@ -3072,7 +3508,7 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
                     </tr>
                     <tr className="hover:bg-slate-50/50">
                       <td className="p-3 font-bold text-slate-800">Heat Map dos Blocos</td>
-                      <td className="p-3 text-slate-600">Localizar visualmente os blocos críticos</td>
+                      <td className="p-3 text-slate-600">Localizar visualmente os blocos críticos (A1–A6, B1–B3, C1–C3)</td>
                       <td className="p-3 text-slate-700 font-medium">Facilitar a tomada de decisão rápida e o acompanhamento operacional.</td>
                     </tr>
                   </tbody>
@@ -3081,16 +3517,16 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
             </div>
 
             {/* MATRIZ DE CORRELAÇÃO DE BLOCOS / REGRAS DE LAYOUT (TAREFA 21) */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl border border-slate-700 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-4 mb-5">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-5">
                 <div>
-                  <span className="text-[10px] font-black tracking-[2px] uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                  <span className="text-[10px] font-black tracking-[2px] uppercase text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
                     Matriz de Correlação de Layout (SOP-LOG-021)
                   </span>
-                  <h3 className="font-sans font-black text-sm uppercase text-white tracking-wider mt-2 flex items-center gap-2">
+                  <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider mt-2.5 flex items-center gap-2">
                     🏢 Regras de Posicionamento Físico: Bloco x Curva ABC x Distância do Picking
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Critério operacional de produtividade e otimização de fluxo de movimentação para auditoria FEFO.
                   </p>
                 </div>
@@ -3098,60 +3534,62 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* BLOCO A */}
-                <div className="bg-slate-800/80 p-4 rounded-xl border-l-4 border-emerald-500 border-t border-r border-b border-slate-700">
+                <div className="bg-emerald-50/40 p-4 rounded-xl border-l-4 border-emerald-500 border-t border-r border-b border-emerald-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-emerald-400">BLOCO A (Ruas A1–A4)</span>
-                    <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded uppercase">Curva A</span>
+                    <span className="font-black text-sm text-emerald-800">BLOCO A (Ruas A1–A6)</span>
+                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase border border-emerald-200">Curva A</span>
                   </div>
-                  <p className="text-xs text-slate-200 font-medium mb-2">
+                  <p className="text-xs text-slate-700 font-medium mb-2">
                     📍 <strong>Posicionamento:</strong> Mais próximo do Picking.
                   </p>
-                  <div className="bg-slate-900/80 p-2.5 rounded-lg text-[11px] text-slate-300 space-y-1 border border-slate-700/60">
+                  <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-emerald-100/80 shadow-2xs">
                     <p>• <strong>Entrada do Picking:</strong> Quanto menor o número da rua, mais próxima do Picking.</p>
-                    <p>• <strong className="text-emerald-400">Rua A1:</strong> Mais próxima da entrada do Picking.</p>
-                    <p>• <strong>Rua A4:</strong> Mais distante dentro do Bloco A.</p>
+                    <p>• <strong className="text-emerald-700">Rua A1:</strong> Mais próxima da entrada do Picking.</p>
+                    <p>• <strong>Ruas A1 a A6:</strong> Extensão frontal do Bloco A para produtos de alto giro.</p>
                   </div>
                 </div>
 
                 {/* BLOCO B */}
-                <div className="bg-slate-800/80 p-4 rounded-xl border-l-4 border-sky-500 border-t border-r border-b border-slate-700">
+                <div className="bg-sky-50/40 p-4 rounded-xl border-l-4 border-sky-500 border-t border-r border-b border-sky-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-sky-400">BLOCO B (Ruas B1–B4)</span>
-                    <span className="text-[10px] font-bold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded uppercase">Curva B</span>
+                    <span className="font-black text-sm text-sky-800">BLOCO B (Ruas B1–B3)</span>
+                    <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded uppercase border border-sky-200">Curva B</span>
                   </div>
-                  <p className="text-xs text-slate-200 font-medium mb-2">
+                  <p className="text-xs text-slate-700 font-medium mb-2">
                     📍 <strong>Posicionamento:</strong> Centro do Armazém.
                   </p>
-                  <div className="bg-slate-900/80 p-2.5 rounded-lg text-[11px] text-slate-300 space-y-1 border border-slate-700/60">
+                  <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-sky-100/80 shadow-2xs">
                     <p>• Destinado a produtos de <strong>médio giro</strong> (Curva B de vendas).</p>
-                    <p>• Ruas <strong>B1, B2, B3 e B4</strong> localizadas na zona central.</p>
+                    <p>• Ruas <strong>B1, B2 e B3</strong> localizadas na zona central.</p>
                     <p>• Oferece equilíbrio entre tempo de percurso e capacidade.</p>
                   </div>
                 </div>
 
                 {/* BLOCO C */}
-                <div className="bg-slate-800/80 p-4 rounded-xl border-l-4 border-amber-500 border-t border-r border-b border-slate-700">
+                <div className="bg-amber-50/40 p-4 rounded-xl border-l-4 border-amber-500 border-t border-r border-b border-amber-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-amber-400">BLOCO C (Ruas C1–C4)</span>
-                    <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded uppercase">Menor Giro / Curva C</span>
+                    <span className="font-black text-sm text-amber-800">BLOCO C (Ruas C1–C3)</span>
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase border border-amber-200">Menor Giro / Curva C</span>
                   </div>
-                  <p className="text-xs text-slate-200 font-medium mb-2">
+                  <p className="text-xs text-slate-700 font-medium mb-2">
                     📍 <strong>Posicionamento:</strong> Final do Armazém.
                   </p>
-                  <div className="bg-slate-900/80 p-2.5 rounded-lg text-[11px] text-slate-300 space-y-1 border border-slate-700/60">
+                  <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-amber-100/80 shadow-2xs">
                     <p>• Destinado a produtos de <strong>menor giro / baixo volume</strong> (Curva C).</p>
-                    <p>• Ruas <strong>C1, C2, C3 e C4</strong> mais distantes do Picking.</p>
+                    <p>• Ruas <strong>C1, C2 e C3</strong> mais distantes do Picking.</p>
                     <p>• Preserva áreas nobres (Blocos A e B) para produtos de maior giro.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 bg-slate-900/90 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🚫</span>
                   <span><strong>Regra Especial PNC:</strong> Produtos bloqueados em <strong>PNC</strong> ficam fora da matriz de blocos do armazém (área isolada de produto não conforme).</span>
                 </div>
-                <span className="text-[10px] bg-slate-800 text-slate-400 px-2.5 py-1 rounded-md font-mono whitespace-nowrap">Matriz Ativa no Algoritmo FEFO</span>
+                <span className="text-[10px] bg-white text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md font-mono whitespace-nowrap shadow-2xs font-bold">
+                  Matriz Ativa no Algoritmo FEFO
+                </span>
               </div>
             </div>
 

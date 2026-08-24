@@ -28,7 +28,7 @@ export const OperationalCollaboratorPnpBanner: React.FC<OperationalCollaboratorP
   user,
   theme = 'dark'
 }) => {
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['repack', 'despejo', 'quebras']);
   const [showModal, setShowModal] = useState(false);
 
   const userIdent = user?.nome || user?.email || user?.uid || '';

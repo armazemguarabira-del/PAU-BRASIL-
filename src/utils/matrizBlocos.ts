@@ -126,23 +126,23 @@ export function getBlocoIdealParaCurva(curva: string): {
   if (c === 'A') {
     return {
       blocoIdeal: 'Bloco A',
-      ruasRecomendadas: ['A1', 'A2', 'A3', 'A4'],
+      ruasRecomendadas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'],
       descricao: 'Produtos de Curva A (Alta Rotatividade) devem ficar no Bloco A, preferencialmente na Rua A1 (mais próxima do Picking).',
-      distanciaIdealDesc: 'Próximo do Picking (A1 a A4)'
+      distanciaIdealDesc: 'Próximo do Picking (A1 a A6)'
     };
   } else if (c === 'B') {
     return {
       blocoIdeal: 'Bloco B',
-      ruasRecomendadas: ['B1', 'B2', 'B3', 'B4'],
+      ruasRecomendadas: ['B1', 'B2', 'B3'],
       descricao: 'Produtos de Curva B (Médio Giro) devem ser posicionados no Bloco B, no centro do armazém.',
-      distanciaIdealDesc: 'Centro do Armazém (B1 a B4)'
+      distanciaIdealDesc: 'Centro do Armazém (B1 a B3)'
     };
   } else {
     return {
       blocoIdeal: 'Bloco C',
-      ruasRecomendadas: ['C1', 'C2', 'C3', 'C4'],
+      ruasRecomendadas: ['C1', 'C2', 'C3'],
       descricao: 'Produtos de Curva C (Menor Giro) devem ser estocados no Bloco C, no final do armazém.',
-      distanciaIdealDesc: 'Final do Armazém (C1 a C4)'
+      distanciaIdealDesc: 'Final do Armazém (C1 a C3)'
     };
   }
 }

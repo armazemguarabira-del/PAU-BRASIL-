@@ -12,6 +12,7 @@ import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { Checklist5SModal } from './Checklist5SModal';
 import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
+import { ImportRrJsonModal } from './ImportRrJsonModal';
 import LogisticaDashboard from './LogisticaDashboard';
 import TmrDashboard from './TmrDashboard';
 import SimulacaoAcoesPanel from './SimulacaoAcoesPanel';
@@ -47,7 +48,8 @@ import {
   ChevronDown,
   BookOpen,
   ShieldCheck,
-  ClipboardCheck
+  ClipboardCheck,
+  FileCode
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -119,6 +121,7 @@ export default function PickingDashboard({ user, empresa, onBack, theme = 'dark'
   const [alertGeneratedNotice, setAlertGeneratedNotice] = useState<string | null>(null);
   const [isPopModalOpen, setIsPopModalOpen] = useState(false);
   const [is5SModalOpen, setIs5SModalOpen] = useState(false);
+  const [showImportRrModal, setShowImportRrModal] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
   
   const empresaId = empresa?.id || 'demo';
@@ -150,7 +153,7 @@ export default function PickingDashboard({ user, empresa, onBack, theme = 'dark'
 
   const [colaboradores, setColaboradores] = useState<any[]>([]);
 
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['tarefas', 'colaboradores', 'acoes']);
 
   // Synchronize colaboradores from empresaData or cache
   useEffect(() => {
@@ -1533,6 +1536,14 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
           </a>
 
           <button 
+            onClick={() => setShowImportRrModal(true)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider"
+            title="Importar arquivo JSON de Ressuprimento (R&R) Concluído"
+          >
+            <FileCode className="w-3.5 h-3.5" /> Importar JSON R/R
+          </button>
+
+          <button 
             onClick={handleExportXLSX}
             className="px-3.5 py-1.5 text-xs font-black bg-emerald-50 hover:bg-emerald-100 text-[#10b981] border border-emerald-200 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
           >
@@ -2764,6 +2775,17 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
         onClose={() => setIs5SModalOpen(false)}
         defaultSetor="Picking"
         user={user}
+      />
+
+      {/* MODAL DE IMPORTAÇÃO JSON R&R (RESSUPRIMENTO) */}
+      <ImportRrJsonModal
+        isOpen={showImportRrModal}
+        onClose={() => setShowImportRrModal(false)}
+        empresaId={empresaId}
+        onSuccess={() => {
+          // reload event is dispatched automatically
+        }}
+        theme={theme}
       />
 
         </div>

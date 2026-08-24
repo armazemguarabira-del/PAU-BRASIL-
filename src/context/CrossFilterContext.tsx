@@ -36,50 +36,63 @@ export interface CrossFilterContextType {
   ) => T[];
 }
 
-// Helper functions for packaging and product groups
+// Memoized cache for fast packaging and group lookups
+const embalagemNameCache = new Map<string, string>();
+const grupoNameCache = new Map<string, string>();
+
 export const getEmbalagemName = (desc: string): string => {
-  const d = (desc || '').toUpperCase();
-  if (d.includes('600')) return 'Garrafa 600ml';
-  if (d.includes('300') || d.includes('RF') || d.includes('ROMANI') || d.includes('RETORNÁVEL') || d.includes('RETORNAVEL')) return 'Garrafa 300ml';
-  if (d.includes('473') || d.includes('LATÃO') || d.includes('LATAO') || d.includes('SLEEK')) return 'Lata 473ml';
-  if (d.includes('350') || d.includes('355') || d.includes('269') || d.includes('LATA') || d.includes('LT')) return 'Lata 350ml/269ml';
-  if (d.includes('LN') || d.includes('LONG') || d.includes('330') || d.includes('275')) return 'Long Neck';
-  if (d.includes('1L') || d.includes('1 L') || d.includes('LITRÃO') || d.includes('LITRAO') || d.includes('1000')) return 'Garrafa 1L';
-  if (d.includes('PET') || d.includes('2L') || d.includes('1.5L')) return 'PET';
-  return 'Outras Embalagens';
+  if (!desc) return 'Outras Embalagens';
+  const cached = embalagemNameCache.get(desc);
+  if (cached !== undefined) return cached;
+
+  const d = desc.toUpperCase();
+  let res = 'Outras Embalagens';
+  if (d.includes('600')) res = 'Garrafa 600ml';
+  else if (d.includes('300') || d.includes('RF') || d.includes('ROMANI') || d.includes('RETORNÁVEL') || d.includes('RETORNAVEL')) res = 'Garrafa 300ml';
+  else if (d.includes('473') || d.includes('LATÃO') || d.includes('LATAO') || d.includes('SLEEK')) res = 'Lata 473ml';
+  else if (d.includes('350') || d.includes('355') || d.includes('269') || d.includes('LATA') || d.includes('LT')) res = 'Lata 350ml/269ml';
+  else if (d.includes('LN') || d.includes('LONG') || d.includes('330') || d.includes('275')) res = 'Long Neck';
+  else if (d.includes('1L') || d.includes('1 L') || d.includes('LITRÃO') || d.includes('LITRAO') || d.includes('1000')) res = 'Garrafa 1L';
+  else if (d.includes('PET') || d.includes('2L') || d.includes('1.5L')) res = 'PET';
+
+  embalagemNameCache.set(desc, res);
+  return res;
 };
 
 export const getGrupoName = (desc: string): string => {
-  const d = (desc || '').toUpperCase();
+  if (!desc) return 'Cervejas';
+  const cached = grupoNameCache.get(desc);
+  if (cached !== undefined) return cached;
+
+  const d = desc.toUpperCase();
+  let res = 'Cervejas';
   if (
     d.includes('GUARANA') || d.includes('PEPSI') || d.includes('SUKITA') || 
     d.includes('SODA') || d.includes('H2OH') || d.includes('TONICA') || d.includes('CITRUS')
   ) {
-    return 'Refrigerantes';
-  }
-  if (
+    res = 'Refrigerantes';
+  } else if (
     d.includes('RED BULL') || d.includes('GATORADE') || d.includes('MONSTER') || d.includes('TNT')
   ) {
-    return 'Energéticos & NABS';
-  }
-  if (
+    res = 'Energéticos & NABS';
+  } else if (
     d.includes('AGUA') || d.includes('ÁGUA') || d.includes('INDAIA') || 
     d.includes('INDAIÁ') || d.includes('DAVILA') || d.includes('SUCO') || d.includes('DEL VALLE')
   ) {
-    return 'Águas & Sucos';
-  }
-  if (
+    res = 'Águas & Sucos';
+  } else if (
     d.includes('BEATS') || d.includes('SMIRNOFF') || d.includes('WALKER') || 
     d.includes('TANQUERAY') || d.includes('PITU') || d.includes('PITÚ') || 
     d.includes('WHISKY') || d.includes('GIN') || d.includes('VODKA') || 
     d.includes('BALLANTINES') || d.includes('PASSPORT') || d.includes('ICE')
   ) {
-    return 'Destilados & Beats';
+    res = 'Destilados & Beats';
+  } else if (d.includes('TRIDENT') || d.includes('HALLS')) {
+    res = 'Confeitaria / Outros';
   }
-  if (d.includes('TRIDENT') || d.includes('HALLS')) {
-    return 'Confeitaria / Outros';
-  }
-  return 'Cervejas';
+
+  grupoNameCache.set(desc, res);
+  return res;
 };
 
 const CrossFilterContext = createContext<CrossFilterContextType | null>(null);

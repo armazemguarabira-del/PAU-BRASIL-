@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { QuebrasRepository } from '../db';
 import { Usuario, Empresa, QuebraRow } from '../types';
@@ -107,7 +107,7 @@ export const COLABORADORES_QUEBRA = LISTA_COLABORADORES_OFICIAIS.map(c => c.nome
 export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShiftStart }: QuebrasPanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `quebras_draft_${empresaId}_${user.nome || 'guest'}`;
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['quebras', 'produtos', 'colaboradores']);
 
   const colaboradoresList = COLABORADORES_QUEBRA;
 
@@ -709,11 +709,39 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
   };
 
+  const filteredQuebras = useMemo(() => {
+    return filterHistoryForUser<QuebraRow>(quebras, user);
+  }, [quebras, user]);
+
+  const todayQuebras = useMemo(() => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    return quebras.filter(r => r.data === today && (r.fiscal === user.nome || r.responsavel === user.nome || (r as any).fiscal === user.nome));
+  }, [quebras, user.nome]);
+
+  const todayQuebrasStats = useMemo(() => {
+    const registros = todayQuebras.length;
+    const unidades = todayQuebras.reduce((sum, r) => sum + (r.quantidade || 0), 0);
+    return { registros, unidades };
+  }, [todayQuebras]);
+
+  const groupedQuebrasEntries = useMemo(() => {
+    const grouped = filteredQuebras.reduce((acc, q) => {
+      const key = q.dataISO || (q.data ? q.data.split('/').reverse().join('-') : 'sem-data');
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(q);
+      return acc;
+    }, {} as Record<string, QuebraRow[]>);
+    return Object.entries(grouped) as [string, QuebraRow[]][];
+  }, [filteredQuebras]);
+
   // Filter products for autocomplete dropdown
-  const filteredProducts = PRODUCTS.filter(p => {
-    const q = produtoBusca.toLowerCase();
-    return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
-  }).slice(0, 10);
+  const filteredProducts = useMemo(() => {
+    const q = produtoBusca.toLowerCase().trim();
+    if (!q) return PRODUCTS.slice(0, 10);
+    return PRODUCTS.filter(p => {
+      return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
+    }).slice(0, 10);
+  }, [produtoBusca]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -747,7 +775,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
           onClick={() => setActiveTab('hist')}
           className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
         >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filterHistoryForUser(quebras, user).length}</span>
+          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredQuebras.length}</span>
         </button>
       </div>
 
@@ -917,7 +945,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Registros Efetuados</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {quebras.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.fiscal === user.nome).length}
+                  {todayQuebrasStats.registros}
                 </span>
               </div>
             </div>
@@ -929,7 +957,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Garrafas / Unidades Quebradas</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {quebras.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.fiscal === user.nome).reduce((sum, r) => sum + (r.quantidade || 0), 0)} u
+                  {todayQuebrasStats.unidades} u
                 </span>
               </div>
             </div>
@@ -937,7 +965,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-bold text-[#6a7d92] uppercase tracking-wider">Histórico Detalhado de Hoje</h4>
-            {quebras.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.fiscal === user.nome).length === 0 ? (
+            {todayQuebras.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-[#222d3a] rounded-xl text-xs text-[#6a7d92]">
                 Nenhuma quebra registrada por você hoje ainda. Use a aba "Cadastrar Quebra" para começar!
               </div>
@@ -953,9 +981,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#222d3a]">
-                    {quebras
-                      .filter(r => r.data === new Date().toLocaleDateString('pt-BR') && ((r as any).fiscal === user.nome || r.responsavel === user.nome))
-                      .map((r, idx) => (
+                    {todayQuebras.map((r, idx) => (
                         <tr key={r._docId || idx} className="hover:bg-[#151b23]/30 transition-colors">
                           <td className="py-3 px-3 font-bold text-snow">
                             <span className="text-gray-500 font-mono text-[11px] block">{(r as any).codSap || r.codProduto}</span>
@@ -1172,22 +1198,13 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
         <div className="flex flex-col gap-3">
           <HistoryRestrictionNotice user={user} />
           {(() => {
-            const filteredQuebras = filterHistoryForUser<QuebraRow>(quebras, user);
-            const grouped = filteredQuebras.reduce((acc, q) => {
-              const key = q.dataISO || (q.data ? q.data.split('/').reverse().join('-') : 'sem-data');
-              if (!acc[key]) acc[key] = [];
-              acc[key].push(q);
-              return acc;
-            }, {} as Record<string, QuebraRow[]>);
-
-            if (Object.keys(grouped).length === 0) {
+            if (groupedQuebrasEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhuma quebra registrada.</div>;
             }
 
-            const entries = Object.entries(grouped) as [string, QuebraRow[]][];
-            const totalDates = entries.length;
+            const totalDates = groupedQuebrasEntries.length;
             const startIdx = (historyPage - 1) * historyPageSize;
-            const pagedEntries = entries.slice(startIdx, startIdx + historyPageSize);
+            const pagedEntries = groupedQuebrasEntries.slice(startIdx, startIdx + historyPageSize);
 
             return (
               <>

@@ -817,7 +817,6 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
                   <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase">
                     <th className="p-1.5">Data</th>
                     <th className="p-1.5">Área</th>
-                    <th className="p-1.5">Quem Aplicou</th>
                     <th className="p-1.5">Responsável</th>
                     <th className="p-1.5 text-center">Pontos</th>
                     <th className="p-1.5 text-center">Nota</th>
@@ -828,7 +827,6 @@ export const ImportExport5SModal: React.FC<ImportExport5SModalProps> = ({
                     <tr key={idx} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/30">
                       <td className="p-1.5 whitespace-nowrap">{item.dataFormatted}</td>
                       <td className="p-1.5 font-bold text-amber-600 dark:text-amber-300">{item.setor}</td>
-                      <td className="p-1.5 text-slate-500 dark:text-slate-400">{item.liderAuditor || 'Líder'}</td>
                       <td className="p-1.5 text-slate-700 dark:text-slate-300">{item.operador}</td>
                       <td className="p-1.5 text-center font-bold text-emerald-600 dark:text-emerald-400">{item.pontos}/10</td>
                       <td className="p-1.5 text-center font-bold">{item.notaPercentual}%</td>

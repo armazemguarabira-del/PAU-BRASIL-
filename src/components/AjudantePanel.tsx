@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
-import RepackPanel from './RepackPanel';
-import DespejoPanel from './DespejoPanel';
-import QuebrasPanel from './QuebrasPanel';
-import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
-import { GuiaAcoesOperacionais } from './GuiaAcoesOperacionais';
 import { OperationalCollaboratorPnpBanner } from './OperationalCollaboratorPnpBanner';
+
+// Lazy load sub-panels to make the page significantly lighter and faster to load
+const RepackPanel = lazy(() => import('./RepackPanel'));
+const DespejoPanel = lazy(() => import('./DespejoPanel'));
+const QuebrasPanel = lazy(() => import('./QuebrasPanel'));
+const Checklist5SForm = lazy(() => import('./Checklist5SModal').then(m => ({ default: m.Checklist5SForm })));
+const Collaborator5SPerformanceCard = lazy(() => import('./Checklist5SModal').then(m => ({ default: m.Collaborator5SPerformanceCard })));
+const GuiaAcoesOperacionais = lazy(() => import('./GuiaAcoesOperacionais').then(m => ({ default: m.GuiaAcoesOperacionais })));
+
+const SubPanelSkeleton = () => (
+  <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-500 animate-pulse">
+    <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Carregando painel operacional...</span>
+  </div>
+);
 import { 
   Users, 
   RefreshCw, 
@@ -59,7 +69,7 @@ interface ShiftHistoryRecord {
 
 export default function AjudantePanel({ user, empresa, theme = 'dark' }: AjudantePanelProps) {
   const empresaId = empresa?.id || 'demo';
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['repack', 'despejo', 'quebras', 'colaboradores']);
   const shiftStorageKey = `ajudante_shift_${empresaId}_${user.uid || user.nome}`;
   const historyStorageKey = `ajudante_history_${empresaId}_${user.uid || user.nome}`;
 
@@ -160,7 +170,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Shift History State
+  // Shift History State & Pagination
   const [shiftHistory, setShiftHistory] = useState<ShiftHistoryRecord[]>(() => {
     try {
       const saved = localStorage.getItem(historyStorageKey);
@@ -168,6 +178,14 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     } catch (e) {}
     return [];
   });
+  const [historyPage, setHistoryPage] = useState<number>(1);
+  const historyPageSize = 10;
+
+  const totalHistoryPages = Math.ceil(shiftHistory.length / historyPageSize) || 1;
+  const paginatedHistory = React.useMemo(() => {
+    const start = (historyPage - 1) * historyPageSize;
+    return shiftHistory.slice(start, start + historyPageSize);
+  }, [shiftHistory, historyPage, historyPageSize]);
 
   // Sync Shift State to LocalStorage
   useEffect(() => {
@@ -532,18 +550,18 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       <OperationalCollaboratorPnpBanner user={user} theme={theme} />
 
       {/* HEADER BAR & SHIFT CONTROL */}
-      <div className="bg-white border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] text-slate-900 dark:text-slate-100 p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-2xl text-blue-600 shrink-0">
+          <div className="p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/30 rounded-2xl text-blue-600 dark:text-blue-400 shrink-0">
             <Users className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-black uppercase px-3 py-0.5 rounded-full inline-block">
+              <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 text-[11px] font-black uppercase px-3 py-0.5 rounded-full inline-block">
                 Especialista de Armazém
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
               Atendimento unificado: Repack, Despejo e Avarias de Quebras.
             </p>
           </div>
@@ -560,8 +578,8 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
               <span>INICIAR JORNADA</span>
             </button>
           ) : (
-            <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-              <div className="px-3 py-1 flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-200">
+            <div className="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-[#151b23] p-1.5 rounded-xl border border-slate-200 dark:border-[#222d3a]">
+              <div className="px-3 py-1 flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/30">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -572,7 +590,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
               {!inInterval ? (
                 <button
                   onClick={handleStartInterval}
-                  className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
                   title="Marcar início do intervalo de almoço/descanso"
                 >
                   <Utensils className="w-3.5 h-3.5" />
@@ -604,17 +622,17 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       {/* 3 METRIC CARDS (REPACK, DESPEJO, QUALIDADE & WQI DO MÊS) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {/* CARD 1: META REPACK HOJE */}
-        <div className="bg-white border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] text-slate-900 dark:text-slate-100 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 text-blue-500 rounded-xl border border-blue-100 shrink-0">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-500 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/20 shrink-0">
                 <RefreshCw className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-extrabold text-[11px] text-slate-700 uppercase tracking-wider block">
+                <span className="font-extrabold text-[11px] text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                   META REPACK HOJE
                 </span>
-                <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">
+                <span className="font-bold text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
                   (TEMPO POR UNIDADE)
                 </span>
               </div>
@@ -622,17 +640,17 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
             <div>
               {todayRepackEntries.length === 0 ? (
-                <span className="border border-slate-300 text-slate-500 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   SEM REGISTROS
                 </span>
               ) : hasMissedRepackMeta ? (
-                <span className="bg-rose-50 text-rose-700 border border-rose-300 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   FORA DA META
                 </span>
               ) : (
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   META ATINGIDA
                 </span>
@@ -640,26 +658,26 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-medium mt-4">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-4">
             <span>Soma Meta Produtos:</span>
-            <div className="text-slate-600 font-bold mt-0.5">
+            <div className="text-slate-700 dark:text-slate-200 font-bold mt-0.5">
               {totalRepackMetaMins.toFixed(0)} min | Tempo Realizado: {totalRepackRealMins.toFixed(0)} min
             </div>
           </div>
         </div>
 
         {/* CARD 2: META DESPEJO HOJE */}
-        <div className="bg-white border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] text-slate-900 dark:text-slate-100 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-rose-50 text-rose-500 rounded-xl border border-rose-100 shrink-0">
+              <div className="p-2.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-500/20 shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-extrabold text-[11px] text-slate-700 uppercase tracking-wider block">
+                <span className="font-extrabold text-[11px] text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                   META DESPEJO HOJE
                 </span>
-                <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">
+                <span className="font-bold text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
                   (TEMPO POR UNIDADE)
                 </span>
               </div>
@@ -667,17 +685,17 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
             <div>
               {todayDespejoEntries.length === 0 ? (
-                <span className="border border-slate-300 text-slate-500 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   SEM REGISTROS
                 </span>
               ) : hasMissedDespejoMeta ? (
-                <span className="bg-rose-50 text-rose-700 border border-rose-300 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   FORA DA META
                 </span>
               ) : (
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   META ATINGIDA
                 </span>
@@ -685,30 +703,30 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-medium mt-4">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-4">
             <span>Soma Meta Produtos:</span>
-            <div className="text-slate-600 font-bold mt-0.5">
+            <div className="text-slate-700 dark:text-slate-200 font-bold mt-0.5">
               {totalDespejoMetaMins.toFixed(0)} min | Tempo Realizado: {totalDespejoRealMins.toFixed(0)} min
             </div>
           </div>
         </div>
 
         {/* CARD 3: QUALIDADE & WQI DO MÊS */}
-        <div className="bg-white border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] text-slate-900 dark:text-slate-100 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between h-full">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-sky-50 text-sky-500 rounded-xl border border-sky-100 shrink-0">
+              <div className="p-2.5 bg-sky-50 dark:bg-sky-500/10 text-sky-500 dark:text-sky-400 rounded-xl border border-sky-100 dark:border-sky-500/20 shrink-0">
                 <Award className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-extrabold text-[11px] text-slate-700 uppercase tracking-wider block">
+                <span className="font-extrabold text-[11px] text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                   QUALIDADE & WQI DO MÊS
                 </span>
               </div>
             </div>
 
             <div>
-              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+              <span className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 META ATINGIDA
               </span>
@@ -716,10 +734,10 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           </div>
 
           <div className="flex items-baseline justify-end my-1">
-            <span className="text-2xl font-black text-emerald-600">98.2%</span>
+            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">98.2%</span>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-medium">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             <span>Meta do Mês: ≥ 95.0%</span>
           </div>
         </div>
@@ -727,9 +745,9 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* WARNING IF SHIFT NOT STARTED */}
       {!shiftStarted && (
-        <div className="bg-sky-50/70 border border-sky-200 text-sky-950 px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-            <Clock className="w-4 h-4 text-blue-600 shrink-0" />
+        <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 text-sky-950 dark:text-sky-200 px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>
               <strong>Atenção:</strong> Você ainda não iniciou a jornada de hoje. Clique em <strong>INICIAR JORNADA</strong> no topo para habilitar os lançamentos.
             </span>
@@ -744,13 +762,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       )}
 
       {/* MAIN TABS NAV - SYMMETRICAL 7 TABS */}
-      <div className="bg-white border border-slate-200 p-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm overflow-x-auto w-full">
+      <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] p-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm overflow-x-auto w-full">
         <button
           onClick={() => setActiveTab('repack')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'repack'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <RefreshCw className="w-3.5 h-3.5 shrink-0" />
@@ -762,7 +780,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'despejo'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <Trash2 className="w-3.5 h-3.5 shrink-0" />
@@ -774,7 +792,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'quebras'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
@@ -786,7 +804,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'retorno_rota'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <Truck className="w-3.5 h-3.5 shrink-0" />
@@ -798,7 +816,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === '5s'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
@@ -810,7 +828,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'historico'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <History className="w-3.5 h-3.5 shrink-0" />
@@ -822,7 +840,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'acoes'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
           }`}
         >
           <Zap className="w-3.5 h-3.5 shrink-0" />
@@ -832,40 +850,46 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 1: REPACK */}
       {activeTab === 'repack' && (
-        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
-          <RepackPanel 
-            user={user} 
-            empresa={empresa} 
-            theme={theme} 
-            shiftStarted={shiftStarted} 
-            onRequireShiftStart={handleStartShift} 
-          />
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm min-h-[300px]">
+          <Suspense fallback={<SubPanelSkeleton />}>
+            <RepackPanel 
+              user={user} 
+              empresa={empresa} 
+              theme={theme} 
+              shiftStarted={shiftStarted} 
+              onRequireShiftStart={handleStartShift} 
+            />
+          </Suspense>
         </div>
       )}
 
       {/* TAB CONTENT 2: DESPEJO */}
       {activeTab === 'despejo' && (
-        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
-          <DespejoPanel 
-            user={user} 
-            empresa={empresa} 
-            theme={theme} 
-            shiftStarted={shiftStarted} 
-            onRequireShiftStart={handleStartShift} 
-          />
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm min-h-[300px]">
+          <Suspense fallback={<SubPanelSkeleton />}>
+            <DespejoPanel 
+              user={user} 
+              empresa={empresa} 
+              theme={theme} 
+              shiftStarted={shiftStarted} 
+              onRequireShiftStart={handleStartShift} 
+            />
+          </Suspense>
         </div>
       )}
 
       {/* TAB CONTENT 3: QUEBRAS */}
       {activeTab === 'quebras' && (
-        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm">
-          <QuebrasPanel 
-            user={user} 
-            empresa={empresa} 
-            theme={theme} 
-            shiftStarted={shiftStarted} 
-            onRequireShiftStart={handleStartShift} 
-          />
+        <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm min-h-[300px]">
+          <Suspense fallback={<SubPanelSkeleton />}>
+            <QuebrasPanel 
+              user={user} 
+              empresa={empresa} 
+              theme={theme} 
+              shiftStarted={shiftStarted} 
+              onRequireShiftStart={handleStartShift} 
+            />
+          </Suspense>
         </div>
       )}
 
@@ -955,35 +979,37 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
       {/* TAB CONTENT 5: REALIZAÇÃO DO 5S */}
       {activeTab === '5s' && (
-        <div className="flex flex-col gap-6">
-          <Collaborator5SPerformanceCard user={user} userNombre={user.nome} />
+        <Suspense fallback={<SubPanelSkeleton />}>
+          <div className="flex flex-col gap-6">
+            <Collaborator5SPerformanceCard user={user} userNombre={user.nome} />
 
-          <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-4">
-              <div>
-                <h3 className="text-lg font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                  <SquareCheck className="w-6 h-6 text-blue-600 dark:text-amber-400" />
-                  Realização do Checklist 5S — Operação Ajudante
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Execute a auditoria diária de 5S no seu posto de trabalho para manter a excelência operacional.
-                </p>
+            <div className="bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col gap-6">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#222d3a] pb-4">
+                <div>
+                  <h3 className="text-lg font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                    <SquareCheck className="w-6 h-6 text-blue-600 dark:text-amber-400" />
+                    Realização do Checklist 5S — Operação Ajudante
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Execute a auditoria diária de 5S no seu posto de trabalho para manter a excelência operacional.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <Checklist5SForm 
-              defaultSetor="REPACK" 
-              userNombre={user.nome} 
-              user={user} 
-              empresaId={empresaId} 
-              liderAuditor="Líder Operacional"
-              onSaveSuccess={() => {
-                setFiveSSubmitted(true);
-                triggerToast('✓ Auditoria 5S registrada com sucesso!');
-              }} 
-            />
+              <Checklist5SForm 
+                defaultSetor="REPACK" 
+                userNombre={user.nome} 
+                user={user} 
+                empresaId={empresaId} 
+                liderAuditor="Líder Operacional"
+                onSaveSuccess={() => {
+                  setFiveSSubmitted(true);
+                  triggerToast('✓ Auditoria 5S registrada com sucesso!');
+                }} 
+              />
+            </div>
           </div>
-        </div>
+        </Suspense>
       )}
 
       {/* TAB CONTENT 6: HISTÓRICO UNIFICADO */}
@@ -1027,7 +1053,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                     </td>
                   </tr>
                 ) : (
-                  shiftHistory.map(rec => (
+                  paginatedHistory.map(rec => (
                     <tr key={rec.id} className="hover:bg-slate-50 dark:hover:bg-[#151b23] transition-all">
                       <td className="p-3 font-mono font-bold text-blue-700 dark:text-amber-400">{rec.dataStr}</td>
                       <td className="p-3 font-mono text-slate-700 dark:text-slate-300">{rec.horaInicio}</td>
@@ -1063,12 +1089,57 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
               </tbody>
             </table>
           </div>
+
+          {/* PAGINATION CONTROLS (10 ITEMS PER PAGE) */}
+          {shiftHistory.length > historyPageSize && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-[#222d3a] text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">
+                Mostrando {((historyPage - 1) * historyPageSize) + 1} a {Math.min(historyPage * historyPageSize, shiftHistory.length)} de {shiftHistory.length} registros
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={historyPage <= 1}
+                  onClick={() => setHistoryPage(prev => Math.max(1, prev - 1))}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151b23] text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                >
+                  ← Anterior
+                </button>
+                <div className="flex items-center gap-1 px-2">
+                  {Array.from({ length: totalHistoryPages }, (_, i) => i + 1).map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setHistoryPage(p)}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        historyPage === p
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1c2530]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={historyPage >= totalHistoryPages}
+                  onClick={() => setHistoryPage(prev => Math.min(totalHistoryPages, prev + 1))}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151b23] text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                >
+                  Próximo →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* TAB CONTENT 7: GUIA DE AÇÕES */}
       {activeTab === 'acoes' && (
-        <GuiaAcoesOperacionais user={user} roleName="Ajudante" />
+        <Suspense fallback={<SubPanelSkeleton />}>
+          <GuiaAcoesOperacionais user={user} roleName="Ajudante" />
+        </Suspense>
       )}
 
       {/* SEÇÃO DE SUGESTÕES DE MELHORIA DA OPERAÇÃO (Cria Ações Sugestivas para o ADM) */}

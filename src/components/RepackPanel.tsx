@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { RepackRepository, RepackValidadesRepository } from '../db';
 import { Usuario, Empresa, RepackRow, RepackValidadeRow } from '../types';
@@ -90,6 +90,8 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   });
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
   const [expandedVRegDates, setExpandedVRegDates] = useState<Record<string, boolean>>({});
+  const [historyPage, setHistoryPage] = useState<number>(1);
+  const historyPageSize = 10;
 
   // Sync state with local draft saving
   useEffect(() => {
@@ -178,7 +180,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     return [n.getHours(), n.getMinutes(), n.getSeconds()].map(pad2).join(':');
   };
 
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['repack', 'repack_validades']);
 
   // Sync with empresaData (scoped to company)
   useEffect(() => {
@@ -471,10 +473,39 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     return { label: '🟢 OK', text: 'text-[#22c55e]', bg: 'bg-[#22c55e]/10 border-[#22c55e]/20' };
   };
 
-  const vFilteredProducts = PRODUCTS.filter(p => {
-    const q = vProdutoBusca.toLowerCase();
-    return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
-  }).slice(0, 10);
+  const filteredRepackRows = useMemo(() => {
+    return filterHistoryForUser<RepackRow>(repackRows, user);
+  }, [repackRows, user]);
+
+  const todayRepackRows = useMemo(() => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    return repackRows.filter(r => r.data === today && r.operador === user.nome);
+  }, [repackRows, user.nome]);
+
+  const todayStats = useMemo(() => {
+    const lancamentos = todayRepackRows.length;
+    const caixas = todayRepackRows.reduce((sum, r) => sum + (r.quantidade || 0), 0);
+    const metasBatidas = todayRepackRows.filter(r => r.resultado?.includes('BATIDA')).length;
+    return { lancamentos, caixas, metasBatidas };
+  }, [todayRepackRows]);
+
+  const groupedHistoryEntries = useMemo(() => {
+    const grouped = filteredRepackRows.reduce((acc, r) => {
+      const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(r);
+      return acc;
+    }, {} as Record<string, RepackRow[]>);
+    return Object.entries(grouped) as [string, RepackRow[]][];
+  }, [filteredRepackRows]);
+
+  const vFilteredProducts = useMemo(() => {
+    const q = vProdutoBusca.toLowerCase().trim();
+    if (!q) return PRODUCTS.slice(0, 10);
+    return PRODUCTS.filter(p => {
+      return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
+    }).slice(0, 10);
+  }, [vProdutoBusca]);
 
   const handleVSelectProd = (p: { codigo: number, descricao: string }) => {
     setVSelectedProd(p);
@@ -517,7 +548,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
           onClick={() => setActiveTab('hist')}
           className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
         >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filterHistoryForUser(repackRows, user).length}</span>
+          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredRepackRows.length}</span>
         </button>
         <button 
           onClick={() => setActiveTab('validade')}
@@ -576,7 +607,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Lançamentos</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {repackRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).length}
+                  {todayStats.lancamentos}
                 </span>
               </div>
             </div>
@@ -588,7 +619,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Caixas Reembaladas</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {repackRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).reduce((sum, r) => sum + (r.quantidade || 0), 0)} cx
+                  {todayStats.caixas} cx
                 </span>
               </div>
             </div>
@@ -600,7 +631,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Metas Batidas</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {repackRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome && r.resultado?.includes('BATIDA')).length}
+                  {todayStats.metasBatidas}
                 </span>
               </div>
             </div>
@@ -608,7 +639,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
 
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-bold text-[#6a7d92] uppercase tracking-wider">Histórico Detalhado de Hoje</h4>
-            {repackRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).length === 0 ? (
+            {todayRepackRows.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-[#222d3a] rounded-xl text-xs text-[#6a7d92]">
                 Nenhuma atividade registrada por você hoje ainda. Use a aba "Registrar" para começar!
               </div>
@@ -625,9 +656,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#222d3a]">
-                    {repackRows
-                      .filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome)
-                      .map((r, idx) => (
+                    {todayRepackRows.map((r, idx) => (
                         <tr key={r._docId || idx} className="hover:bg-[#151b23]/30 transition-colors">
                           <td className="py-3 px-3 font-bold text-snow">{r.embalagem}</td>
                           <td className="py-3 px-3 font-mono">{r.quantidade} cx</td>
@@ -807,119 +836,145 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
         <div className="flex flex-col gap-3">
           <HistoryRestrictionNotice user={user} />
           {(() => {
-            const filteredRepackRows = filterHistoryForUser<RepackRow>(repackRows, user);
-            const grouped = filteredRepackRows.reduce((acc, r) => {
-              const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
-              if (!acc[key]) acc[key] = [];
-              acc[key].push(r);
-              return acc;
-            }, {} as Record<string, RepackRow[]>);
-
-            if (Object.keys(grouped).length === 0) {
+            if (groupedHistoryEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum repack computado ainda.</div>;
             }
 
-            return (Object.entries(grouped) as [string, RepackRow[]][]).map(([dateKey, rows]) => {
-              const isOpen = !!expandedDates[dateKey];
-              const batidaCount = rows.filter(r => r.resultado.includes('BATIDA')).length;
-              const totalBoxes = rows.reduce((s, r) => s + (r.quantidade || 0), 0);
+            const totalPages = Math.ceil(groupedHistoryEntries.length / historyPageSize);
+            const currentPage = Math.min(historyPage, totalPages);
+            const paginatedEntries = groupedHistoryEntries.slice((currentPage - 1) * historyPageSize, currentPage * historyPageSize);
 
-              let formattedDate = dateKey;
-              try {
-                const [y, m, d] = dateKey.split('-');
-                const dt = new Date(Number(y), Number(m) - 1, Number(d));
-                const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
-              } catch (e) {}
+            return (
+              <div className="flex flex-col gap-3">
+                {paginatedEntries.map(([dateKey, rows]) => {
+                  const isOpen = !!expandedDates[dateKey];
+                  const batidaCount = rows.filter(r => r.resultado.includes('BATIDA')).length;
+                  const totalBoxes = rows.reduce((s, r) => s + (r.quantidade || 0), 0);
 
-              return (
-                <div key={dateKey} className="g-card overflow-hidden">
-                  <div 
-                    onClick={() => toggleDateGroup(dateKey)}
-                    className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
-                  >
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-sans font-black text-sm text-[#f5a623] tracking-wide">📅 {formattedDate}</span>
-                      <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
-                        {rows.length} operações
-                      </span>
-                      {batidaCount === rows.length ? (
-                        <span className="text-[9px] bg-[#22c55e]/15 border border-[#22c55e]/25 text-[#22c55e] px-2 py-0.5 rounded-full font-bold">
-                          ✓ Tudo Ok ({batidaCount}/{rows.length})
-                        </span>
-                      ) : (
-                        <span className="text-[9px] bg-[#ef4444]/15 border border-[#ef4444]/25 text-[#fca5a5] px-2 py-0.5 rounded-full font-bold">
-                          ⚠ {rows.length - batidaCount} acima da meta
-                        </span>
+                  let formattedDate = dateKey;
+                  try {
+                    const [y, m, d] = dateKey.split('-');
+                    const dt = new Date(Number(y), Number(m) - 1, Number(d));
+                    const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                    formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
+                  } catch (e) {}
+
+                  return (
+                    <div key={dateKey} className="g-card overflow-hidden">
+                      <div 
+                        onClick={() => toggleDateGroup(dateKey)}
+                        className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
+                      >
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-sans font-black text-sm text-[#f5a623] tracking-wide">📅 {formattedDate}</span>
+                          <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
+                            {rows.length} operações
+                          </span>
+                          {batidaCount === rows.length ? (
+                            <span className="text-[9px] bg-[#22c55e]/15 border border-[#22c55e]/25 text-[#22c55e] px-2 py-0.5 rounded-full font-bold">
+                              ✓ Tudo Ok ({batidaCount}/{rows.length})
+                            </span>
+                          ) : (
+                            <span className="text-[9px] bg-[#ef4444]/15 border border-[#ef4444]/25 text-[#fca5a5] px-2 py-0.5 rounded-full font-bold">
+                              ⚠ {rows.length - batidaCount} acima da meta
+                            </span>
+                          )}
+                          <span className="text-[10px] text-[#6a7d92] font-semibold">
+                            📦 {totalBoxes} caixas reembaladas
+                          </span>
+                        </div>
+                        <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                      </div>
+
+                      {isOpen && (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse text-xs min-w-[640px]">
+                            <thead>
+                              <tr className="bg-[#07090d] border-b border-[#222d3a]">
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Embalagem</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">Caixas</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Início</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Fim</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Duração</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Resultado</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-right">Ação</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#222d3a]">
+                              {rows.map((r, i) => (
+                                <tr key={r._docId || i} className="hover:bg-[#151b23]/30">
+                                  <td className="p-3 font-semibold text-[#f5a623]">{r.embalagem}</td>
+                                  <td className="p-3 text-center font-bold">{r.quantidade}</td>
+                                  <td className="p-3 font-mono">{r.inicio}</td>
+                                  <td className="p-3 font-mono">{r.fim}</td>
+                                  <td className="p-3 font-mono text-snow font-bold">{r.duracao}</td>
+                                  <td className="p-3 font-sans">
+                                    <div className="flex flex-col gap-1">
+                                      <span className={`font-black ${r.resultado.includes('BATIDA') ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                                        {r.resultado}
+                                      </span>
+                                      {r.motivoNaoBaterMeta && (
+                                        <span className="text-[10px] text-amber-500/90 font-medium max-w-[180px] break-words">
+                                          Motivo: {r.motivoNaoBaterMeta}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <button 
+                                        onClick={() => handleStartEditRepack(r)}
+                                        className="py-1 px-2 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 text-blue-400 hover:text-white rounded-md text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
+                                        title="Editar registro"
+                                      >
+                                        ✏️ Editar
+                                      </button>
+                                      <button 
+                                        onClick={() => handleDelete(r._docId)}
+                                        className="py-1 px-2.5 bg-[#ef4444]/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded-md text-[10px] font-bold cursor-pointer transition-all"
+                                        title="Excluir registro"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
-                      <span className="text-[10px] text-[#6a7d92] font-semibold">
-                        📦 {totalBoxes} caixas reembaladas
-                      </span>
                     </div>
-                    <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
-                  </div>
+                  );
+                })}
 
-                  {isOpen && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs min-w-[640px]">
-                        <thead>
-                          <tr className="bg-[#07090d] border-b border-[#222d3a]">
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Embalagem</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">Caixas</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Início</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Fim</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Duração</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Resultado</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-right">Ação</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#222d3a]">
-                          {rows.map((r, i) => (
-                            <tr key={r._docId || i} className="hover:bg-[#151b23]/30">
-                              <td className="p-3 font-semibold text-[#f5a623]">{r.embalagem}</td>
-                              <td className="p-3 text-center font-bold">{r.quantidade}</td>
-                              <td className="p-3 font-mono">{r.inicio}</td>
-                              <td className="p-3 font-mono">{r.fim}</td>
-                              <td className="p-3 font-mono text-snow font-bold">{r.duracao}</td>
-                              <td className="p-3 font-sans">
-                                <div className="flex flex-col gap-1">
-                                  <span className={`font-black ${r.resultado.includes('BATIDA') ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                                    {r.resultado}
-                                  </span>
-                                  {r.motivoNaoBaterMeta && (
-                                    <span className="text-[10px] text-amber-500/90 font-medium max-w-[180px] break-words">
-                                      Motivo: {r.motivoNaoBaterMeta}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="p-3 text-right">
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <button 
-                                    onClick={() => handleStartEditRepack(r)}
-                                    className="py-1 px-2 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 text-blue-400 hover:text-white rounded-md text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
-                                    title="Editar registro"
-                                  >
-                                    ✏️ Editar
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDelete(r._docId)}
-                                    className="py-1 px-2.5 bg-[#ef4444]/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded-md text-[10px] font-bold cursor-pointer transition-all"
-                                    title="Excluir registro"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                {totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-[#11151c] border border-[#222d3a] rounded-xl text-xs mt-2">
+                    <span className="text-[#6a7d92] font-medium">
+                      Página {currentPage} de {totalPages} ({groupedHistoryEntries.length} datas registradas)
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={currentPage <= 1}
+                        onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                        className="px-3 py-1.5 rounded-lg border border-[#222d3a] bg-[#151b23] text-snow font-bold hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                      >
+                        ← Anterior
+                      </button>
+                      <button
+                        type="button"
+                        disabled={currentPage >= totalPages}
+                        onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))}
+                        className="px-3 py-1.5 rounded-lg border border-[#222d3a] bg-[#151b23] text-snow font-bold hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                      >
+                        Próxima →
+                      </button>
                     </div>
-                  )}
-                </div>
-              );
-            });
+                  </div>
+                )}
+              </div>
+            );
           })()}
         </div>
       )}

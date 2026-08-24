@@ -31,7 +31,9 @@ import {
   ShieldCheck,
   BarChart2,
   CheckCircle2,
-  ClipboardCheck
+  ClipboardCheck,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
@@ -204,6 +206,8 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return (localStorage.getItem('dashboard_theme') as 'light' | 'dark') || 'light';
   });
   const [treeViewMode, setTreeViewMode] = useState<'diagram' | 'classic'>('diagram');
+  const [skuPage, setSkuPage] = useState(1);
+  const SKU_PAGE_SIZE = 15;
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -228,19 +232,10 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
   
   const empresaData = useEmpresaData();
 
-  // Sync Quebras
+  // Sync Quebras with memory cache and lightweight custom sync
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     
-    // Invalida cache legado caso a versão contábil tenha sido atualizada
-    const CACHE_VERSION_KEY = 'quebras_accounting_version';
-    const CURRENT_VERSION = 'v42692_53';
-    if (localStorage.getItem(CACHE_VERSION_KEY) !== CURRENT_VERSION) {
-      localStorage.removeItem(`quebras_${companyId}`);
-      localStorage.removeItem('quebras_demo');
-      localStorage.setItem(CACHE_VERSION_KEY, CURRENT_VERSION);
-    }
-
     const refreshQuebras = () => {
       const officialRows = buildOfficialQuebrasRows(companyId);
       const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
@@ -262,10 +257,10 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
         empresaData.quebras.forEach(addCustomIfNew);
       }
 
-      const saved = localStorage.getItem(`quebras_${companyId}`);
-      if (saved) {
+      const savedCustom = localStorage.getItem(`custom_quebras_${companyId}`) || localStorage.getItem(`local_quebras_${companyId}`);
+      if (savedCustom) {
         try {
-          const parsed = JSON.parse(saved);
+          const parsed = JSON.parse(savedCustom);
           if (Array.isArray(parsed)) {
             parsed.forEach(addCustomIfNew);
           }
@@ -275,7 +270,6 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
       const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
       setActualQuebras(rows);
-      localStorage.setItem(`quebras_${companyId}`, JSON.stringify(rows));
     };
 
     refreshQuebras();
@@ -664,16 +658,6 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
               Quebras & BI
             </button>
             <button 
-              onClick={() => setActiveSubTab('arvore')}
-              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-1.5 ${
-                activeSubTab === 'arvore' 
-                  ? (theme === 'dark' ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'bg-amber-500 text-slate-950 font-black shadow-sm') 
-                  : (theme === 'dark' ? 'text-amber-300 hover:text-white bg-transparent' : 'text-amber-700 hover:text-[#032b5e] bg-transparent')
-              }`}
-            >
-              🌳 Árvore de Perdas
-            </button>
-            <button 
               onClick={() => setActiveSubTab('wqi')}
               className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
                 activeSubTab === 'wqi' 
@@ -682,6 +666,16 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
               }`}
             >
               WQI
+            </button>
+            <button 
+              onClick={() => setActiveSubTab('arvore')}
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
+                activeSubTab === 'arvore' 
+                  ? (theme === 'dark' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-600 text-white shadow-sm') 
+                  : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-amber-700 bg-transparent')
+              }`}
+            >
+              Árvore de Perdas
             </button>
             <button 
               onClick={() => setActiveSubTab('boarda3')}
@@ -1763,56 +1757,42 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
 
 
 
-          {/* REQUISITO 23: ÁRVORE DE MOTIVOS E HIERARQUIA DE PERDAS */}
-          <div className="w-full mt-4 space-y-3">
-            <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
-              theme === 'dark' ? 'bg-[#111a30] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+          {/* REQUISITO 23: ÁRVORE DE MOTIVOS E HIERARQUIA DE PERDAS (FAST SUMMARY IN BI TAB) */}
+          <div className="w-full mt-4">
+            <div className={`p-4.5 rounded-xl border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors ${
+              theme === 'dark' ? 'bg-gradient-to-r from-[#111a30] via-[#162344] to-[#111a30] border-amber-500/30' : 'bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-amber-50/70 border-amber-200'
             }`}>
-              <div>
-                <h3 className={`font-sans font-black text-xs uppercase tracking-wider flex items-center gap-2 ${
-                  theme === 'dark' ? 'text-amber-300' : 'text-amber-700'
-                }`}>
-                  🌳 ÁRVORE DE HIERARQUIA E DECOMPOSIÇÃO DE PERDAS (LOSS TREE)
-                </h3>
-                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                  Navegue visualmente pelos 5 níveis hierárquicos (Total → Mês → Família → Embalagem → SKU) com conectores dinâmicos.
-                </p>
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-500 shrink-0 shadow-xs">
+                  <Layers className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className={`font-sans font-black text-xs uppercase tracking-wider flex items-center gap-2 ${
+                    theme === 'dark' ? 'text-amber-300' : 'text-amber-900'
+                  }`}>
+                    🌳 ÁRVORE DE HIERARQUIA & DECOMPOSIÇÃO DE PERDAS (5 NÍVEIS)
+                  </h3>
+                  <p className={`text-[11px] font-medium mt-0.5 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Total Geral → Mês → Motivo DPO → Embalagem → Top 10 Produtos Ofensores ({crossFilteredData.length.toLocaleString('pt-BR')} registros ativos).
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5 p-1 bg-slate-800/80 dark:bg-slate-900/90 rounded-lg border border-slate-700 self-stretch sm:self-auto justify-center">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   type="button"
-                  onClick={() => setTreeViewMode('diagram')}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
-                    treeViewMode === 'diagram'
-                      ? 'bg-amber-500 text-slate-950 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  onClick={() => setActiveSubTab('arvore')}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-2 shadow-sm uppercase tracking-wider border border-amber-300/60 hover:scale-[1.02] active:scale-95"
                 >
-                  ✨ Diagrama Visual (5 Níveis)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTreeViewMode('classic')}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
-                    treeViewMode === 'classic'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  📁 Lista em Pastas (Clássica)
+                  <Sparkles className="w-4 h-4 text-slate-950" />
+                  <span>Explorar Árvore Completa</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
-
-            {treeViewMode === 'diagram' ? (
-              <LossHierarchyTree quebras={crossFilteredData} />
-            ) : (
-              <ArvoreMotivosTree data={crossFilteredData} viewUnit={viewUnit} theme={theme} />
-            )}
           </div>
 
-          {/* DETAILED SKU RANKING TABLE (FULL WIDTH HORIZONTAL) */}
+          {/* DETAILED SKU RANKING TABLE (PAGINATED & HIGH PERFORMANCE) */}
           <div className="w-full mt-4">
             <div className={`p-5 rounded-xl border shadow-sm transition-colors ${
               theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'
@@ -1828,9 +1808,40 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                     Detalhamento de perdas por produto. Clique em qualquer produto para filtrar todo o dashboard.
                   </p>
                 </div>
-                <span className="text-[10px] text-slate-400 font-medium self-start sm:self-auto bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                  Clique na linha para filtrar
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                    Clique na linha para filtrar
+                  </span>
+                  {sortedSkus.length > SKU_PAGE_SIZE && (
+                    <div className="flex items-center gap-1.5 ml-2">
+                      <button
+                        onClick={() => setSkuPage(p => Math.max(1, p - 1))}
+                        disabled={skuPage === 1}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+                          skuPage === 1 
+                            ? 'opacity-40 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-400' 
+                            : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 cursor-pointer'
+                        }`}
+                      >
+                        Anterior
+                      </button>
+                      <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
+                        {skuPage} / {Math.ceil(sortedSkus.length / SKU_PAGE_SIZE)}
+                      </span>
+                      <button
+                        onClick={() => setSkuPage(p => Math.min(Math.ceil(sortedSkus.length / SKU_PAGE_SIZE), p + 1))}
+                        disabled={skuPage >= Math.ceil(sortedSkus.length / SKU_PAGE_SIZE)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+                          skuPage >= Math.ceil(sortedSkus.length / SKU_PAGE_SIZE)
+                            ? 'opacity-40 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-400' 
+                            : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 cursor-pointer'
+                        }`}
+                      >
+                        Próxima
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full border-collapse font-sans text-xs min-w-[700px]">
@@ -1852,7 +1863,8 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                         </td>
                       </tr>
                     ) : (
-                      sortedSkus.map((item, index) => {
+                      sortedSkus.slice((skuPage - 1) * SKU_PAGE_SIZE, skuPage * SKU_PAGE_SIZE).map((item, idxOffset) => {
+                        const index = (skuPage - 1) * SKU_PAGE_SIZE + idxOffset;
                         const isSelected = isFiltered('produto', item.desc) || isFiltered('produto', item.cod) || isFiltered('codProduto', item.cod);
                         const filterVal = (item.cod && item.cod !== 'S/C') ? item.cod : item.desc;
                         const filterLabel = (item.cod && item.cod !== 'S/C') ? `SKU ${item.cod} - ${item.desc}` : item.desc;

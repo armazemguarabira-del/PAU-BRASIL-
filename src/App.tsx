@@ -62,7 +62,7 @@ import { DiarioBordoComponent } from './components/DiarioBordoComponent';
 import { ReunioesComponent } from './components/ReunioesComponent';
 import { WlpDashboard } from './components/WlpDashboard';
 import { OperationalNotificationBell } from './components/OperationalNotificationBell';
-import { EmpresaDataProvider, useEmpresaData } from './context/EmpresaDataContext';
+import { EmpresaDataProvider, useEmpresaData, useViewUnitMode } from './context/EmpresaDataContext';
 import { safeSetLocalStorage, safeGetLocalStorage } from './utils/safeLocalStorage';
 
 import { auth, isCustomFirebaseConnected } from './firebase';
@@ -99,7 +99,7 @@ function HeaderClock({ theme }: { theme: 'light' | 'dark' }) {
 }
 
 function GlobalUnitSelector({ theme }: { theme: 'light' | 'dark' }) {
-  const { viewUnitMode, setViewUnitMode } = useEmpresaData();
+  const { viewUnitMode, setViewUnitMode } = useViewUnitMode();
   return (
     <div className={`flex items-center p-0.5 rounded-lg border font-black text-[9px] uppercase tracking-wider ${
       theme === 'dark' ? 'bg-[#151b23] border-[#222d3a] text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
@@ -1066,6 +1066,13 @@ export default function App() {
           title: 'Dashboard Picking e Abastecimento',
           subtitle: 'Gargalos operacionais, eficiência de turnos, telemetria de empilhadeira e produtividade.',
           color: 'from-[#1e56f0]/10 to-transparent'
+        };
+      case 'ajudante':
+        return {
+          breadcrumbs: ['Setores de Operação', 'Operação Ajudante'],
+          title: 'Operação Ajudante',
+          subtitle: 'Apontamento unificado de atividades de Ajudante: Repack, Despejo e Quebras.',
+          color: 'from-indigo-500/10 to-transparent'
         };
       case 'repack':
         return {

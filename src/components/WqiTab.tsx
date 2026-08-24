@@ -72,61 +72,87 @@ export interface CollaboratorResolvedInfo {
   badgeClass: string;
 }
 
+// 3 OPERADORES OFICIAIS DE EMPILHADEIRA DO ARMAZÉM GUARABIRA:
+// 1. Marivaldo Artur Alves
+// 2. Paulo Pereira da Silva
+// 3. José Ronildo da Silva
+export const EMPILHADORES_OFICIAIS = [
+  'MARIVALDO ARTUR ALVES',
+  'PAULO PEREIRA DA SILVA',
+  'JOSE RONILDO DA SILVA'
+];
+
+export function isEmpilhadorOficial(name: string): boolean {
+  if (!name) return false;
+  const n = name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  if (n.includes('MARIVALDO')) return true;
+  if (n.includes('PAULO PEREIRA') || (n.startsWith('PAULO') && (n.includes('SILVA') || n.split(' ').length <= 2))) return true;
+  if (n.includes('RONILDO') || n.includes('JOSE RONILDO') || n.includes('JOSÉ RONILDO') || n.includes('ROMILDO')) return true;
+  return false;
+}
+
 export function resolveCollaboratorAndFunction(q: Partial<QuebraRow>): CollaboratorResolvedInfo {
   const rawColab = (q.colaboradorQuebrou || q.responsavel || (q as any).colaborador || (q as any).operador || (q as any).ajudante || (q as any).empilhador || '').trim();
   const normName = normalizeCollaboratorName(rawColab);
   const hasColab = Boolean(normName && normName !== 'NÃO INFORMADO' && normName !== 'NÃO IDENTIFICADO' && normName !== '—');
   
-  let rawFunc = (q.funcao || (q as any).cargo || '').trim().toUpperCase();
+  let resolvedNome = hasColab ? normName : 'NÃO INFORMADO';
+  let rawFunc = '';
 
-  // 1. Check against official master roster
-  if (hasColab && (!rawFunc || rawFunc === 'OPERADOR' || rawFunc === 'NÃO INFORMADO')) {
+  if (!hasColab) {
+    rawFunc = 'NÃO INFORMADO';
+  } else if (isEmpilhadorOficial(normName) || isEmpilhadorOficial(rawColab)) {
+    rawFunc = 'EMPILHADOR';
+    if (normName.includes('MARIVALDO')) resolvedNome = 'MARIVALDO ARTUR ALVES';
+    else if (normName.includes('PAULO')) resolvedNome = 'PAULO PEREIRA DA SILVA';
+    else if (normName.includes('RONILDO') || normName.includes('ROMILDO')) resolvedNome = 'JOSE RONILDO DA SILVA';
+  } else {
+    // 1. Check against official master roster
     const match = LISTA_COLABORADORES_OFICIAIS.find(c => {
       const cNorm = normalizeCollaboratorName(c.nome);
       return cNorm === normName || c.nome.toUpperCase() === normName || (normName && c.nome.toUpperCase().includes(normName));
     });
-    if (match && match.cargo) {
-      rawFunc = match.cargo.toUpperCase();
-    }
-  }
 
-  // 2. Infer from operational area or motive code if collaborator is present
-  if (!rawFunc || rawFunc === 'OPERADOR') {
-    const areaUpper = (q.area || '').toUpperCase();
-    const motUpper = (q.motivo || '').toUpperCase();
-    const cod = String(q.codQuebra || '').trim();
-    if (!hasColab) {
-      rawFunc = 'NÃO INFORMADO';
-    } else if (areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || cod === '539' || motUpper.includes('EMPILHA')) {
-      rawFunc = 'EMPILHADOR';
-    } else if (areaUpper === 'ENTREGA' || areaUpper === 'ROTA' || cod === '557' || motUpper.includes('ENTREGA')) {
-      rawFunc = 'AJUDANTE';
-    } else if (areaUpper === 'PUXADA' || areaUpper === 'TRANSF' || cod === '589') {
-      rawFunc = 'CONFERENTE';
-    } else if (areaUpper === 'PICKING' || cod === '537') {
-      rawFunc = 'SEPARADOR';
+    if (match && match.cargo) {
+      const cargoUpper = match.cargo.toUpperCase();
+      if (cargoUpper.includes('EMPILHA')) {
+        rawFunc = isEmpilhadorOficial(match.nome) ? 'EMPILHADOR' : 'AJUDANTE';
+      } else if (cargoUpper.includes('CONFEREN')) {
+        rawFunc = 'CONFERENTE';
+      } else if (cargoUpper.includes('ADMIN')) {
+        rawFunc = 'ADMINISTRATIVO';
+      } else {
+        rawFunc = 'AJUDANTE';
+      }
     } else {
-      rawFunc = 'OPERADOR DE ARMAZÉM';
+      // 2. Non-empilhador warehouse staff
+      const areaUpper = (q.area || '').toUpperCase();
+      const cod = String(q.codQuebra || '').trim();
+      if (areaUpper === 'CONFERÊNCIA' || areaUpper === 'CONFERENCIA' || cod === '589') {
+        rawFunc = 'CONFERENTE';
+      } else {
+        rawFunc = 'AJUDANTE';
+      }
     }
   }
 
   let badgeClass = 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800';
-  if (rawFunc.includes('EMPILHADOR')) {
+  if (rawFunc === 'EMPILHADOR') {
     badgeClass = 'bg-indigo-100 text-indigo-900 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800';
-  } else if (rawFunc.includes('AJUDANTE')) {
+  } else if (rawFunc === 'AJUDANTE') {
     badgeClass = 'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800';
-  } else if (rawFunc.includes('CONFERENTE')) {
+  } else if (rawFunc === 'CONFERENTE') {
     badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800';
-  } else if (rawFunc.includes('ADMIN') || rawFunc.includes('SUPERV')) {
+  } else if (rawFunc.includes('ADMIN')) {
     badgeClass = 'bg-purple-100 text-purple-900 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800';
   } else if (rawFunc.includes('SEPARADOR') || rawFunc.includes('PICKING')) {
     badgeClass = 'bg-teal-100 text-teal-900 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800';
-  } else if (rawFunc === 'NÃO INFORMADO' || rawFunc === 'NÃO IDENTIFICADO') {
+  } else {
     badgeClass = 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
   }
 
   return {
-    nome: hasColab ? normName : 'NÃO INFORMADO',
+    nome: resolvedNome,
     funcao: rawFunc,
     badgeClass
   };
@@ -483,7 +509,14 @@ export default function WqiTab({
     setLoading(true);
     const map = new Map<string, QuebraRow>();
 
-    // 1. Primary source: Firestore context rows
+    // 1. Official baseline dataset (instant in-memory)
+    const official = buildOfficialQuebrasRows(empresaId || 'demo');
+    official.forEach(q => {
+      const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
+      map.set(id, q);
+    });
+
+    // 2. Merge Firestore context rows if present
     if (empresaData.quebras && empresaData.quebras.length > 0) {
       empresaData.quebras.forEach(q => {
         const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
@@ -491,51 +524,21 @@ export default function WqiTab({
       });
     }
 
-    // 2. Scan LocalStorage for saved quebras and retroactive datasets
+    // 3. Merge custom user quebras from localStorage if present
     try {
-      const keysToScan = [
-        `quebras_${empresaId || 'demo'}`,
-        `local_quebras_${empresaId || 'demo'}`,
-        'quebras_demo',
-        'quebras_oficiais_2026'
-      ];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && (k.startsWith('dados_retroativos_quebras') || k.startsWith('quebras_') || k.startsWith('local_quebras_'))) {
-          if (!keysToScan.includes(k)) keysToScan.push(k);
+      const customSaved = localStorage.getItem(`custom_quebras_${empresaId || 'demo'}`) || localStorage.getItem(`local_quebras_${empresaId || 'demo'}`);
+      if (customSaved) {
+        const parsed = JSON.parse(customSaved);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((q: QuebraRow) => {
+            const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
+            map.set(id, q);
+          });
         }
       }
-
-      keysToScan.forEach(k => {
-        const saved = localStorage.getItem(k);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              parsed.forEach((q: QuebraRow) => {
-                const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
-                if (!map.has(id)) {
-                  map.set(id, q);
-                }
-              });
-            }
-          } catch (_) {}
-        }
-      });
     } catch (_) {}
 
-    // 3. Fallback / guarantee official embedded dataset is merged if empty
-    if (map.size === 0) {
-      const official = buildOfficialQuebrasRows(empresaId || 'demo');
-      official.forEach(q => {
-        const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
-        if (!map.has(id)) {
-          map.set(id, q);
-        }
-      });
-    }
-
-    // 4. Enrich every single row with resolved collaborator & function
+    // 4. Enrich rows with resolved collaborator & function
     const allRows = Array.from(map.values()).map(q => {
       const colabInfo = resolveCollaboratorAndFunction(q);
       return {
@@ -1102,9 +1105,8 @@ export default function WqiTab({
     const funcUpper = info.funcao.toUpperCase();
     const resp = info.nome;
 
-    if (funcUpper.includes('AJUDANTE')) {
-      const name = resp && resp !== 'NÃO IDENTIFICADO' ? resp : 'Não Informado';
-      ajudantesMap[name] = (ajudantesMap[name] || 0) + 1;
+    if (funcUpper === 'AJUDANTE' && resp && resp !== 'NÃO INFORMADO' && resp !== 'NÃO IDENTIFICADO') {
+      ajudantesMap[resp] = (ajudantesMap[resp] || 0) + 1;
     }
   });
 
@@ -1114,7 +1116,7 @@ export default function WqiTab({
     .slice(0, 10);
 
   // -------------------------------------------------------------
-  // CHART 3: Ocorrências por Empilhadores
+  // CHART 3: Ocorrências por Empilhadores (Exclusivo: Marivaldo, Paulo, Ronildo)
   // -------------------------------------------------------------
   const empilhadoresMap: Record<string, number> = {};
 
@@ -1123,16 +1125,14 @@ export default function WqiTab({
     const funcUpper = info.funcao.toUpperCase();
     const resp = info.nome;
 
-    if (funcUpper.includes('EMPILHADOR')) {
-      const name = resp && resp !== 'NÃO IDENTIFICADO' ? resp : 'Não Informado';
-      empilhadoresMap[name] = (empilhadoresMap[name] || 0) + 1;
+    if (funcUpper === 'EMPILHADOR' && isEmpilhadorOficial(resp)) {
+      empilhadoresMap[resp] = (empilhadoresMap[resp] || 0) + 1;
     }
   });
 
   const empilhadoresChartData = Object.entries(empilhadoresMap)
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+    .sort((a, b) => b.count - a.count);
 
   // -------------------------------------------------------------
   // CHART 4: Ocorrências por Embalagens
@@ -1653,7 +1653,7 @@ export default function WqiTab({
               </span>
             </div>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Contagem de quebras por ajudante de entrega e movimentação
+              Contagem de quebras operacionais por ajudantes de armazém e movimentação
             </span>
           </div>
 
@@ -1695,7 +1695,7 @@ export default function WqiTab({
           </div>
 
           <div className={`text-[9px] font-semibold border-t pt-1.5 flex items-center justify-between ${isDark ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
-            <span>Identificação nominal do ajudante</span>
+            <span>Identificação nominal de ajudantes</span>
             <span className="font-mono font-bold text-amber-500">Top {ajudantesChartData.length} Ajudantes</span>
           </div>
         </div>
@@ -1708,18 +1708,18 @@ export default function WqiTab({
                 <Users className="w-4 h-4 text-[#3b82f6]" /> 3. OCORRÊNCIA POR EMPILHADORES
               </h3>
               <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isDark ? 'text-blue-300 bg-blue-950/60' : 'text-blue-600 bg-blue-50'}`}>
-                Colunas Verticais
+                3 Operadores
               </span>
             </div>
             <span className={`text-[9px] font-bold mt-0.5 block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Contagem de registros de quebra de operadores de empilhadeira
+              Contagem de quebras dos 3 operadores de empilhadeira do armazém: Marivaldo, Paulo e Ronildo
             </span>
           </div>
 
           <div className="h-68 w-full my-2">
             {empilhadoresChartData.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
-                Sem registros atribuídos a Empilhadores.
+                Sem registros atribuídos aos 3 Empilhadores no período.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -1754,8 +1754,8 @@ export default function WqiTab({
           </div>
 
           <div className={`text-[9px] font-semibold border-t pt-1.5 flex items-center justify-between ${isDark ? 'border-slate-800 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
-            <span>Operadores de empilhadeira habilitados</span>
-            <span className={`font-mono font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Top {empilhadoresChartData.length} Empilhadores</span>
+            <span>Apenas Marivaldo, Paulo e Ronildo</span>
+            <span className={`font-mono font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{empilhadoresChartData.length} Empilhador(es) com quebras</span>
           </div>
         </div>
 

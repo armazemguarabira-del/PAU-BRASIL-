@@ -100,9 +100,13 @@ export function syncIncremental({
       }
 
       onData(records);
-      // Salva em background no JSON Database e no Cache L2
-      setHybridCacheCollection(cacheKey, records, 1000 * 60 * 60 * 24).catch(() => {});
-      saveJsonTable(empresaId, collectionName, records).catch(() => {});
+      // Salva de forma assíncrona desacoplada da thread principal
+      setTimeout(() => {
+        if (!isUnsubscribed) {
+          setHybridCacheCollection(cacheKey, records, 1000 * 60 * 60 * 24).catch(() => {});
+          saveJsonTable(empresaId, collectionName, records).catch(() => {});
+        }
+      }, 500);
     }
   };
 

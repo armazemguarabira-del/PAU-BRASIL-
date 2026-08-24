@@ -55,7 +55,7 @@ interface ConferentePanelProps {
 export default function ConferentePanel({ user, empresa, initialTab, theme = 'dark' }: ConferentePanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `conferente_draft_${empresaId}_${user.nome || 'guest'}`;
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['tarefas', 'colaboradores', 'produtos', 'validades']);
 
   // Load draft safely once
   const initialDraft = React.useMemo(() => {
@@ -2559,7 +2559,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </div>
       )}
       {panelTab === 'validade' && (
-        <ValidadesPanel user={user} empresa={empresa} hideSugerirMelhoria={true} />
+        <ValidadesPanel user={user} empresa={empresa} hideSugerirMelhoria={true} theme={theme} />
       )}
 
       {panelTab === 'temperatura' && (

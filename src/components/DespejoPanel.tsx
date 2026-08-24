@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { DespejoRepository } from '../db';
 import { Usuario, Empresa, DespejoRow } from '../types';
@@ -56,6 +56,8 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
   const [activeTab, setActiveTab] = useState<'form' | 'stats' | 'hist'>('form');
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);
   const [registering, setRegistering] = useState(false);
+  const [historyPage, setHistoryPage] = useState<number>(1);
+  const historyPageSize = 10;
   const [draftRestored, setDraftRestored] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(draftKey);
@@ -125,7 +127,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     return [n.getHours(), n.getMinutes(), n.getSeconds()].map(pad2).join(':');
   };
 
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['despejo']);
 
   // Sync with official data and live manual entries
   useEffect(() => {
@@ -253,6 +255,32 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     }
   };
 
+  const filteredDespejoRows = useMemo(() => {
+    return filterHistoryForUser<DespejoRow>(despejoRows, user);
+  }, [despejoRows, user]);
+
+  const todayDespejoRows = useMemo(() => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    return despejoRows.filter(r => r.data === today && r.operador === user.nome);
+  }, [despejoRows, user.nome]);
+
+  const todayDespejoStats = useMemo(() => {
+    const lancamentos = todayDespejoRows.length;
+    const unidades = todayDespejoRows.reduce((sum, r) => sum + (r.quantidade || 0), 0);
+    const metasBatidas = todayDespejoRows.filter(r => (r.resultado || '').includes('BATIDA')).length;
+    return { lancamentos, unidades, metasBatidas };
+  }, [todayDespejoRows]);
+
+  const groupedDespejoEntries = useMemo(() => {
+    const grouped = filteredDespejoRows.reduce((acc, r) => {
+      const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(r);
+      return acc;
+    }, {} as Record<string, DespejoRow[]>);
+    return Object.entries(grouped) as [string, DespejoRow[]][];
+  }, [filteredDespejoRows]);
+
   return (
     <div className="flex flex-col gap-6">
       
@@ -284,7 +312,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
           onClick={() => setActiveTab('hist')}
           className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
         >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filterHistoryForUser(despejoRows, user).length}</span>
+          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredDespejoRows.length}</span>
         </button>
       </div>
 
@@ -312,7 +340,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Lançamentos</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).length}
+                  {todayDespejoStats.lancamentos}
                 </span>
               </div>
             </div>
@@ -324,7 +352,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Líquido Despejado</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).reduce((sum, r) => sum + (r.quantidade || 0), 0)} un
+                  {todayDespejoStats.unidades} un
                 </span>
               </div>
             </div>
@@ -336,7 +364,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6a7d92] block tracking-wider">Metas Batidas</span>
                 <span className="text-xl font-bold text-snow font-mono">
-                  {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome && r.resultado?.includes('BATIDA')).length}
+                  {todayDespejoStats.metasBatidas}
                 </span>
               </div>
             </div>
@@ -344,7 +372,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-bold text-[#6a7d92] uppercase tracking-wider">Histórico Detalhado de Hoje</h4>
-            {despejoRows.filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome).length === 0 ? (
+            {todayDespejoRows.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-[#222d3a] rounded-xl text-xs text-[#6a7d92]">
                 Nenhuma atividade registrada por você hoje ainda. Use a aba "Registrar" para começar!
               </div>
@@ -361,25 +389,23 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#222d3a]">
-                    {despejoRows
-                      .filter(r => r.data === new Date().toLocaleDateString('pt-BR') && r.operador === user.nome)
-                      .map((r, idx) => (
-                        <tr key={r._docId || idx} className="hover:bg-[#151b23]/30 transition-colors">
-                          <td className="py-3 px-3 font-bold text-snow">{r.embalagem}</td>
-                          <td className="py-3 px-3 font-mono">{r.quantidade} un</td>
-                          <td className="py-3 px-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
-                          <td className="py-3 px-3 font-mono">{r.tempo || r.duracao || '—'}</td>
-                          <td className="py-3 px-3">
-                            <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                              (r.resultado || '').includes('BATIDA') 
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                            }`}>
-                              {r.resultado}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                    {todayDespejoRows.map((r, idx) => (
+                      <tr key={r._docId || idx} className="hover:bg-[#151b23]/30 transition-colors">
+                        <td className="py-3 px-3 font-bold text-snow">{r.embalagem}</td>
+                        <td className="py-3 px-3 font-mono">{r.quantidade} un</td>
+                        <td className="py-3 px-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
+                        <td className="py-3 px-3 font-mono">{r.tempo || r.duracao || '—'}</td>
+                        <td className="py-3 px-3">
+                          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                            (r.resultado || '').includes('BATIDA') 
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                              : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          }`}>
+                            {r.resultado}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -561,133 +587,175 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
           </div>
 
           {(() => {
-            const filteredDespejoRows = filterHistoryForUser<DespejoRow>(despejoRows, user);
-            const grouped = filteredDespejoRows.reduce((acc, r) => {
-              const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
-              if (!acc[key]) acc[key] = [];
-              acc[key].push(r);
-              return acc;
-            }, {} as Record<string, DespejoRow[]>);
-
-            if (Object.keys(grouped).length === 0) {
+            if (groupedDespejoEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum despejo computado ainda.</div>;
             }
 
-            return (Object.entries(grouped) as [string, DespejoRow[]][]).map(([dateKey, rows]) => {
-              const isOpen = !!expandedDates[dateKey];
-              const batidaCount = rows.filter(r => r.resultado.includes('BATIDA')).length;
-              const totalBoxes = rows.reduce((s, r) => s + (r.quantidade || 0), 0);
+            const totalPages = Math.ceil(groupedDespejoEntries.length / historyPageSize) || 1;
+            const currentPage = Math.min(Math.max(1, historyPage), totalPages);
+            const paginatedEntries = groupedDespejoEntries.slice((currentPage - 1) * historyPageSize, currentPage * historyPageSize);
 
-              let formattedDate = dateKey;
-              try {
-                const [y, m, d] = dateKey.split('-');
-                const dt = new Date(Number(y), Number(m) - 1, Number(d));
-                const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
-              } catch (e) {}
+            return (
+              <>
+                {paginatedEntries.map(([dateKey, rows]) => {
+                  const isOpen = !!expandedDates[dateKey];
+                  const batidaCount = rows.filter(r => r.resultado.includes('BATIDA')).length;
+                  const totalBoxes = rows.reduce((s, r) => s + (r.quantidade || 0), 0);
 
-              return (
-                <div key={dateKey} className="g-card overflow-hidden">
-                  <div 
-                    onClick={() => toggleDateGroup(dateKey)}
-                    className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
-                  >
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="font-sans font-black text-sm text-[#ef4444] tracking-wide">📅 {formattedDate}</span>
-                      <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
-                        {rows.length} operações
-                      </span>
-                      {batidaCount === rows.length ? (
-                        <span className="text-[9px] bg-[#22c55e]/15 border border-[#22c55e]/25 text-[#22c55e] px-2 py-0.5 rounded-full font-bold">
-                          ✓ Tudo Ok ({batidaCount}/{rows.length})
-                        </span>
-                      ) : (
-                        <span className="text-[9px] bg-[#ef4444]/15 border border-[#ef4444]/25 text-[#fca5a5] px-2 py-0.5 rounded-full font-bold">
-                          ⚠ {rows.length - batidaCount} acima da meta
-                        </span>
+                  let formattedDate = dateKey;
+                  try {
+                    const [y, m, d] = dateKey.split('-');
+                    const dt = new Date(Number(y), Number(m) - 1, Number(d));
+                    const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                    formattedDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
+                  } catch (e) {}
+
+                  return (
+                    <div key={dateKey} className="g-card overflow-hidden">
+                      <div 
+                        onClick={() => toggleDateGroup(dateKey)}
+                        className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap"
+                      >
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-sans font-black text-sm text-[#ef4444] tracking-wide">📅 {formattedDate}</span>
+                          <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2 py-0.5 rounded-full font-bold text-snow">
+                            {rows.length} operações
+                          </span>
+                          {batidaCount === rows.length ? (
+                            <span className="text-[9px] bg-[#22c55e]/15 border border-[#22c55e]/25 text-[#22c55e] px-2 py-0.5 rounded-full font-bold">
+                              ✓ Tudo Ok ({batidaCount}/{rows.length})
+                            </span>
+                          ) : (
+                            <span className="text-[9px] bg-[#ef4444]/15 border border-[#ef4444]/25 text-[#fca5a5] px-2 py-0.5 rounded-full font-bold">
+                              ⚠ {rows.length - batidaCount} acima da meta
+                            </span>
+                          )}
+                          <span className="text-[10px] text-[#6a7d92] font-semibold">
+                            📦 {totalBoxes} unidades despejadas
+                          </span>
+                        </div>
+                        <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                      </div>
+
+                      {isOpen && (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse text-xs min-w-[780px]">
+                            <thead>
+                              <tr className="bg-[#07090d] border-b border-[#222d3a]">
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Embalagem</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">Unidades</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Início / Fim</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Duração Total</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">
+                                  <span className="text-amber-400">⏱️ Tempos Ilustrativos por Fase</span>
+                                </th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Resultado</th>
+                                <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-right">Ação</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#222d3a]">
+                              {rows.map((r, i) => {
+                                const tempos = elaborarTemposIlustrativosOperacao(r.quantidade, r.embalagem, r.tempo);
+                                return (
+                                  <React.Fragment key={r._docId || i}>
+                                    <tr className="hover:bg-[#151b23]/30 transition-colors">
+                                      <td className="p-3 font-semibold text-[#ef4444]">
+                                        {r.embalagem}
+                                        {r.operador && <span className="block text-[10px] text-[#6a7d92] font-mono">Op: {r.operador}</span>}
+                                      </td>
+                                      <td className="p-3 text-center font-bold font-mono">{r.quantidade} un</td>
+                                      <td className="p-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
+                                      <td className="p-3 font-mono text-snow font-bold">{r.tempo}</td>
+                                      <td className="p-3 font-mono">
+                                        <div className="flex flex-col gap-1">
+                                          <div className="flex items-center gap-1.5 text-[10px]">
+                                            <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 1: Triagem & Checagem">
+                                              🔍 {tempos.tempoTriagemStr}
+                                            </span>
+                                            <span className="text-sky-400 bg-sky-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 2: Drenagem & Esvaziamento">
+                                              💧 {tempos.tempoDrenagemStr}
+                                            </span>
+                                            <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 3: Segregação & Compactação">
+                                              ♻️ {tempos.tempoSegregacaoStr}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-2 text-[9px] text-[#6a7d92]">
+                                            <span>⚡ {tempos.ritmoUnidadesPorHora ?? tempos.ritmoSkusPorHora} un/h</span>
+                                            <span>•</span>
+                                            <span>💧 {tempos.vazaoHlPorMinuto} HL/min</span>
+                                            <span>•</span>
+                                            <span className={tempos.desvioPositivo ? 'text-emerald-400' : 'text-rose-400'}>
+                                              {tempos.desvioPadraoStr} vs meta
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className={`p-3 font-sans font-black ${r.resultado.includes('BATIDA') ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                                        {r.resultado}
+                                      </td>
+                                      <td className="p-3 text-right">
+                                        <button 
+                                          onClick={() => handleDelete(r._docId)}
+                                          className="py-1 px-2.5 bg-[#ef4444]/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded-md text-[10px] font-bold cursor-pointer"
+                                        >
+                                          ✕
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  </React.Fragment>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
-                      <span className="text-[10px] text-[#6a7d92] font-semibold">
-                        📦 {totalBoxes} unidades despejadas
-                      </span>
                     </div>
-                    <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
-                  </div>
+                  );
+                })}
 
-                  {isOpen && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs min-w-[780px]">
-                        <thead>
-                          <tr className="bg-[#07090d] border-b border-[#222d3a]">
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Embalagem</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-center">Unidades</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Início / Fim</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Duração Total</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">
-                              <span className="text-amber-400">⏱️ Tempos Ilustrativos por Fase</span>
-                            </th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider">Resultado</th>
-                            <th className="p-3 text-[#6a7d92] uppercase font-bold tracking-wider text-right">Ação</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#222d3a]">
-                          {rows.map((r, i) => {
-                            const tempos = elaborarTemposIlustrativosOperacao(r.quantidade, r.embalagem, r.tempo);
-                            return (
-                              <React.Fragment key={r._docId || i}>
-                                <tr className="hover:bg-[#151b23]/30 transition-colors">
-                                  <td className="p-3 font-semibold text-[#ef4444]">
-                                    {r.embalagem}
-                                    {r.operador && <span className="block text-[10px] text-[#6a7d92] font-mono">Op: {r.operador}</span>}
-                                  </td>
-                                  <td className="p-3 text-center font-bold font-mono">{r.quantidade} un</td>
-                                  <td className="p-3 font-mono text-[#6a7d92]">{r.inicio} - {r.fim}</td>
-                                  <td className="p-3 font-mono text-snow font-bold">{r.tempo}</td>
-                                  <td className="p-3 font-mono">
-                                    <div className="flex flex-col gap-1">
-                                      <div className="flex items-center gap-1.5 text-[10px]">
-                                        <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 1: Triagem & Checagem">
-                                          🔍 {tempos.tempoTriagemStr}
-                                        </span>
-                                        <span className="text-sky-400 bg-sky-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 2: Drenagem & Esvaziamento">
-                                          💧 {tempos.tempoDrenagemStr}
-                                        </span>
-                                        <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded font-bold" title="Fase 3: Segregação & Compactação">
-                                          ♻️ {tempos.tempoSegregacaoStr}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-[9px] text-[#6a7d92]">
-                                        <span>⚡ {tempos.ritmoUnidadesPorHora ?? tempos.ritmoSkusPorHora} un/h</span>
-                                        <span>•</span>
-                                        <span>💧 {tempos.vazaoHlPorMinuto} HL/min</span>
-                                        <span>•</span>
-                                        <span className={tempos.desvioPositivo ? 'text-emerald-400' : 'text-rose-400'}>
-                                          {tempos.desvioPadraoStr} vs meta
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className={`p-3 font-sans font-black ${r.resultado.includes('BATIDA') ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                                    {r.resultado}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    <button 
-                                      onClick={() => handleDelete(r._docId)}
-                                      className="py-1 px-2.5 bg-[#ef4444]/10 border border-[#ef4444]/20 hover:bg-[#ef4444] text-[#fca5a5] hover:text-white rounded-md text-[10px] font-bold cursor-pointer"
-                                    >
-                                      ✕
-                                    </button>
-                                  </td>
-                                </tr>
-                              </React.Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                {groupedDespejoEntries.length > historyPageSize && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-[#11151c] border border-[#222d3a] rounded-xl text-xs">
+                    <span className="text-[#6a7d92] font-medium">
+                      Mostrando dias {((currentPage - 1) * historyPageSize) + 1} a {Math.min(currentPage * historyPageSize, groupedDespejoEntries.length)} de {groupedDespejoEntries.length} dias
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={currentPage <= 1}
+                        onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                        className="px-3 py-1.5 rounded-lg border border-[#222d3a] bg-[#151b23] text-snow font-bold hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                      >
+                        ← Anterior
+                      </button>
+                      <div className="flex items-center gap-1 px-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setHistoryPage(p)}
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              currentPage === p
+                                ? 'bg-[#ef4444] text-white shadow-xs'
+                                : 'text-[#6a7d92] hover:bg-[#1c2530]'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={currentPage >= totalPages}
+                        onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))}
+                        className="px-3 py-1.5 rounded-lg border border-[#222d3a] bg-[#151b23] text-snow font-bold hover:bg-[#1c2530] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-all"
+                      >
+                        Próximo →
+                      </button>
                     </div>
-                  )}
-                </div>
-              );
-            });
+                  </div>
+                )}
+              </>
+            );
           })()}
         </div>
       )}

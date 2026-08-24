@@ -1,6 +1,7 @@
 import { ManualInstrucaoCard } from './ManualInstrucaoCard';
 import { IndicatorMetaHeader } from './IndicatorMetaHeader';
 import { getStoredEfcVehicles, calculateEfcMetrics, calculateEfdMetrics } from '../utils/efcEfdManager';
+import { getStoredTmrDemands } from '../utils/tmrManager';
 import { convertEfcVehiclesToArmazemRows } from '../services/retroactiveEfcEfdSyncService';
 import { firestoreDb } from '../database/firestoreDatabase';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -52,7 +53,7 @@ import {
   ClipboardCheck
 } from 'lucide-react';
 import { ChartTooltipExplainer } from './ChartTooltipExplainer';
-import { Usuario, Empresa, ArmazemRow } from '../types';
+import { Usuario, Empresa, ArmazemRow, TmrDemand } from '../types';
 import { db, isCustomFirebaseConnected } from '../firebase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import A3BoardComponent from './A3BoardComponent';
@@ -171,6 +172,9 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
   };
 
   const [actualArmazemRows, setActualArmazemRows] = useState<ArmazemRow[]>([]);
+  const [actualTmrDemands, setActualTmrDemands] = useState<TmrDemand[]>(() => {
+    return getStoredTmrDemands(companyId);
+  });
   const [activeSubTab, setActiveSubTab] = useState<'faturamento' | 'boarda3' | 'detalhes' | 'pernoite'>('faturamento');
   const [selectedDrilldownMetric, setSelectedDrilldownMetric] = useState<string | null>(null);
   const [viewUnit, setViewUnit] = useState<'pal' | 'he'>('pal');
@@ -196,6 +200,9 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     const companyId = empresa?.id || 'demo';
     
     const loadArmazemData = () => {
+      // 0. Carregar demandas de TMR
+      setActualTmrDemands(getStoredTmrDemands(companyId));
+
       // 1. Carregar diretamente do armazenamento local sincronizado
       const savedArmazem = localStorage.getItem(`armazem_rows_${companyId}`);
       let localRows: ArmazemRow[] = [];
@@ -237,11 +244,13 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     loadArmazemData();
 
     window.addEventListener('efc_vehicles_updated', loadArmazemData);
+    window.addEventListener('tmr_demands_updated', loadArmazemData);
     window.addEventListener('local_data_changed', loadArmazemData);
     window.addEventListener('storage', loadArmazemData);
 
     return () => {
       window.removeEventListener('efc_vehicles_updated', loadArmazemData);
+      window.removeEventListener('tmr_demands_updated', loadArmazemData);
       window.removeEventListener('local_data_changed', loadArmazemData);
       window.removeEventListener('storage', loadArmazemData);
     };
@@ -1155,27 +1164,104 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
     return list.slice(0, 8);
   }, [filteredRows]);
 
-  // 4. COMPARATIVO META X REAL
+  // 4. COMPARATIVO META X REAL (EXCLUSIVAMENTE TMR)
   const comparativoMetaRealData = useMemo(() => {
+    // 1. Filtrar demandas finalizadas de TMR considerando filtros de data
+    const finishedTmr = actualTmrDemands.filter(t => {
+      if (t.status !== 'done') return false;
+      const refDateStr = t.finalizadoEm || t.iniciadoEm || t.criadoEm;
+      if (refDateStr && (startDate || endDate)) {
+        const dObj = new Date(refDateStr);
+        if (!isNaN(dObj.getTime())) {
+          const pad = (n: number) => String(n).padStart(2, '0');
+          const dKey = `${dObj.getFullYear()}-${pad(dObj.getMonth() + 1)}-${pad(dObj.getDate())}`;
+          if (startDate && dKey < startDate) return false;
+          if (endDate && dKey > endDate) return false;
+        }
+      }
+      return true;
+    });
+
+    // 2. Metas padrão de TMR
+    const metaCarreta = 45;
+    const metaRecarga = 50;
+    const metaTerceiros = 50;
+
+    // Segmentação de TMR
+    const carretas = finishedTmr.filter(t => 
+      t.tipoDemanda !== 'Terceiros' && 
+      t.tipoDemanda !== 'Recarga' && 
+      !t.carreta?.toLowerCase().includes('terceiro')
+    );
+    const recargas = finishedTmr.filter(t => 
+      t.tipoDemanda === 'Recarga' || 
+      t.tipoCarga?.toLowerCase().includes('recarga')
+    );
+    const terceiros = finishedTmr.filter(t => 
+      t.tipoDemanda === 'Terceiros' || 
+      t.isTerceiros || 
+      t.carreta?.toLowerCase().includes('terceiro')
+    );
+
+    const calcAdherence = (list: TmrDemand[], metaLimit: number) => {
+      const valid = list.filter(t => typeof t.duracaoMin === 'number' && t.duracaoMin > 0);
+      if (valid.length === 0) return 100;
+      const compliant = valid.filter(t => (t.duracaoMin || 0) <= metaLimit).length;
+      return parseFloat(((compliant / valid.length) * 100).toFixed(1));
+    };
+
+    const adherenceCarreta = calcAdherence(carretas, metaCarreta);
+    const adherenceRecarga = calcAdherence(recargas, metaRecarga);
+    const adherenceTerceiros = calcAdherence(terceiros, metaTerceiros);
+
+    // Média de tempo realizada vs meta em minutos
+    const calcAvgDuration = (list: TmrDemand[]) => {
+      const valid = list.filter(t => typeof t.duracaoMin === 'number' && t.duracaoMin > 0);
+      if (valid.length === 0) return 0;
+      const total = valid.reduce((acc, t) => acc + (t.duracaoMin || 0), 0);
+      return Math.round(total / valid.length);
+    };
+
+    const avgTimeCarreta = calcAvgDuration(carretas);
+    const avgTimeRecarga = calcAvgDuration(recargas);
+    const avgTimeTerceiros = calcAvgDuration(terceiros);
+
     return [
       {
-        indicador: 'EFC (Carregamento)',
-        Real: efcValue,
+        indicador: 'TMR Carreta',
+        Real: adherenceCarreta,
         Meta: 96,
-        diferenca: parseFloat((efcValue - 96).toFixed(1)),
-        status: efcValue >= 96 ? 'Conforme' : 'Fora da Meta',
-        fillReal: efcValue >= 96 ? '#032b5e' : '#f43f5e'
+        tempoMedioMin: avgTimeCarreta,
+        metaTempoMin: metaCarreta,
+        totalOps: carretas.length,
+        diferenca: parseFloat((adherenceCarreta - 96).toFixed(1)),
+        status: adherenceCarreta >= 96 ? 'Conforme' : 'Fora da Meta',
+        fillReal: adherenceCarreta >= 96 ? '#032b5e' : '#f43f5e'
       },
       {
-        indicador: 'EFD (Descarregamento)',
-        Real: efdValue,
+        indicador: 'TMR Recarga',
+        Real: adherenceRecarga,
         Meta: 90,
-        diferenca: parseFloat((efdValue - 90).toFixed(1)),
-        status: efdValue >= 90 ? 'Conforme' : 'Fora da Meta',
-        fillReal: efdValue >= 90 ? '#f97316' : '#f43f5e'
+        tempoMedioMin: avgTimeRecarga,
+        metaTempoMin: metaRecarga,
+        totalOps: recargas.length,
+        diferenca: parseFloat((adherenceRecarga - 90).toFixed(1)),
+        status: adherenceRecarga >= 90 ? 'Conforme' : 'Fora da Meta',
+        fillReal: adherenceRecarga >= 90 ? '#0284c7' : '#f43f5e'
+      },
+      {
+        indicador: 'TMR Terceiros',
+        Real: adherenceTerceiros,
+        Meta: 90,
+        tempoMedioMin: avgTimeTerceiros,
+        metaTempoMin: metaTerceiros,
+        totalOps: terceiros.length,
+        diferenca: parseFloat((adherenceTerceiros - 90).toFixed(1)),
+        status: adherenceTerceiros >= 90 ? 'Conforme' : 'Fora da Meta',
+        fillReal: adherenceTerceiros >= 90 ? '#f97316' : '#f43f5e'
       }
     ];
-  }, [efcValue, efdValue]);
+  }, [actualTmrDemands, startDate, endDate]);
 
   // 5. RANKING DE VEÍCULOS COM MAIOR TEMPO DE ESTADIA
   const rankingVeiculosMaiorTempoData = useMemo(() => {
@@ -2995,20 +3081,21 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
           </div>
         </div>
 
-        {/* CHART 5: COMPARATIVO META X REAL */}
+        {/* CHART 5: COMPARATIVO META X REAL (EXCLUSIVAMENTE TMR) */}
         <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 gap-2">
             <div>
-              <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider">
-                5. Comparativo Geral: Meta DPO x Realizado
+              <h3 className="font-sans font-black text-sm uppercase text-[#032b5e] tracking-wider flex items-center gap-2">
+                <span>5. Comparativo Geral: Meta TMR x Realizado</span>
+                <span className="text-[10px] font-black px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded">Histórico TMR</span>
               </h3>
               <p className="text-[11px] text-gray-400 font-bold uppercase mt-0.5 tracking-wide">
-                EFC (Meta 96.0%) vs EFD (Meta 90.0%) acumulados no período
+                Aderência de TMR por tipo (Carreta ≤45min | Recarga ≤50min | Terceiros ≤50min)
               </p>
             </div>
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#032b5e] rounded-xs inline-block"></span> Realizado</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#475569] rounded-xs inline-block"></span> Meta Oficial</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#475569] rounded-xs inline-block"></span> Meta Aderência</span>
             </div>
           </div>
 
@@ -3021,15 +3108,15 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                 <Tooltip 
                   content={
                     <ChartTooltipExplainer 
-                      title="5. Comparativo Meta DPO x Real"
-                      concept="Percentual atingido de conformidade versus meta oficial DPO (EFC 96.0% / EFD 90.0%)."
-                      formula="Realizado (%) = (Veículos Conformes / Total Avaliados) * 100"
+                      title="5. Comparativo Meta TMR x Real"
+                      concept="Percentual de aderência às metas oficiais de TMR (Tempo Médio de Revenda) extraído dos registros históricos de TMR."
+                      formula="Aderência (%) = (Operações Concluídas no SLA / Total de Operações TMR) * 100"
                       unit="%"
                     />
                   } 
                 />
                 
-                <Bar dataKey="Real" name="Realizado (%)" radius={[4, 4, 0, 0]} barSize={42}>
+                <Bar dataKey="Real" name="Aderência Real (%)" radius={[4, 4, 0, 0]} barSize={36}>
                   {comparativoMetaRealData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fillReal} />
                   ))}
@@ -3040,7 +3127,7 @@ export default function LogisticaDashboard({ user, empresa, onBack, theme = 'dar
                     style={{ fontSize: 11, fontWeight: '900', fill: '#0f172a' }} 
                   />
                 </Bar>
-                <Bar dataKey="Meta" name="Meta Oficial (%)" fill="#475569" radius={[4, 4, 0, 0]} barSize={42}>
+                <Bar dataKey="Meta" name="Meta Aderência (%)" fill="#475569" radius={[4, 4, 0, 0]} barSize={36}>
                   <LabelList 
                     dataKey="Meta" 
                     position="top" 

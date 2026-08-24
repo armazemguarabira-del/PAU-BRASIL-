@@ -337,19 +337,19 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
     <div className="flex flex-col gap-6 w-full">
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#111822] p-5 rounded-2xl border border-[#222d3a]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-widest mb-1">
-            <Zap className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center gap-2 text-blue-700 font-bold text-xs uppercase tracking-widest mb-1">
+            <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>Controle Avançado de Validades</span>
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-[#032b5e] tracking-tight flex items-center gap-2">
             Rotina Futuro Shelf
-            <span className="text-xs font-normal text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+            <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
               Janela Crítica de 30 Dias
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Monitoramento de produtos que entraram na janela crítica (Data de Vencimento - 30 dias) para priorização imediata de saída e prevenção de perdas.
           </p>
         </div>
@@ -361,49 +361,49 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
               setCurrentDateStr(new Date().toISOString().substring(0, 10));
               if (onRefresh) onRefresh();
             }}
-            className="py-2 px-3.5 bg-[#1a2332] hover:bg-[#222d3a] text-slate-200 border border-[#2d3a4d] font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
+            className="py-2 px-3.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-2xs"
             title="Recalcular com a data atual do servidor"
           >
-            <RefreshCw className="w-4 h-4 text-purple-400" />
+            <RefreshCw className="w-4 h-4 text-purple-600" />
             <span>Recalcular Agora</span>
           </button>
 
           {/* EXCEL EXPORT */}
           <button
             onClick={handleExportExcel}
-            className="py-2 px-3.5 bg-[#1a2332] hover:bg-[#222d3a] text-slate-200 border border-[#2d3a4d] font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
+            className="py-2 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-2xs"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>Excel</span>
           </button>
 
           {/* PDF EXPORT */}
           <button
             onClick={handleExportPDF}
-            className="py-2 px-3.5 bg-[#1a2332] hover:bg-[#222d3a] text-slate-200 border border-[#2d3a4d] font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
+            className="py-2 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-2xs"
           >
-            <FileText className="w-4 h-4 text-rose-400" />
+            <FileText className="w-4 h-4 text-rose-600" />
             <span>PDF</span>
           </button>
         </div>
       </div>
 
       {/* BANNER INTEGRAÇÃO 03.05.19 */}
-      <div className="bg-gradient-to-r from-blue-950/40 via-[#111822] to-indigo-950/40 border border-blue-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50 border border-blue-200 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-            <TrendingDown className="w-5 h-5 text-blue-400" />
+          <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
+            <TrendingDown className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/15 px-2.5 py-0.5 rounded-full border border-blue-500/30">
+              <span className="text-[10px] font-black uppercase text-blue-900 bg-blue-200/80 px-2.5 py-0.5 rounded-full border border-blue-300">
                 03.05.19 Sincronizada
               </span>
-              <span className="text-xs font-bold text-slate-200">
-                Previsão de Escoamento e Janela Crítica com Venda Média do Quarter <strong className="text-blue-300">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs)
+              <span className="text-xs font-bold text-slate-800">
+                Previsão de Escoamento e Janela Crítica com Venda Média do Quarter <strong className="text-blue-700">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs)
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-600 mt-1">
               O cálculo de dias de estoque e risco de entrada na janela crítica de 30 dias utiliza a taxa de saída real da rotina 03.05.19.
             </p>
           </div>
@@ -412,23 +412,23 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
 
       {/* ALERT BANNER IF FUTURO SHELF OR VENCIDOS EXIST */}
       {(stats.futuroShelfCount > 0 || stats.vencidoCount > 0) && (
-        <div className="bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-transparent border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/20 rounded-xl text-amber-400 shrink-0">
+            <div className="p-2.5 bg-amber-500 text-white rounded-xl shrink-0 shadow-xs">
               <AlertTriangle className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-amber-300">
+              <h4 className="text-sm font-black text-amber-900">
                 Alerta de Janela Crítica Ativa!
               </h4>
-              <p className="text-xs text-amber-200/80 mt-0.5">
-                Existem <strong className="text-amber-300">{stats.futuroShelfCount} lotes em Futuro Shelf</strong> (vencem nos próximos 30 dias) e <strong className="text-red-400">{stats.vencidoCount} lotes já vencidos</strong>. Priorize o escoamento no picking ou ação promocional.
+              <p className="text-xs text-amber-800 mt-0.5">
+                Existem <strong className="text-amber-950 font-bold">{stats.futuroShelfCount} lotes em Futuro Shelf</strong> (vencem nos próximos 30 dias) e <strong className="text-red-700 font-bold">{stats.vencidoCount} lotes já vencidos</strong>. Priorize o escoamento no picking ou ação promocional.
               </p>
             </div>
           </div>
           <button 
             onClick={() => setStatusFilter('Futuro Shelf')}
-            className="py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-lg transition-all shrink-0 cursor-pointer shadow-md"
+            className="py-1.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-lg transition-all shrink-0 cursor-pointer shadow-xs"
           >
             Ver Apenas Futuro Shelf
           </button>
@@ -439,67 +439,67 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         
         {/* TOTAL DE LOTES */}
-        <div className="bg-[#111822] p-4 rounded-2xl border border-[#222d3a] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
             <span>Total de Lotes Monitorados</span>
-            <Calendar className="w-4 h-4 text-purple-400" />
+            <Calendar className="w-4 h-4 text-purple-600" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white font-mono">{stats.total}</span>
-            <span className="text-[11px] text-slate-400">lotes no estoque</span>
+            <span className="text-3xl font-black text-[#032b5e] font-mono">{stats.total}</span>
+            <span className="text-[11px] text-slate-500 font-medium">lotes no estoque</span>
           </div>
-          <div className="mt-2 text-[10px] text-slate-500">
+          <div className="mt-2 text-[10px] text-slate-400 font-medium">
             Data servidor: {formatDateBR(currentDateStr)}
           </div>
         </div>
 
         {/* FUTURO SHELF (JANELA ≤ 30 DIAS) */}
-        <div className="bg-[#111822] p-4 rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent flex flex-col justify-between">
-          <div className="flex items-center justify-between text-amber-400 text-xs font-extrabold">
+        <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-amber-900 text-xs font-extrabold">
             <span className="flex items-center gap-1.5">
               ⚠️ Futuro Shelf (≤ 30d)
             </span>
-            <Clock className="w-4 h-4 text-amber-400" />
+            <Clock className="w-4 h-4 text-amber-600" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-amber-400 font-mono">{stats.futuroShelfCount}</span>
-            <span className="text-sm font-bold text-amber-400/90">{stats.futuroShelfPct}% do estoque</span>
+            <span className="text-3xl font-black text-amber-600 font-mono">{stats.futuroShelfCount}</span>
+            <span className="text-sm font-bold text-amber-800">{stats.futuroShelfPct}% do estoque</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div className="w-full bg-amber-200/70 rounded-full h-1.5 mt-2 overflow-hidden">
             <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: `${stats.futuroShelfPct}%` }} />
           </div>
         </div>
 
         {/* VENCIDOS (≤ 0 DIAS) */}
-        <div className="bg-[#111822] p-4 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-500/10 to-transparent flex flex-col justify-between">
-          <div className="flex items-center justify-between text-red-400 text-xs font-extrabold">
+        <div className="bg-red-50/70 p-4 rounded-2xl border border-red-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-red-900 text-xs font-extrabold">
             <span className="flex items-center gap-1.5">
               🚨 Vencidos (≤ 0d)
             </span>
-            <ShieldAlert className="w-4 h-4 text-red-400" />
+            <ShieldAlert className="w-4 h-4 text-red-600" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-red-400 font-mono">{stats.vencidoCount}</span>
-            <span className="text-sm font-bold text-red-400/90">{stats.vencidoPct}% do estoque</span>
+            <span className="text-3xl font-black text-red-600 font-mono">{stats.vencidoCount}</span>
+            <span className="text-sm font-bold text-red-800">{stats.vencidoPct}% do estoque</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div className="w-full bg-red-200/70 rounded-full h-1.5 mt-2 overflow-hidden">
             <div className="bg-red-500 h-full rounded-full transition-all" style={{ width: `${stats.vencidoPct}%` }} />
           </div>
         </div>
 
         {/* FORA DA JANELA (SEGURO > 30 DIAS) */}
-        <div className="bg-[#111822] p-4 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent flex flex-col justify-between">
-          <div className="flex items-center justify-between text-emerald-400 text-xs font-extrabold">
+        <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-emerald-900 text-xs font-extrabold">
             <span className="flex items-center gap-1.5">
               🟢 Seguro (&gt; 30d)
             </span>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-emerald-400 font-mono">{stats.seguroCount}</span>
-            <span className="text-sm font-bold text-emerald-400/90">{stats.seguroPct}% do estoque</span>
+            <span className="text-3xl font-black text-emerald-600 font-mono">{stats.seguroCount}</span>
+            <span className="text-sm font-bold text-emerald-800">{stats.seguroPct}% do estoque</span>
           </div>
-          <div className="w-full bg-slate-800/80 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div className="w-full bg-emerald-200/70 rounded-full h-1.5 mt-2 overflow-hidden">
             <div className="bg-emerald-500 h-full rounded-full transition-all" style={{ width: `${stats.seguroPct}%` }} />
           </div>
         </div>
@@ -507,7 +507,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       </div>
 
       {/* SEARCH AND FILTER BAR */}
-      <div className="bg-[#111822] p-4 rounded-2xl border border-[#222d3a] flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
         
         {/* BUSCA RÁPIDA */}
         <div className="relative w-full md:w-80">
@@ -517,7 +517,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
             placeholder="Buscar por produto, SKU ou lote..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-[#16202c] border border-[#283648] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-500 transition-colors"
           />
         </div>
 
@@ -528,7 +528,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+            className="bg-slate-50 border border-slate-300 text-xs text-slate-700 font-semibold rounded-xl px-3 py-2 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
           >
             <option value="todos">🎯 Todos os Status ({processedRows.length})</option>
             <option value="Futuro Shelf">⚠️ Futuro Shelf (≤ 30d) ({stats.futuroShelfCount})</option>
@@ -540,7 +540,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
           <select
             value={curvaFilter}
             onChange={e => setCurvaFilter(e.target.value as any)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="bg-slate-50 border border-slate-300 text-xs text-slate-700 font-semibold rounded-xl px-3 py-2 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
           >
             <option value="todos">📊 Todas as Curvas</option>
             <option value="Curva A">🟢 Curva A (Alta Rotatividade)</option>
@@ -552,7 +552,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
           <select
             value={localizacaoFilter}
             onChange={e => setLocalizacaoFilter(e.target.value)}
-            className="bg-[#16202c] border border-[#283648] text-xs text-slate-200 font-medium rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+            className="bg-slate-50 border border-slate-300 text-xs text-slate-700 font-semibold rounded-xl px-3 py-2 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
           >
             <option value="todos">📍 Todos os Locais</option>
             <option value="central">Estoque Central</option>
@@ -566,11 +566,11 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       </div>
 
       {/* TABLE */}
-      <div className="bg-[#111822] rounded-2xl border border-[#222d3a] overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
-              <tr className="bg-[#16202c] border-b border-[#222d3a] text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Produto / Descrição</th>
                 <th className="py-3.5 px-3">Código SKU</th>
                 <th className="py-3.5 px-3 text-center">Curva (03.05.19)</th>
@@ -584,7 +584,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                 <th className="py-3.5 px-4 text-center">Status Rotina</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e293b] text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs">
               {filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="py-12 text-center text-slate-500 font-medium">
@@ -597,25 +597,25 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                   const isVencido = row.status === 'Vencido';
 
                   // Row background & highlighting
-                  let rowStyle = 'hover:bg-[#1a2536] transition-colors';
+                  let rowStyle = 'hover:bg-slate-50 transition-colors';
                   if (isFuturoShelf) {
-                    rowStyle = 'bg-amber-500/10 hover:bg-amber-500/20 border-l-4 border-l-amber-500 shadow-sm';
+                    rowStyle = 'bg-amber-50/70 hover:bg-amber-100/70 border-l-4 border-l-amber-500 shadow-2xs';
                   } else if (isVencido) {
-                    rowStyle = 'bg-red-500/10 hover:bg-red-500/20 border-l-4 border-l-red-500 shadow-sm';
+                    rowStyle = 'bg-red-50/70 hover:bg-red-100/70 border-l-4 border-l-red-500 shadow-2xs';
                   } else {
-                    rowStyle = 'bg-emerald-500/5 hover:bg-emerald-500/10 border-l-4 border-l-emerald-500/40';
+                    rowStyle = 'bg-white hover:bg-slate-50/80 border-l-4 border-l-emerald-400';
                   }
 
                   return (
                     <tr key={row._docId || row.id || idx} className={rowStyle}>
                       
                       {/* PRODUTO */}
-                      <td className="py-3.5 px-4 font-semibold text-white">
+                      <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex flex-col">
-                          <span className="truncate max-w-[230px] font-bold" title={row.descricao}>
+                          <span className="truncate max-w-[230px] font-bold text-slate-900" title={row.descricao}>
                             {row.descricao}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-normal">
+                          <span className="text-[10px] text-slate-500 font-normal">
                             Local: {row.localizacao === 'central' ? 'Estoque Central' : row.localizacao === 'pnc' ? 'PNC' : row.localizacao}
                             {row.bloco ? ` — Bloco ${row.bloco}` : ''}
                           </span>
@@ -623,7 +623,7 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                       </td>
 
                       {/* CÓDIGO SKU */}
-                      <td className="py-3.5 px-3 font-mono font-bold text-slate-300">
+                      <td className="py-3.5 px-3 font-mono font-bold text-slate-700">
                         {row.codigo}
                       </td>
 
@@ -631,56 +631,60 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                       <td className="py-3.5 px-3 text-center">
                         <div className="flex flex-col items-center gap-0.5">
                           <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                            row.curvaAbc === 'A' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                            row.curvaAbc === 'B' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                            'bg-red-500/20 text-red-300 border border-red-500/40'
+                            row.curvaAbc === 'A' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                            row.curvaAbc === 'B' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                            'bg-red-100 text-red-800 border border-red-300'
                           }`}>
                             Curva {row.curvaAbc}
                           </span>
                           {row.is030519 && (
-                            <span className="text-[8px] font-bold text-blue-400">03.05.19</span>
+                            <span className="text-[8px] font-bold text-blue-600">03.05.19</span>
                           )}
                         </div>
                       </td>
 
                       {/* LOTE */}
-                      <td className="py-3.5 px-3 font-mono text-amber-300 font-bold">
-                        {row.lote}
+                      <td className="py-3.5 px-3 font-mono text-amber-900 font-bold">
+                        <span className="bg-amber-100/60 border border-amber-200 px-1.5 py-0.5 rounded">
+                          {row.lote}
+                        </span>
                       </td>
 
                       {/* QUANTIDADE */}
-                      <td className="py-3.5 px-3 text-center font-bold text-slate-200">
-                        {row.quantidade} <span className="text-[10px] text-slate-400 font-normal">cx</span>
+                      <td className="py-3.5 px-3 text-center font-bold text-slate-800">
+                        {row.quantidade} <span className="text-[10px] text-slate-500 font-normal">cx</span>
                       </td>
 
                       {/* VENDA MÉDIA (03.05.19) */}
-                      <td className="py-3.5 px-3 text-center font-mono font-bold text-sky-400">
-                        {row.vendaMediaDiaria.toFixed(1)} <span className="text-[10px] text-slate-400 font-normal">cx/dia</span>
+                      <td className="py-3.5 px-3 text-center font-mono font-bold text-blue-700">
+                        {row.vendaMediaDiaria.toFixed(1)} <span className="text-[10px] text-slate-500 font-normal">cx/dia</span>
                       </td>
 
                       {/* DATA VENCIMENTO */}
-                      <td className="py-3.5 px-3 text-center font-mono font-extrabold text-white">
+                      <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900">
                         {formatDateBR(row.dataVencimento)}
                       </td>
 
                       {/* JANELA CRÍTICA (-30D) */}
-                      <td className="py-3.5 px-3 text-center font-mono text-amber-400/90 font-medium bg-amber-500/5 py-1 px-2 rounded">
-                        {formatDateBR(row.dataJanelaCritica)}
+                      <td className="py-3.5 px-3 text-center font-mono text-amber-900 font-bold">
+                        <span className="bg-amber-100/70 border border-amber-300 px-2 py-0.5 rounded text-[11px]">
+                          {formatDateBR(row.dataJanelaCritica)}
+                        </span>
                       </td>
 
                       {/* PREVISÃO ESCOAMENTO */}
-                      <td className="py-3.5 px-3 text-center font-mono font-bold text-purple-300">
+                      <td className="py-3.5 px-3 text-center font-mono font-bold text-purple-800">
                         {formatDateBR(row.dataPrevisaoEscoamento)}
-                        <span className="block text-[10px] text-slate-400 font-normal">({row.diasEstoque}d estoque)</span>
+                        <span className="block text-[10px] text-slate-500 font-normal">({row.diasEstoque}d estoque)</span>
                         {row.sobraEstimadaCx > 0 && (
-                          <span className="block text-[9px] font-bold text-rose-400">Sobra: ~{row.sobraEstimadaCx} cx</span>
+                          <span className="block text-[9px] font-bold text-rose-600">Sobra: ~{row.sobraEstimadaCx} cx</span>
                         )}
                       </td>
 
                       {/* DIAS PARA VENCER */}
                       <td className="py-3.5 px-3 text-center">
                         <span className={`font-mono font-black text-sm ${
-                          isVencido ? 'text-red-400' : isFuturoShelf ? 'text-amber-400 animate-pulse' : 'text-emerald-400'
+                          isVencido ? 'text-red-600' : isFuturoShelf ? 'text-amber-600 font-black' : 'text-emerald-700'
                         }`}>
                           {isVencido ? `${row.diasParaVencer}d (VENCIDO)` : `${row.diasParaVencer}d`}
                         </span>
@@ -689,18 +693,18 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
                       {/* STATUS BADGE */}
                       <td className="py-3.5 px-4 text-center">
                         {isFuturoShelf ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase bg-amber-500 text-slate-950 border border-amber-300 shadow-md animate-bounce">
-                            <AlertTriangle className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500 text-white border border-amber-400 shadow-2xs">
+                            <AlertTriangle className="w-3 h-3" />
                             FUTURO SHELF
                           </span>
                         ) : isVencido ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase bg-red-600 text-white border border-red-400 shadow-md">
-                            <ShieldAlert className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-red-600 text-white border border-red-500 shadow-2xs">
+                            <ShieldAlert className="w-3 h-3" />
                             VENCIDO
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                            <ShieldCheck className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600" />
                             SEGURO
                           </span>
                         )}
@@ -715,11 +719,11 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
         </div>
 
         {/* FOOTER */}
-        <div className="bg-[#16202c] p-3.5 px-4 border-t border-[#222d3a] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
+        <div className="bg-slate-50 p-3.5 px-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-600 gap-2">
           <div>
-            Mostrando <strong className="text-white">{filteredRows.length}</strong> de <strong className="text-white">{processedRows.length}</strong> lotes analisados
+            Mostrando <strong className="text-slate-900 font-bold">{filteredRows.length}</strong> de <strong className="text-slate-900 font-bold">{processedRows.length}</strong> lotes analisados
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-4 text-[11px] font-medium">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Futuro Shelf (0 a 30 dias)</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Vencido (≤ 0 dias)</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Seguro (&gt; 30 dias)</span>
