@@ -43,6 +43,7 @@ import {
   CustomSopModule
 } from '../utils/sopUtils';
 import { Usuario } from '../types';
+import { PdfViewerModal } from './PdfViewerModal';
 
 interface PadraoOperacionalPanelProps {
   user: Usuario;
@@ -74,6 +75,26 @@ export default function PadraoOperacionalPanel({
   const [editingSop, setEditingSop] = useState<Partial<SopDocument> | null>(null);
   const [viewerSop, setViewerSop] = useState<SopDocument | null>(null);
   const [deleteConfirmSop, setDeleteConfirmSop] = useState<SopDocument | null>(null);
+  const [showManualModal, setShowManualModal] = useState(false);
+
+  // PDF Viewer Modal State
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfModalData, setPdfModalData] = useState<{ url: string; name: string; title: string; code?: string }>({
+    url: '',
+    name: '',
+    title: '',
+    code: ''
+  });
+
+  const handleOpenPdfViewer = (url: string, name: string, title?: string, code?: string) => {
+    setPdfModalData({
+      url,
+      name: name || 'Padrao_Operacional.pdf',
+      title: title || 'Padrão Operacional / POP',
+      code
+    });
+    setPdfModalOpen(true);
+  };
 
   // Form Fields
   const [codigo, setCodigo] = useState('');
@@ -307,9 +328,6 @@ export default function PadraoOperacionalPanel({
     }
     return true;
   });
-
-  // Manual compilation state
-  const [showManualModal, setShowManualModal] = useState(false);
 
   // List of process tabs
   const defaultTabs = [
@@ -591,7 +609,7 @@ export default function PadraoOperacionalPanel({
                   <div className="flex items-center gap-1">
                     {hasPdf && pdfAnexo?.url && (
                       <button
-                        onClick={() => openPdfInNewTab(pdfAnexo.url, pdfAnexo.nome)}
+                        onClick={() => handleOpenPdfViewer(pdfAnexo.url, pdfAnexo.nome, sop.nome, sop.codigo)}
                         className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] rounded-xl transition-all cursor-pointer flex items-center gap-1 shadow-sm"
                         title="Visualizar PDF do Padrão"
                       >
@@ -1040,7 +1058,7 @@ export default function PadraoOperacionalPanel({
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
-                              onClick={() => openPdfInNewTab(anexo.url, anexo.nome)}
+                              onClick={() => handleOpenPdfViewer(anexo.url, anexo.nome, viewerSop.nome, viewerSop.codigo)}
                               className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1208,6 +1226,17 @@ export default function PadraoOperacionalPanel({
           </div>
         </div>
       )}
+
+      {/* MODAL UNIVERSAL VISUALIZADOR DE PDF */}
+      <PdfViewerModal
+        isOpen={pdfModalOpen}
+        onClose={() => setPdfModalOpen(false)}
+        fileUrl={pdfModalData.url}
+        fileName={pdfModalData.name}
+        title={pdfModalData.title}
+        code={pdfModalData.code}
+        theme={theme}
+      />
 
     </div>
   );

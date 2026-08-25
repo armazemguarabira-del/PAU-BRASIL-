@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { safeSetLocalStorage } from '../utils/safeLocalStorage';
 import { getAllSops, saveOrUpdateSop, canUserManageSop, createSafePdfBlobUrl, openPdfInNewTab, downloadPdfFile, openOrDownloadGeneratedSopPdf } from '../utils/sopUtils';
+import { saveSopFileToIDB, getCachedSopFile } from '../utils/sopStorage';
 import { Usuario } from '../types';
+import { PdfViewerModal } from './PdfViewerModal';
 import { 
   FileText, 
   Upload, 
@@ -421,6 +423,7 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [customText, setCustomText] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
 
   const safePdfBlobUrl = useMemo(() => {
     if (!popData.fileUrl) return '';
@@ -429,10 +432,17 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
 
   useEffect(() => {
     try {
+      // 1. Check direct file from IndexedDB memory cache first
+      const cachedFile = getCachedSopFile(moduleKey);
+      
       const saved = localStorage.getItem(`af_pop_doc_${moduleKey}`);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.title || parsed.fileUrl) {
+        if (parsed.title || parsed.fileUrl || cachedFile) {
+          if (cachedFile && (!parsed.fileUrl || parsed.fileUrl === '#')) {
+            parsed.fileUrl = cachedFile.dataUrl;
+            parsed.fileName = cachedFile.name;
+          }
           setPopData(parsed);
           return;
         }
@@ -463,14 +473,19 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
             title: `Passo ${i + 1}`,
             description: stepStr
           })),
-          fileUrl: firstAnexo?.url,
-          fileName: firstAnexo?.nome
+          fileUrl: firstAnexo?.url || (cachedFile?.dataUrl),
+          fileName: firstAnexo?.nome || (cachedFile?.name)
         };
         setPopData(mapped);
         return;
       }
 
-      setPopData(DEFAULT_POPS[moduleKey] || DEFAULT_POPS.repack);
+      const defaultPop = DEFAULT_POPS[moduleKey] || DEFAULT_POPS.repack;
+      if (cachedFile) {
+        defaultPop.fileUrl = cachedFile.dataUrl;
+        defaultPop.fileName = cachedFile.name;
+      }
+      setPopData(defaultPop);
     } catch (e) {
       console.error(e);
       setPopData(DEFAULT_POPS[moduleKey] || DEFAULT_POPS.repack);
@@ -489,15 +504,27 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
     reader.onload = (event) => {
       const result = event.target?.result as string;
       const isTooLarge = result && result.length > 8000000;
+      
+      // Save large raw file to IndexedDB
+      if (result) {
+        saveSopFileToIDB(moduleKey, file.name, result, file.type).catch(() => {});
+      }
+
       const updated: POPDocument = {
         ...popData,
         fileName: file.name,
-        fileUrl: isTooLarge ? undefined : result,
+        fileUrl: result || undefined,
         lastUpdated: new Date().toISOString().split('T')[0],
         content: `Documento de Padrão Importado: ${file.name}.\n${popData.content || ''}`
       };
       setPopData(updated);
-      safeSetLocalStorage(`af_pop_doc_${moduleKey}`, JSON.stringify(updated));
+      
+      // Save to localStorage with clean fallback
+      const sanitizedToSave = {
+        ...updated,
+        fileUrl: result && result.length > 300000 ? '#' : result
+      };
+      safeSetLocalStorage(`af_pop_doc_${moduleKey}`, JSON.stringify(sanitizedToSave));
 
       try {
         saveOrUpdateSop({
@@ -509,7 +536,7 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
           passoAPasso: updated.steps ? updated.steps.map(s => `${s.step}. ${s.title}: ${s.description}`) : [],
           fotos: [],
           videos: [],
-          anexos: updated.fileUrl ? [{ nome: updated.fileName || 'Documento', url: updated.fileUrl }] : [],
+          anexos: result ? [{ nome: updated.fileName || 'Documento', url: result }] : [],
           revisao: updated.version ? `Rev ${updated.version}` : 'Rev 01',
           dataRevisao: updated.lastUpdated || new Date().toISOString().split('T')[0],
           responsavel: updated.updatedBy || 'Gestor Operacional',
@@ -615,7 +642,13 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => openOrDownloadGeneratedSopPdf(popData, false)}
+                onClick={() => {
+                  if (popData.fileUrl && popData.fileUrl !== '#' && popData.fileUrl !== 'about:blank') {
+                    setIsPdfViewerOpen(true);
+                  } else {
+                    openOrDownloadGeneratedSopPdf(popData, false);
+                  }
+                }}
                 className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
               >
                 <Eye className="w-4 h-4" />
@@ -935,6 +968,17 @@ export const PadraoOperacionalModal: React.FC<PadraoOperacionalProps> = ({
         </div>
 
       </div>
+
+      {isPdfViewerOpen && (
+        <PdfViewerModal
+          isOpen={isPdfViewerOpen}
+          onClose={() => setIsPdfViewerOpen(false)}
+          fileUrl={popData.fileUrl || ''}
+          fileName={popData.fileName || `${popData.code || 'POP'}_Padrao_Operacional.pdf`}
+          title={popData.title}
+          code={popData.code}
+        />
+      )}
     </div>
   );
 };

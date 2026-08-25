@@ -193,7 +193,7 @@ export const CATEGORY_DEFINITIONS: Record<
   },
   'cat-ferramentas-gestao': {
     title: 'Ferramentas de Gestão',
-    subtitle: 'Sistemas de governança, auditoria DPO, inventários e padronização',
+    subtitle: 'Sistemas de governança, auditoria DPO e padronização operacional',
     icon: <Sliders className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
     color: 'from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-500/20 dark:via-blue-500/5 dark:to-transparent',
     items: [
@@ -222,115 +222,19 @@ export const CATEGORY_DEFINITIONS: Record<
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
       },
       {
-        id: 'treinamentos-qualidade',
-        label: 'Treinamentos de Qualidade',
-        description: 'Matriz de habilitação e registros de capacitação do time.',
-        icon: <Award className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
-        badge: 'Capacitação',
-        color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
-      },
-      {
-        id: 'bloqueio-armazem',
-        label: 'Bloqueio no Armazém',
-        description: 'Gestão de produtos bloqueados, quarentena e devolução técnica.',
-        icon: <ShieldAlert className="w-5 h-5 text-rose-500" />,
-        badge: 'Bloqueios',
-        color: 'border-rose-500/30 bg-rose-500/5 hover:border-rose-500/60'
-      },
-      {
-        id: 'devolucao',
-        label: 'Devolução de Produtos',
-        description: 'Processamento de devoluções de rota e tratativa de avarias de cliente.',
-        icon: <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
-        badge: 'Devoluções',
-        color: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60'
-      },
-      {
-        id: 'contagem-inventario',
-        label: 'Contagem de Inventário',
-        description: 'Rotinas de inventário cíclico e contagem geral de estoque.',
-        icon: <ClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
-        badge: 'Inventário',
-        color: 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/60'
-      },
-      {
-        id: 'gestao-ativos',
-        label: 'Gestão de Ativos Retornáveis',
-        description: 'Controle de vasilhames vazios, caixas plásticas e garrafeiras.',
-        icon: <Package className="w-5 h-5 text-amber-600 dark:text-amber-500" />,
-        badge: 'Ativos',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-      },
-      {
-        id: 'qualidade-puxada',
-        label: 'Qualidade da Puxada',
-        description: 'Conferência e checklist de transferência de carretas entre fábricas.',
-        icon: <Truck className="w-5 h-5 text-teal-600 dark:text-teal-400" />,
-        badge: 'Puxada',
-        color: 'border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60'
-      },
-      {
-        id: 'ciclo-carretas',
-        label: 'Ciclo das Carretas',
-        description: 'Gestão de TMR, tempo em doca e giro de frotas pesadas.',
-        icon: <Truck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
-        badge: 'Frotas',
-        color: 'border-indigo-500/30 bg-indigo-500/5 hover:border-indigo-500/60'
-      },
-      {
-        id: 'politica-estoque',
-        label: 'Política de Estoque & Análise',
-        description: 'Análise de dias de cobertura, estoque mínimo e giro de produtos.',
-        icon: <BarChart2 className="w-5 h-5 text-blue-600 dark:text-[#1e56f0]" />,
-        badge: 'Giro',
-        color: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60'
-      },
-      {
-        id: 'simulador-ressuprimento',
-        label: 'Simulador de Ressuprimento',
-        description: 'Calculadora de reposição baseada na demanda média e lead time.',
-        icon: <Truck className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />,
-        badge: 'Simulação',
-        color: 'border-cyan-500/30 bg-cyan-500/5 hover:border-cyan-500/60'
-      },
-      {
-        id: 'importacao-contagens',
-        label: 'Importação de Contagens',
-        description: 'Carregamento em lote de arquivos de inventário físico.',
-        icon: <Upload className="w-5 h-5 text-sky-600 dark:text-sky-400" />,
-        badge: 'Importar',
-        color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
-      },
-      {
-        id: 'venda-media',
-        label: 'Curva ABC & Venda Média',
-        description: 'Motor de cálculo Pareto (80/20) com Venda Média de 3 Meses e sugestões de alocação de Picking.',
-        icon: <TrendingUp className="w-5 h-5 text-teal-600 dark:text-teal-400" />,
-        badge: 'Curva ABC 80/20',
-        color: 'border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60'
-      },
-      {
-        id: 'area-contingencia',
-        label: 'Área de Contingência',
-        description: 'Procedimentos de emergência para quedas de sistema ou pico de safra.',
-        icon: <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-500" />,
-        badge: 'Contingência',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-      },
-      {
         id: 'padronizacao-processos',
-        label: 'Padronização de Processos (POP)',
-        description: 'Biblioteca de Procedimentos Operacionais Padrão e rotinas.',
+        label: 'Padronização de Processos (POP/LUP)',
+        description: 'Biblioteca de Procedimentos Operacionais Padrão, criação de novos processos e visualização de PDF.',
         icon: <ClipboardList className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
-        badge: 'POP',
+        badge: 'POP & LUP',
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
       },
       {
         id: 'simulacao-acoes',
         label: 'Gestão de Ações & Governança',
-        description: 'Acompanhamento do Plano de Ações, Donos e Matriz de Priorização.',
+        description: 'Acompanhamento do Plano de Ações, Donos, Matriz de Priorização e 5 Porquês.',
         icon: <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
-        badge: 'Ações',
+        badge: 'Ações DPO',
         color: 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/60'
       },
       {
@@ -340,22 +244,6 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <FileSpreadsheet className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
         badge: 'Estratégia',
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
-      },
-      {
-        id: 'controle',
-        label: 'Painel Controle',
-        description: 'Configurações avançadas da unidade e limites operacionais.',
-        icon: <Sliders className="w-5 h-5 text-amber-600 dark:text-amber-500" />,
-        badge: 'Parâmetros',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-      },
-      {
-        id: 'dados-retroativos',
-        label: 'Dados Retroativos',
-        description: 'Ferramenta para reprocessamento de histórico e correções passadas.',
-        icon: <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
-        badge: 'Ajustes',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
       },
       {
         id: 'agenda-executiva',
@@ -388,14 +276,6 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <Award className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
         badge: 'DPO Qualidade',
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
-      },
-      {
-        id: 'armazem-facil-padrao-02',
-        label: 'Armazém Fácil Padrão 02',
-        description: 'Página em branco padrão integrada com o banco de dados banco-03-teste.',
-        icon: <Layers className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
-        badge: 'Padrão 02',
-        color: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60'
       }
     ]
   },
@@ -409,23 +289,15 @@ export const CATEGORY_DEFINITIONS: Record<
         id: 'cadastros',
         label: 'Central de Cadastros & Dados-Mestre',
         description: 'Hub unificado para gestão de Produtos, Colaboradores, Permissões de Acesso, Metas Operacionais e Padrões (POP/SOP).',
-        icon: <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
+        icon: <Database className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />,
         badge: 'Hub Central',
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
-      },
-      {
-        id: 'dados-retroativos',
-        label: 'Importação de Dados Retroativos (JSON)',
-        description: 'Módulo dedicado para importação em lote, validação e gravação direta de Quebras, Avarias e apontamentos históricos em JSON.',
-        icon: <FileCode className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
-        badge: 'Novo • JSON Sync',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
       },
       {
         id: 'exportar',
         label: 'Base de Dados Central (Apagar & Importar)',
         description: 'Gestão da base mestre por processo, expurgo/limpeza de base e importação de planilhas.',
-        icon: <Database className="w-5 h-5 text-sky-600 dark:text-sky-400" />,
+        icon: <Database className="w-6 h-6 text-sky-600 dark:text-sky-400" />,
         badge: 'Base Central',
         color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
       },

@@ -126,6 +126,7 @@ export interface ParsedDespejoResult {
  */
 export const SAMPLE_DESPEJO_JSON: any = [
   
+ 
   {
     "Data": "2026-01-02 11:59:15",
     "Mês": "JANEIRO",
@@ -134,11 +135,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:17",
-    "FINAL": "16:13:17",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-02 11:59:15",
@@ -148,11 +148,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:17",
-    "FINAL": "16:06:22",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:23",
+    "FINAL": "16:17:10",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-02 11:59:15",
@@ -162,11 +161,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:34",
-    "FINAL": "16:39:34",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:41",
+    "FINAL": "16:29:31",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-02 11:59:15",
@@ -176,11 +174,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:47",
-    "FINAL": "16:42:32",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:44",
+    "FINAL": "16:38:18",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-02 11:59:15",
@@ -190,11 +187,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:38",
-    "FINAL": "16:37:18",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:49",
+    "FINAL": "16:54:23",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-02 11:59:15",
@@ -204,11 +200,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:52",
-    "FINAL": "16:08:47",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:42",
+    "FINAL": "16:58:16",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-05 11:59:15",
@@ -218,11 +213,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 19,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:46",
-    "FINAL": "16:07:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-05 11:59:15",
@@ -231,12 +225,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:37:37",
-    "FINAL": "16:40:32",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:13:30",
+    "FINAL": "16:14:06",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-05 11:59:15",
@@ -246,11 +239,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:26",
-    "FINAL": "16:59:36",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:58",
+    "FINAL": "16:25:38",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-05 11:59:15",
@@ -260,11 +252,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:14",
-    "FINAL": "16:18:34",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:32",
+    "FINAL": "16:58:09",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -273,12 +264,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:39:47",
-    "FINAL": "16:43:12",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -288,11 +278,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:23",
-    "FINAL": "16:43:13",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:48",
+    "FINAL": "16:06:29",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -302,11 +291,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:23",
-    "FINAL": "16:06:43",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:23",
+    "FINAL": "16:12:06",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -316,11 +304,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:03:10",
-    "FINAL": "16:06:35",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:46",
+    "FINAL": "16:16:36",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -330,11 +317,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:05",
-    "FINAL": "16:12:25",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:44",
+    "FINAL": "16:22:23",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -344,11 +330,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:50",
-    "FINAL": "16:12:50",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:19",
+    "FINAL": "16:28:04",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -358,11 +343,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:58",
-    "FINAL": "16:42:18",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:10",
+    "FINAL": "16:34:59",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -372,11 +356,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:42",
-    "FINAL": "16:59:07",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:46",
+    "FINAL": "16:41:46",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -386,11 +369,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:02",
-    "FINAL": "16:10:32",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:23",
+    "FINAL": "16:47:05",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -400,11 +382,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:36",
-    "FINAL": "16:46:56",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:36",
+    "FINAL": "16:52:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-06 11:59:15",
@@ -414,11 +395,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:06:39",
-    "FINAL": "16:09:49",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:27",
+    "FINAL": "16:58:05",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -428,11 +408,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:17",
-    "FINAL": "16:07:37",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -442,11 +421,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:15",
-    "FINAL": "16:45:35",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:13",
+    "FINAL": "16:19:50",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -456,11 +434,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:26",
-    "FINAL": "16:49:16",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:27",
+    "FINAL": "16:26:03",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -470,11 +447,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:03",
-    "FINAL": "16:56:23",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:10",
+    "FINAL": "16:31:46",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -484,11 +460,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:58",
-    "FINAL": "16:42:58",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:01",
+    "FINAL": "16:38:43",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -498,11 +473,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:41",
-    "FINAL": "16:29:01",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:12",
+    "FINAL": "16:45:51",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-07 11:59:15",
@@ -512,11 +486,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:13",
-    "FINAL": "16:57:13",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:00",
+    "FINAL": "16:57:45",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -526,11 +499,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:14",
-    "FINAL": "16:56:04",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -540,11 +512,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:12",
-    "FINAL": "16:42:07",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:27",
+    "FINAL": "16:05:02",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -554,11 +525,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:47",
-    "FINAL": "16:36:47",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:33",
+    "FINAL": "16:08:15",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -568,11 +538,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:49:47",
-    "FINAL": "16:54:27",
-    "TEMPO": "00:04:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:40",
+    "FINAL": "16:11:38",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -582,11 +551,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:34",
-    "FINAL": "16:44:44",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:34",
+    "FINAL": "16:17:18",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -596,11 +564,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:08:03",
-    "FINAL": "16:12:28",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:03",
+    "FINAL": "16:21:57",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -610,11 +577,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:15",
-    "FINAL": "16:14:30",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:41",
+    "FINAL": "16:27:34",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -624,11 +590,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:22",
-    "FINAL": "16:13:57",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:59",
+    "FINAL": "16:31:51",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -638,11 +603,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LONG NECK ",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 9.900000000000001e-05,
-    "INICIO": "16:28:47",
-    "FINAL": "16:33:32",
-    "TEMPO": "00:04:45",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:04",
+    "FINAL": "16:35:56",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -652,11 +616,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:37",
-    "FINAL": "16:48:17",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:10",
+    "FINAL": "16:41:46",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -666,11 +629,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:05",
-    "FINAL": "16:40:45",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:56",
+    "FINAL": "16:45:30",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -680,11 +642,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:51",
-    "FINAL": "16:59:36",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:50",
+    "FINAL": "16:49:32",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -694,11 +655,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:27",
-    "FINAL": "16:50:27",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:18",
+    "FINAL": "16:54:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-08 11:59:15",
@@ -708,11 +668,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:54",
-    "FINAL": "16:36:34",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:47",
+    "FINAL": "16:58:20",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -722,11 +681,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:08",
-    "FINAL": "16:34:28",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -736,11 +694,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:23",
-    "FINAL": "16:09:03",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:40",
+    "FINAL": "16:19:32",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -750,11 +707,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:21",
-    "FINAL": "16:36:11",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:00",
+    "FINAL": "16:28:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -763,12 +719,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:04:26",
-    "FINAL": "16:07:56",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:41:52",
+    "FINAL": "16:42:29",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -778,11 +733,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:53",
-    "FINAL": "16:50:33",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:24",
+    "FINAL": "16:53:08",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-09 11:59:15",
@@ -792,11 +746,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:39:27",
-    "FINAL": "16:43:12",
-    "TEMPO": "00:03:45",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:10",
+    "FINAL": "16:57:52",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-12 11:59:15",
@@ -806,11 +759,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:25",
-    "FINAL": "16:34:20",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-12 11:59:15",
@@ -820,11 +772,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:20",
-    "FINAL": "16:29:40",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:59",
+    "FINAL": "16:12:43",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-12 11:59:15",
@@ -834,11 +785,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:41",
-    "FINAL": "16:27:26",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:43",
+    "FINAL": "16:29:36",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-12 11:59:15",
@@ -848,11 +798,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:31:31",
-    "FINAL": "16:34:46",
-    "TEMPO": "00:03:15",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:10",
+    "FINAL": "16:46:06",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-12 11:59:15",
@@ -862,11 +811,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:41:42",
-    "FINAL": "16:44:22",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:27",
+    "FINAL": "16:57:20",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -876,11 +824,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:04:01",
-    "FINAL": "16:06:26",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -890,25 +837,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:37",
-    "FINAL": "16:22:32",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:03",
+    "FINAL": "16:11:39",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
     "Mês": "JANEIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:16:54",
-    "FINAL": "16:19:39",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:17",
+    "FINAL": "16:22:10",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -918,11 +863,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:33:53",
-    "FINAL": "16:37:23",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:05",
+    "FINAL": "16:28:01",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -932,11 +876,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:39",
-    "FINAL": "16:33:19",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:41",
+    "FINAL": "16:38:18",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -946,11 +889,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:58",
-    "FINAL": "16:22:08",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:13",
+    "FINAL": "16:48:53",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-13 11:59:15",
@@ -960,11 +902,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:55",
-    "FINAL": "16:59:40",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:25",
+    "FINAL": "16:57:19",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -974,11 +915,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 18,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:33",
-    "FINAL": "16:40:43",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:45",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -988,11 +928,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:21",
-    "FINAL": "16:31:21",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:45",
+    "FINAL": "16:07:22",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -1002,11 +941,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:36",
-    "FINAL": "16:50:31",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:24",
+    "FINAL": "16:15:19",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -1016,11 +954,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:45",
-    "FINAL": "16:19:30",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:59",
+    "FINAL": "16:24:45",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -1030,11 +967,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:01",
-    "FINAL": "16:15:11",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:13",
+    "FINAL": "16:37:01",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -1044,11 +980,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:44:57",
-    "FINAL": "16:48:07",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:38",
+    "FINAL": "16:44:35",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-14 11:59:15",
@@ -1058,11 +993,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:06",
-    "FINAL": "16:36:01",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:26",
+    "FINAL": "16:58:04",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-15 11:59:15",
@@ -1072,11 +1006,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:26",
-    "FINAL": "16:16:36",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-15 11:59:15",
@@ -1086,11 +1019,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:16",
-    "FINAL": "16:03:11",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:33",
+    "FINAL": "16:17:17",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-15 11:59:15",
@@ -1100,11 +1032,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:29",
-    "FINAL": "16:39:39",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:49",
+    "FINAL": "16:57:37",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1114,11 +1045,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:39",
-    "FINAL": "16:41:44",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1128,11 +1058,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:34",
-    "FINAL": "16:11:34",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:45",
+    "FINAL": "16:10:26",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1142,11 +1071,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:11",
-    "FINAL": "16:38:41",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:18",
+    "FINAL": "16:18:04",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1156,11 +1084,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:42",
-    "FINAL": "16:48:32",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:13",
+    "FINAL": "16:26:49",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1170,11 +1097,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:41",
-    "FINAL": "16:07:11",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:06",
+    "FINAL": "16:35:45",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1184,11 +1110,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:14",
-    "FINAL": "16:56:24",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:54",
+    "FINAL": "16:40:44",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1197,12 +1122,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:27",
-    "FINAL": "16:50:17",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:47:17",
+    "FINAL": "16:48:02",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-16 11:59:15",
@@ -1212,11 +1136,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:47",
-    "FINAL": "16:30:27",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:30",
+    "FINAL": "16:57:22",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1226,11 +1149,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:54",
-    "FINAL": "16:30:04",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1240,11 +1162,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:18",
-    "FINAL": "16:46:03",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:39",
+    "FINAL": "16:15:15",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1254,11 +1175,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:00",
-    "FINAL": "16:16:10",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:37",
+    "FINAL": "16:22:12",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1268,11 +1188,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:15",
-    "FINAL": "16:16:55",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:30",
+    "FINAL": "16:31:05",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1282,11 +1201,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:30",
-    "FINAL": "16:10:40",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:55",
+    "FINAL": "16:45:45",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-19 11:59:15",
@@ -1296,11 +1214,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:35",
-    "FINAL": "16:06:40",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:34",
+    "FINAL": "16:58:10",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1310,11 +1227,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:41",
-    "FINAL": "16:41:26",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1324,11 +1240,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:55",
-    "FINAL": "16:09:45",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:23",
+    "FINAL": "16:10:08",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1338,11 +1253,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:53",
-    "FINAL": "16:45:43",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:56",
+    "FINAL": "16:15:34",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1352,11 +1266,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:11",
-    "FINAL": "16:17:11",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:48",
+    "FINAL": "16:19:42",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1366,11 +1279,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:10:08",
-    "FINAL": "16:14:48",
-    "TEMPO": "00:04:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:05",
+    "FINAL": "16:31:56",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1380,25 +1292,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:42",
-    "FINAL": "16:27:07",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:33",
+    "FINAL": "16:40:06",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
     "Mês": "JANEIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:32:22",
-    "FINAL": "16:35:47",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:44",
+    "FINAL": "16:48:30",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1408,11 +1318,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:33:19",
-    "FINAL": "16:36:24",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:14",
+    "FINAL": "16:52:53",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-20 11:59:15",
@@ -1422,11 +1331,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:48",
-    "FINAL": "16:35:43",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:40",
+    "FINAL": "16:57:30",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-21 11:59:15",
@@ -1436,11 +1344,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:17",
-    "FINAL": "16:24:57",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-21 11:59:15",
@@ -1450,11 +1357,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:58",
-    "FINAL": "16:09:43",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:19",
+    "FINAL": "16:07:54",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-21 11:59:15",
@@ -1464,11 +1370,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:32",
-    "FINAL": "16:54:07",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:53",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1478,11 +1383,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:34",
-    "FINAL": "16:59:29",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1492,11 +1396,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:35:14",
-    "FINAL": "16:39:39",
-    "TEMPO": "00:04:25",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:19",
+    "FINAL": "16:07:08",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1506,11 +1409,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:03",
-    "FINAL": "16:38:43",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:37",
+    "FINAL": "16:12:16",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1520,11 +1422,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:06",
-    "FINAL": "16:50:11",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:35",
+    "FINAL": "16:17:20",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1534,11 +1435,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:50",
-    "FINAL": "16:05:10",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:12",
+    "FINAL": "16:21:48",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1548,11 +1448,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:20",
-    "FINAL": "16:23:55",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:31",
+    "FINAL": "16:25:05",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1562,11 +1461,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:12",
-    "FINAL": "16:10:07",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:26",
+    "FINAL": "16:29:06",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1576,11 +1474,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:49",
-    "FINAL": "16:21:19",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:55",
+    "FINAL": "16:32:44",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1590,11 +1487,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:24",
-    "FINAL": "16:14:39",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:02",
+    "FINAL": "16:38:46",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1604,11 +1500,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:12",
-    "FINAL": "16:18:17",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:43",
+    "FINAL": "16:43:23",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1618,11 +1513,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:11",
-    "FINAL": "16:56:31",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:20",
+    "FINAL": "16:47:58",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
@@ -1632,25 +1526,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:26",
-    "FINAL": "16:46:41",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:42",
+    "FINAL": "16:51:30",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-22 11:59:15",
     "Mês": "JANEIRO",
     "CodProduto": 6183,
     "Descricao": "DIAS D'AVILA C/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0,
-    "INICIO": "16:55:23",
-    "FINAL": "16:58:18",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0,
+    "INICIO": "16:57:31",
+    "FINAL": "16:58:08",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1660,11 +1552,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:46",
-    "FINAL": "16:55:26",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:53",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1674,11 +1565,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:01",
-    "FINAL": "16:59:11",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:59",
+    "FINAL": "16:09:44",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1688,11 +1578,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:21",
-    "FINAL": "16:30:16",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:56",
+    "FINAL": "16:25:36",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1702,11 +1591,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:28",
-    "FINAL": "16:19:28",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:50",
+    "FINAL": "16:28:31",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1716,11 +1604,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:38",
-    "FINAL": "16:36:28",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:41",
+    "FINAL": "16:38:20",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1730,11 +1617,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:58",
-    "FINAL": "16:05:03",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:16",
+    "FINAL": "16:44:10",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-23 11:59:15",
@@ -1744,11 +1630,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:56",
-    "FINAL": "16:57:51",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:26",
+    "FINAL": "16:58:04",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-26 11:59:15",
@@ -1758,11 +1643,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:41",
-    "FINAL": "16:20:41",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-26 11:59:15",
@@ -1772,11 +1656,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:18",
-    "FINAL": "16:44:08",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:22",
+    "FINAL": "16:58:02",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1786,11 +1669,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:31",
-    "FINAL": "16:34:21",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1800,11 +1682,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:21",
-    "FINAL": "16:53:01",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:23",
+    "FINAL": "16:07:13",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1814,11 +1695,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:53",
-    "FINAL": "16:29:18",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:30",
+    "FINAL": "16:12:18",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1828,11 +1708,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:58",
-    "FINAL": "16:09:38",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:40",
+    "FINAL": "16:20:34",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1842,11 +1721,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:13:25",
-    "FINAL": "16:17:00",
-    "TEMPO": "00:03:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:20",
+    "FINAL": "16:28:12",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1856,11 +1734,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:56",
-    "FINAL": "16:36:01",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:53",
+    "FINAL": "16:35:27",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1870,11 +1747,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:39",
-    "FINAL": "16:45:04",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:18",
+    "FINAL": "16:42:10",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1884,11 +1760,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:43",
-    "FINAL": "16:36:53",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:30",
+    "FINAL": "16:49:25",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1898,11 +1773,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:23:29",
-    "FINAL": "16:26:49",
-    "TEMPO": "00:03:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:40",
+    "FINAL": "16:55:12",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-27 11:59:15",
@@ -1912,11 +1786,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:05:47",
-    "FINAL": "16:08:57",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:04",
+    "FINAL": "16:57:48",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1926,11 +1799,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:11",
-    "FINAL": "16:11:51",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1940,11 +1812,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:24",
-    "FINAL": "16:57:14",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:40",
+    "FINAL": "16:08:24",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1954,11 +1825,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:36",
-    "FINAL": "16:17:06",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:27",
+    "FINAL": "16:22:14",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1968,11 +1838,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:11",
-    "FINAL": "16:15:26",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:47",
+    "FINAL": "16:30:36",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1982,11 +1851,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:43:24",
-    "FINAL": "16:47:44",
-    "TEMPO": "00:04:20",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:27",
+    "FINAL": "16:42:06",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -1996,11 +1864,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:54:40",
-    "FINAL": "16:58:30",
-    "TEMPO": "00:03:50",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:13",
+    "FINAL": "16:46:04",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -2010,11 +1877,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:16",
-    "FINAL": "16:53:06",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:39",
+    "FINAL": "16:50:28",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-28 11:59:15",
@@ -2024,11 +1890,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:24",
-    "FINAL": "16:30:54",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:44",
+    "FINAL": "16:57:33",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2038,11 +1903,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:47",
-    "FINAL": "16:09:22",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2052,11 +1916,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:11:36",
-    "FINAL": "16:14:41",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:43",
+    "FINAL": "16:08:25",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2066,11 +1929,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:52",
-    "FINAL": "16:05:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:41",
+    "FINAL": "16:15:25",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2080,11 +1942,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:46",
-    "FINAL": "16:34:36",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:26",
+    "FINAL": "16:35:09",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2094,11 +1955,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:58",
-    "FINAL": "16:13:38",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:13",
+    "FINAL": "16:43:05",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-29 11:59:15",
@@ -2108,11 +1968,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:40:40",
-    "FINAL": "16:45:20",
-    "TEMPO": "00:04:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:58",
+    "FINAL": "16:56:58",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2122,11 +1981,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:52",
-    "FINAL": "16:48:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2136,11 +1994,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:38",
-    "FINAL": "16:14:28",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:40",
+    "FINAL": "16:03:24",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2150,11 +2007,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:56",
-    "FINAL": "16:12:16",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:49",
+    "FINAL": "16:07:31",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2164,11 +2020,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:34",
-    "FINAL": "16:57:14",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:01",
+    "FINAL": "16:10:44",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2178,11 +2033,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:21",
-    "FINAL": "16:48:16",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:16",
+    "FINAL": "16:13:48",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2192,11 +2046,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:09",
-    "FINAL": "16:53:54",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:10",
+    "FINAL": "16:16:46",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2206,11 +2059,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:36",
-    "FINAL": "16:33:26",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:50",
+    "FINAL": "16:19:17",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2220,11 +2072,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:17",
-    "FINAL": "16:17:12",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:13",
+    "FINAL": "16:21:48",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2234,25 +2085,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:24",
-    "FINAL": "16:18:04",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:46",
+    "FINAL": "16:25:15",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
     "Mês": "JANEIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:14:31",
-    "FINAL": "16:17:11",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:51",
+    "FINAL": "16:28:24",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2262,11 +2111,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:25",
-    "FINAL": "16:19:25",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:08",
+    "FINAL": "16:31:35",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2276,11 +2124,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:15",
-    "FINAL": "16:25:50",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:53",
+    "FINAL": "16:34:34",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2290,11 +2137,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:36",
-    "FINAL": "16:31:31",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:47",
+    "FINAL": "16:38:30",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2304,11 +2150,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:09",
-    "FINAL": "16:07:49",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:53",
+    "FINAL": "16:42:35",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2318,11 +2163,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:09",
-    "FINAL": "16:27:59",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:26",
+    "FINAL": "16:45:59",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2332,11 +2176,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:13",
-    "FINAL": "16:48:58",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:37",
+    "FINAL": "16:49:21",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2346,11 +2189,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:16",
-    "FINAL": "16:39:01",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:44",
+    "FINAL": "16:52:21",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2360,11 +2202,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:14",
-    "FINAL": "16:37:24",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:08",
+    "FINAL": "16:55:40",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-01-30 11:59:15",
@@ -2374,11 +2215,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:10:21",
-    "FINAL": "16:14:11",
-    "TEMPO": "00:03:50",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:51",
+    "FINAL": "16:58:23",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-02 11:59:15",
@@ -2388,11 +2228,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:01:16",
-    "FINAL": "16:04:11",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-02 11:59:15",
@@ -2402,11 +2241,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:00",
-    "FINAL": "16:56:45",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:04",
+    "FINAL": "16:57:48",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2416,11 +2254,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:16",
-    "FINAL": "16:03:06",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:43",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2430,11 +2267,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:13",
-    "FINAL": "16:14:18",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:07",
+    "FINAL": "16:10:50",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2444,11 +2280,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:19",
-    "FINAL": "16:35:09",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:48",
+    "FINAL": "16:22:29",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2458,11 +2293,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:12",
-    "FINAL": "16:11:37",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:03",
+    "FINAL": "16:36:42",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2472,11 +2306,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:15",
-    "FINAL": "16:25:35",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:57",
+    "FINAL": "16:42:42",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2486,11 +2319,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:13",
-    "FINAL": "16:40:08",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:00",
+    "FINAL": "16:50:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-03 11:59:15",
@@ -2500,11 +2332,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:32",
-    "FINAL": "16:56:52",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:12",
+    "FINAL": "16:57:54",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2514,11 +2345,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:14",
-    "FINAL": "16:41:49",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2528,11 +2358,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:03",
-    "FINAL": "16:15:43",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:53",
+    "FINAL": "16:06:47",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2542,11 +2371,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:43",
-    "FINAL": "16:55:43",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:11",
+    "FINAL": "16:14:02",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2556,11 +2384,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:30:52",
-    "FINAL": "16:33:57",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:41",
+    "FINAL": "16:18:20",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2570,11 +2397,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:52",
-    "FINAL": "16:55:12",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:08",
+    "FINAL": "16:27:00",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2584,11 +2410,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "NÃO IDENTIFICADA",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:04:19",
-    "FINAL": "16:08:04",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:27",
+    "FINAL": "16:33:12",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2598,11 +2423,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:48",
-    "FINAL": "16:44:58",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:15",
+    "FINAL": "16:42:57",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2612,11 +2436,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:41:22",
-    "FINAL": "16:44:47",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:01",
+    "FINAL": "16:50:52",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-04 11:59:15",
@@ -2626,11 +2449,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:17",
-    "FINAL": "16:50:32",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:26",
+    "FINAL": "16:57:20",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2640,11 +2462,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:34:41",
-    "FINAL": "16:38:01",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:27",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2654,11 +2475,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:38",
-    "FINAL": "16:35:58",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:20",
+    "FINAL": "16:02:51",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2668,11 +2488,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:16:54",
-    "FINAL": "16:20:34",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:43",
+    "FINAL": "16:05:09",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2682,11 +2501,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:43",
-    "FINAL": "16:21:13",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:46",
+    "FINAL": "16:07:15",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2696,11 +2514,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:49",
-    "FINAL": "16:17:39",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:11",
+    "FINAL": "16:09:38",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2710,11 +2527,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:21",
-    "FINAL": "16:13:06",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:42",
+    "FINAL": "16:12:12",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2724,11 +2540,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "NÃO IDENTIFICADA",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:26:47",
-    "FINAL": "16:29:57",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:39",
+    "FINAL": "16:15:05",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2738,11 +2553,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:57",
-    "FINAL": "16:08:07",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:33",
+    "FINAL": "16:17:08",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2752,11 +2566,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:29:14",
-    "FINAL": "16:32:19",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:20",
+    "FINAL": "16:19:50",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2766,11 +2579,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:45:42",
-    "FINAL": "16:48:02",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:35",
+    "FINAL": "16:22:00",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2780,11 +2592,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:08:21",
-    "FINAL": "16:12:06",
-    "TEMPO": "00:03:45",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:19",
+    "FINAL": "16:24:56",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2794,11 +2605,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:32",
-    "FINAL": "16:14:17",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:58",
+    "FINAL": "16:27:24",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2808,11 +2618,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:55",
-    "FINAL": "16:47:45",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:54",
+    "FINAL": "16:29:22",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2822,11 +2631,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:45",
-    "FINAL": "16:13:15",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:56",
+    "FINAL": "16:31:23",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2836,11 +2644,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:22",
-    "FINAL": "16:12:17",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:13",
+    "FINAL": "16:33:44",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2850,11 +2657,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:59",
-    "FINAL": "16:18:54",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:15",
+    "FINAL": "16:36:40",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2864,11 +2670,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:25",
-    "FINAL": "16:10:00",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:52",
+    "FINAL": "16:39:18",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2878,11 +2683,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:15",
-    "FINAL": "16:36:25",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:24",
+    "FINAL": "16:41:55",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2892,11 +2696,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:35",
-    "FINAL": "16:48:25",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:26",
+    "FINAL": "16:44:58",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2906,11 +2709,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:01",
-    "FINAL": "16:14:41",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:34",
+    "FINAL": "16:48:02",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2920,25 +2722,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:11",
-    "FINAL": "16:38:41",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:52",
+    "FINAL": "16:50:27",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:28:45",
-    "FINAL": "16:31:55",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:32",
+    "FINAL": "16:53:05",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2948,11 +2748,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:21:44",
-    "FINAL": "16:25:19",
-    "TEMPO": "00:03:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:39",
+    "FINAL": "16:56:05",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-05 11:59:15",
@@ -2962,11 +2761,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:24:58",
-    "FINAL": "16:28:23",
-    "TEMPO": "00:03:25",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:11",
+    "FINAL": "16:58:38",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-06 11:59:15",
@@ -2976,11 +2774,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 14,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:49",
-    "FINAL": "16:40:29",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-06 11:59:15",
@@ -2990,11 +2787,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:48:00",
-    "FINAL": "16:52:00",
-    "TEMPO": "00:04:00",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:54",
+    "FINAL": "16:20:38",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-06 11:59:15",
@@ -3004,11 +2800,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:37",
-    "FINAL": "16:25:32",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:00",
+    "FINAL": "16:34:56",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-06 11:59:15",
@@ -3018,11 +2813,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:10",
-    "FINAL": "16:23:25",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:25",
+    "FINAL": "16:42:59",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-06 11:59:15",
@@ -3032,11 +2826,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:04:23",
-    "FINAL": "16:07:13",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:30",
+    "FINAL": "16:57:22",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
@@ -3046,25 +2839,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:49",
-    "FINAL": "16:56:34",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:07:09",
-    "FINAL": "16:10:04",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:29",
+    "FINAL": "16:06:03",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
@@ -3074,11 +2865,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:33",
-    "FINAL": "16:21:18",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:20",
+    "FINAL": "16:18:13",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
@@ -3088,11 +2878,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:10",
-    "FINAL": "16:55:50",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:59",
+    "FINAL": "16:30:52",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
@@ -3102,11 +2891,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:35",
-    "FINAL": "16:54:25",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:40",
+    "FINAL": "16:44:18",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-07 11:59:15",
@@ -3116,11 +2904,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:49",
-    "FINAL": "16:31:34",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:26",
+    "FINAL": "16:57:20",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-09 11:59:15",
@@ -3129,12 +2916,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:08",
-    "FINAL": "16:49:53",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-09 11:59:15",
@@ -3144,11 +2930,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:39",
-    "FINAL": "16:21:19",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:35",
+    "FINAL": "16:43:16",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-09 11:59:15",
@@ -3158,11 +2943,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:37",
-    "FINAL": "16:39:47",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:42",
+    "FINAL": "16:57:32",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-10 11:59:15",
@@ -3172,11 +2956,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:38:57",
-    "FINAL": "16:43:12",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-10 11:59:15",
@@ -3186,11 +2969,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:19",
-    "FINAL": "16:25:34",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:57",
+    "FINAL": "16:13:38",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-10 11:59:15",
@@ -3200,11 +2982,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:55",
-    "FINAL": "16:06:40",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:28",
+    "FINAL": "16:27:20",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-10 11:59:15",
@@ -3214,11 +2995,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:30",
-    "FINAL": "16:16:10",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:34",
+    "FINAL": "16:42:13",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-10 11:59:15",
@@ -3228,11 +3008,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:04:56",
-    "FINAL": "16:08:51",
-    "TEMPO": "00:03:55",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:30",
+    "FINAL": "16:58:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3242,11 +3021,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:01:08",
-    "FINAL": "16:03:43",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3256,11 +3034,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:54:43",
-    "FINAL": "16:58:33",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:24",
+    "FINAL": "16:06:22",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3270,11 +3047,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:31",
-    "FINAL": "16:44:26",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:23",
+    "FINAL": "16:12:08",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3284,11 +3060,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:32",
-    "FINAL": "16:08:17",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:52",
+    "FINAL": "16:17:41",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3298,11 +3073,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:18",
-    "FINAL": "16:11:13",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:27",
+    "FINAL": "16:24:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3312,11 +3086,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:09",
-    "FINAL": "16:26:19",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:35",
+    "FINAL": "16:27:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3326,11 +3099,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:31",
-    "FINAL": "16:32:26",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:09",
+    "FINAL": "16:31:54",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3339,12 +3111,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:18:17",
-    "FINAL": "16:22:07",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:37:28",
+    "FINAL": "16:38:10",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3354,11 +3125,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:56",
-    "FINAL": "16:06:21",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:48",
+    "FINAL": "16:42:32",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3367,12 +3137,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:16:16",
-    "FINAL": "16:19:36",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:47:13",
+    "FINAL": "16:48:03",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3381,12 +3150,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ORIGINAL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:11:01",
-    "FINAL": "16:14:51",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:51:36",
+    "FINAL": "16:52:30",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-11 11:59:15",
@@ -3396,11 +3164,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:21",
-    "FINAL": "16:15:16",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:07",
+    "FINAL": "16:57:50",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3410,11 +3177,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 68,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:21:17",
-    "FINAL": "16:23:47",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3424,11 +3190,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:15",
-    "FINAL": "16:39:40",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:41",
+    "FINAL": "16:07:29",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3438,25 +3203,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:19:47",
-    "FINAL": "16:23:52",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:05",
+    "FINAL": "16:12:43",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:45:53",
-    "FINAL": "16:49:03",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:10",
+    "FINAL": "16:15:58",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3465,12 +3228,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:23:41",
-    "FINAL": "16:26:31",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:40",
+    "FINAL": "16:23:20",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3480,11 +3242,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:05",
-    "FINAL": "16:20:45",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:32",
+    "FINAL": "16:28:22",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3494,11 +3255,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:01:15",
-    "FINAL": "16:03:35",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:40",
+    "FINAL": "16:35:14",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3508,11 +3268,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:37",
-    "FINAL": "16:41:12",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:49",
+    "FINAL": "16:40:30",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3522,11 +3281,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:06",
-    "FINAL": "16:39:31",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:26",
+    "FINAL": "16:48:18",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3536,11 +3294,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:30:31",
-    "FINAL": "16:34:31",
-    "TEMPO": "00:04:00",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:17",
+    "FINAL": "16:53:56",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-12 11:59:15",
@@ -3550,11 +3307,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:54",
-    "FINAL": "16:58:59",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:52",
+    "FINAL": "16:57:39",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3564,11 +3320,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:49",
-    "FINAL": "16:48:14",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3578,11 +3333,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:50",
-    "FINAL": "16:30:05",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:51",
+    "FINAL": "16:06:38",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3592,11 +3346,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:00",
-    "FINAL": "16:24:55",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:44",
+    "FINAL": "16:17:19",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3605,12 +3358,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:15:40",
-    "FINAL": "16:19:10",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:25:38",
+    "FINAL": "16:26:19",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3620,11 +3372,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:48:14",
-    "FINAL": "16:52:24",
-    "TEMPO": "00:04:10",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:39",
+    "FINAL": "16:37:20",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3634,11 +3385,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:32",
-    "FINAL": "16:13:07",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:27",
+    "FINAL": "16:42:11",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
@@ -3648,25 +3398,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:43",
-    "FINAL": "16:26:53",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:03",
+    "FINAL": "16:51:38",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-13 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:08:51",
-    "FINAL": "16:12:46",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:39",
+    "FINAL": "16:57:29",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3676,11 +3424,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:41",
-    "FINAL": "16:45:16",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3690,11 +3437,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:26",
-    "FINAL": "16:21:01",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:55",
+    "FINAL": "16:03:31",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3704,11 +3450,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:46",
-    "FINAL": "16:06:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:29",
+    "FINAL": "16:05:56",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3718,11 +3463,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:26:00",
-    "FINAL": "16:29:45",
-    "TEMPO": "00:03:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:08",
+    "FINAL": "16:08:43",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3732,11 +3476,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:46",
-    "FINAL": "16:49:31",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:24",
+    "FINAL": "16:11:49",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3746,11 +3489,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:40:52",
-    "FINAL": "16:45:12",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:40",
+    "FINAL": "16:14:19",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3760,11 +3502,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:00",
-    "FINAL": "16:22:55",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:28",
+    "FINAL": "16:16:52",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3774,11 +3515,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:39",
-    "FINAL": "16:15:19",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:39",
+    "FINAL": "16:19:13",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3788,11 +3528,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:26",
-    "FINAL": "16:33:16",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:28",
+    "FINAL": "16:22:03",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3802,11 +3541,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:51",
-    "FINAL": "16:27:26",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:50",
+    "FINAL": "16:25:22",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3816,11 +3554,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:20",
-    "FINAL": "16:41:10",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:13",
+    "FINAL": "16:27:45",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3829,12 +3566,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:02:21",
-    "FINAL": "16:05:21",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:30:23",
+    "FINAL": "16:30:52",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3843,12 +3579,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:21:07",
-    "FINAL": "16:24:57",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:24",
+    "FINAL": "16:33:54",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3858,11 +3593,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:29",
-    "FINAL": "16:15:24",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:11",
+    "FINAL": "16:36:41",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3872,11 +3606,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:03",
-    "FINAL": "16:28:38",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:05",
+    "FINAL": "16:39:29",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3886,11 +3619,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:19:02",
-    "FINAL": "16:22:07",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:57",
+    "FINAL": "16:41:31",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3900,11 +3632,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:43",
-    "FINAL": "16:17:23",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:15",
+    "FINAL": "16:44:54",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3914,11 +3645,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:59",
-    "FINAL": "16:55:54",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:23",
+    "FINAL": "16:47:52",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3928,11 +3658,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:02",
-    "FINAL": "16:20:37",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:22",
+    "FINAL": "16:50:52",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3942,11 +3671,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:49",
-    "FINAL": "16:13:29",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:26",
+    "FINAL": "16:53:51",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3956,11 +3684,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:02:50",
-    "FINAL": "16:05:35",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:24",
+    "FINAL": "16:55:48",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-18 11:59:15",
@@ -3970,11 +3697,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:27",
-    "FINAL": "16:23:32",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:58",
+    "FINAL": "16:58:28",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-19 11:59:15",
@@ -3984,11 +3710,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:53",
-    "FINAL": "16:18:53",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-19 11:59:15",
@@ -3997,12 +3722,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:36:07",
-    "FINAL": "16:38:52",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:25:57",
+    "FINAL": "16:26:33",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-19 11:59:15",
@@ -4012,11 +3736,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:35",
-    "FINAL": "16:14:20",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:53",
+    "FINAL": "16:44:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-19 11:59:15",
@@ -4026,11 +3749,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:48:52",
-    "FINAL": "16:52:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:08",
+    "FINAL": "16:57:06",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4040,11 +3762,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:43",
-    "FINAL": "16:44:23",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4054,11 +3775,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:15",
-    "FINAL": "16:25:20",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:51",
+    "FINAL": "16:12:46",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4068,25 +3788,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:44",
-    "FINAL": "16:37:19",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:50",
+    "FINAL": "16:22:32",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:49:26",
-    "FINAL": "16:52:16",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:26",
+    "FINAL": "16:32:09",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4096,11 +3814,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:52",
-    "FINAL": "16:13:17",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:24",
+    "FINAL": "16:46:13",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4109,12 +3826,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:57:01",
-    "FINAL": "16:59:41",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:50:25",
+    "FINAL": "16:51:16",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-20 11:59:15",
@@ -4124,11 +3840,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:01",
-    "FINAL": "16:38:36",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:53",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-23 11:59:15",
@@ -4138,11 +3853,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:50:05",
-    "FINAL": "16:53:05",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:41",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-23 11:59:15",
@@ -4152,11 +3866,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:30",
-    "FINAL": "16:38:00",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:17",
+    "FINAL": "16:18:50",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-23 11:59:15",
@@ -4166,11 +3879,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:45",
-    "FINAL": "16:38:55",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:01",
+    "FINAL": "16:25:41",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-23 11:59:15",
@@ -4180,11 +3892,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:48",
-    "FINAL": "16:42:23",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:28",
+    "FINAL": "16:58:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4194,11 +3905,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 37,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:55",
-    "FINAL": "16:58:35",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4208,11 +3918,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:51",
-    "FINAL": "16:49:26",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:06",
+    "FINAL": "16:11:42",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4222,11 +3931,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:48:33",
-    "FINAL": "16:53:13",
-    "TEMPO": "00:04:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:35",
+    "FINAL": "16:19:33",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4236,11 +3944,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:47:19",
-    "FINAL": "16:51:14",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:52",
+    "FINAL": "16:24:39",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4250,11 +3957,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:48",
-    "FINAL": "16:09:13",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:18",
+    "FINAL": "16:41:52",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4263,12 +3969,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:09:05",
-    "FINAL": "16:11:45",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:43:53",
+    "FINAL": "16:44:38",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-24 11:59:15",
@@ -4278,11 +3983,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:09",
-    "FINAL": "16:10:34",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:53",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4291,12 +3995,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:48",
-    "FINAL": "16:33:53",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4306,11 +4009,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:51",
-    "FINAL": "16:46:11",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:34",
+    "FINAL": "16:02:59",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4320,11 +4022,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:16",
-    "FINAL": "16:38:51",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:05",
+    "FINAL": "16:05:34",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4334,11 +4035,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:33:24",
-    "FINAL": "16:37:19",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:37",
+    "FINAL": "16:08:13",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4348,11 +4048,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:11",
-    "FINAL": "16:34:06",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:45",
+    "FINAL": "16:11:10",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4361,12 +4060,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:51:04",
-    "FINAL": "16:54:44",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:13:09",
+    "FINAL": "16:13:31",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4376,11 +4074,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:32",
-    "FINAL": "16:40:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:37",
+    "FINAL": "16:16:09",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4390,11 +4087,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:54",
-    "FINAL": "16:38:39",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:17",
+    "FINAL": "16:18:38",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4404,11 +4100,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:17",
-    "FINAL": "16:52:57",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:31",
+    "FINAL": "16:21:02",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4418,11 +4113,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:14",
-    "FINAL": "16:58:29",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:19",
+    "FINAL": "16:23:50",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4432,11 +4126,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:07",
-    "FINAL": "16:20:47",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:13",
+    "FINAL": "16:26:37",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4446,25 +4139,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:38",
-    "FINAL": "16:54:33",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:21",
+    "FINAL": "16:28:45",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6183,
     "Descricao": "DIAS D'AVILA C/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0,
-    "INICIO": "16:50:30",
-    "FINAL": "16:53:20",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0,
+    "INICIO": "16:30:43",
+    "FINAL": "16:31:08",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4474,11 +4165,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:31:25",
-    "FINAL": "16:35:20",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:04",
+    "FINAL": "16:33:38",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4488,11 +4178,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:06",
-    "FINAL": "16:29:46",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:40",
+    "FINAL": "16:36:14",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4502,11 +4191,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:40",
-    "FINAL": "16:49:20",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:16",
+    "FINAL": "16:38:44",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4516,11 +4204,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:11",
-    "FINAL": "16:06:11",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:51",
+    "FINAL": "16:41:22",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4530,11 +4217,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:52",
-    "FINAL": "16:47:17",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:09",
+    "FINAL": "16:43:33",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4544,11 +4230,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:56",
-    "FINAL": "16:43:46",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:38",
+    "FINAL": "16:46:12",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4558,11 +4243,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:20",
-    "FINAL": "16:20:30",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:04",
+    "FINAL": "16:48:40",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4572,11 +4256,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:18",
-    "FINAL": "16:50:48",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:35",
+    "FINAL": "16:50:59",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4586,11 +4269,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:45",
-    "FINAL": "16:41:45",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:21",
+    "FINAL": "16:52:52",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
@@ -4600,25 +4282,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:55",
-    "FINAL": "16:35:40",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:21",
+    "FINAL": "16:55:52",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-25 11:59:15",
     "Mês": "FEVEREIRO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:18:20",
-    "FINAL": "16:21:00",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:51",
+    "FINAL": "16:58:23",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4628,11 +4308,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 40,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:06:47",
-    "FINAL": "16:10:12",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4642,11 +4321,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:07",
-    "FINAL": "16:49:37",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:19",
+    "FINAL": "16:06:07",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4656,11 +4334,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:23",
-    "FINAL": "16:51:38",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:39",
+    "FINAL": "16:11:15",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4670,11 +4347,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:43",
-    "FINAL": "16:34:58",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:45",
+    "FINAL": "16:15:35",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4684,11 +4360,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:22",
-    "FINAL": "16:55:37",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:22",
+    "FINAL": "16:20:03",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4698,11 +4373,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:29",
-    "FINAL": "16:40:14",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:06",
+    "FINAL": "16:24:40",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4712,11 +4386,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:51",
-    "FINAL": "16:08:41",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:32",
+    "FINAL": "16:29:11",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4726,11 +4399,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:11",
-    "FINAL": "16:05:01",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:48",
+    "FINAL": "16:32:29",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4740,11 +4412,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:05:13",
-    "FINAL": "16:08:33",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:57",
+    "FINAL": "16:37:57",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4754,11 +4425,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:40",
-    "FINAL": "16:34:20",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:45",
+    "FINAL": "16:43:36",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4768,11 +4438,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:24",
-    "FINAL": "16:30:49",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:06",
+    "FINAL": "16:48:44",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4782,11 +4451,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:23",
-    "FINAL": "16:17:38",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:15",
+    "FINAL": "16:53:03",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-02-26 11:59:15",
@@ -4795,12 +4463,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:06:09",
-    "FINAL": "16:08:49",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:57:18",
+    "FINAL": "16:57:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4810,11 +4477,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:46",
-    "FINAL": "16:38:31",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4824,11 +4490,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:32",
-    "FINAL": "16:27:27",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:10",
+    "FINAL": "16:05:46",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4838,11 +4503,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:59",
-    "FINAL": "16:58:44",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:42",
+    "FINAL": "16:09:31",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4852,11 +4516,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:19:05",
-    "FINAL": "16:22:30",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:44",
+    "FINAL": "16:13:31",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4866,11 +4529,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:00",
-    "FINAL": "16:51:45",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:51",
+    "FINAL": "16:18:33",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4880,11 +4542,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:59",
-    "FINAL": "16:37:04",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:19",
+    "FINAL": "16:24:11",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4894,11 +4555,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:33:11",
-    "FINAL": "16:37:26",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:53",
+    "FINAL": "16:30:51",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4908,11 +4568,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:51",
-    "FINAL": "16:14:21",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:27",
+    "FINAL": "16:35:10",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4922,11 +4581,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:33",
-    "FINAL": "16:35:48",
-    "TEMPO": "00:02:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:21",
+    "FINAL": "16:39:13",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4936,11 +4594,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:40",
-    "FINAL": "16:31:35",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:34",
+    "FINAL": "16:44:20",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4950,11 +4607,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:36",
-    "FINAL": "16:12:56",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:19",
+    "FINAL": "16:49:02",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4964,11 +4620,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:40",
-    "FINAL": "16:28:50",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:39",
+    "FINAL": "16:53:24",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-02 11:59:15",
@@ -4977,12 +4632,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:22:37",
-    "FINAL": "16:25:37",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:56:44",
+    "FINAL": "16:57:33",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -4992,11 +4646,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:15",
-    "FINAL": "16:53:50",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:41",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5006,11 +4659,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:11",
-    "FINAL": "16:30:16",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:40",
+    "FINAL": "16:04:35",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5020,11 +4672,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:21",
-    "FINAL": "16:16:06",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:37",
+    "FINAL": "16:09:13",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5034,11 +4685,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:30",
-    "FINAL": "16:54:00",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:00",
+    "FINAL": "16:12:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5048,11 +4698,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:24",
-    "FINAL": "16:28:24",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:02",
+    "FINAL": "16:15:56",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5062,11 +4711,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:38",
-    "FINAL": "16:29:18",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:59",
+    "FINAL": "16:20:48",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5076,11 +4724,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:40:13",
-    "FINAL": "16:44:38",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:39",
+    "FINAL": "16:25:21",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5090,11 +4737,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:13",
-    "FINAL": "16:31:53",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:47",
+    "FINAL": "16:29:22",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5104,25 +4750,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:17",
-    "FINAL": "16:06:52",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:23",
+    "FINAL": "16:33:04",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
     "Mês": "MARÇO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:03:31",
-    "FINAL": "16:06:31",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:39",
+    "FINAL": "16:37:21",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5132,11 +4776,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:29",
-    "FINAL": "16:23:09",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:37",
+    "FINAL": "16:41:25",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5145,12 +4788,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:10:09",
-    "FINAL": "16:13:34",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:45:03",
+    "FINAL": "16:45:50",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5160,11 +4802,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:18:08",
-    "FINAL": "16:21:28",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:12",
+    "FINAL": "16:49:53",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5174,11 +4815,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:32",
-    "FINAL": "16:24:42",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:31",
+    "FINAL": "16:53:13",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-03 11:59:15",
@@ -5188,11 +4828,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:29",
-    "FINAL": "16:28:19",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:31",
+    "FINAL": "16:57:23",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-04 11:59:15",
@@ -5202,11 +4841,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 52,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:12",
-    "FINAL": "16:32:52",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:58",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-04 11:59:15",
@@ -5216,11 +4854,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 15,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:25",
-    "FINAL": "16:59:10",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:31",
+    "FINAL": "16:20:20",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-04 11:59:15",
@@ -5230,11 +4867,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:18",
-    "FINAL": "16:31:23",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:58",
+    "FINAL": "16:37:37",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-04 11:59:15",
@@ -5244,11 +4880,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:49",
-    "FINAL": "16:41:39",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:32",
+    "FINAL": "16:58:09",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5258,11 +4893,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:07",
-    "FINAL": "16:52:27",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5272,11 +4906,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:59",
-    "FINAL": "16:52:39",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:17",
+    "FINAL": "16:05:10",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5286,11 +4919,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:58",
-    "FINAL": "16:45:08",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:25",
+    "FINAL": "16:11:10",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5300,11 +4932,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:59",
-    "FINAL": "16:47:34",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:48",
+    "FINAL": "16:16:26",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5314,11 +4945,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:08",
-    "FINAL": "16:36:53",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:29",
+    "FINAL": "16:21:11",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5328,11 +4958,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:33",
-    "FINAL": "16:40:13",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:34",
+    "FINAL": "16:25:11",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5342,11 +4971,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:14",
-    "FINAL": "16:34:59",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:49",
+    "FINAL": "16:29:30",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5356,11 +4984,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:14",
-    "FINAL": "16:22:24",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:57",
+    "FINAL": "16:34:36",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5370,11 +4997,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:27",
-    "FINAL": "16:53:27",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:47",
+    "FINAL": "16:38:20",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5384,11 +5010,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:33",
-    "FINAL": "16:48:08",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:33",
+    "FINAL": "16:43:15",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5398,11 +5023,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:46",
-    "FINAL": "16:47:41",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:00",
+    "FINAL": "16:47:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5412,11 +5036,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:59",
-    "FINAL": "16:35:54",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:55",
+    "FINAL": "16:52:33",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-05 11:59:15",
@@ -5426,11 +5049,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:55",
-    "FINAL": "16:30:15",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:28",
+    "FINAL": "16:57:21",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5440,11 +5062,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:43:54",
-    "FINAL": "16:46:19",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5454,11 +5075,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:11",
-    "FINAL": "16:17:01",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:46",
+    "FINAL": "16:05:28",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5468,11 +5088,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:25",
-    "FINAL": "16:58:40",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:31",
+    "FINAL": "16:10:05",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5482,11 +5101,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:01",
-    "FINAL": "16:18:41",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:16",
+    "FINAL": "16:14:00",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5496,11 +5114,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:43",
-    "FINAL": "16:25:53",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:12",
+    "FINAL": "16:18:52",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5509,12 +5126,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:43",
-    "FINAL": "16:34:38",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:47",
+    "FINAL": "16:23:30",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5524,11 +5140,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:23",
-    "FINAL": "16:40:33",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:24",
+    "FINAL": "16:29:11",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5538,11 +5153,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:11",
-    "FINAL": "16:09:01",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:30",
+    "FINAL": "16:33:23",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5552,11 +5166,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:56",
-    "FINAL": "16:40:46",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:39",
+    "FINAL": "16:38:14",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5566,11 +5179,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:19",
-    "FINAL": "16:19:04",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:20",
+    "FINAL": "16:43:12",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5580,11 +5192,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:15",
-    "FINAL": "16:58:20",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:26",
+    "FINAL": "16:49:02",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5594,11 +5205,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:01:22",
-    "FINAL": "16:04:17",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:01",
+    "FINAL": "16:52:42",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-09 11:59:15",
@@ -5608,11 +5218,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:10",
-    "FINAL": "16:31:45",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:46",
+    "FINAL": "16:58:20",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5622,11 +5231,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:54",
-    "FINAL": "16:53:59",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:45",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5636,11 +5244,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:43",
-    "FINAL": "16:29:03",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:42",
+    "FINAL": "16:09:20",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5650,11 +5257,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:20",
-    "FINAL": "16:54:15",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:44",
+    "FINAL": "16:13:28",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5664,11 +5270,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:18:56",
-    "FINAL": "16:21:56",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:43",
+    "FINAL": "16:21:31",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5678,11 +5283,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:35",
-    "FINAL": "16:27:55",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:36",
+    "FINAL": "16:30:20",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5692,11 +5296,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:34:21",
-    "FINAL": "16:37:26",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:46",
+    "FINAL": "16:41:36",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5706,11 +5309,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:57",
-    "FINAL": "16:57:17",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:44",
+    "FINAL": "16:47:17",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-10 11:59:15",
@@ -5720,11 +5322,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:44",
-    "FINAL": "16:18:29",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:08",
+    "FINAL": "16:57:51",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5734,11 +5335,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:57",
-    "FINAL": "16:19:42",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5748,11 +5348,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:05",
-    "FINAL": "16:47:10",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:24",
+    "FINAL": "16:06:17",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5762,11 +5361,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:18",
-    "FINAL": "16:24:53",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:16",
+    "FINAL": "16:11:13",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5776,11 +5374,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:01:29",
-    "FINAL": "16:05:39",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:18",
+    "FINAL": "16:16:06",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5790,11 +5387,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:01",
-    "FINAL": "16:31:46",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:00",
+    "FINAL": "16:19:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5804,11 +5400,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:54",
-    "FINAL": "16:58:24",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:46",
+    "FINAL": "16:23:31",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5818,11 +5413,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:05",
-    "FINAL": "16:43:20",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:49",
+    "FINAL": "16:29:27",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5831,26 +5425,24 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:04:59",
-    "FINAL": "16:08:14",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:45",
+    "FINAL": "16:34:28",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
     "Mês": "MARÇO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:56:21",
-    "FINAL": "16:59:26",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:18",
+    "FINAL": "16:40:09",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5860,11 +5452,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:31:57",
-    "FINAL": "16:34:52",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:39",
+    "FINAL": "16:45:30",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5874,11 +5465,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:57",
-    "FINAL": "16:20:52",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:13",
+    "FINAL": "16:51:57",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-11 11:59:15",
@@ -5888,11 +5478,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:15:16",
-    "FINAL": "16:19:51",
-    "TEMPO": "00:04:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:53",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5902,11 +5491,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:39",
-    "FINAL": "16:38:29",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:49",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5916,11 +5504,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:26",
-    "FINAL": "16:11:21",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:55",
+    "FINAL": "16:07:45",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5930,11 +5517,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:16",
-    "FINAL": "16:53:36",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:26",
+    "FINAL": "16:13:20",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5944,11 +5530,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:12",
-    "FINAL": "16:55:42",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:03",
+    "FINAL": "16:17:50",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5958,11 +5543,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:48",
-    "FINAL": "16:09:33",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:56",
+    "FINAL": "16:23:45",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5972,11 +5556,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:02:41",
-    "FINAL": "16:05:36",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:24",
+    "FINAL": "16:29:01",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -5986,11 +5569,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:08:34",
-    "FINAL": "16:11:29",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:56",
+    "FINAL": "16:35:52",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -6000,11 +5582,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:33",
-    "FINAL": "16:05:28",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:07",
+    "FINAL": "16:42:54",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -6014,11 +5595,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:44",
-    "FINAL": "16:24:09",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:07",
+    "FINAL": "16:47:58",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -6028,11 +5608,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:46",
-    "FINAL": "16:46:36",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:07",
+    "FINAL": "16:53:52",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-12 11:59:15",
@@ -6042,11 +5621,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:26",
-    "FINAL": "16:46:21",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:22",
+    "FINAL": "16:58:02",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-13 11:59:15",
@@ -6056,11 +5634,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:08",
-    "FINAL": "16:55:18",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-13 11:59:15",
@@ -6070,11 +5647,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:48",
-    "FINAL": "16:07:33",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:17",
+    "FINAL": "16:04:54",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-13 11:59:15",
@@ -6084,11 +5660,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:47",
-    "FINAL": "16:42:47",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:14",
+    "FINAL": "16:43:48",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-13 11:59:15",
@@ -6098,11 +5673,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:48",
-    "FINAL": "16:20:38",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:36",
+    "FINAL": "16:58:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6112,11 +5686,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:01",
-    "FINAL": "16:43:56",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6126,11 +5699,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:41",
-    "FINAL": "16:39:16",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:13",
+    "FINAL": "16:07:48",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6140,11 +5712,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:26",
-    "FINAL": "16:34:26",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:23",
+    "FINAL": "16:12:12",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6154,11 +5725,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:35",
-    "FINAL": "16:24:35",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:56",
+    "FINAL": "16:19:44",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6168,11 +5738,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:32",
-    "FINAL": "16:19:57",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:17",
+    "FINAL": "16:26:04",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6182,11 +5751,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:16:01",
-    "FINAL": "16:18:51",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:23",
+    "FINAL": "16:33:01",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6196,11 +5764,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:01:59",
-    "FINAL": "16:05:44",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:11",
+    "FINAL": "16:38:54",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6210,11 +5777,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:06",
-    "FINAL": "16:51:56",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:46",
+    "FINAL": "16:44:34",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6224,11 +5790,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:46",
-    "FINAL": "16:07:11",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:48",
+    "FINAL": "16:50:22",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-16 11:59:15",
@@ -6238,11 +5803,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:34:01",
-    "FINAL": "16:36:21",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:39",
+    "FINAL": "16:57:29",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6252,11 +5816,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:10",
-    "FINAL": "16:47:55",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6266,11 +5829,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:33",
-    "FINAL": "16:20:43",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:16",
+    "FINAL": "16:07:02",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6280,11 +5842,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:58",
-    "FINAL": "16:31:53",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:36",
+    "FINAL": "16:14:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6294,11 +5855,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:28",
-    "FINAL": "16:19:48",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:23",
+    "FINAL": "16:22:18",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6308,11 +5868,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:30",
-    "FINAL": "16:50:45",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:37",
+    "FINAL": "16:33:18",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6321,12 +5880,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE SG",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:28:42",
-    "FINAL": "16:31:22",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:43:18",
+    "FINAL": "16:44:12",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6336,11 +5894,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:27:03",
-    "FINAL": "16:29:43",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:42",
+    "FINAL": "16:48:28",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-17 11:59:15",
@@ -6350,11 +5907,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:24",
-    "FINAL": "16:57:14",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:11",
+    "FINAL": "16:57:53",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6364,11 +5920,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:27",
-    "FINAL": "16:37:27",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:52",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6378,11 +5933,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:50",
-    "FINAL": "16:36:30",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:55",
+    "FINAL": "16:08:41",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6392,11 +5946,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:16",
-    "FINAL": "16:25:11",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:03",
+    "FINAL": "16:16:55",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6406,11 +5959,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:14",
-    "FINAL": "16:16:49",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:03",
+    "FINAL": "16:23:51",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6420,11 +5972,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:07",
-    "FINAL": "16:18:22",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:06",
+    "FINAL": "16:29:52",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6434,11 +5985,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:20:08",
-    "FINAL": "16:23:28",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:58",
+    "FINAL": "16:35:49",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6448,11 +5998,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:34",
-    "FINAL": "16:45:19",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:25",
+    "FINAL": "16:41:03",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6462,11 +6011,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:47",
-    "FINAL": "16:16:02",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:58",
+    "FINAL": "16:45:51",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6476,11 +6024,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:06",
-    "FINAL": "16:36:51",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:42",
+    "FINAL": "16:50:28",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-18 11:59:15",
@@ -6490,11 +6037,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:25",
-    "FINAL": "16:49:00",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:47",
+    "FINAL": "16:57:35",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-19 11:59:15",
@@ -6504,11 +6050,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:36",
-    "FINAL": "16:43:16",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-20 11:59:15",
@@ -6518,11 +6063,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 22,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:51",
-    "FINAL": "16:29:41",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-20 11:59:15",
@@ -6532,11 +6076,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:36",
-    "FINAL": "16:04:16",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:05",
+    "FINAL": "16:04:51",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-20 11:59:15",
@@ -6546,11 +6089,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:41",
-    "FINAL": "16:13:36",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:49",
+    "FINAL": "16:09:25",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-20 11:59:15",
@@ -6560,11 +6102,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:48:27",
-    "FINAL": "16:52:02",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:45",
+    "FINAL": "16:34:31",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-20 11:59:15",
@@ -6573,12 +6114,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:26:51",
-    "FINAL": "16:29:31",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:56:52",
+    "FINAL": "16:57:39",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6588,11 +6128,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:36",
-    "FINAL": "16:51:46",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:46",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6602,11 +6141,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:50:01",
-    "FINAL": "16:54:16",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:20",
+    "FINAL": "16:10:05",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6616,11 +6154,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:25",
-    "FINAL": "16:08:10",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:50",
+    "FINAL": "16:25:33",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6630,11 +6167,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:28",
-    "FINAL": "16:26:48",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:41",
+    "FINAL": "16:40:36",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6644,11 +6180,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:32",
-    "FINAL": "16:47:22",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:05",
+    "FINAL": "16:45:58",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-21 11:59:15",
@@ -6658,11 +6193,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:56",
-    "FINAL": "16:54:46",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:44",
+    "FINAL": "16:58:18",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-23 11:59:15",
@@ -6672,11 +6206,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:17",
-    "FINAL": "16:24:52",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:46",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-24 11:59:15",
@@ -6686,11 +6219,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:50",
-    "FINAL": "16:29:20",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6700,11 +6232,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:22:38",
-    "FINAL": "16:27:18",
-    "TEMPO": "00:04:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:57",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6714,11 +6245,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:07:26",
-    "FINAL": "16:11:51",
-    "TEMPO": "00:04:25",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:16",
+    "FINAL": "16:12:07",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6728,11 +6258,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:06",
-    "FINAL": "16:21:41",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:17",
+    "FINAL": "16:23:11",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6742,11 +6271,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:41",
-    "FINAL": "16:31:21",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:46",
+    "FINAL": "16:37:28",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6756,11 +6284,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:26",
-    "FINAL": "16:12:16",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:21",
+    "FINAL": "16:41:58",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6770,11 +6297,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:48",
-    "FINAL": "16:55:08",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:21",
+    "FINAL": "16:46:15",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-25 11:59:15",
@@ -6784,11 +6310,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:20",
-    "FINAL": "16:27:35",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:27",
+    "FINAL": "16:58:05",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6798,11 +6323,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:04",
-    "FINAL": "16:24:39",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:58",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6812,11 +6336,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:31",
-    "FINAL": "16:33:11",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:37",
+    "FINAL": "16:05:20",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6826,11 +6349,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:48:08",
-    "FINAL": "16:50:33",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:34",
+    "FINAL": "16:09:18",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6840,11 +6362,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:26",
-    "FINAL": "16:28:41",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:51",
+    "FINAL": "16:12:32",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6854,11 +6375,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:28",
-    "FINAL": "16:33:48",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:07",
+    "FINAL": "16:15:44",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6868,11 +6388,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:51",
-    "FINAL": "16:27:41",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:46",
+    "FINAL": "16:18:24",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6882,11 +6401,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:23",
-    "FINAL": "16:36:23",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:31",
+    "FINAL": "16:22:13",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6896,11 +6414,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:28:02",
-    "FINAL": "16:31:02",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:11",
+    "FINAL": "16:25:50",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6910,11 +6427,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:41",
-    "FINAL": "16:45:36",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:10",
+    "FINAL": "16:28:48",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6924,11 +6440,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:46",
-    "FINAL": "16:06:21",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:05",
+    "FINAL": "16:32:58",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6938,11 +6453,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:40",
-    "FINAL": "16:34:45",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:07",
+    "FINAL": "16:37:00",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6952,11 +6466,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:13",
-    "FINAL": "16:06:53",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:25",
+    "FINAL": "16:41:17",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6966,11 +6479,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:51:00",
-    "FINAL": "16:54:20",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:14",
+    "FINAL": "16:45:02",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6980,11 +6492,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:41:20",
-    "FINAL": "16:45:00",
-    "TEMPO": "00:03:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:56",
+    "FINAL": "16:48:56",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -6994,11 +6505,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:18:35",
-    "FINAL": "16:22:45",
-    "TEMPO": "00:04:10",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:13",
+    "FINAL": "16:54:05",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-26 11:59:15",
@@ -7008,11 +6518,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:07",
-    "FINAL": "16:45:12",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:18",
+    "FINAL": "16:57:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7022,11 +6531,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:57",
-    "FINAL": "16:53:37",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:58",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7036,11 +6544,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:36",
-    "FINAL": "16:25:11",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:54",
+    "FINAL": "16:07:48",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7050,11 +6557,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:18",
-    "FINAL": "16:24:08",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:28",
+    "FINAL": "16:20:09",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7064,11 +6570,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:35",
-    "FINAL": "16:54:10",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:54",
+    "FINAL": "16:25:30",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7078,11 +6583,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:54:59",
-    "FINAL": "16:58:49",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:02",
+    "FINAL": "16:30:47",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7092,11 +6596,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:27",
-    "FINAL": "16:07:52",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:07",
+    "FINAL": "16:44:41",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-27 11:59:15",
@@ -7106,11 +6609,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:57",
-    "FINAL": "16:18:37",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:19",
+    "FINAL": "16:57:59",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-29 11:59:15",
@@ -7120,11 +6622,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:50",
-    "FINAL": "16:51:35",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:37",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7134,11 +6635,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:59",
-    "FINAL": "16:56:49",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7148,11 +6648,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:08",
-    "FINAL": "16:20:13",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:51",
+    "FINAL": "16:03:33",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7162,11 +6661,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:37",
-    "FINAL": "16:59:27",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:22",
+    "FINAL": "16:06:57",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7176,11 +6674,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:53",
-    "FINAL": "16:37:08",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:09",
+    "FINAL": "16:09:51",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7189,12 +6686,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:54:47",
-    "FINAL": "16:57:37",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:12:57",
+    "FINAL": "16:13:42",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7204,11 +6700,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:20:42",
-    "FINAL": "16:25:02",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:07",
+    "FINAL": "16:17:44",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7218,11 +6713,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:45",
-    "FINAL": "16:56:25",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:49",
+    "FINAL": "16:21:32",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7232,11 +6726,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:16:07",
-    "FINAL": "16:19:17",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:14",
+    "FINAL": "16:25:02",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7245,12 +6738,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:21:48",
-    "FINAL": "16:24:48",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:28:36",
+    "FINAL": "16:29:21",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7260,11 +6752,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:53:30",
-    "FINAL": "16:57:05",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:09",
+    "FINAL": "16:33:00",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7274,11 +6765,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:05:23",
-    "FINAL": "16:09:28",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:36",
+    "FINAL": "16:37:20",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7288,11 +6778,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:44",
-    "FINAL": "16:29:59",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:47",
+    "FINAL": "16:40:34",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7302,11 +6791,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "NÃO IDENTIFICADA",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:16:52",
-    "FINAL": "16:20:27",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:07",
+    "FINAL": "16:44:53",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7316,11 +6804,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:20",
-    "FINAL": "16:47:30",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:27",
+    "FINAL": "16:49:00",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7330,11 +6817,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:43",
-    "FINAL": "16:40:23",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:28",
+    "FINAL": "16:52:04",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7344,11 +6830,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:58",
-    "FINAL": "16:14:18",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:44",
+    "FINAL": "16:55:20",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-30 11:59:15",
@@ -7358,11 +6843,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:10",
-    "FINAL": "16:11:05",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:01",
+    "FINAL": "16:58:31",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7372,11 +6856,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 21,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:04",
-    "FINAL": "16:21:59",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7386,11 +6869,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:13",
-    "FINAL": "16:17:38",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:51",
+    "FINAL": "16:07:44",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7400,11 +6882,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:01",
-    "FINAL": "16:36:46",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:43",
+    "FINAL": "16:14:18",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7413,12 +6894,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SPATEN 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:30",
-    "FINAL": "16:34:25",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:18:54",
+    "FINAL": "16:19:39",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7428,11 +6908,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:04",
-    "FINAL": "16:11:54",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:35",
+    "FINAL": "16:26:14",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7442,11 +6921,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:20",
-    "FINAL": "16:45:30",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:32",
+    "FINAL": "16:30:14",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7456,11 +6934,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:02",
-    "FINAL": "16:19:47",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:17",
+    "FINAL": "16:35:03",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7470,11 +6947,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:49",
-    "FINAL": "16:56:49",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:22",
+    "FINAL": "16:41:03",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7484,11 +6960,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:08:16",
-    "FINAL": "16:12:11",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:12",
+    "FINAL": "16:47:07",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7498,11 +6973,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:03",
-    "FINAL": "16:23:43",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:15",
+    "FINAL": "16:52:06",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-03-31 11:59:15",
@@ -7512,11 +6986,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:41",
-    "FINAL": "16:41:41",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:14",
+    "FINAL": "16:57:56",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7526,11 +6999,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:20",
-    "FINAL": "16:20:15",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7540,11 +7012,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:35",
-    "FINAL": "16:17:10",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:04",
+    "FINAL": "16:07:49",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7554,11 +7025,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:40",
-    "FINAL": "16:15:50",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:00",
+    "FINAL": "16:12:43",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7568,11 +7038,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:28",
-    "FINAL": "16:13:23",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:38",
+    "FINAL": "16:19:12",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7582,11 +7051,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:28",
-    "FINAL": "16:42:28",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:50",
+    "FINAL": "16:26:44",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7596,11 +7064,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:25",
-    "FINAL": "16:07:35",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:41",
+    "FINAL": "16:33:41",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7610,11 +7077,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:47",
-    "FINAL": "16:19:52",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:38",
+    "FINAL": "16:39:28",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7624,11 +7090,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:47",
-    "FINAL": "16:19:27",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:37",
+    "FINAL": "16:46:35",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7638,11 +7103,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:51",
-    "FINAL": "16:10:16",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:31",
+    "FINAL": "16:53:18",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-01 11:59:15",
@@ -7652,11 +7116,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:31",
-    "FINAL": "16:06:01",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:50",
+    "FINAL": "16:57:38",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7666,11 +7129,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:24",
-    "FINAL": "16:35:09",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:37",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7680,11 +7142,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:46",
-    "FINAL": "16:19:31",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:40",
+    "FINAL": "16:05:20",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7694,11 +7155,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:31",
-    "FINAL": "16:29:16",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:20",
+    "FINAL": "16:09:00",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7708,11 +7168,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:02",
-    "FINAL": "16:22:42",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:52",
+    "FINAL": "16:12:28",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7722,11 +7181,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:26",
-    "FINAL": "16:06:21",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:26",
+    "FINAL": "16:18:18",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7736,11 +7194,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:56:31",
-    "FINAL": "16:59:01",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:42",
+    "FINAL": "16:23:22",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7750,11 +7207,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:07",
-    "FINAL": "16:08:27",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:50",
+    "FINAL": "16:27:28",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7764,11 +7220,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:08",
-    "FINAL": "16:15:13",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:16",
+    "FINAL": "16:30:59",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7778,11 +7233,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:44",
-    "FINAL": "16:20:54",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:56",
+    "FINAL": "16:34:42",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7792,11 +7246,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:22",
-    "FINAL": "16:48:57",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:32",
+    "FINAL": "16:40:12",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7806,11 +7259,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:13",
-    "FINAL": "16:11:03",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:59",
+    "FINAL": "16:44:37",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7820,11 +7272,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:48:26",
-    "FINAL": "16:51:26",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:12",
+    "FINAL": "16:48:48",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7834,11 +7285,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:51",
-    "FINAL": "16:18:16",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:43",
+    "FINAL": "16:53:16",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-02 11:59:15",
@@ -7848,11 +7298,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:12",
-    "FINAL": "16:25:52",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:35",
+    "FINAL": "16:57:26",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7862,11 +7311,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 23,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:55",
-    "FINAL": "16:16:40",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:56",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7876,11 +7324,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:36",
-    "FINAL": "16:06:31",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:23",
+    "FINAL": "16:06:13",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7889,12 +7336,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:44:29",
-    "FINAL": "16:47:54",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:10:08",
+    "FINAL": "16:10:58",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7904,11 +7350,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:37",
-    "FINAL": "16:59:27",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:34",
+    "FINAL": "16:15:27",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7918,11 +7363,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:20",
-    "FINAL": "16:24:55",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:44",
+    "FINAL": "16:21:36",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7932,11 +7376,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:22",
-    "FINAL": "16:28:32",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:35",
+    "FINAL": "16:27:24",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7946,11 +7389,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:18",
-    "FINAL": "16:24:28",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:41",
+    "FINAL": "16:31:30",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7960,11 +7402,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:02:08",
-    "FINAL": "16:05:53",
-    "TEMPO": "00:03:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:00",
+    "FINAL": "16:38:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7974,11 +7415,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:37:24",
-    "FINAL": "16:41:29",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:40",
+    "FINAL": "16:44:36",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -7988,11 +7428,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:51",
-    "FINAL": "16:31:06",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:48",
+    "FINAL": "16:51:34",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-06 11:59:15",
@@ -8002,11 +7441,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:26:59",
-    "FINAL": "16:29:24",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:09",
+    "FINAL": "16:57:52",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8016,11 +7454,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:33",
-    "FINAL": "16:14:03",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:56",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8030,11 +7467,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:13",
-    "FINAL": "16:09:38",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:56",
+    "FINAL": "16:06:40",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8044,11 +7480,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:09",
-    "FINAL": "16:30:39",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:21",
+    "FINAL": "16:11:55",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8057,12 +7492,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:27:58",
-    "FINAL": "16:31:28",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:15:45",
+    "FINAL": "16:16:31",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8072,11 +7506,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:35",
-    "FINAL": "16:50:00",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:44",
+    "FINAL": "16:20:44",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8086,11 +7519,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:30",
-    "FINAL": "16:06:30",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:40",
+    "FINAL": "16:26:25",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8100,11 +7532,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:38:40",
-    "FINAL": "16:41:20",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:35",
+    "FINAL": "16:31:14",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8114,11 +7545,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:16",
-    "FINAL": "16:32:01",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:48",
+    "FINAL": "16:36:36",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8127,12 +7557,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:52:20",
-    "FINAL": "16:55:30",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:40:55",
+    "FINAL": "16:41:36",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8142,11 +7571,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:24:50",
-    "FINAL": "16:28:15",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:42",
+    "FINAL": "16:46:23",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8156,11 +7584,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:40",
-    "FINAL": "16:30:05",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:14",
+    "FINAL": "16:51:02",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8170,11 +7597,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:54",
-    "FINAL": "16:17:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:56",
+    "FINAL": "16:54:31",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-07 11:59:15",
@@ -8184,11 +7610,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:38",
-    "FINAL": "16:33:28",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:13",
+    "FINAL": "16:57:55",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8198,11 +7623,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:55",
-    "FINAL": "16:32:40",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:46",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8212,11 +7636,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:06:10",
-    "FINAL": "16:09:15",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:26",
+    "FINAL": "16:05:09",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8226,11 +7649,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:53",
-    "FINAL": "16:28:03",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:49",
+    "FINAL": "16:08:36",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8240,11 +7662,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:11:05",
-    "FINAL": "16:14:40",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:18",
+    "FINAL": "16:12:04",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8254,11 +7675,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:31",
-    "FINAL": "16:06:16",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:42",
+    "FINAL": "16:16:29",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8268,11 +7688,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:44",
-    "FINAL": "16:47:04",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:15",
+    "FINAL": "16:20:58",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8282,11 +7701,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:04",
-    "FINAL": "16:30:44",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:43",
+    "FINAL": "16:25:23",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8296,11 +7714,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:28",
-    "FINAL": "16:45:13",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:50",
+    "FINAL": "16:29:24",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8310,11 +7727,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:19",
-    "FINAL": "16:54:09",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:42",
+    "FINAL": "16:33:33",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8324,11 +7740,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:09:57",
-    "FINAL": "16:12:47",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:21",
+    "FINAL": "16:37:02",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8338,11 +7753,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:02",
-    "FINAL": "16:14:07",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:10",
+    "FINAL": "16:40:54",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8352,11 +7766,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:34",
-    "FINAL": "16:07:49",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:53",
+    "FINAL": "16:45:32",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8366,11 +7779,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:33:29",
-    "FINAL": "16:35:54",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:02",
+    "FINAL": "16:49:41",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8380,11 +7792,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "NÃO IDENTIFICADA",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:54:04",
-    "FINAL": "16:57:39",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:12",
+    "FINAL": "16:53:57",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-08 11:59:15",
@@ -8394,11 +7805,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:13:28",
-    "FINAL": "16:18:18",
-    "TEMPO": "00:04:50",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:28",
+    "FINAL": "16:58:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8408,11 +7818,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:58",
-    "FINAL": "16:05:58",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:30",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8422,11 +7831,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:57",
-    "FINAL": "16:37:17",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:20",
+    "FINAL": "16:03:07",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8436,11 +7844,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:28",
-    "FINAL": "16:44:28",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:19",
+    "FINAL": "16:06:51",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8450,11 +7857,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:28",
-    "FINAL": "16:30:18",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:44",
+    "FINAL": "16:09:23",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8464,11 +7870,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:37",
-    "FINAL": "16:51:22",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:44",
+    "FINAL": "16:12:20",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8478,11 +7883,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:56",
-    "FINAL": "16:14:46",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:08",
+    "FINAL": "16:15:46",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8492,11 +7896,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:09",
-    "FINAL": "16:18:34",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:55",
+    "FINAL": "16:18:25",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8506,11 +7909,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:57",
-    "FINAL": "16:45:22",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:31",
+    "FINAL": "16:21:08",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8520,11 +7922,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:17",
-    "FINAL": "16:36:02",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:58",
+    "FINAL": "16:24:29",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8534,11 +7935,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:53",
-    "FINAL": "16:17:43",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:03",
+    "FINAL": "16:27:36",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8548,11 +7948,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:21",
-    "FINAL": "16:38:01",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:32",
+    "FINAL": "16:30:01",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8562,11 +7961,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:31",
-    "FINAL": "16:27:41",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:59",
+    "FINAL": "16:32:34",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8575,12 +7973,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:16:51",
-    "FINAL": "16:19:36",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:35:14",
+    "FINAL": "16:35:55",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8590,11 +7987,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:40",
-    "FINAL": "16:59:35",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:28",
+    "FINAL": "16:39:02",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8604,11 +8000,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:48",
-    "FINAL": "16:06:33",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:57",
+    "FINAL": "16:42:31",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8618,11 +8013,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:42",
-    "FINAL": "16:55:27",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:32",
+    "FINAL": "16:45:04",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8632,11 +8026,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:35",
-    "FINAL": "16:49:05",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:49",
+    "FINAL": "16:48:16",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8646,11 +8039,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:02",
-    "FINAL": "16:11:42",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:19",
+    "FINAL": "16:50:50",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8660,11 +8052,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:06",
-    "FINAL": "16:34:11",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:44",
+    "FINAL": "16:53:12",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8674,11 +8065,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:48",
-    "FINAL": "16:46:33",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:13",
+    "FINAL": "16:55:46",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-09 11:59:15",
@@ -8688,11 +8078,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:18",
-    "FINAL": "16:47:58",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:36",
+    "FINAL": "16:58:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8702,11 +8091,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:46",
-    "FINAL": "16:42:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8716,11 +8104,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:34",
-    "FINAL": "16:29:29",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:56",
+    "FINAL": "16:03:38",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8730,11 +8117,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:30",
-    "FINAL": "16:34:00",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:07",
+    "FINAL": "16:07:44",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8743,12 +8129,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:12:12",
-    "FINAL": "16:15:27",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:10:45",
+    "FINAL": "16:11:26",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8758,11 +8143,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:14",
-    "FINAL": "16:45:14",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:40",
+    "FINAL": "16:15:24",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8772,11 +8156,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:45",
-    "FINAL": "16:35:40",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:49",
+    "FINAL": "16:18:29",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8786,11 +8169,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:07",
-    "FINAL": "16:55:02",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:37",
+    "FINAL": "16:21:13",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8800,11 +8182,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:54",
-    "FINAL": "16:59:19",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:26",
+    "FINAL": "16:24:05",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8814,11 +8195,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:15",
-    "FINAL": "16:15:25",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:30",
+    "FINAL": "16:27:23",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8828,11 +8208,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:19",
-    "FINAL": "16:30:59",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:34",
+    "FINAL": "16:31:26",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8842,11 +8221,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:46",
-    "FINAL": "16:11:31",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:40",
+    "FINAL": "16:35:16",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8856,11 +8234,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:56",
-    "FINAL": "16:28:01",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:18",
+    "FINAL": "16:37:52",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8869,12 +8246,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:10",
-    "FINAL": "16:32:55",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:40:09",
+    "FINAL": "16:40:56",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8884,11 +8260,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:51",
-    "FINAL": "16:48:06",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:17",
+    "FINAL": "16:44:59",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8898,11 +8273,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:26",
-    "FINAL": "16:46:26",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:27",
+    "FINAL": "16:48:21",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8912,11 +8286,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:50:04",
-    "FINAL": "16:53:34",
-    "TEMPO": "00:03:30",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:19",
+    "FINAL": "16:53:13",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-10 11:59:15",
@@ -8926,11 +8299,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:10",
-    "FINAL": "16:52:10",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:54",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -8940,11 +8312,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:42",
-    "FINAL": "16:06:57",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -8954,11 +8325,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:47",
-    "FINAL": "16:29:22",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:15",
+    "FINAL": "16:07:04",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -8968,11 +8338,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:32",
-    "FINAL": "16:57:02",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:37",
+    "FINAL": "16:16:25",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -8982,11 +8351,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:31",
-    "FINAL": "16:07:41",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:43",
+    "FINAL": "16:24:38",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -8996,11 +8364,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:58",
-    "FINAL": "16:53:53",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:37",
+    "FINAL": "16:31:16",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -9010,11 +8377,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:07:28",
-    "FINAL": "16:10:33",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:45",
+    "FINAL": "16:36:38",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -9024,11 +8390,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:34",
-    "FINAL": "16:36:24",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:46",
+    "FINAL": "16:40:39",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -9038,11 +8403,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:21",
-    "FINAL": "16:58:21",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:19",
+    "FINAL": "16:47:08",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -9052,11 +8416,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:16",
-    "FINAL": "16:15:06",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:03",
+    "FINAL": "16:53:50",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-13 11:59:15",
@@ -9066,11 +8429,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:13",
-    "FINAL": "16:52:43",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:42",
+    "FINAL": "16:58:16",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9080,11 +8442,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:28",
-    "FINAL": "16:08:18",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9093,12 +8454,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:41:40",
-    "FINAL": "16:45:20",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:03:12",
+    "FINAL": "16:03:58",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9107,12 +8467,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:10:50",
-    "FINAL": "16:14:25",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:06:41",
+    "FINAL": "16:07:18",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9122,11 +8481,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:53",
-    "FINAL": "16:44:53",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:25",
+    "FINAL": "16:10:07",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9136,11 +8494,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:40",
-    "FINAL": "16:58:40",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:25",
+    "FINAL": "16:13:15",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9150,11 +8507,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:21",
-    "FINAL": "16:20:31",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:12",
+    "FINAL": "16:17:50",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9164,11 +8520,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:46",
-    "FINAL": "16:36:01",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:51",
+    "FINAL": "16:21:26",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9178,11 +8533,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:56",
-    "FINAL": "16:20:46",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:22",
+    "FINAL": "16:24:00",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9192,11 +8546,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:12",
-    "FINAL": "16:19:37",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:58",
+    "FINAL": "16:27:40",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9206,11 +8559,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:30",
-    "FINAL": "16:05:30",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:17",
+    "FINAL": "16:31:52",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9220,11 +8572,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:32",
-    "FINAL": "16:30:22",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:34",
+    "FINAL": "16:35:18",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9234,11 +8585,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:59",
-    "FINAL": "16:21:49",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:44",
+    "FINAL": "16:38:30",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9248,11 +8598,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:43",
-    "FINAL": "16:29:13",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:36",
+    "FINAL": "16:42:10",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9262,11 +8611,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:53:34",
-    "FINAL": "16:56:04",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:35",
+    "FINAL": "16:45:08",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9276,11 +8624,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:26",
-    "FINAL": "16:55:46",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:16",
+    "FINAL": "16:47:52",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9290,11 +8637,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:26",
-    "FINAL": "16:47:11",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:38",
+    "FINAL": "16:51:18",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9304,11 +8650,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:55",
-    "FINAL": "16:34:40",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:23",
+    "FINAL": "16:54:03",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-14 11:59:15",
@@ -9318,11 +8663,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:35",
-    "FINAL": "16:42:55",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:29",
+    "FINAL": "16:58:07",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9332,11 +8676,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:08",
-    "FINAL": "16:10:38",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:52",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9346,11 +8689,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:34",
-    "FINAL": "16:39:29",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:32",
+    "FINAL": "16:05:13",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9360,11 +8702,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:54",
-    "FINAL": "16:30:19",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:02",
+    "FINAL": "16:08:54",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9374,11 +8715,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:21",
-    "FINAL": "16:28:56",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:02",
+    "FINAL": "16:13:44",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9388,11 +8728,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:11",
-    "FINAL": "16:28:06",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:01",
+    "FINAL": "16:16:44",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9401,12 +8740,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:24:35",
-    "FINAL": "16:27:55",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:20:16",
+    "FINAL": "16:20:55",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9416,11 +8754,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:05:33",
-    "FINAL": "16:08:58",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:22",
+    "FINAL": "16:25:14",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9429,12 +8766,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:12:03",
-    "FINAL": "16:15:13",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:29:18",
+    "FINAL": "16:30:09",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9444,11 +8780,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:03:17",
-    "FINAL": "16:07:07",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:34",
+    "FINAL": "16:34:33",
+    "TEMPO": "00:00:59",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9458,11 +8793,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:13",
-    "FINAL": "16:38:13",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:06",
+    "FINAL": "16:38:50",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9472,11 +8806,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:38",
-    "FINAL": "16:46:33",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:05",
+    "FINAL": "16:42:42",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9486,11 +8819,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:59",
-    "FINAL": "16:43:54",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:30",
+    "FINAL": "16:46:15",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9500,11 +8832,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:20",
-    "FINAL": "16:25:10",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:26",
+    "FINAL": "16:50:14",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9514,11 +8845,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:00",
-    "FINAL": "16:54:35",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:39",
+    "FINAL": "16:54:22",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-15 11:59:15",
@@ -9528,11 +8858,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:11",
-    "FINAL": "16:12:51",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:40",
+    "FINAL": "16:58:15",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9542,11 +8871,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 15,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:42",
-    "FINAL": "16:45:42",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:57",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9556,11 +8884,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:59",
-    "FINAL": "16:38:09",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:53",
+    "FINAL": "16:05:48",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9570,11 +8897,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:15",
-    "FINAL": "16:06:20",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:18",
+    "FINAL": "16:14:09",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9584,11 +8910,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:30",
-    "FINAL": "16:18:15",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:30",
+    "FINAL": "16:19:19",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9598,11 +8923,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:06",
-    "FINAL": "16:06:31",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:00",
+    "FINAL": "16:23:41",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9612,11 +8936,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:10",
-    "FINAL": "16:03:05",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:57",
+    "FINAL": "16:29:57",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9626,11 +8949,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:44",
-    "FINAL": "16:24:04",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:44",
+    "FINAL": "16:35:31",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9640,11 +8962,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:22",
-    "FINAL": "16:27:07",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:18",
+    "FINAL": "16:40:59",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9654,11 +8975,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:12",
-    "FINAL": "16:31:32",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:49",
+    "FINAL": "16:46:23",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9668,11 +8988,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:40:12",
-    "FINAL": "16:44:52",
-    "TEMPO": "00:04:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:25",
+    "FINAL": "16:51:18",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-16 11:59:15",
@@ -9682,11 +9001,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:25:00",
-    "FINAL": "16:28:05",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:22",
+    "FINAL": "16:58:02",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9696,11 +9014,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 25,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:25",
-    "FINAL": "16:35:50",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9710,11 +9027,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:57",
-    "FINAL": "16:03:47",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:24",
+    "FINAL": "16:05:11",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9724,11 +9040,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:37",
-    "FINAL": "16:20:27",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:05",
+    "FINAL": "16:10:48",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9738,11 +9053,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:46",
-    "FINAL": "16:34:16",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:52",
+    "FINAL": "16:15:36",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9752,11 +9066,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:43:34",
-    "FINAL": "16:47:19",
-    "TEMPO": "00:03:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:04",
+    "FINAL": "16:19:55",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9766,11 +9079,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:25",
-    "FINAL": "16:48:10",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:26",
+    "FINAL": "16:25:16",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9780,11 +9092,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:26",
-    "FINAL": "16:31:06",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:58",
+    "FINAL": "16:29:52",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9793,12 +9104,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:00:47",
-    "FINAL": "16:04:27",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:35:18",
+    "FINAL": "16:35:54",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9808,11 +9118,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:02",
-    "FINAL": "16:58:42",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:49",
+    "FINAL": "16:40:30",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9822,11 +9131,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:54",
-    "FINAL": "16:27:14",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:41",
+    "FINAL": "16:46:34",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9836,11 +9144,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:39:29",
-    "FINAL": "16:44:09",
-    "TEMPO": "00:04:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:28",
+    "FINAL": "16:51:24",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-17 11:59:15",
@@ -9850,11 +9157,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:20",
-    "FINAL": "16:38:55",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:18",
+    "FINAL": "16:57:14",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9864,11 +9170,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:57",
-    "FINAL": "16:20:32",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:21",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9878,11 +9183,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:01",
-    "FINAL": "16:02:51",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:03",
+    "FINAL": "16:02:23",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9892,11 +9196,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:17",
-    "FINAL": "16:38:57",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:28",
+    "FINAL": "16:03:47",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9906,11 +9209,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:40",
-    "FINAL": "16:15:40",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:08",
+    "FINAL": "16:05:29",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9920,11 +9222,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:03:59",
-    "FINAL": "16:07:14",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:04",
+    "FINAL": "16:07:21",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9934,11 +9235,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:09",
-    "FINAL": "16:10:59",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:47",
+    "FINAL": "16:09:07",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9948,11 +9248,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:36",
-    "FINAL": "16:40:11",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:40",
+    "FINAL": "16:10:56",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9962,11 +9261,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:27",
-    "FINAL": "16:16:57",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:10",
+    "FINAL": "16:12:32",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9976,11 +9274,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:37",
-    "FINAL": "16:16:22",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:05",
+    "FINAL": "16:14:20",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -9990,11 +9287,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:52",
-    "FINAL": "16:47:07",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:21",
+    "FINAL": "16:15:36",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -10004,11 +9300,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:43:47",
-    "FINAL": "16:46:37",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:38",
+    "FINAL": "16:16:52",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
@@ -10018,2699 +9313,2506 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:41:51",
-    "FINAL": "16:44:36",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 23184,
-    "Descricao": "PITÚ 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:07",
-    "FINAL": "16:23:57",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 23184,
-    "Descricao": "PITÚ 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:43",
-    "FINAL": "16:45:23",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 20164,
-    "Descricao": "SKOL LATA 473 MP",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:49:26",
-    "FINAL": "16:52:06",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 1166,
-    "Descricao": "SUKITA UVA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:50",
-    "FINAL": "16:52:30",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 1166,
-    "Descricao": "SUKITA UVA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:36",
-    "FINAL": "16:28:56",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 20164,
-    "Descricao": "SKOL LATA 473 MP",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:50:52",
-    "FINAL": "16:54:37",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9320,
-    "Descricao": "BRAHMA CHOPP 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:05:29",
-    "FINAL": "16:09:19",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:53",
-    "FINAL": "16:34:28",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 10175,
-    "Descricao": "SUBZERO 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:07:11",
-    "FINAL": "16:10:01",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 20498,
-    "Descricao": "DUPLO MALTE 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:57",
-    "FINAL": "16:46:52",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 22177,
-    "Descricao": "BUD ZERO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:54",
-    "FINAL": "16:25:34",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9083,
-    "Descricao": "SKOL 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:47:27",
-    "FINAL": "16:51:12",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:58",
-    "FINAL": "16:21:48",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2320,
-    "Descricao": "SODA P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:18:09",
-    "FINAL": "16:22:09",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9320,
-    "Descricao": "BRAHMA CHOPP 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:22",
-    "FINAL": "16:49:47",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:53:49",
-    "FINAL": "16:57:24",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
     "INICIO": "16:18:06",
-    "FINAL": "16:22:21",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:18:21",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 2320,
-    "Descricao": "SODA P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:48",
-    "FINAL": "16:18:08",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 20498,
-    "Descricao": "DUPLO MALTE 350ML",
+    "CodProduto": 23184,
+    "Descricao": "PITÚ 350ML",
     "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:38",
-    "FINAL": "16:37:23",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:46",
-    "FINAL": "16:20:41",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4293,
-    "Descricao": "PEPSI BLACK 200ML",
-    "EMBALAGEM": "PET 200ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:50:46",
-    "FINAL": "16:53:36",
-    "TEMPO": "00:02:50",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 22177,
-    "Descricao": "BUD ZERO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:52",
-    "FINAL": "16:13:42",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9083,
-    "Descricao": "SKOL 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:22:18",
-    "FINAL": "16:25:53",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 10175,
-    "Descricao": "SUBZERO 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:26:32",
-    "FINAL": "16:29:22",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4293,
-    "Descricao": "PEPSI BLACK 200ML",
-    "EMBALAGEM": "PET 200ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:16:19",
-    "FINAL": "16:18:34",
-    "TEMPO": "00:02:15",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-22 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:03",
-    "FINAL": "16:46:33",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:24",
-    "FINAL": "16:49:14",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:36",
-    "FINAL": "16:40:21",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:13",
-    "FINAL": "16:39:28",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34608,
-    "Descricao": "SKOL MULTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:48",
-    "FINAL": "16:05:18",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:28",
-    "FINAL": "16:52:38",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34608,
-    "Descricao": "SKOL MULTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:00",
-    "FINAL": "16:23:55",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19225,
-    "Descricao": "RED BULL C24",
-    "EMBALAGEM": "LATA 250ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:26:43",
-    "FINAL": "16:29:53",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:18",
-    "FINAL": "16:08:43",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:42",
-    "FINAL": "16:15:02",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19225,
-    "Descricao": "RED BULL C24",
-    "EMBALAGEM": "LATA 250ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:01:50",
-    "FINAL": "16:04:15",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19668,
-    "Descricao": "ORIGINAL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:27",
-    "FINAL": "16:45:12",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34608,
-    "Descricao": "SKOL MULTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:32",
-    "FINAL": "16:27:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34608,
-    "Descricao": "SKOL MULTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:50",
-    "FINAL": "16:51:45",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19668,
-    "Descricao": "ORIGINAL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:50",
-    "FINAL": "16:05:30",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 29845,
-    "Descricao": "PEPSI BLACK PET1",
-    "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:55",
-    "FINAL": "16:47:05",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 10175,
-    "Descricao": "SUBZERO 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:47:34",
-    "FINAL": "16:50:59",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:11",
-    "FINAL": "16:05:51",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:18",
-    "FINAL": "16:42:58",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 29845,
-    "Descricao": "PEPSI BLACK PET1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:36",
-    "FINAL": "16:17:41",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 10175,
-    "Descricao": "SUBZERO 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:55:56",
-    "FINAL": "16:59:36",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21658,
-    "Descricao": "SPATEN LT 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:20",
-    "FINAL": "16:48:40",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2353,
-    "Descricao": "GUARANÁ DIET P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:35",
-    "FINAL": "16:54:15",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2353,
-    "Descricao": "GUARANÁ DIET P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:12",
-    "FINAL": "16:30:02",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:02",
-    "FINAL": "16:17:07",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:18",
-    "FINAL": "16:05:08",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:26",
-    "FINAL": "16:58:26",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:58",
-    "FINAL": "16:09:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21658,
-    "Descricao": "SPATEN LT 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:06",
-    "FINAL": "16:46:46",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 30045,
-    "Descricao": "RED BULL 473ML C12",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:32:34",
-    "FINAL": "16:35:59",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:40",
-    "FINAL": "16:09:25",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:07",
-    "FINAL": "16:47:47",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:47",
-    "FINAL": "16:24:37",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:49",
-    "FINAL": "16:20:54",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 30045,
-    "Descricao": "RED BULL 473ML C12",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:17:31",
-    "FINAL": "16:20:11",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:18",
-    "FINAL": "16:07:08",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-23 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:07",
-    "FINAL": "16:28:42",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:30",
-    "FINAL": "16:56:20",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:23",
-    "FINAL": "16:38:13",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.0006,
     "INICIO": "16:19:38",
-    "FINAL": "16:22:53",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:19:55",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-24 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:06",
-    "FINAL": "16:05:31",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 32067,
-    "Descricao": "GATORADE BERRY BLUE",
-    "EMBALAGEM": "PET 500ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:02:07",
-    "FINAL": "16:05:17",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:46",
-    "FINAL": "16:56:21",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 32067,
-    "Descricao": "GATORADE BERRY BLUE",
-    "EMBALAGEM": "PET 500ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:32:00",
-    "FINAL": "16:34:25",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:43",
-    "FINAL": "16:40:43",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:48:46",
-    "FINAL": "16:52:31",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:06:12",
-    "FINAL": "16:10:22",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19225,
-    "Descricao": "RED BULL C24",
-    "EMBALAGEM": "LATA 250ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:19:36",
-    "FINAL": "16:22:31",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:00:05",
-    "FINAL": "16:04:00",
-    "TEMPO": "00:03:55",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 19225,
-    "Descricao": "RED BULL C24",
-    "EMBALAGEM": "LATA 250ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:19:41",
-    "FINAL": "16:22:36",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9087,
-    "Descricao": "SODA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:41",
-    "FINAL": "16:07:16",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:30",
-    "FINAL": "16:36:05",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:27",
-    "FINAL": "16:50:12",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 30045,
-    "Descricao": "RED BULL 473ML C12",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:12:35",
-    "FINAL": "16:16:15",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34475,
-    "Descricao": "ELEVE SG",
-    "EMBALAGEM": "PET 510ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:40:27",
-    "FINAL": "16:43:52",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 32500,
-    "Descricao": "STELLA PURE GOLD LATA",
+    "CodProduto": 23184,
+    "Descricao": "PITÚ 350ML",
     "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
+    "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:47",
-    "FINAL": "16:59:52",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:23",
+    "FINAL": "16:21:45",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-24 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 32500,
-    "Descricao": "STELLA PURE GOLD LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:27",
-    "FINAL": "16:42:42",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:19:22",
-    "FINAL": "16:24:37",
-    "TEMPO": "00:05:15",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34475,
-    "Descricao": "ELEVE SG",
-    "EMBALAGEM": "PET 510ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:47:45",
-    "FINAL": "16:51:00",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9087,
-    "Descricao": "SODA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:19",
-    "FINAL": "16:14:14",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-24 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 30045,
-    "Descricao": "RED BULL 473ML C12",
+    "CodProduto": 20164,
+    "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:43:27",
-    "FINAL": "16:46:12",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:23:19",
+    "FINAL": "16:23:39",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-25 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 11,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:28",
-    "FINAL": "16:37:03",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 11,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:35",
-    "FINAL": "16:51:15",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:08",
-    "FINAL": "16:10:28",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:16",
-    "FINAL": "16:27:41",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
+    "CodProduto": 1166,
+    "Descricao": "SUKITA UVA P2",
     "EMBALAGEM": "PET 2L",
-    "Quantidade": 6,
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:24:56",
+    "FINAL": "16:25:18",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 1166,
+    "Descricao": "SUKITA UVA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
     "INICIO": "16:26:56",
-    "FINAL": "16:29:41",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:27:13",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-25 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:52",
-    "FINAL": "16:54:37",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:05",
-    "FINAL": "16:46:50",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:04",
-    "FINAL": "16:16:44",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:29:13",
-    "FINAL": "16:32:38",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:34:12",
-    "FINAL": "16:38:27",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:03",
-    "FINAL": "16:46:13",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:31:27",
-    "FINAL": "16:34:42",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9427,
-    "Descricao": "AP LATA 473 MP",
+    "CodProduto": 20164,
+    "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:40:33",
-    "FINAL": "16:43:18",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:28:35",
+    "FINAL": "16:28:54",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-25 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
-    "CodProduto": 9427,
-    "Descricao": "AP LATA 473 MP",
+    "CodProduto": 9320,
+    "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:51:24",
-    "FINAL": "16:54:59",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:18",
-    "FINAL": "16:05:43",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:18",
-    "FINAL": "16:25:43",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:30:44",
-    "FINAL": "16:34:24",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:39",
-    "FINAL": "16:54:09",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:31:37",
-    "FINAL": "16:35:02",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:47",
-    "FINAL": "16:56:22",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 1166,
-    "Descricao": "SUKITA UVA P2",
-    "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:46",
-    "FINAL": "16:18:41",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:30:11",
+    "FINAL": "16:30:32",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2350,
-    "Descricao": "SODA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:32",
-    "FINAL": "16:34:17",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:47:33",
-    "FINAL": "16:52:18",
-    "TEMPO": "00:04:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9795,
-    "Descricao": "GUARANÁ DIET P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:04",
-    "FINAL": "16:16:19",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
+    "Data": "2026-04-22 11:59:15",
     "Mês": "ABRIL",
     "CodProduto": 4409,
     "Descricao": "PEPSI TWIST P2",
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:31",
-    "FINAL": "16:54:26",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:42:08",
-    "FINAL": "16:46:58",
-    "TEMPO": "00:04:50",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9087,
-    "Descricao": "SODA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:38",
-    "FINAL": "16:13:28",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9087,
-    "Descricao": "SODA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:22",
-    "FINAL": "16:53:17",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2350,
-    "Descricao": "SODA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:38",
-    "FINAL": "16:38:38",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9795,
-    "Descricao": "GUARANÁ DIET P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:16:07",
-    "FINAL": "16:19:32",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:55",
-    "FINAL": "16:15:55",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-25 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 1166,
-    "Descricao": "SUKITA UVA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:44",
-    "FINAL": "16:52:39",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 41,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:14",
-    "FINAL": "16:15:09",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 41,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:56",
-    "FINAL": "16:10:46",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 41,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:18",
-    "FINAL": "16:13:08",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:15",
-    "FINAL": "16:58:10",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:18",
-    "FINAL": "16:23:18",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9069,
-    "Descricao": "BRAHMA CHOPP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:23",
-    "FINAL": "16:16:33",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:07:17",
-    "FINAL": "16:10:22",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:30",
-    "FINAL": "16:29:50",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:51",
-    "FINAL": "16:04:26",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:53:59",
-    "FINAL": "16:58:19",
-    "TEMPO": "00:04:20",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:15:11",
-    "FINAL": "16:19:31",
-    "TEMPO": "00:04:20",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:43:10",
-    "FINAL": "16:47:40",
-    "TEMPO": "00:04:30",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 13061,
-    "Descricao": "H2OH LIMONETO PET500ML",
-    "EMBALAGEM": "PET 500ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:01:30",
-    "FINAL": "16:04:05",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:12",
-    "FINAL": "16:43:57",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:22",
-    "FINAL": "16:03:57",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 22177,
-    "Descricao": "BUD ZERO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:21",
-    "FINAL": "16:32:56",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:06",
-    "FINAL": "16:43:36",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:45",
-    "FINAL": "16:32:20",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:35",
-    "FINAL": "16:49:20",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:50",
-    "FINAL": "16:56:25",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:51",
-    "FINAL": "16:43:16",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:23",
-    "FINAL": "16:50:08",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 22177,
-    "Descricao": "BUD ZERO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:28",
-    "FINAL": "16:11:18",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:22",
-    "FINAL": "16:24:32",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 22177,
-    "Descricao": "BUD ZERO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:49",
-    "FINAL": "16:50:44",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 13061,
-    "Descricao": "H2OH LIMONETO PET500ML",
-    "EMBALAGEM": "PET 500ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:28:38",
-    "FINAL": "16:31:03",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:18",
-    "FINAL": "16:30:13",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:58",
-    "FINAL": "16:46:28",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:54",
-    "FINAL": "16:31:44",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-27 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 13061,
-    "Descricao": "H2OH LIMONETO PET500ML",
-    "EMBALAGEM": "PET 500ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:01:20",
-    "FINAL": "16:04:10",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 37,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:56",
-    "FINAL": "16:31:21",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 37,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:07",
-    "FINAL": "16:48:22",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 21,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:29",
-    "FINAL": "16:16:19",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 21,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:23",
-    "FINAL": "16:26:08",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:32",
-    "FINAL": "16:30:12",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:15",
-    "FINAL": "16:10:55",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:37:05",
-    "FINAL": "16:40:05",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7325,
-    "Descricao": "PEPSI P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:48:53",
-    "FINAL": "16:52:08",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:38",
-    "FINAL": "16:17:43",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2319,
-    "Descricao": "GUARANÁ CHP PET 1L",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:06:54",
-    "FINAL": "16:10:34",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2353,
-    "Descricao": "GUARANÁ DIET P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:10",
-    "FINAL": "16:34:55",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:58",
-    "FINAL": "16:52:18",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:05",
-    "FINAL": "16:04:20",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9085,
-    "Descricao": "ANTARCTICA DIET LATA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:35",
-    "FINAL": "17:00:00",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2320,
-    "Descricao": "SODA P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:24",
-    "FINAL": "16:26:54",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:11",
-    "FINAL": "16:34:21",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2353,
-    "Descricao": "GUARANÁ DIET P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:43",
-    "FINAL": "16:49:38",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 13065,
-    "Descricao": "H2OH LIMONETO PET 1,5L",
-    "EMBALAGEM": "PET 1,5L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:35:04",
-    "FINAL": "16:38:39",
-    "TEMPO": "00:03:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9085,
-    "Descricao": "ANTARCTICA DIET LATA 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:21",
-    "FINAL": "16:11:56",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 21020,
-    "Descricao": "BUDWEISER 350ML",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:54",
-    "FINAL": "16:45:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2320,
-    "Descricao": "SODA P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:03:51",
-    "FINAL": "16:07:16",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 13065,
-    "Descricao": "H2OH LIMONETO PET 1,5L",
-    "EMBALAGEM": "PET 1,5L",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:26:04",
-    "FINAL": "16:29:44",
-    "TEMPO": "00:03:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:54",
-    "FINAL": "16:04:04",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:42",
-    "FINAL": "16:31:22",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 504,
-    "Descricao": "PEPSI P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:04",
-    "FINAL": "16:49:29",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9795,
-    "Descricao": "GUARANÁ DIET P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:18:06",
-    "FINAL": "16:21:31",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9795,
-    "Descricao": "GUARANÁ DIET P1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:20:43",
-    "FINAL": "16:23:48",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-28 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:58",
-    "FINAL": "16:39:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 17266,
-    "Descricao": "BOHEMIA 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:54:42",
-    "FINAL": "16:58:37",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 17266,
-    "Descricao": "BOHEMIA 473ML",
-    "EMBALAGEM": "LATA 473ML",
-    "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:31:32",
-    "FINAL": "16:35:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:49",
-    "FINAL": "16:11:44",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:42",
-    "FINAL": "16:08:32",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 33820,
-    "Descricao": "BRAHMA CHOPP MILTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:18",
-    "FINAL": "16:46:58",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 33820,
-    "Descricao": "BRAHMA CHOPP MILTIPACK",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:50",
-    "FINAL": "16:46:40",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 29845,
-    "Descricao": "PEPSI BLACK PET1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:25",
-    "FINAL": "16:19:10",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:59",
-    "FINAL": "16:13:39",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 29845,
-    "Descricao": "PEPSI BLACK PET1",
-    "EMBALAGEM": "PET 1L",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:36",
-    "FINAL": "16:47:01",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9274,
-    "Descricao": "PEPSI BLACK 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:17",
-    "FINAL": "16:57:57",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9274,
-    "Descricao": "PEPSI BLACK 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:57",
-    "FINAL": "16:35:37",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:52",
-    "FINAL": "16:55:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:32",
-    "FINAL": "16:11:52",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 503,
-    "Descricao": "SUKITA P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
     "INICIO": "16:32:02",
-    "FINAL": "16:35:42",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:32:18",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-29 11:59:15",
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 10175,
+    "Descricao": "SUBZERO 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:19",
+    "FINAL": "16:33:39",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 20498,
+    "Descricao": "DUPLO MALTE 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:35:02",
+    "FINAL": "16:35:20",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 22177,
+    "Descricao": "BUD ZERO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:36:34",
+    "FINAL": "16:36:56",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9083,
+    "Descricao": "SKOL 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:38:05",
+    "FINAL": "16:38:26",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:39:46",
+    "FINAL": "16:40:00",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2320,
+    "Descricao": "SODA P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:40:58",
+    "FINAL": "16:41:16",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9320,
+    "Descricao": "BRAHMA CHOPP 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:42:47",
+    "FINAL": "16:43:06",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:44:23",
+    "FINAL": "16:44:40",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:45:50",
+    "FINAL": "16:46:10",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2320,
+    "Descricao": "SODA P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:47:23",
+    "FINAL": "16:47:42",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 20498,
+    "Descricao": "DUPLO MALTE 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:48:52",
+    "FINAL": "16:49:06",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:50:03",
+    "FINAL": "16:50:22",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4293,
+    "Descricao": "PEPSI BLACK 200ML",
+    "EMBALAGEM": "PET 200ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 6e-05,
+    "INICIO": "16:51:28",
+    "FINAL": "16:51:44",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 22177,
+    "Descricao": "BUD ZERO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:52:37",
+    "FINAL": "16:52:51",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9083,
+    "Descricao": "SKOL 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:54:10",
+    "FINAL": "16:54:30",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 10175,
+    "Descricao": "SUBZERO 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:55:48",
+    "FINAL": "16:56:04",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4293,
+    "Descricao": "PEPSI BLACK 200ML",
+    "EMBALAGEM": "PET 200ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 6e-05,
+    "INICIO": "16:57:14",
+    "FINAL": "16:57:28",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-22 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:58:37",
+    "FINAL": "16:58:58",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
     "Mês": "ABRIL",
     "CodProduto": 2349,
     "Descricao": "GUARANÁ CHP P2",
     "EMBALAGEM": "PET 2L",
-    "Quantidade": 3,
+    "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:43",
-    "FINAL": "16:18:48",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:20",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
-    "Data": "2026-04-29 11:59:15",
+    "Data": "2026-04-23 11:59:15",
     "Mês": "ABRIL",
     "CodProduto": 2349,
     "Descricao": "GUARANÁ CHP P2",
     "EMBALAGEM": "PET 2L",
+    "Quantidade": 9,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:01:25",
+    "FINAL": "16:01:48",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:03:17",
+    "FINAL": "16:03:34",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34608,
+    "Descricao": "SKOL MULTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:04:51",
+    "FINAL": "16:05:08",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:06:06",
+    "FINAL": "16:06:28",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34608,
+    "Descricao": "SKOL MULTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:08:13",
+    "FINAL": "16:08:36",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19225,
+    "Descricao": "RED BULL C24",
+    "EMBALAGEM": "LATA 250ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 7.5e-05,
+    "INICIO": "16:10:03",
+    "FINAL": "16:10:18",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:11:15",
+    "FINAL": "16:11:35",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:12:46",
+    "FINAL": "16:13:06",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19225,
+    "Descricao": "RED BULL C24",
+    "EMBALAGEM": "LATA 250ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 7.5e-05,
+    "INICIO": "16:14:41",
+    "FINAL": "16:14:54",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19668,
+    "Descricao": "ORIGINAL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:16:11",
+    "FINAL": "16:16:26",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34608,
+    "Descricao": "SKOL MULTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:17:21",
+    "FINAL": "16:17:38",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34608,
+    "Descricao": "SKOL MULTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:18:34",
+    "FINAL": "16:18:54",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19668,
+    "Descricao": "ORIGINAL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:20:27",
+    "FINAL": "16:20:46",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 29845,
+    "Descricao": "PEPSI BLACK PET1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:21:55",
+    "FINAL": "16:22:20",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 10175,
+    "Descricao": "SUBZERO 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:24:16",
+    "FINAL": "16:24:39",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:26:12",
+    "FINAL": "16:26:32",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:28:00",
+    "FINAL": "16:28:17",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 29845,
+    "Descricao": "PEPSI BLACK PET1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:29:24",
+    "FINAL": "16:29:42",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 10175,
+    "Descricao": "SUBZERO 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:31:07",
+    "FINAL": "16:31:28",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21658,
+    "Descricao": "SPATEN LT 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:32:53",
+    "FINAL": "16:33:14",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2353,
+    "Descricao": "GUARANÁ DIET P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:34:36",
+    "FINAL": "16:34:55",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2353,
+    "Descricao": "GUARANÁ DIET P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:36:28",
+    "FINAL": "16:36:47",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:37:54",
+    "FINAL": "16:38:16",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:39:53",
+    "FINAL": "16:40:14",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:41:23",
+    "FINAL": "16:41:46",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:43:24",
+    "FINAL": "16:43:45",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21658,
+    "Descricao": "SPATEN LT 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:45:09",
+    "FINAL": "16:45:30",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 30045,
+    "Descricao": "RED BULL 473ML C12",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:47:09",
+    "FINAL": "16:47:27",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:48:29",
+    "FINAL": "16:48:48",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:50:09",
+    "FINAL": "16:50:24",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:51:30",
+    "FINAL": "16:51:48",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:53:23",
+    "FINAL": "16:53:44",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 30045,
+    "Descricao": "RED BULL 473ML C12",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:55:24",
+    "FINAL": "16:55:47",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:57:25",
+    "FINAL": "16:57:46",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-23 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:59:02",
+    "FINAL": "16:59:16",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:28",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:02:13",
+    "FINAL": "16:02:40",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 7,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:04:15",
+    "FINAL": "16:04:40",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 7,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:06:13",
+    "FINAL": "16:06:40",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 32067,
+    "Descricao": "GATORADE BERRY BLUE",
+    "EMBALAGEM": "PET 500ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.00015,
+    "INICIO": "16:08:13",
+    "FINAL": "16:08:37",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:09:56",
+    "FINAL": "16:10:33",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 32067,
+    "Descricao": "GATORADE BERRY BLUE",
+    "EMBALAGEM": "PET 500ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.00015,
+    "INICIO": "16:13:01",
+    "FINAL": "16:13:29",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:15:27",
+    "FINAL": "16:16:05",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:18:36",
+    "FINAL": "16:19:18",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:21:51",
+    "FINAL": "16:22:21",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19225,
+    "Descricao": "RED BULL C24",
+    "EMBALAGEM": "LATA 250ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 7.5e-05,
+    "INICIO": "16:23:57",
+    "FINAL": "16:24:26",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:26:37",
+    "FINAL": "16:27:11",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 19225,
+    "Descricao": "RED BULL C24",
+    "EMBALAGEM": "LATA 250ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 7.5e-05,
+    "INICIO": "16:29:36",
+    "FINAL": "16:30:02",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9087,
+    "Descricao": "SODA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:31:54",
+    "FINAL": "16:32:17",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:34:08",
+    "FINAL": "16:34:36",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:36:47",
+    "FINAL": "16:37:12",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 30045,
+    "Descricao": "RED BULL 473ML C12",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:39:33",
+    "FINAL": "16:39:58",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34475,
+    "Descricao": "ELEVE SG",
+    "EMBALAGEM": "PET 510ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:42:07",
+    "FINAL": "16:42:32",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 32500,
+    "Descricao": "STELLA PURE GOLD LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:44:39",
+    "FINAL": "16:45:04",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 32500,
+    "Descricao": "STELLA PURE GOLD LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:46:49",
+    "FINAL": "16:47:19",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:49:15",
+    "FINAL": "16:49:46",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34475,
+    "Descricao": "ELEVE SG",
+    "EMBALAGEM": "PET 510ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:51:53",
+    "FINAL": "16:52:29",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9087,
+    "Descricao": "SODA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:55:20",
+    "FINAL": "16:55:46",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-24 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 30045,
+    "Descricao": "RED BULL 473ML C12",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:57:37",
+    "FINAL": "16:58:13",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 11,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:18",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 11,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:01:36",
+    "FINAL": "16:02:02",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:03:34",
+    "FINAL": "16:03:57",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:05:27",
+    "FINAL": "16:05:46",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:07:06",
+    "FINAL": "16:07:30",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:09:01",
+    "FINAL": "16:09:25",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:10:44",
+    "FINAL": "16:11:06",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:12:25",
+    "FINAL": "16:12:48",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:14:26",
+    "FINAL": "16:14:52",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:16:16",
+    "FINAL": "16:16:37",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:17:52",
+    "FINAL": "16:18:14",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:19:51",
+    "FINAL": "16:20:15",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9427,
+    "Descricao": "AP LATA 473 MP",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:21:43",
+    "FINAL": "16:22:05",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9427,
+    "Descricao": "AP LATA 473 MP",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:23:27",
+    "FINAL": "16:23:46",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:24:56",
+    "FINAL": "16:25:22",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:27:17",
+    "FINAL": "16:27:41",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:29:04",
+    "FINAL": "16:29:32",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:31:25",
+    "FINAL": "16:31:43",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:33:15",
+    "FINAL": "16:33:38",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:35:03",
+    "FINAL": "16:35:31",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 1166,
+    "Descricao": "SUKITA UVA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:37:15",
+    "FINAL": "16:37:40",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2350,
+    "Descricao": "SODA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:39:32",
+    "FINAL": "16:39:52",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:41:23",
+    "FINAL": "16:41:50",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9795,
+    "Descricao": "GUARANÁ DIET P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:43:32",
+    "FINAL": "16:43:52",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:44:58",
+    "FINAL": "16:45:15",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:46:30",
+    "FINAL": "16:46:58",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9087,
+    "Descricao": "SODA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:48:39",
+    "FINAL": "16:49:00",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9087,
+    "Descricao": "SODA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:50:35",
+    "FINAL": "16:50:55",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2350,
+    "Descricao": "SODA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:52:13",
+    "FINAL": "16:52:36",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9795,
+    "Descricao": "GUARANÁ DIET P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:54:08",
+    "FINAL": "16:54:32",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:56:14",
+    "FINAL": "16:56:38",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-25 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 1166,
+    "Descricao": "SUKITA UVA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:58:28",
+    "FINAL": "16:58:51",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 41,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:24",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 41,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:02:04",
+    "FINAL": "16:02:34",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 41,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:04:24",
+    "FINAL": "16:04:54",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:06:39",
+    "FINAL": "16:06:58",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:08:31",
+    "FINAL": "16:08:50",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9069,
+    "Descricao": "BRAHMA CHOPP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:10:02",
+    "FINAL": "16:10:20",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:11:53",
+    "FINAL": "16:12:22",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:14:30",
+    "FINAL": "16:14:50",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:16:22",
+    "FINAL": "16:16:50",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:18:40",
+    "FINAL": "16:19:00",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:20:45",
+    "FINAL": "16:21:10",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:22:49",
+    "FINAL": "16:23:20",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 13061,
+    "Descricao": "H2OH LIMONETO PET500ML",
+    "EMBALAGEM": "PET 500ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.00015,
     "INICIO": "16:25:40",
-    "FINAL": "16:28:35",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:26:06",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:27:31",
+    "FINAL": "16:27:52",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:29:15",
+    "FINAL": "16:29:32",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 22177,
+    "Descricao": "BUD ZERO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:30:57",
+    "FINAL": "16:31:17",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:32:22",
+    "FINAL": "16:32:42",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:34:28",
+    "FINAL": "16:34:54",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:36:20",
+    "FINAL": "16:36:42",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:38:20",
+    "FINAL": "16:38:38",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:39:43",
+    "FINAL": "16:40:10",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:42:13",
+    "FINAL": "16:42:39",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 22177,
+    "Descricao": "BUD ZERO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:44:28",
+    "FINAL": "16:44:47",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:46:22",
+    "FINAL": "16:46:45",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 22177,
+    "Descricao": "BUD ZERO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:48:22",
+    "FINAL": "16:48:44",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 13061,
+    "Descricao": "H2OH LIMONETO PET500ML",
+    "EMBALAGEM": "PET 500ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.00015,
+    "INICIO": "16:50:24",
+    "FINAL": "16:50:47",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:52:33",
+    "FINAL": "16:52:58",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:54:31",
+    "FINAL": "16:54:58",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:56:35",
+    "FINAL": "16:56:52",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-27 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 13061,
+    "Descricao": "H2OH LIMONETO PET500ML",
+    "EMBALAGEM": "PET 500ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.00015,
+    "INICIO": "16:58:29",
+    "FINAL": "16:58:52",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 37,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:26",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 37,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:01:48",
+    "FINAL": "16:02:16",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 21,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:04:10",
+    "FINAL": "16:04:34",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 21,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:05:55",
+    "FINAL": "16:06:17",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 9,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:07:57",
+    "FINAL": "16:08:25",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 9,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:09:58",
+    "FINAL": "16:10:25",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:12:17",
+    "FINAL": "16:12:49",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7325,
+    "Descricao": "PEPSI P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 8,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:14:49",
+    "FINAL": "16:15:23",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:17:29",
+    "FINAL": "16:18:02",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2319,
+    "Descricao": "GUARANÁ CHP PET 1L",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:20:21",
+    "FINAL": "16:20:46",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2353,
+    "Descricao": "GUARANÁ DIET P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:22:10",
+    "FINAL": "16:22:37",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:24:15",
+    "FINAL": "16:24:44",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:27:01",
+    "FINAL": "16:27:25",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9085,
+    "Descricao": "ANTARCTICA DIET LATA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:29:01",
+    "FINAL": "16:29:26",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2320,
+    "Descricao": "SODA P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:31:28",
+    "FINAL": "16:31:50",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:33:43",
+    "FINAL": "16:34:05",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2353,
+    "Descricao": "GUARANÁ DIET P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:35:37",
+    "FINAL": "16:36:05",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 13065,
+    "Descricao": "H2OH LIMONETO PET 1,5L",
+    "EMBALAGEM": "PET 1,5L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.00045,
+    "INICIO": "16:37:44",
+    "FINAL": "16:38:15",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9085,
+    "Descricao": "ANTARCTICA DIET LATA 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:39:55",
+    "FINAL": "16:40:20",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 21020,
+    "Descricao": "BUDWEISER 350ML",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:42:23",
+    "FINAL": "16:42:46",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2320,
+    "Descricao": "SODA P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:44:02",
+    "FINAL": "16:44:31",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 13065,
+    "Descricao": "H2OH LIMONETO PET 1,5L",
+    "EMBALAGEM": "PET 1,5L",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.00045,
+    "INICIO": "16:46:27",
+    "FINAL": "16:46:51",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:48:33",
+    "FINAL": "16:48:54",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:50:08",
+    "FINAL": "16:50:28",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 504,
+    "Descricao": "PEPSI P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:51:59",
+    "FINAL": "16:52:21",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9795,
+    "Descricao": "GUARANÁ DIET P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:53:37",
+    "FINAL": "16:54:05",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9795,
+    "Descricao": "GUARANÁ DIET P1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:56:00",
+    "FINAL": "16:56:28",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-28 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:58:19",
+    "FINAL": "16:58:44",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 17266,
+    "Descricao": "BOHEMIA 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 12,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:27",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 17266,
+    "Descricao": "BOHEMIA 473ML",
+    "EMBALAGEM": "LATA 473ML",
+    "Quantidade": 12,
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:02:36",
+    "FINAL": "16:03:03",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:05:03",
+    "FINAL": "16:05:24",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:07:15",
+    "FINAL": "16:07:44",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 33820,
+    "Descricao": "BRAHMA CHOPP MILTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:09:57",
+    "FINAL": "16:10:23",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 33820,
+    "Descricao": "BRAHMA CHOPP MILTIPACK",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 6,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:12:14",
+    "FINAL": "16:12:42",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 29845,
+    "Descricao": "PEPSI BLACK PET1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:14:34",
+    "FINAL": "16:15:05",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:17:24",
+    "FINAL": "16:17:53",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 29845,
+    "Descricao": "PEPSI BLACK PET1",
+    "EMBALAGEM": "PET 1L",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.0003,
+    "INICIO": "16:20:00",
+    "FINAL": "16:20:33",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9274,
+    "Descricao": "PEPSI BLACK 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:22:55",
+    "FINAL": "16:23:18",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9274,
+    "Descricao": "PEPSI BLACK 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:24:47",
+    "FINAL": "16:25:08",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 5,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:27:05",
+    "FINAL": "16:27:31",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:29:18",
+    "FINAL": "16:29:40",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 503,
+    "Descricao": "SUKITA P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:31:37",
+    "FINAL": "16:31:58",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:33:12",
+    "FINAL": "16:33:34",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 3,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:35:33",
+    "FINAL": "16:36:03",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-29 11:59:15",
@@ -12720,11 +11822,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:05",
-    "FINAL": "16:32:35",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:11",
+    "FINAL": "16:38:35",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-29 11:59:15",
@@ -12734,11 +11835,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:52",
-    "FINAL": "16:36:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:03",
+    "FINAL": "16:40:34",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-29 11:59:15",
@@ -12748,11 +11848,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:16",
-    "FINAL": "16:52:11",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:46",
+    "FINAL": "16:43:16",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-29 11:59:15",
@@ -12760,237 +11859,220 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "CodProduto": 22177,
     "Descricao": "BUD ZERO LATA",
     "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:45:01",
+    "FINAL": "16:45:22",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:46:39",
+    "FINAL": "16:47:10",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:49:10",
+    "FINAL": "16:49:29",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 24256,
+    "Descricao": "PETRÓPOLIS 1,5L",
+    "EMBALAGEM": "PET 1,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.00045,
+    "INICIO": "16:50:44",
+    "FINAL": "16:51:07",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9276,
+    "Descricao": "PEPSI ZERO P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:52:45",
+    "FINAL": "16:53:14",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 24256,
+    "Descricao": "PETRÓPOLIS 1,5L",
+    "EMBALAGEM": "PET 1,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.00045,
+    "INICIO": "16:55:28",
+    "FINAL": "16:55:56",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-29 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 7945,
+    "Descricao": "PEPSI P2,5L",
+    "EMBALAGEM": "PET 2,5L",
+    "Quantidade": 1,
+    "HECTO LITRO PERDIDO": 0.0007499999999999999,
+    "INICIO": "16:57:56",
+    "FINAL": "16:58:27",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 12,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:31",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 2349,
+    "Descricao": "GUARANÁ CHP P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 12,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:03:05",
+    "FINAL": "16:03:39",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 7,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:06:08",
+    "FINAL": "16:06:33",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9068,
+    "Descricao": "SKOL 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 7,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:08:02",
+    "FINAL": "16:08:36",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:11:05",
+    "FINAL": "16:11:38",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34454,
+    "Descricao": "H2OH LIMONETO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:13:49",
+    "FINAL": "16:14:14",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 34454,
+    "Descricao": "H2OH LIMONETO LATA",
+    "EMBALAGEM": "LATA 350ML",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:16:33",
+    "FINAL": "16:16:58",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 4409,
+    "Descricao": "PEPSI TWIST P2",
+    "EMBALAGEM": "PET 2L",
+    "Quantidade": 4,
+    "HECTO LITRO PERDIDO": 0.0006,
+    "INICIO": "16:18:37",
+    "FINAL": "16:19:03",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
+    "Quantidade": 2,
+    "HECTO LITRO PERDIDO": 0.000105,
+    "INICIO": "16:21:10",
+    "FINAL": "16:21:47",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
+  },
+  {
+    "Data": "2026-04-30 11:59:15",
+    "Mês": "ABRIL",
+    "CodProduto": 9067,
+    "Descricao": "AP 350ML",
+    "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
     "INICIO": "16:24:26",
-    "FINAL": "16:28:06",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:20:36",
-    "FINAL": "16:24:36",
-    "TEMPO": "00:04:00",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:06",
-    "FINAL": "16:36:06",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 24256,
-    "Descricao": "PETRÓPOLIS 1,5L",
-    "EMBALAGEM": "PET 1,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:43:30",
-    "FINAL": "16:47:25",
-    "TEMPO": "00:03:55",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9276,
-    "Descricao": "PEPSI ZERO P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:44",
-    "FINAL": "16:27:29",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 24256,
-    "Descricao": "PETRÓPOLIS 1,5L",
-    "EMBALAGEM": "PET 1,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:20:41",
-    "FINAL": "16:24:11",
-    "TEMPO": "00:03:30",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-29 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 7945,
-    "Descricao": "PEPSI P2,5L",
-    "EMBALAGEM": "PET 2,5L",
-    "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:03:53",
-    "FINAL": "16:09:03",
-    "TEMPO": "00:05:10",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:32",
-    "FINAL": "16:41:17",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 2349,
-    "Descricao": "GUARANÁ CHP P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:31",
-    "FINAL": "16:57:21",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:13",
-    "FINAL": "16:40:03",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9068,
-    "Descricao": "SKOL 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:13",
-    "FINAL": "16:46:53",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:52",
-    "FINAL": "16:48:12",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34454,
-    "Descricao": "H2OH LIMONETO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:54",
-    "FINAL": "16:07:29",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 34454,
-    "Descricao": "H2OH LIMONETO LATA",
-    "EMBALAGEM": "LATA 350ML",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:04",
-    "FINAL": "16:20:34",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 4409,
-    "Descricao": "PEPSI TWIST P2",
-    "EMBALAGEM": "PET 2L",
-    "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:29",
-    "FINAL": "16:42:54",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:56",
-    "FINAL": "16:18:41",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
-  },
-  {
-    "Data": "2026-04-30 11:59:15",
-    "Mês": "ABRIL",
-    "CodProduto": 9067,
-    "Descricao": "AP 350ML",
-    "EMBALAGEM": "LATA 355ML",
-    "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:51",
-    "FINAL": "16:33:41",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "FINAL": "16:24:53",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13000,11 +12082,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:25",
-    "FINAL": "16:13:30",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:40",
+    "FINAL": "16:27:12",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13014,11 +12095,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:28",
-    "FINAL": "16:30:23",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:26",
+    "FINAL": "16:29:55",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13028,11 +12108,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:11:27",
-    "FINAL": "16:16:27",
-    "TEMPO": "00:05:00",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:09",
+    "FINAL": "16:32:51",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13042,11 +12121,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:58",
-    "FINAL": "16:50:23",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:53",
+    "FINAL": "16:36:30",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13056,11 +12134,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:20",
-    "FINAL": "16:56:45",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:59",
+    "FINAL": "16:39:34",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13070,11 +12147,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:26",
-    "FINAL": "16:40:11",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:50",
+    "FINAL": "16:42:21",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13084,11 +12160,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:20:16",
-    "FINAL": "16:24:51",
-    "TEMPO": "00:04:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:58",
+    "FINAL": "16:45:25",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13098,11 +12173,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:17",
-    "FINAL": "16:50:07",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:56",
+    "FINAL": "16:47:26",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13112,11 +12186,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:05:22",
-    "FINAL": "16:07:52",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:53",
+    "FINAL": "16:50:20",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13126,11 +12199,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:29:56",
-    "FINAL": "16:33:06",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:26",
+    "FINAL": "16:52:51",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13140,11 +12212,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:07:59",
-    "FINAL": "16:12:49",
-    "TEMPO": "00:04:50",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:45",
+    "FINAL": "16:55:25",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-04-30 11:59:15",
@@ -13154,11 +12225,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:18:03",
-    "FINAL": "16:22:13",
-    "TEMPO": "00:04:10",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:58",
+    "FINAL": "16:58:28",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13168,11 +12238,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:27",
-    "FINAL": "16:59:37",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:53",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13181,12 +12250,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:33:39",
-    "FINAL": "16:36:24",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:03:49",
+    "FINAL": "16:04:37",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13196,11 +12264,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:03",
-    "FINAL": "16:36:23",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:33",
+    "FINAL": "16:08:13",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13210,11 +12277,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:51",
-    "FINAL": "16:13:06",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:55",
+    "FINAL": "16:11:41",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13224,11 +12290,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:49",
-    "FINAL": "16:20:19",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:42",
+    "FINAL": "16:15:19",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13238,11 +12303,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:49",
-    "FINAL": "16:40:04",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:36",
+    "FINAL": "16:19:19",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13252,11 +12316,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:50:08",
-    "FINAL": "16:53:58",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:59",
+    "FINAL": "16:22:52",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13266,11 +12329,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:57:23",
-    "FINAL": "16:59:58",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:01",
+    "FINAL": "16:26:36",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13280,11 +12342,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:47:30",
-    "FINAL": "16:50:55",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:42",
+    "FINAL": "16:30:37",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13294,11 +12355,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:25",
-    "FINAL": "16:48:45",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:06",
+    "FINAL": "16:34:52",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13308,11 +12368,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:47",
-    "FINAL": "16:34:47",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:28",
+    "FINAL": "16:39:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13322,11 +12381,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:28:35",
-    "FINAL": "16:32:05",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:57",
+    "FINAL": "16:42:39",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13335,12 +12393,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:08",
-    "FINAL": "16:50:03",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:46:00",
+    "FINAL": "16:46:51",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13350,11 +12407,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:29",
-    "FINAL": "16:46:09",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:53",
+    "FINAL": "16:50:28",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13364,11 +12420,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:08",
-    "FINAL": "16:47:13",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:38",
+    "FINAL": "16:53:28",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-04 11:59:15",
@@ -13378,11 +12433,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:41:37",
-    "FINAL": "16:44:37",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:10",
+    "FINAL": "16:57:52",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13392,11 +12446,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:50:16",
-    "FINAL": "16:53:16",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13406,11 +12459,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:33",
-    "FINAL": "16:26:23",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:54",
+    "FINAL": "16:07:34",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13420,11 +12472,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:24",
-    "FINAL": "16:10:04",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:32",
+    "FINAL": "16:12:08",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13433,12 +12484,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:33:05",
-    "FINAL": "16:36:20",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:21:44",
+    "FINAL": "16:22:34",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13448,11 +12498,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:51",
-    "FINAL": "16:13:56",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:08",
+    "FINAL": "16:30:56",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13462,11 +12511,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:01",
-    "FINAL": "16:51:41",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:45",
+    "FINAL": "16:38:21",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13476,11 +12524,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:08:39",
-    "FINAL": "16:12:34",
-    "TEMPO": "00:03:55",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:42",
+    "FINAL": "16:46:32",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-05 11:59:15",
@@ -13490,11 +12537,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:59",
-    "FINAL": "16:48:04",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:54",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13504,11 +12550,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:23",
-    "FINAL": "16:35:28",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:31",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13518,11 +12563,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:49",
-    "FINAL": "16:41:29",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:00",
+    "FINAL": "16:03:29",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13532,11 +12576,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:23",
-    "FINAL": "16:18:28",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:07",
+    "FINAL": "16:05:48",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13546,11 +12589,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:20",
-    "FINAL": "16:26:20",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:59",
+    "FINAL": "16:09:38",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13560,11 +12602,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:49",
-    "FINAL": "16:40:59",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:02",
+    "FINAL": "16:12:36",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13574,11 +12615,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:44",
-    "FINAL": "16:22:24",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:31",
+    "FINAL": "16:15:03",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13588,11 +12628,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:30",
-    "FINAL": "16:59:30",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:34",
+    "FINAL": "16:18:15",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13602,11 +12641,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:46",
-    "FINAL": "16:26:26",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:35",
+    "FINAL": "16:21:08",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13616,11 +12654,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:32",
-    "FINAL": "16:21:47",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:12",
+    "FINAL": "16:23:52",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13630,11 +12667,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:32",
-    "FINAL": "16:27:17",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:05",
+    "FINAL": "16:26:48",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13644,11 +12680,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:41",
-    "FINAL": "16:48:36",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:30",
+    "FINAL": "16:30:10",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13658,11 +12693,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:03",
-    "FINAL": "16:11:18",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:55",
+    "FINAL": "16:33:33",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13672,11 +12706,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:38",
-    "FINAL": "16:24:38",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:31",
+    "FINAL": "16:37:00",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13686,11 +12719,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:42",
-    "FINAL": "16:12:12",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:36",
+    "FINAL": "16:39:15",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13700,11 +12732,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:20",
-    "FINAL": "16:47:10",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:18",
+    "FINAL": "16:42:53",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13714,11 +12745,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:44",
-    "FINAL": "16:05:29",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:56",
+    "FINAL": "16:45:33",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13728,11 +12758,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:50",
-    "FINAL": "16:41:00",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:49",
+    "FINAL": "16:48:20",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13742,11 +12771,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:37:13",
-    "FINAL": "16:41:28",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:45",
+    "FINAL": "16:51:20",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13756,11 +12784,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:12",
-    "FINAL": "16:30:57",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:34",
+    "FINAL": "16:54:17",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-06 11:59:15",
@@ -13770,11 +12797,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:25",
-    "FINAL": "16:03:45",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:58",
+    "FINAL": "16:57:44",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13784,11 +12810,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:06",
-    "FINAL": "16:58:46",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13798,11 +12823,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:41:33",
-    "FINAL": "16:45:53",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:39",
+    "FINAL": "16:04:42",
+    "TEMPO": "00:01:04",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13812,11 +12836,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:06",
-    "FINAL": "16:08:11",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:23",
+    "FINAL": "16:09:24",
+    "TEMPO": "00:01:01",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13826,11 +12849,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:06",
-    "FINAL": "16:40:46",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:21",
+    "FINAL": "16:16:16",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13839,12 +12861,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:42:05",
-    "FINAL": "16:45:30",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:21:44",
+    "FINAL": "16:22:28",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13854,11 +12875,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:59",
-    "FINAL": "16:49:09",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:33",
+    "FINAL": "16:28:22",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13868,11 +12888,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:42",
-    "FINAL": "16:44:12",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:32",
+    "FINAL": "16:33:20",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13882,11 +12901,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:39",
-    "FINAL": "16:09:24",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:59",
+    "FINAL": "16:38:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13896,11 +12914,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:32",
-    "FINAL": "16:48:27",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:27",
+    "FINAL": "16:43:08",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13910,11 +12927,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:41",
-    "FINAL": "16:46:06",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:48",
+    "FINAL": "16:48:25",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13924,11 +12940,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:55",
-    "FINAL": "16:10:30",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:41",
+    "FINAL": "16:54:25",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-07 11:59:15",
@@ -13938,11 +12953,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:31",
-    "FINAL": "16:06:01",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:30",
+    "FINAL": "16:58:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -13952,11 +12966,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 20,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:52",
-    "FINAL": "16:10:02",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:37",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -13966,11 +12979,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 19,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:45",
-    "FINAL": "16:48:35",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:15",
+    "FINAL": "16:04:02",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -13980,11 +12992,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:09",
-    "FINAL": "16:58:44",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:49",
+    "FINAL": "16:08:42",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -13994,11 +13005,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:07",
-    "FINAL": "16:23:52",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:27",
+    "FINAL": "16:14:04",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14008,11 +13018,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:36",
-    "FINAL": "16:20:56",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:07",
+    "FINAL": "16:20:46",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14022,11 +13031,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:36",
-    "FINAL": "16:16:46",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:01",
+    "FINAL": "16:26:51",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14036,11 +13044,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:44",
-    "FINAL": "16:25:19",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:04",
+    "FINAL": "16:31:04",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14050,11 +13057,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:39",
-    "FINAL": "16:41:19",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:10",
+    "FINAL": "16:39:54",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14064,11 +13070,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:03:43",
-    "FINAL": "16:07:38",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:29",
+    "FINAL": "16:47:09",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14078,11 +13083,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:38",
-    "FINAL": "16:39:18",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:38",
+    "FINAL": "16:53:29",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-08 11:59:15",
@@ -14092,11 +13096,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:06",
-    "FINAL": "16:10:46",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:30",
+    "FINAL": "16:58:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14106,11 +13109,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:44",
-    "FINAL": "16:32:19",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14120,11 +13122,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:37",
-    "FINAL": "16:30:57",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:36",
+    "FINAL": "16:05:13",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14134,11 +13135,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:57",
-    "FINAL": "16:04:07",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:26",
+    "FINAL": "16:09:14",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14148,11 +13148,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:32",
-    "FINAL": "16:44:02",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:37",
+    "FINAL": "16:16:22",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14162,11 +13161,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:45:00",
-    "FINAL": "16:48:00",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:22",
+    "FINAL": "16:20:55",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14176,11 +13174,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:27",
-    "FINAL": "16:36:22",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:11",
+    "FINAL": "16:25:04",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14190,11 +13187,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:37:27",
-    "FINAL": "16:41:32",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:05",
+    "FINAL": "16:31:46",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14203,12 +13199,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:43:59",
-    "FINAL": "16:46:44",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:37:20",
+    "FINAL": "16:37:56",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14218,11 +13213,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:21",
-    "FINAL": "16:13:36",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:24",
+    "FINAL": "16:43:07",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14232,11 +13226,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:08",
-    "FINAL": "16:32:33",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:47",
+    "FINAL": "16:48:34",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14246,11 +13239,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:46:40",
-    "FINAL": "16:50:15",
-    "TEMPO": "00:03:35",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:23",
+    "FINAL": "16:53:11",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-11 11:59:15",
@@ -14260,11 +13252,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:01",
-    "FINAL": "16:09:31",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:47",
+    "FINAL": "16:57:35",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14273,12 +13264,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 15,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:08:17",
-    "FINAL": "16:11:12",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:16",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14287,12 +13277,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 15,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:01:12",
-    "FINAL": "16:03:57",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:01:23",
+    "FINAL": "16:01:33",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14301,12 +13290,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 15,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:38:50",
-    "FINAL": "16:41:50",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:02:16",
+    "FINAL": "16:02:28",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14316,11 +13304,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:04",
-    "FINAL": "16:52:59",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:08",
+    "FINAL": "16:03:18",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14330,11 +13317,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:25",
-    "FINAL": "16:07:00",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:12",
+    "FINAL": "16:04:27",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14344,11 +13330,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:00",
-    "FINAL": "16:54:05",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:21",
+    "FINAL": "16:05:36",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14358,11 +13343,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:53",
-    "FINAL": "16:13:28",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:36",
+    "FINAL": "16:06:46",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14372,11 +13356,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:45",
-    "FINAL": "16:09:20",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:28",
+    "FINAL": "16:07:42",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14386,11 +13369,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:03",
-    "FINAL": "16:41:03",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:36",
+    "FINAL": "16:08:51",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14400,11 +13382,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:26",
-    "FINAL": "16:34:56",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:02",
+    "FINAL": "16:10:12",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14414,11 +13395,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:20",
-    "FINAL": "16:20:50",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:50",
+    "FINAL": "16:11:00",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14428,11 +13408,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:35",
-    "FINAL": "16:07:25",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:47",
+    "FINAL": "16:11:57",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14441,12 +13420,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:00:46",
-    "FINAL": "16:04:21",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:12:43",
+    "FINAL": "16:12:58",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14456,11 +13434,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:44:25",
-    "FINAL": "16:46:45",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:57",
+    "FINAL": "16:14:06",
+    "TEMPO": "00:00:09",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14469,12 +13446,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:42:12",
-    "FINAL": "16:45:42",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:14:58",
+    "FINAL": "16:15:10",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14483,12 +13459,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:21:14",
-    "FINAL": "16:23:54",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:16:01",
+    "FINAL": "16:16:13",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14498,11 +13473,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:40:58",
-    "FINAL": "16:43:38",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:14",
+    "FINAL": "16:17:27",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14512,11 +13486,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:59",
-    "FINAL": "16:59:49",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:24",
+    "FINAL": "16:18:34",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14525,12 +13498,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SPATEN 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:04:04",
-    "FINAL": "16:07:19",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:19:27",
+    "FINAL": "16:19:39",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14540,11 +13512,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:39:15",
-    "FINAL": "16:41:55",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:20",
+    "FINAL": "16:20:31",
+    "TEMPO": "00:00:11",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14554,11 +13525,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:04",
-    "FINAL": "16:35:39",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:12",
+    "FINAL": "16:21:25",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14567,12 +13537,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SPATEN 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:09:53",
-    "FINAL": "16:13:23",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:16",
+    "FINAL": "16:22:30",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14582,11 +13551,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:58",
-    "FINAL": "16:11:53",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:35",
+    "FINAL": "16:23:46",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14596,11 +13564,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:01",
-    "FINAL": "16:47:06",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:25",
+    "FINAL": "16:24:38",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14610,11 +13577,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:54:44",
-    "FINAL": "16:58:34",
-    "TEMPO": "00:03:50",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:25",
+    "FINAL": "16:25:38",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14624,11 +13590,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:26:19",
-    "FINAL": "16:30:39",
-    "TEMPO": "00:04:20",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:37",
+    "FINAL": "16:26:54",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14638,11 +13603,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:30:54",
-    "FINAL": "16:35:54",
-    "TEMPO": "00:05:00",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:08",
+    "FINAL": "16:28:20",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14652,11 +13616,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:33",
-    "FINAL": "16:57:23",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:04",
+    "FINAL": "16:29:17",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14666,11 +13629,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:47",
-    "FINAL": "16:26:22",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:08",
+    "FINAL": "16:30:22",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14680,11 +13642,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:08",
-    "FINAL": "16:07:08",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:24",
+    "FINAL": "16:31:35",
+    "TEMPO": "00:00:11",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14693,12 +13654,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:44:26",
-    "FINAL": "16:47:51",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:32:27",
+    "FINAL": "16:32:40",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14707,12 +13667,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:56:29",
-    "FINAL": "16:59:59",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:41",
+    "FINAL": "16:33:54",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14721,12 +13680,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:41:21",
-    "FINAL": "16:44:46",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:34:52",
+    "FINAL": "16:35:06",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14736,11 +13694,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:03",
-    "FINAL": "16:04:38",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:53",
+    "FINAL": "16:36:02",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14750,11 +13707,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:02",
-    "FINAL": "16:44:42",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:39",
+    "FINAL": "16:36:52",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14764,11 +13720,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:54",
-    "FINAL": "16:43:34",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:33",
+    "FINAL": "16:37:45",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14778,11 +13733,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:48",
-    "FINAL": "16:19:58",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:41",
+    "FINAL": "16:38:52",
+    "TEMPO": "00:00:11",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14791,12 +13745,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:45",
-    "FINAL": "16:49:50",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:39:33",
+    "FINAL": "16:39:46",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14806,11 +13759,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:52:39",
-    "FINAL": "16:55:24",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:34",
+    "FINAL": "16:40:46",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14820,11 +13772,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:07",
-    "FINAL": "16:58:52",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:45",
+    "FINAL": "16:41:59",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14834,11 +13785,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:47:00",
-    "FINAL": "16:50:35",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:00",
+    "FINAL": "16:43:15",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14848,11 +13798,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:57",
-    "FINAL": "16:20:32",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:15",
+    "FINAL": "16:44:28",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14861,12 +13810,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:10:44",
-    "FINAL": "16:13:39",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:45:25",
+    "FINAL": "16:45:36",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14876,11 +13824,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:55:42",
-    "FINAL": "16:58:37",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:27",
+    "FINAL": "16:46:36",
+    "TEMPO": "00:00:09",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14890,11 +13837,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:27",
-    "FINAL": "16:57:02",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:21",
+    "FINAL": "16:47:32",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14904,11 +13850,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:52",
-    "FINAL": "16:59:32",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:17",
+    "FINAL": "16:48:28",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14918,11 +13863,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:02",
-    "FINAL": "16:41:47",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:02",
+    "FINAL": "16:49:13",
+    "TEMPO": "00:00:11",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14932,11 +13876,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:25",
-    "FINAL": "16:57:15",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:49",
+    "FINAL": "16:49:59",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14946,11 +13889,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:44",
-    "FINAL": "16:50:24",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:32",
+    "FINAL": "16:50:46",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14960,11 +13902,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:34:07",
-    "FINAL": "16:38:12",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:41",
+    "FINAL": "16:51:57",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14974,11 +13915,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:05:48",
-    "FINAL": "16:08:28",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:51",
+    "FINAL": "16:53:03",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -14988,11 +13928,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:05",
-    "FINAL": "16:36:25",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:46",
+    "FINAL": "16:53:59",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -15002,11 +13941,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:40",
-    "FINAL": "16:17:20",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:52",
+    "FINAL": "16:55:02",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -15016,11 +13954,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:18",
-    "FINAL": "16:53:23",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:58",
+    "FINAL": "16:56:08",
+    "TEMPO": "00:00:10",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -15030,11 +13967,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:58",
-    "FINAL": "16:19:48",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:57",
+    "FINAL": "16:57:11",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -15044,11 +13980,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:55",
-    "FINAL": "16:06:55",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:02",
+    "FINAL": "16:58:13",
+    "TEMPO": "00:00:11",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-12 11:59:15",
@@ -15058,11 +13993,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:45",
-    "FINAL": "16:35:15",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:59:06",
+    "FINAL": "16:59:20",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15072,11 +14006,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 24,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:17:23",
-    "FINAL": "16:20:28",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:27",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15086,11 +14019,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:38",
-    "FINAL": "16:03:58",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:24",
+    "FINAL": "16:02:55",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15099,12 +14031,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:31:23",
-    "FINAL": "16:35:03",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:05:00",
+    "FINAL": "16:05:28",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15114,11 +14045,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:36",
-    "FINAL": "16:39:56",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:01",
+    "FINAL": "16:07:24",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15128,11 +14058,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:42",
-    "FINAL": "16:56:47",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:02",
+    "FINAL": "16:09:30",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15142,11 +14071,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:10",
-    "FINAL": "16:29:50",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:37",
+    "FINAL": "16:12:03",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15156,11 +14084,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:43",
-    "FINAL": "16:21:28",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:53",
+    "FINAL": "16:14:16",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15170,11 +14097,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:37",
-    "FINAL": "16:39:22",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:41",
+    "FINAL": "16:16:06",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15184,11 +14110,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:33",
-    "FINAL": "16:37:33",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:56",
+    "FINAL": "16:18:18",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15198,11 +14123,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:54",
-    "FINAL": "16:16:19",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:00",
+    "FINAL": "16:20:21",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15211,12 +14135,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:06:17",
-    "FINAL": "16:09:12",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:01",
+    "FINAL": "16:22:25",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15226,11 +14149,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:51",
-    "FINAL": "16:50:41",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:50",
+    "FINAL": "16:24:21",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15240,11 +14162,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:26",
-    "FINAL": "16:42:46",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:42",
+    "FINAL": "16:27:05",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15254,11 +14175,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:28",
-    "FINAL": "16:30:48",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:06",
+    "FINAL": "16:29:34",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15268,11 +14188,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:10",
-    "FINAL": "16:13:50",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:45",
+    "FINAL": "16:32:15",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15282,11 +14201,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:40",
-    "FINAL": "16:36:15",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:34",
+    "FINAL": "16:35:04",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15296,11 +14214,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:14",
-    "FINAL": "16:10:19",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:56",
+    "FINAL": "16:37:27",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15310,11 +14227,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:38",
-    "FINAL": "16:34:43",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:52",
+    "FINAL": "16:40:14",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15324,11 +14240,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:39",
-    "FINAL": "16:14:19",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:34",
+    "FINAL": "16:42:04",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15338,11 +14253,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:04",
-    "FINAL": "16:05:04",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:53",
+    "FINAL": "16:44:14",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15352,11 +14266,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:27",
-    "FINAL": "16:38:32",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:49",
+    "FINAL": "16:46:20",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15366,11 +14279,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:25",
-    "FINAL": "16:09:50",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:41",
+    "FINAL": "16:49:09",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15380,11 +14292,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:36",
-    "FINAL": "16:41:16",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:45",
+    "FINAL": "16:51:10",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15394,11 +14305,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:43",
-    "FINAL": "16:41:58",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:40",
+    "FINAL": "16:53:02",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15408,11 +14318,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:11",
-    "FINAL": "16:56:06",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:14",
+    "FINAL": "16:54:38",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15422,11 +14331,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:06:37",
-    "FINAL": "16:09:12",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:15",
+    "FINAL": "16:56:46",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-13 11:59:15",
@@ -15436,11 +14344,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:52:22",
-    "FINAL": "16:55:42",
-    "TEMPO": "00:03:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:34",
+    "FINAL": "16:58:56",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15450,11 +14357,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:33",
-    "FINAL": "16:44:58",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15464,11 +14370,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:20",
-    "FINAL": "16:21:10",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:34",
+    "FINAL": "16:04:12",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15478,11 +14383,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:07",
-    "FINAL": "16:27:17",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:06",
+    "FINAL": "16:11:44",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15492,11 +14396,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:20",
-    "FINAL": "16:15:10",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:47",
+    "FINAL": "16:15:26",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15506,11 +14409,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:01:52",
-    "FINAL": "16:05:22",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:49",
+    "FINAL": "16:19:40",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15520,11 +14422,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:03",
-    "FINAL": "16:40:43",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:36",
+    "FINAL": "16:25:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15534,11 +14435,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:10",
-    "FINAL": "16:51:15",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:40",
+    "FINAL": "16:30:16",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15548,11 +14448,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:22",
-    "FINAL": "16:07:32",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:01",
+    "FINAL": "16:38:37",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15562,11 +14461,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 200ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:43:40",
-    "FINAL": "16:46:30",
-    "TEMPO": "00:02:50",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:56",
+    "FINAL": "16:45:35",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15576,11 +14474,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:11",
-    "FINAL": "16:11:16",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:53",
+    "FINAL": "16:51:45",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-14 11:59:15",
@@ -15590,11 +14487,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:06:08",
-    "FINAL": "16:09:13",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:28",
+    "FINAL": "16:58:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15604,11 +14500,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:32",
-    "FINAL": "16:41:27",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15618,11 +14513,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:07",
-    "FINAL": "16:09:02",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:52",
+    "FINAL": "16:04:30",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15632,11 +14526,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:43",
-    "FINAL": "16:49:33",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:42",
+    "FINAL": "16:07:10",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15646,11 +14539,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:28",
-    "FINAL": "16:15:43",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:28",
+    "FINAL": "16:10:05",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15660,11 +14552,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:54",
-    "FINAL": "16:14:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:23",
+    "FINAL": "16:13:07",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15674,11 +14565,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:03",
-    "FINAL": "16:19:08",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:10",
+    "FINAL": "16:16:50",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15688,11 +14578,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:08",
-    "FINAL": "16:19:03",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:46",
+    "FINAL": "16:20:13",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15702,11 +14591,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:28",
-    "FINAL": "16:20:18",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:49",
+    "FINAL": "16:22:23",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15716,11 +14604,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:02",
-    "FINAL": "16:07:52",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:30",
+    "FINAL": "16:25:06",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15730,11 +14617,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:53",
-    "FINAL": "16:05:38",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:17",
+    "FINAL": "16:27:46",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15744,11 +14630,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:12",
-    "FINAL": "16:06:52",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:39",
+    "FINAL": "16:30:12",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15758,11 +14643,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:02",
-    "FINAL": "16:37:57",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:03",
+    "FINAL": "16:32:30",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15772,11 +14656,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:08",
-    "FINAL": "16:47:38",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:05",
+    "FINAL": "16:34:40",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15786,11 +14669,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:00",
-    "FINAL": "16:36:35",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:00",
+    "FINAL": "16:37:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15800,11 +14682,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:53",
-    "FINAL": "16:12:33",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:00",
+    "FINAL": "16:40:25",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15814,11 +14695,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:00:23",
-    "FINAL": "16:03:03",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:51",
+    "FINAL": "16:42:27",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15828,11 +14708,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:46:12",
-    "FINAL": "16:49:32",
-    "TEMPO": "00:03:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:00",
+    "FINAL": "16:45:35",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15842,11 +14721,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:15",
-    "FINAL": "16:43:50",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:26",
+    "FINAL": "16:49:06",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15856,11 +14734,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:51:44",
-    "FINAL": "16:54:39",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:49",
+    "FINAL": "16:52:14",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15870,11 +14747,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:08",
-    "FINAL": "16:36:03",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:01",
+    "FINAL": "16:54:46",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-15 11:59:15",
@@ -15884,11 +14760,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:17:32",
-    "FINAL": "16:20:12",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:54",
+    "FINAL": "16:58:26",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15898,11 +14773,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:25:35",
-    "FINAL": "16:29:05",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15911,12 +14785,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:11:30",
-    "FINAL": "16:14:45",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:02:52",
+    "FINAL": "16:03:23",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15926,11 +14799,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:07",
-    "FINAL": "16:58:17",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:35",
+    "FINAL": "16:05:58",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15940,11 +14812,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:15",
-    "FINAL": "16:49:00",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:25",
+    "FINAL": "16:07:58",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15954,11 +14825,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:56",
-    "FINAL": "16:35:41",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:23",
+    "FINAL": "16:10:46",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15968,11 +14838,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:19",
-    "FINAL": "16:16:54",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:45",
+    "FINAL": "16:13:10",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15982,11 +14851,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:42",
-    "FINAL": "16:14:47",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:14",
+    "FINAL": "16:15:39",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -15996,11 +14864,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:03",
-    "FINAL": "16:18:53",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:14",
+    "FINAL": "16:17:40",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16010,11 +14877,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:14",
-    "FINAL": "16:44:54",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:08",
+    "FINAL": "16:19:44",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16024,11 +14890,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:08",
-    "FINAL": "16:54:53",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:11",
+    "FINAL": "16:22:35",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16038,11 +14903,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:31",
-    "FINAL": "16:33:16",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:23",
+    "FINAL": "16:24:58",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16052,11 +14916,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:17",
-    "FINAL": "16:30:07",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:59",
+    "FINAL": "16:27:26",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16066,11 +14929,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:53",
-    "FINAL": "16:46:38",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:05",
+    "FINAL": "16:29:32",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16080,25 +14942,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:11",
-    "FINAL": "16:25:51",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:31",
+    "FINAL": "16:32:00",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
     "Mês": "MAIO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:15:57",
-    "FINAL": "16:18:57",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:41",
+    "FINAL": "16:34:04",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16108,11 +14968,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:53",
-    "FINAL": "16:46:33",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:54",
+    "FINAL": "16:36:21",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16122,11 +14981,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:39",
-    "FINAL": "16:25:44",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:01",
+    "FINAL": "16:38:32",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16136,11 +14994,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:03:52",
-    "FINAL": "16:06:22",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:22",
+    "FINAL": "16:40:48",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16149,12 +15006,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:48",
-    "FINAL": "16:33:38",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:42:35",
+    "FINAL": "16:43:07",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16164,11 +15020,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:09:52",
-    "FINAL": "16:12:47",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:16",
+    "FINAL": "16:45:44",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16178,11 +15033,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:11",
-    "FINAL": "16:13:21",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:57",
+    "FINAL": "16:48:32",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16192,11 +15046,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:06",
-    "FINAL": "16:31:01",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:21",
+    "FINAL": "16:50:43",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16206,11 +15059,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:44",
-    "FINAL": "16:04:39",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:34",
+    "FINAL": "16:53:05",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16220,11 +15072,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:20:14",
-    "FINAL": "16:23:54",
-    "TEMPO": "00:03:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:58",
+    "FINAL": "16:55:32",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-19 11:59:15",
@@ -16234,11 +15085,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:11:27",
-    "FINAL": "16:14:52",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:33",
+    "FINAL": "16:58:10",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16248,11 +15098,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 18,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:27",
-    "FINAL": "16:10:22",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:58",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16262,11 +15111,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:56",
-    "FINAL": "16:35:56",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:00",
+    "FINAL": "16:05:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16276,11 +15124,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:03",
-    "FINAL": "16:37:48",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:59",
+    "FINAL": "16:10:36",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16290,11 +15137,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:53:46",
-    "FINAL": "16:57:06",
-    "TEMPO": "00:03:20",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:01",
+    "FINAL": "16:15:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16304,11 +15150,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:24",
-    "FINAL": "16:17:54",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:14",
+    "FINAL": "16:21:03",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16318,11 +15163,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:32",
-    "FINAL": "16:22:52",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:11",
+    "FINAL": "16:25:01",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16332,11 +15176,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:31",
-    "FINAL": "16:54:16",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:35",
+    "FINAL": "16:29:10",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16346,11 +15189,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:52",
-    "FINAL": "16:27:42",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:38",
+    "FINAL": "16:33:22",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16360,25 +15202,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:51",
-    "FINAL": "16:21:01",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:14",
+    "FINAL": "16:40:01",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
     "Mês": "MAIO",
     "CodProduto": "-",
     "Descricao": "-",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "NÃO IDENTIFICADA",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0,
-    "INICIO": "16:16:15",
-    "FINAL": "16:20:10",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0,
+    "INICIO": "16:42:46",
+    "FINAL": "16:43:26",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16388,11 +15228,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:19:45",
-    "FINAL": "16:22:10",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:52",
+    "FINAL": "16:47:40",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16402,11 +15241,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:04",
-    "FINAL": "16:14:14",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:54",
+    "FINAL": "16:53:35",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-20 11:59:15",
@@ -16416,11 +15254,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:35",
-    "FINAL": "16:52:15",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:29",
+    "FINAL": "16:57:22",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16430,11 +15267,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 14,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:51",
-    "FINAL": "16:13:46",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16444,11 +15280,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:05",
-    "FINAL": "16:05:00",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:23",
+    "FINAL": "16:03:56",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16458,11 +15293,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:39",
-    "FINAL": "16:37:49",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:07",
+    "FINAL": "16:06:52",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16472,11 +15306,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:34",
-    "FINAL": "16:12:39",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:28",
+    "FINAL": "16:10:01",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16486,11 +15319,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:54",
-    "FINAL": "16:57:04",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:44",
+    "FINAL": "16:13:21",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16500,11 +15332,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:56",
-    "FINAL": "16:40:06",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:44",
+    "FINAL": "16:16:20",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16514,11 +15345,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:34",
-    "FINAL": "16:27:34",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:27",
+    "FINAL": "16:19:14",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16528,11 +15358,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:55",
-    "FINAL": "16:31:05",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:10",
+    "FINAL": "16:22:44",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16542,11 +15371,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:00",
-    "FINAL": "16:41:55",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:33",
+    "FINAL": "16:26:19",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16556,11 +15384,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:17",
-    "FINAL": "16:15:07",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:51",
+    "FINAL": "16:30:29",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16570,11 +15397,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:43",
-    "FINAL": "16:18:58",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:14",
+    "FINAL": "16:33:54",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16584,11 +15410,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:25",
-    "FINAL": "16:17:25",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:04",
+    "FINAL": "16:36:46",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16598,11 +15423,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:35",
-    "FINAL": "17:00:00",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:59",
+    "FINAL": "16:40:41",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16612,11 +15436,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:41:32",
-    "FINAL": "16:44:17",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:42",
+    "FINAL": "16:44:14",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16626,11 +15449,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:58",
-    "FINAL": "16:55:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:05",
+    "FINAL": "16:47:36",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16640,11 +15462,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:03",
-    "FINAL": "16:17:03",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:30",
+    "FINAL": "16:51:05",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16654,11 +15475,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:43",
-    "FINAL": "16:48:28",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:24",
+    "FINAL": "16:53:58",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-21 11:59:15",
@@ -16668,11 +15488,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:24",
-    "FINAL": "16:58:54",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:53",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16682,11 +15501,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 26,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:01",
-    "FINAL": "16:23:51",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:53",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16696,11 +15514,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 15,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:29",
-    "FINAL": "16:07:19",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:08",
+    "FINAL": "16:04:58",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16710,11 +15527,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:28",
-    "FINAL": "16:38:58",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:41",
+    "FINAL": "16:08:28",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16724,11 +15540,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:15",
-    "FINAL": "16:52:25",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:03",
+    "FINAL": "16:12:52",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16738,11 +15553,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:35:23",
-    "FINAL": "16:39:38",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:45",
+    "FINAL": "16:16:32",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16752,11 +15566,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:53",
-    "FINAL": "16:26:33",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:12",
+    "FINAL": "16:20:00",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16766,11 +15579,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:43:38",
-    "FINAL": "16:47:43",
-    "TEMPO": "00:04:05",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:38",
+    "FINAL": "16:23:32",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16780,11 +15592,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:39",
-    "FINAL": "16:36:54",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:21",
+    "FINAL": "16:28:10",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16794,11 +15605,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:27:57",
-    "FINAL": "16:31:22",
-    "TEMPO": "00:03:25",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:01",
+    "FINAL": "16:31:54",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16808,11 +15618,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:32",
-    "FINAL": "16:36:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:22",
+    "FINAL": "16:36:07",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16822,11 +15631,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:45:25",
-    "FINAL": "16:47:50",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:02",
+    "FINAL": "16:39:34",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16835,12 +15643,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:12:42",
-    "FINAL": "16:15:37",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:42:24",
+    "FINAL": "16:43:06",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16850,11 +15657,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:03",
-    "FINAL": "16:28:23",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:37",
+    "FINAL": "16:47:15",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16864,11 +15670,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:56",
-    "FINAL": "16:50:36",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:47",
+    "FINAL": "16:50:34",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16878,11 +15683,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:36",
-    "FINAL": "16:43:41",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:55",
+    "FINAL": "16:54:30",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-22 11:59:15",
@@ -16892,11 +15696,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:18",
-    "FINAL": "16:28:03",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:35",
+    "FINAL": "16:58:11",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16905,12 +15708,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:25",
-    "FINAL": "16:33:40",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16920,11 +15722,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:52",
-    "FINAL": "16:08:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:05",
+    "FINAL": "16:06:00",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16933,12 +15734,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:48:46",
-    "FINAL": "16:51:31",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:11:29",
+    "FINAL": "16:12:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16948,11 +15748,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:39",
-    "FINAL": "16:59:34",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:31",
+    "FINAL": "16:16:06",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16962,11 +15761,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:54",
-    "FINAL": "16:25:39",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:11",
+    "FINAL": "16:22:54",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16976,11 +15774,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:02",
-    "FINAL": "16:30:07",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:30",
+    "FINAL": "16:29:18",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -16989,12 +15786,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:04:10",
-    "FINAL": "16:07:30",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:56",
+    "FINAL": "16:34:40",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -17004,11 +15800,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:21",
-    "FINAL": "16:10:21",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:55",
+    "FINAL": "16:40:45",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -17018,11 +15813,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:46",
-    "FINAL": "16:37:11",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:56",
+    "FINAL": "16:45:34",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -17032,11 +15826,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:01:45",
-    "FINAL": "16:04:30",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:38",
+    "FINAL": "16:51:28",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-25 11:59:15",
@@ -17046,11 +15839,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:40",
-    "FINAL": "16:40:00",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:32",
+    "FINAL": "16:57:24",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17060,11 +15852,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:37",
-    "FINAL": "16:19:22",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:52",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17073,12 +15864,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 8,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:15:16",
-    "FINAL": "16:19:11",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:05:49",
+    "FINAL": "16:06:32",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17088,11 +15878,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:27",
-    "FINAL": "16:14:52",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:08",
+    "FINAL": "16:11:46",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17102,11 +15891,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:05",
-    "FINAL": "16:20:10",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:35",
+    "FINAL": "16:15:25",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17116,11 +15904,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:03",
-    "FINAL": "16:05:23",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:51",
+    "FINAL": "16:20:44",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17130,11 +15917,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:47:42",
-    "FINAL": "16:50:57",
-    "TEMPO": "00:03:15",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:50",
+    "FINAL": "16:26:37",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17144,11 +15930,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:17:50",
-    "FINAL": "16:21:00",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:22",
+    "FINAL": "16:30:07",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17158,11 +15943,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:55",
-    "FINAL": "16:43:30",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:00",
+    "FINAL": "16:35:46",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17172,11 +15956,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:40",
-    "FINAL": "16:35:05",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:16",
+    "FINAL": "16:40:58",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17186,11 +15969,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:58",
-    "FINAL": "16:51:13",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:36",
+    "FINAL": "16:44:14",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17200,11 +15982,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:23:56",
-    "FINAL": "16:26:41",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:13",
+    "FINAL": "16:47:55",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17214,11 +15995,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:57",
-    "FINAL": "16:52:42",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:33",
+    "FINAL": "16:53:16",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-26 11:59:15",
@@ -17228,11 +16008,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:38",
-    "FINAL": "16:21:28",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:47",
+    "FINAL": "16:58:20",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17242,11 +16021,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:41",
-    "FINAL": "16:36:26",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:37",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17256,11 +16034,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:51:59",
-    "FINAL": "16:55:49",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:42",
+    "FINAL": "16:08:36",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17270,11 +16047,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:19",
-    "FINAL": "16:11:19",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:15",
+    "FINAL": "16:13:56",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17284,11 +16060,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:20",
-    "FINAL": "16:12:25",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:05",
+    "FINAL": "16:18:48",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17298,11 +16073,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:31",
-    "FINAL": "16:19:16",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:02",
+    "FINAL": "16:23:44",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17312,11 +16086,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:10:03",
-    "FINAL": "16:13:48",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:22",
+    "FINAL": "16:33:08",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17326,11 +16099,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:31:32",
-    "FINAL": "16:36:17",
-    "TEMPO": "00:04:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:53",
+    "FINAL": "16:45:34",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17339,12 +16111,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:11:13",
-    "FINAL": "16:14:48",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:51:43",
+    "FINAL": "16:52:18",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-27 11:59:15",
@@ -17354,11 +16125,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:15",
-    "FINAL": "16:05:05",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:20",
+    "FINAL": "16:58:00",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17368,11 +16138,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 23,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:32",
-    "FINAL": "16:30:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17382,11 +16151,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:45",
-    "FINAL": "16:44:15",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:18",
+    "FINAL": "16:05:08",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17396,11 +16164,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:52",
-    "FINAL": "16:39:37",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:31",
+    "FINAL": "16:11:09",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17410,11 +16177,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:03:32",
-    "FINAL": "16:06:32",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:31",
+    "FINAL": "16:15:22",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17424,11 +16190,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:06",
-    "FINAL": "16:26:46",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:29",
+    "FINAL": "16:20:21",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17438,11 +16203,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:52",
-    "FINAL": "16:26:02",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:50",
+    "FINAL": "16:25:31",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17452,11 +16216,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:31",
-    "FINAL": "16:42:06",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:53",
+    "FINAL": "16:29:46",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17466,11 +16229,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:21:53",
-    "FINAL": "16:25:03",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:32",
+    "FINAL": "16:35:14",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17479,12 +16241,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE SG",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:38:18",
-    "FINAL": "16:41:33",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:39:08",
+    "FINAL": "16:39:53",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17494,11 +16255,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:19",
-    "FINAL": "16:37:59",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:54",
+    "FINAL": "16:43:43",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17508,11 +16268,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:46:25",
-    "FINAL": "16:49:55",
-    "TEMPO": "00:03:30",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:43",
+    "FINAL": "16:48:22",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17522,11 +16281,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 200ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:17:01",
-    "FINAL": "16:19:51",
-    "TEMPO": "00:02:50",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:22",
+    "FINAL": "16:53:07",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-28 11:59:15",
@@ -17536,11 +16294,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:16",
-    "FINAL": "16:49:31",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:35",
+    "FINAL": "16:57:26",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17549,12 +16306,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 11,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:24:52",
-    "FINAL": "16:28:17",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17564,11 +16320,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:47",
-    "FINAL": "16:15:32",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:51",
+    "FINAL": "16:03:31",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17578,11 +16333,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:33",
-    "FINAL": "16:32:13",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:49",
+    "FINAL": "16:06:31",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17592,11 +16346,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:40",
-    "FINAL": "16:48:30",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:00",
+    "FINAL": "16:09:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17606,11 +16359,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:31",
+    "INICIO": "16:11:47",
     "FINAL": "16:12:26",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17620,11 +16372,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:06",
-    "FINAL": "16:30:41",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:26",
+    "FINAL": "16:16:02",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17633,12 +16384,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE SG",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:30:58",
-    "FINAL": "16:34:08",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:18:44",
+    "FINAL": "16:19:16",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17648,11 +16398,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:14",
-    "FINAL": "16:59:04",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:09",
+    "FINAL": "16:21:47",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17662,11 +16411,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:44",
-    "FINAL": "16:06:39",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:02",
+    "FINAL": "16:24:34",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17676,11 +16424,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:47",
-    "FINAL": "16:46:47",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:37",
+    "FINAL": "16:27:28",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17690,11 +16437,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:18",
-    "FINAL": "16:49:43",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:55",
+    "FINAL": "16:31:44",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17704,11 +16450,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:42:53",
-    "FINAL": "16:45:53",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:14",
+    "FINAL": "16:35:56",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17718,11 +16463,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:02:26",
-    "FINAL": "16:06:36",
-    "TEMPO": "00:04:10",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:29",
+    "FINAL": "16:40:04",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17732,11 +16476,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:06",
-    "FINAL": "16:20:31",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:22",
+    "FINAL": "16:43:01",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17746,11 +16489,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:55",
-    "FINAL": "16:03:40",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:25",
+    "FINAL": "16:47:11",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17760,11 +16502,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:41",
-    "FINAL": "16:05:51",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:14",
+    "FINAL": "16:50:52",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17774,11 +16515,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:50",
-    "FINAL": "16:23:50",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:28",
+    "FINAL": "16:54:16",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-05-29 11:59:15",
@@ -17788,11 +16528,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:23",
-    "FINAL": "16:14:28",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:09",
+    "FINAL": "16:57:52",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17802,11 +16541,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 20,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:34",
-    "FINAL": "16:43:19",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:43",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17816,11 +16554,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:04",
-    "FINAL": "16:38:54",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:06",
+    "FINAL": "16:03:38",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17830,11 +16567,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:46",
-    "FINAL": "16:09:31",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:19",
+    "FINAL": "16:07:01",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17844,11 +16580,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:26",
-    "FINAL": "16:39:41",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:44",
+    "FINAL": "16:10:24",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17858,11 +16593,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:02",
-    "FINAL": "16:33:52",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:52",
+    "FINAL": "16:13:20",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17871,12 +16605,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:08:58",
-    "FINAL": "16:11:43",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:15:48",
+    "FINAL": "16:16:20",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17886,11 +16619,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:45",
-    "FINAL": "16:32:00",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:09",
+    "FINAL": "16:18:38",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17900,11 +16632,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:18:42",
-    "FINAL": "16:22:52",
-    "TEMPO": "00:04:10",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:12",
+    "FINAL": "16:21:52",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17914,25 +16645,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:05:59",
-    "FINAL": "16:08:34",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:44",
+    "FINAL": "16:25:09",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
     "Mês": "JUNHO",
     "CodProduto": 6181,
     "Descricao": "DIAS D'AVILA S/G 500ML",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:19:36",
-    "FINAL": "16:23:11",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:41",
+    "FINAL": "16:27:13",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17942,11 +16671,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:41:38",
-    "FINAL": "16:45:48",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:45",
+    "FINAL": "16:30:24",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17956,11 +16684,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:07",
-    "FINAL": "16:18:37",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:01",
+    "FINAL": "16:33:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17970,11 +16697,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:13:44",
-    "FINAL": "16:16:44",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:13",
+    "FINAL": "16:36:53",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17983,12 +16709,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:25:02",
-    "FINAL": "16:28:22",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:39:38",
+    "FINAL": "16:40:12",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -17998,11 +16723,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:24",
-    "FINAL": "16:40:39",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:30",
+    "FINAL": "16:43:01",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -18012,11 +16736,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:37",
-    "FINAL": "16:35:37",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:44",
+    "FINAL": "16:46:23",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -18026,11 +16749,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:21:11",
-    "FINAL": "16:24:46",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:37",
+    "FINAL": "16:49:19",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -18040,11 +16762,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:46",
-    "FINAL": "16:25:26",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:26",
+    "FINAL": "16:53:07",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -18054,11 +16775,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:58",
-    "FINAL": "16:37:53",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:23",
+    "FINAL": "16:55:53",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-01 11:59:15",
@@ -18068,11 +16788,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:58",
-    "FINAL": "16:43:43",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:49",
+    "FINAL": "16:58:22",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18082,11 +16801,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:04",
-    "FINAL": "16:27:09",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:47",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18096,11 +16814,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:17",
-    "FINAL": "16:19:07",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:20",
+    "FINAL": "16:05:00",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18110,11 +16827,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:13",
-    "FINAL": "16:25:38",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:20",
+    "FINAL": "16:08:03",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18123,12 +16839,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:19:26",
-    "FINAL": "16:22:41",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:10:38",
+    "FINAL": "16:11:17",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18138,11 +16853,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:45",
-    "FINAL": "16:18:30",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:59",
+    "FINAL": "16:14:43",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18152,11 +16866,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:42",
-    "FINAL": "16:55:42",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:27",
+    "FINAL": "16:18:10",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18166,11 +16879,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:37",
-    "FINAL": "16:40:17",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:41",
+    "FINAL": "16:21:30",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18180,11 +16892,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:45",
-    "FINAL": "16:26:25",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:16",
+    "FINAL": "16:26:00",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18194,11 +16905,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:14",
-    "FINAL": "16:07:49",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:56",
+    "FINAL": "16:29:43",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18208,11 +16918,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:30:01",
-    "FINAL": "16:33:16",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:14",
+    "FINAL": "16:33:48",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18222,11 +16931,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:04",
-    "FINAL": "16:55:29",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:57",
+    "FINAL": "16:36:31",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18236,11 +16944,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:22",
-    "FINAL": "16:18:07",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:31",
+    "FINAL": "16:40:02",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18249,12 +16956,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:15",
-    "FINAL": "16:50:10",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:42:04",
+    "FINAL": "16:42:50",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18264,11 +16970,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:32",
-    "FINAL": "16:14:07",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:30",
+    "FINAL": "16:47:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18278,11 +16983,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:37",
-    "FINAL": "16:48:47",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:02",
+    "FINAL": "16:50:45",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18292,11 +16996,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:06",
-    "FINAL": "16:49:11",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:14",
+    "FINAL": "16:54:50",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-02 11:59:15",
@@ -18305,12 +17008,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:41:41",
-    "FINAL": "16:44:31",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:57:47",
+    "FINAL": "16:58:20",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18320,11 +17022,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 25,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:03",
-    "FINAL": "16:59:48",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18334,11 +17035,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:29",
-    "FINAL": "16:10:09",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:58",
+    "FINAL": "16:03:27",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18348,11 +17048,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:44",
-    "FINAL": "16:54:19",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:06",
+    "FINAL": "16:06:40",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18362,11 +17061,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:26",
-    "FINAL": "16:36:16",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:32",
+    "FINAL": "16:09:03",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18376,11 +17074,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:03",
-    "FINAL": "16:45:58",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:43",
+    "FINAL": "16:11:18",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18389,12 +17086,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:48:01",
-    "FINAL": "16:51:31",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:13:52",
+    "FINAL": "16:14:28",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18404,11 +17100,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:07:03",
-    "FINAL": "16:10:08",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:36",
+    "FINAL": "16:17:21",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18418,11 +17113,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:52:16",
-    "FINAL": "16:54:31",
-    "TEMPO": "00:02:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:20",
+    "FINAL": "16:21:02",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18432,11 +17126,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:01",
-    "FINAL": "16:11:21",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:19",
+    "FINAL": "16:23:47",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18446,11 +17139,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:02",
-    "FINAL": "16:42:17",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:12",
+    "FINAL": "16:26:53",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18460,11 +17152,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:29",
-    "FINAL": "16:56:19",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:47",
+    "FINAL": "16:30:22",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18474,11 +17165,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:25",
-    "FINAL": "16:45:45",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:00",
+    "FINAL": "16:33:30",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18488,11 +17178,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:54",
-    "FINAL": "16:29:19",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:03",
+    "FINAL": "16:36:31",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18502,11 +17191,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:47:17",
-    "FINAL": "16:51:57",
-    "TEMPO": "00:04:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:10",
+    "FINAL": "16:39:48",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18516,11 +17204,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:21",
-    "FINAL": "16:52:56",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:33",
+    "FINAL": "16:43:19",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18529,12 +17216,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:24:05",
-    "FINAL": "16:27:10",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:46:35",
+    "FINAL": "16:47:06",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18544,11 +17230,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:54",
-    "FINAL": "16:40:59",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:49",
+    "FINAL": "16:49:25",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18558,11 +17243,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:44:15",
-    "FINAL": "16:47:15",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:23",
+    "FINAL": "16:52:02",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18572,11 +17256,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:43",
-    "FINAL": "16:56:43",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:41",
+    "FINAL": "16:55:12",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-03 11:59:15",
@@ -18586,11 +17269,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:06",
-    "FINAL": "16:37:41",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:58",
+    "FINAL": "16:58:28",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18600,11 +17282,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:20:28",
-    "FINAL": "16:23:58",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18614,11 +17295,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:45",
-    "FINAL": "16:23:35",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:39",
+    "FINAL": "16:06:31",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18628,11 +17308,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:44",
-    "FINAL": "16:33:24",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:25",
+    "FINAL": "16:11:01",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18642,11 +17321,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:42",
-    "FINAL": "16:43:27",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:56",
+    "FINAL": "16:14:40",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18656,11 +17334,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:05",
-    "FINAL": "16:59:00",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:44",
+    "FINAL": "16:19:25",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18670,11 +17347,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:22:06",
-    "FINAL": "16:26:51",
-    "TEMPO": "00:04:45",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:58",
+    "FINAL": "16:23:55",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18684,11 +17360,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:30",
-    "FINAL": "16:45:25",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:20",
+    "FINAL": "16:29:14",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18698,11 +17373,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:22:14",
-    "FINAL": "16:27:19",
-    "TEMPO": "00:05:05",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:40",
+    "FINAL": "16:34:33",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18712,11 +17386,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:06",
-    "FINAL": "16:31:56",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:49",
+    "FINAL": "16:38:38",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18726,11 +17399,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:43",
-    "FINAL": "16:04:58",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:08",
+    "FINAL": "16:43:54",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18740,11 +17412,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:30",
-    "FINAL": "16:20:10",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:22",
+    "FINAL": "16:49:00",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18754,11 +17425,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:33:57",
-    "FINAL": "16:36:52",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:02",
+    "FINAL": "16:53:38",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-04 11:59:15",
@@ -18768,11 +17438,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:36:37",
-    "FINAL": "16:39:37",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:57",
+    "FINAL": "16:57:43",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18782,11 +17451,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:45",
-    "FINAL": "16:40:20",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:56",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18796,11 +17464,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:50",
-    "FINAL": "16:33:15",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:45",
+    "FINAL": "16:05:23",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18810,11 +17477,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:18",
-    "FINAL": "16:38:33",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:02",
+    "FINAL": "16:08:38",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18824,11 +17490,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:21",
-    "FINAL": "16:32:56",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:29",
+    "FINAL": "16:12:05",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18838,11 +17503,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:25",
-    "FINAL": "16:27:30",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:07",
+    "FINAL": "16:14:50",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18851,12 +17515,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:09",
-    "FINAL": "16:48:49",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:18:20",
+    "FINAL": "16:19:05",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18866,11 +17529,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:42",
-    "FINAL": "16:03:47",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:28",
+    "FINAL": "16:22:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18879,12 +17541,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:35:51",
-    "FINAL": "16:39:21",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:24:29",
+    "FINAL": "16:25:09",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18893,12 +17554,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:27:57",
-    "FINAL": "16:30:52",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:27:51",
+    "FINAL": "16:28:44",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18907,12 +17567,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:27:22",
-    "FINAL": "16:30:27",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:31:45",
+    "FINAL": "16:32:27",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18922,11 +17581,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:11",
-    "FINAL": "16:42:36",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:48",
+    "FINAL": "16:35:22",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18936,11 +17594,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:12:50",
-    "FINAL": "16:15:40",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:10",
+    "FINAL": "16:39:01",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18950,11 +17607,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:13",
-    "FINAL": "16:37:03",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:04",
+    "FINAL": "16:43:40",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18964,11 +17620,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:22",
-    "FINAL": "16:55:32",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:06",
+    "FINAL": "16:46:40",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18978,11 +17633,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:06",
-    "FINAL": "16:43:31",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:53",
+    "FINAL": "16:49:33",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -18992,11 +17646,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:11",
-    "FINAL": "16:39:36",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:38",
+    "FINAL": "16:53:33",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-05 11:59:15",
@@ -19006,11 +17659,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:06:17",
-    "FINAL": "16:10:17",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:43",
+    "FINAL": "16:57:32",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19020,11 +17672,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 17,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:21:42",
-    "FINAL": "16:24:32",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:52",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19034,11 +17685,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:07",
-    "FINAL": "16:08:12",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:06",
+    "FINAL": "16:04:46",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19048,11 +17698,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:59",
-    "FINAL": "16:38:39",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:47",
+    "FINAL": "16:08:27",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19062,11 +17711,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:46",
-    "FINAL": "16:47:36",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:37",
+    "FINAL": "16:11:21",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19075,12 +17723,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BOHEMIA 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:47:05",
-    "FINAL": "16:50:50",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:13:45",
+    "FINAL": "16:14:27",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19090,11 +17737,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:44",
-    "FINAL": "16:37:49",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:09",
+    "FINAL": "16:17:40",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19104,11 +17750,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:43",
-    "FINAL": "16:32:28",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:32",
+    "FINAL": "16:21:17",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19118,11 +17763,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:46",
-    "FINAL": "16:39:11",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:00",
+    "FINAL": "16:25:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19132,11 +17776,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:55",
-    "FINAL": "16:37:55",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:56",
+    "FINAL": "16:28:37",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19146,11 +17789,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:50",
-    "FINAL": "16:15:40",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:58",
+    "FINAL": "16:32:35",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19160,11 +17802,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:04:06",
-    "FINAL": "16:06:51",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:36",
+    "FINAL": "16:36:08",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19173,12 +17814,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:41:10",
-    "FINAL": "16:44:35",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:39:02",
+    "FINAL": "16:39:37",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19187,12 +17827,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:38:54",
-    "FINAL": "16:41:39",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:42:17",
+    "FINAL": "16:42:55",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19202,11 +17841,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:27",
-    "FINAL": "16:47:52",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:16",
+    "FINAL": "16:46:52",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19216,11 +17854,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:13",
-    "FINAL": "16:50:48",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:35",
+    "FINAL": "16:50:21",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19230,11 +17867,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:46",
-    "FINAL": "16:56:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:03",
+    "FINAL": "16:54:36",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-08 11:59:15",
@@ -19244,11 +17880,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:48:30",
-    "FINAL": "16:50:45",
-    "TEMPO": "00:02:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:06",
+    "FINAL": "16:57:50",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19257,12 +17892,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 12,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:00:16",
-    "FINAL": "16:03:46",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:53",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19272,11 +17906,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:08",
-    "FINAL": "16:30:58",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:56",
+    "FINAL": "16:07:48",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19285,12 +17918,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 9,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:40:01",
-    "FINAL": "16:43:46",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:13:14",
+    "FINAL": "16:13:56",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19300,11 +17932,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:00",
-    "FINAL": "16:04:35",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:06",
+    "FINAL": "16:19:52",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19314,11 +17945,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:59",
-    "FINAL": "16:36:49",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:12",
+    "FINAL": "16:26:52",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19328,11 +17958,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:42",
-    "FINAL": "16:42:17",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:24",
+    "FINAL": "16:33:14",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19342,11 +17971,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:09",
-    "FINAL": "16:47:04",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:29",
+    "FINAL": "16:38:14",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19356,11 +17984,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:06",
-    "FINAL": "16:38:51",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:59",
+    "FINAL": "16:42:38",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19370,11 +17997,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:13",
-    "FINAL": "16:43:38",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:04",
+    "FINAL": "16:45:50",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19384,11 +18010,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LITRÃO",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:41:04",
-    "FINAL": "16:44:19",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:15",
+    "FINAL": "16:52:01",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-09 11:59:15",
@@ -19398,11 +18023,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:42",
-    "FINAL": "16:13:27",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:46",
+    "FINAL": "16:57:34",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19412,11 +18036,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 17,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:46",
-    "FINAL": "16:38:01",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19426,11 +18049,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:50",
-    "FINAL": "16:09:35",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:11",
+    "FINAL": "16:03:42",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19440,11 +18062,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:40",
-    "FINAL": "16:38:20",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:45",
+    "FINAL": "16:06:24",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19454,11 +18075,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:54",
-    "FINAL": "16:35:09",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:38",
+    "FINAL": "16:09:18",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19467,12 +18087,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:55:03",
-    "FINAL": "16:58:28",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:12:26",
+    "FINAL": "16:12:59",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19482,11 +18101,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:22",
-    "FINAL": "16:48:02",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:45",
+    "FINAL": "16:16:16",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19496,11 +18114,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:36",
-    "FINAL": "16:55:11",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:14",
+    "FINAL": "16:18:43",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19510,11 +18127,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:49",
-    "FINAL": "16:13:09",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:55",
+    "FINAL": "16:21:26",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19524,11 +18140,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:09",
-    "FINAL": "16:27:44",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:40",
+    "FINAL": "16:24:20",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19538,11 +18153,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:14",
-    "FINAL": "16:05:14",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:50",
+    "FINAL": "16:27:30",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19552,11 +18166,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:47",
-    "FINAL": "16:09:42",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:42",
+    "FINAL": "16:30:15",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19566,11 +18179,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:44",
-    "FINAL": "16:43:54",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:20",
+    "FINAL": "16:33:03",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19580,11 +18192,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:05",
-    "FINAL": "16:15:45",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:05",
+    "FINAL": "16:36:33",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19594,11 +18205,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:19",
-    "FINAL": "16:29:54",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:44",
+    "FINAL": "16:39:21",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19608,11 +18218,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:01",
-    "FINAL": "16:17:41",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:57",
+    "FINAL": "16:42:32",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19622,11 +18231,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:39:46",
-    "FINAL": "16:43:06",
-    "TEMPO": "00:03:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:31",
+    "FINAL": "16:44:54",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19635,12 +18243,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:02:59",
-    "FINAL": "16:06:34",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:46:23",
+    "FINAL": "16:46:55",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19650,11 +18257,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:42:20",
-    "FINAL": "16:45:05",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:57",
+    "FINAL": "16:49:29",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19664,11 +18270,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:12",
-    "FINAL": "16:18:27",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:40",
+    "FINAL": "16:52:15",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19678,11 +18283,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:40:04",
-    "FINAL": "16:43:24",
-    "TEMPO": "00:03:20",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:34",
+    "FINAL": "16:55:12",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-10 11:59:15",
@@ -19692,11 +18296,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:29",
-    "FINAL": "16:25:14",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:15",
+    "FINAL": "16:58:41",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19706,11 +18309,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:41",
-    "FINAL": "16:58:16",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19720,11 +18322,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:33",
-    "FINAL": "16:31:43",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:23",
+    "FINAL": "16:05:11",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19734,11 +18335,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:49",
-    "FINAL": "16:37:14",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:13",
+    "FINAL": "16:08:52",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19748,11 +18348,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:36",
-    "FINAL": "16:08:31",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:04",
+    "FINAL": "16:11:47",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19762,11 +18361,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:26:36",
-    "FINAL": "16:29:31",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:00",
+    "FINAL": "16:15:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19775,12 +18373,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:39:55",
-    "FINAL": "16:43:25",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:18:08",
+    "FINAL": "16:18:44",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19790,11 +18387,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:06",
-    "FINAL": "16:24:01",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:09",
+    "FINAL": "16:21:42",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19804,11 +18400,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:35",
-    "FINAL": "16:51:45",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:56",
+    "FINAL": "16:24:35",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19818,11 +18413,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:07",
-    "FINAL": "16:57:22",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:51",
+    "FINAL": "16:28:32",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19832,11 +18426,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:58",
-    "FINAL": "16:09:43",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:09",
+    "FINAL": "16:31:54",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19846,11 +18439,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:27",
-    "FINAL": "16:27:37",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:49",
+    "FINAL": "16:35:46",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19860,11 +18452,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:31",
-    "FINAL": "16:03:36",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:05",
+    "FINAL": "16:40:46",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19874,11 +18465,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:19:50",
-    "FINAL": "16:24:40",
-    "TEMPO": "00:04:50",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:30",
+    "FINAL": "16:44:11",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19888,11 +18478,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:46",
-    "FINAL": "16:28:16",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:56",
+    "FINAL": "16:47:36",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19901,12 +18490,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE SG",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:36:26",
-    "FINAL": "16:38:51",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:49:57",
+    "FINAL": "16:50:35",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19916,11 +18504,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:55",
-    "FINAL": "16:26:40",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:32",
+    "FINAL": "16:54:15",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-11 11:59:15",
@@ -19930,11 +18517,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:04:28",
-    "FINAL": "16:08:23",
-    "TEMPO": "00:03:55",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:24",
+    "FINAL": "16:58:03",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -19944,11 +18530,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:49",
-    "FINAL": "16:32:39",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -19958,11 +18543,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:58",
-    "FINAL": "16:27:38",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:56",
+    "FINAL": "16:07:44",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -19972,11 +18556,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:26:26",
-    "FINAL": "16:30:11",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:21",
+    "FINAL": "16:14:14",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -19986,11 +18569,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:19:21",
-    "FINAL": "16:21:51",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:02",
+    "FINAL": "16:18:42",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20000,11 +18582,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:44",
-    "FINAL": "16:32:49",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:37",
+    "FINAL": "16:25:21",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20014,11 +18595,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:20",
-    "FINAL": "16:48:00",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:35",
+    "FINAL": "16:29:20",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20027,12 +18607,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:54:56",
-    "FINAL": "16:57:36",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:36:42",
+    "FINAL": "16:37:26",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20042,11 +18621,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:11",
-    "FINAL": "16:51:01",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:21",
+    "FINAL": "16:44:57",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20056,11 +18634,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:13:24",
-    "FINAL": "16:16:54",
-    "TEMPO": "00:03:30",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:34",
+    "FINAL": "16:51:24",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-12 11:59:15",
@@ -20070,11 +18647,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:53:45",
-    "FINAL": "16:57:05",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:32",
+    "FINAL": "16:57:24",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20084,11 +18660,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:30:15",
-    "FINAL": "16:33:20",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:52",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20098,11 +18673,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:16",
-    "FINAL": "16:57:31",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:45",
+    "FINAL": "16:04:31",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20112,11 +18686,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:10:52",
-    "FINAL": "16:14:57",
-    "TEMPO": "00:04:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:07",
+    "FINAL": "16:08:42",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20126,11 +18699,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:14:46",
-    "FINAL": "16:17:26",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:14",
+    "FINAL": "16:11:48",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20140,11 +18712,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:43",
-    "FINAL": "16:29:18",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:24",
+    "FINAL": "16:15:07",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20154,11 +18725,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:38",
-    "FINAL": "16:43:28",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:34",
+    "FINAL": "16:19:26",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20168,11 +18738,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:29",
-    "FINAL": "16:35:19",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:19",
+    "FINAL": "16:23:06",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20182,11 +18751,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:30",
-    "FINAL": "16:18:45",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:28",
+    "FINAL": "16:26:58",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20196,11 +18764,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:06",
-    "FINAL": "16:49:51",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:13",
+    "FINAL": "16:29:44",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20210,11 +18777,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:48:13",
-    "FINAL": "16:50:38",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:21",
+    "FINAL": "16:32:57",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20224,11 +18790,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:41",
-    "FINAL": "16:44:36",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:31",
+    "FINAL": "16:36:04",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20238,11 +18803,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:40:06",
-    "FINAL": "16:43:51",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:08",
+    "FINAL": "16:38:43",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20252,11 +18816,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:29",
-    "FINAL": "16:40:24",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:53",
+    "FINAL": "16:42:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20266,11 +18829,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:31",
-    "FINAL": "16:44:26",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:30",
+    "FINAL": "16:46:18",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20280,11 +18842,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:34",
-    "FINAL": "16:11:49",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:45",
+    "FINAL": "16:50:30",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20294,11 +18855,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 200ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:08:22",
-    "FINAL": "16:11:12",
-    "TEMPO": "00:02:50",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:53",
+    "FINAL": "16:54:34",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-15 11:59:15",
@@ -20308,11 +18868,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:14",
-    "FINAL": "16:09:44",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:07",
+    "FINAL": "16:57:50",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20322,11 +18881,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:27",
-    "FINAL": "16:21:47",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:49",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20336,11 +18894,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:12",
-    "FINAL": "16:55:47",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:51",
+    "FINAL": "16:05:36",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20350,11 +18907,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:44:53",
-    "FINAL": "16:48:23",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:10",
+    "FINAL": "16:10:10",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20364,11 +18920,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:54",
-    "FINAL": "16:13:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:19",
+    "FINAL": "16:15:04",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20378,11 +18933,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:37",
-    "FINAL": "16:29:37",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:57",
+    "FINAL": "16:19:35",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20392,11 +18946,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:25",
-    "FINAL": "16:50:55",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:19",
+    "FINAL": "16:23:00",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20406,11 +18959,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:48",
-    "FINAL": "16:18:58",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:28",
+    "FINAL": "16:27:08",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20420,11 +18972,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:14",
-    "FINAL": "16:48:14",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:56",
+    "FINAL": "16:31:42",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20434,11 +18985,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:38",
-    "FINAL": "16:08:23",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:43",
+    "FINAL": "16:35:24",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20447,12 +18997,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:24:40",
-    "FINAL": "16:28:00",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:38:03",
+    "FINAL": "16:38:41",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20461,12 +19010,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:51:46",
-    "FINAL": "16:55:26",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:41:50",
+    "FINAL": "16:42:24",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20476,11 +19024,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:29",
-    "FINAL": "16:07:49",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:53",
+    "FINAL": "16:45:36",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20490,11 +19037,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:00",
-    "FINAL": "16:09:35",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:44",
+    "FINAL": "16:49:29",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20504,11 +19050,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:36",
-    "FINAL": "16:11:31",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:16",
+    "FINAL": "16:53:02",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-16 11:59:15",
@@ -20518,11 +19063,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:14",
-    "FINAL": "16:30:54",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:42",
+    "FINAL": "16:57:32",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20532,11 +19076,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 23,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:32",
-    "FINAL": "16:30:32",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20545,12 +19088,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE CG 510ML",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 7,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:31:42",
-    "FINAL": "16:34:57",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:07:44",
+    "FINAL": "16:08:30",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20560,11 +19102,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:54",
-    "FINAL": "16:46:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:59",
+    "FINAL": "16:14:50",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20574,11 +19115,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:01",
-    "FINAL": "16:13:11",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:01",
+    "FINAL": "16:21:56",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20588,11 +19128,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:02",
-    "FINAL": "16:16:22",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:27",
+    "FINAL": "16:29:18",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20602,11 +19141,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:23",
-    "FINAL": "16:49:03",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:13",
+    "FINAL": "16:35:54",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20616,11 +19154,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:10",
-    "FINAL": "16:50:50",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:19",
+    "FINAL": "16:44:54",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20630,11 +19167,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:09",
-    "FINAL": "16:31:14",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:44",
+    "FINAL": "16:53:32",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-17 11:59:15",
@@ -20644,11 +19180,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:48:02",
-    "FINAL": "16:50:22",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:01",
+    "FINAL": "16:57:46",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20658,11 +19193,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:16:57",
-    "FINAL": "16:20:57",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:43",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20672,11 +19206,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:20",
-    "FINAL": "16:31:15",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:27",
+    "FINAL": "16:07:08",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20686,11 +19219,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:55",
-    "FINAL": "16:46:00",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:19",
+    "FINAL": "16:13:08",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20700,11 +19232,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:19:53",
-    "FINAL": "16:22:38",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:36",
+    "FINAL": "16:17:30",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20714,11 +19245,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:41:34",
-    "FINAL": "16:45:19",
-    "TEMPO": "00:03:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:42",
+    "FINAL": "16:23:21",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20728,11 +19258,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:38",
-    "FINAL": "16:52:13",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:39",
+    "FINAL": "16:28:22",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20741,12 +19270,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:27:37",
-    "FINAL": "16:31:07",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:33:32",
+    "FINAL": "16:34:14",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20756,11 +19284,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:11:03",
-    "FINAL": "16:13:43",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:56",
+    "FINAL": "16:38:31",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20770,11 +19297,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:40",
-    "FINAL": "16:54:50",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:30",
+    "FINAL": "16:42:14",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20783,12 +19309,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE CG 510ML",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:25:59",
-    "FINAL": "16:28:39",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:46:31",
+    "FINAL": "16:47:14",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20798,11 +19323,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:42",
-    "FINAL": "16:41:17",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:23",
+    "FINAL": "16:52:14",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-18 11:59:15",
@@ -20812,11 +19336,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:34",
-    "FINAL": "16:46:59",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:14",
+    "FINAL": "16:57:56",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20826,11 +19349,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 26,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:32",
-    "FINAL": "16:42:22",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20840,11 +19362,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:55",
-    "FINAL": "16:42:35",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:59",
+    "FINAL": "16:03:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20854,11 +19375,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:35:33",
-    "FINAL": "16:38:48",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:56",
+    "FINAL": "16:06:25",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20868,11 +19388,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:41",
-    "FINAL": "16:32:36",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:06",
+    "FINAL": "16:08:40",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20881,12 +19400,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 4,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:39:16",
-    "FINAL": "16:42:46",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:11:03",
+    "FINAL": "16:11:36",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20896,11 +19414,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:03",
-    "FINAL": "16:03:28",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:20",
+    "FINAL": "16:15:04",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20910,11 +19427,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:08",
-    "FINAL": "16:54:53",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:43",
+    "FINAL": "16:18:24",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20924,11 +19440,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:19:32",
-    "FINAL": "16:23:07",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:02",
+    "FINAL": "16:21:39",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20938,11 +19453,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:56",
-    "FINAL": "16:43:41",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:31",
+    "FINAL": "16:25:01",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20952,11 +19466,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:03:13",
-    "FINAL": "16:06:13",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:01",
+    "FINAL": "16:27:30",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20966,11 +19479,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:29",
-    "FINAL": "16:50:24",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:11",
+    "FINAL": "16:29:39",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20980,11 +19492,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:54:01",
-    "FINAL": "16:57:06",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:47",
+    "FINAL": "16:32:24",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -20994,11 +19505,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:53:03",
-    "FINAL": "16:56:28",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:52",
+    "FINAL": "16:35:30",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21008,11 +19518,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:51:10",
-    "FINAL": "16:54:30",
-    "TEMPO": "00:03:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:39",
+    "FINAL": "16:39:13",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21022,11 +19531,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:28",
-    "FINAL": "16:32:18",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:01",
+    "FINAL": "16:42:37",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21036,11 +19544,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:26:52",
-    "FINAL": "16:29:57",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:47",
+    "FINAL": "16:45:30",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21050,11 +19557,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:00",
-    "FINAL": "16:46:25",
-    "TEMPO": "00:04:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:27",
+    "FINAL": "16:49:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21063,12 +19569,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:19:11",
-    "FINAL": "16:22:51",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:51:35",
+    "FINAL": "16:52:18",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21078,11 +19583,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:49",
-    "FINAL": "16:27:09",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:36",
+    "FINAL": "16:55:14",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-19 11:59:15",
@@ -21092,11 +19596,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:28:56",
-    "FINAL": "16:32:46",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:45",
+    "FINAL": "16:58:19",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21106,11 +19609,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:13",
-    "FINAL": "16:26:23",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21120,11 +19622,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:25",
-    "FINAL": "16:53:55",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:31",
+    "FINAL": "16:04:17",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21134,11 +19635,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:52",
-    "FINAL": "16:46:22",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:40",
+    "FINAL": "16:08:15",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21148,11 +19648,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:43",
-    "FINAL": "16:38:08",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:34",
+    "FINAL": "16:11:20",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21162,11 +19661,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:40",
-    "FINAL": "16:50:20",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:21",
+    "FINAL": "16:15:05",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21176,11 +19674,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:57",
-    "FINAL": "16:48:47",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:31",
+    "FINAL": "16:19:19",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21190,11 +19687,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:53:07",
-    "FINAL": "16:55:57",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:11",
+    "FINAL": "16:22:48",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21204,11 +19700,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:00",
-    "FINAL": "16:54:45",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:02",
+    "FINAL": "16:26:34",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21218,11 +19713,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:58",
-    "FINAL": "16:50:48",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:23",
+    "FINAL": "16:30:06",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21232,11 +19726,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:10",
-    "FINAL": "16:41:50",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:39",
+    "FINAL": "16:34:22",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21246,11 +19739,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:18",
-    "FINAL": "16:40:13",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:56",
+    "FINAL": "16:38:35",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21260,11 +19752,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:53:18",
-    "FINAL": "16:55:48",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:57",
+    "FINAL": "16:41:35",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21274,11 +19765,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:37:07",
-    "FINAL": "16:40:07",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:41",
+    "FINAL": "16:45:22",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21288,11 +19778,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:03",
-    "FINAL": "16:06:58",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:16",
+    "FINAL": "16:48:51",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21302,11 +19791,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:42",
-    "FINAL": "16:26:32",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:00",
+    "FINAL": "16:51:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21316,11 +19804,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:44",
-    "FINAL": "16:16:54",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:32",
+    "FINAL": "16:55:11",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-22 11:59:15",
@@ -21330,11 +19817,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:09:21",
-    "FINAL": "16:12:21",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:08",
+    "FINAL": "16:58:36",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21344,11 +19830,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:15",
-    "FINAL": "16:51:00",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:29",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21358,11 +19843,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:57",
-    "FINAL": "16:36:12",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:31",
+    "FINAL": "16:03:16",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21372,11 +19856,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:30",
-    "FINAL": "16:19:25",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:42",
+    "FINAL": "16:06:18",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21386,11 +19869,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:12",
-    "FINAL": "16:49:47",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:21",
+    "FINAL": "16:09:01",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21400,11 +19882,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:43:45",
-    "FINAL": "16:47:20",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:55",
+    "FINAL": "16:12:38",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21414,11 +19895,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:26",
-    "FINAL": "16:23:31",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:09",
+    "FINAL": "16:15:46",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21428,11 +19908,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:18",
-    "FINAL": "16:51:03",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:48",
+    "FINAL": "16:19:19",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21442,11 +19921,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:27",
-    "FINAL": "16:41:12",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:23",
+    "FINAL": "16:22:07",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21456,11 +19934,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:42:58",
-    "FINAL": "16:45:33",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:27",
+    "FINAL": "16:26:12",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21470,11 +19947,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:37:25",
-    "FINAL": "16:40:40",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:52",
+    "FINAL": "16:29:34",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21484,11 +19960,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:11:33",
-    "FINAL": "16:15:28",
-    "TEMPO": "00:03:55",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:04",
+    "FINAL": "16:32:47",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21498,11 +19973,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:10:34",
-    "FINAL": "16:13:39",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:34",
+    "FINAL": "16:36:18",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21512,11 +19986,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:31:28",
-    "FINAL": "16:34:28",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:37",
+    "FINAL": "16:39:14",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21526,11 +19999,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:43",
-    "FINAL": "16:31:53",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:48",
+    "FINAL": "16:42:34",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21540,11 +20012,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:48",
-    "FINAL": "16:11:28",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:30",
+    "FINAL": "16:46:03",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21554,11 +20025,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:00:50",
-    "FINAL": "16:04:45",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:47",
+    "FINAL": "16:48:33",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21568,11 +20038,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:05",
-    "FINAL": "16:17:10",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:03",
+    "FINAL": "16:52:45",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21582,11 +20051,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:19:10",
-    "FINAL": "16:21:50",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:21",
+    "FINAL": "16:55:51",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-23 11:59:15",
@@ -21596,11 +20064,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:32",
-    "FINAL": "16:10:32",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:32",
+    "FINAL": "16:58:09",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21610,11 +20077,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:35",
-    "FINAL": "16:34:05",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:53",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21624,11 +20090,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:11:00",
-    "FINAL": "16:15:20",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:34",
+    "FINAL": "16:05:27",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21638,11 +20103,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:59",
-    "FINAL": "16:34:59",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:48",
+    "FINAL": "16:10:26",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21652,11 +20116,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:19:45",
-    "FINAL": "16:23:30",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:30",
+    "FINAL": "16:15:14",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21666,11 +20129,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:54",
-    "FINAL": "16:07:44",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:28",
+    "FINAL": "16:19:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21680,11 +20142,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:59",
-    "FINAL": "16:34:39",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:05",
+    "FINAL": "16:22:51",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21694,11 +20155,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:13",
-    "FINAL": "16:55:08",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:46",
+    "FINAL": "16:27:33",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21708,11 +20168,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:00",
-    "FINAL": "16:54:15",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:18",
+    "FINAL": "16:32:11",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21722,11 +20181,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:26",
-    "FINAL": "16:54:01",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:16",
+    "FINAL": "16:37:01",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21736,11 +20194,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:07:25",
-    "FINAL": "16:11:10",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:31",
+    "FINAL": "16:41:30",
+    "TEMPO": "00:01:00",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21750,11 +20207,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:38",
-    "FINAL": "16:33:03",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:55",
+    "FINAL": "16:46:30",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21764,11 +20220,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:53:30",
-    "FINAL": "16:56:20",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:00",
+    "FINAL": "16:49:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21778,11 +20233,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:34",
-    "FINAL": "16:03:54",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:30",
+    "FINAL": "16:53:17",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-25 11:59:15",
@@ -21792,11 +20246,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:06:12",
-    "FINAL": "16:08:52",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:54",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21806,11 +20259,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:51",
-    "FINAL": "16:46:16",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:46",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21820,11 +20272,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:52",
-    "FINAL": "16:53:17",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:56",
+    "FINAL": "16:04:40",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21834,11 +20285,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:17:09",
-    "FINAL": "16:21:29",
-    "TEMPO": "00:04:20",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:31",
+    "FINAL": "16:08:25",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21847,12 +20297,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ORIGINAL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 5,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:05:20",
-    "FINAL": "16:08:50",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:11:54",
+    "FINAL": "16:12:33",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21862,11 +20311,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:53",
-    "FINAL": "16:04:38",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:11",
+    "FINAL": "16:15:55",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21876,11 +20324,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:59",
-    "FINAL": "16:29:39",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:21",
+    "FINAL": "16:19:08",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21889,12 +20336,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:20:13",
-    "FINAL": "16:23:53",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:38",
+    "FINAL": "16:23:18",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21904,11 +20350,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:43:33",
-    "FINAL": "16:46:13",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:33",
+    "FINAL": "16:27:20",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21918,11 +20363,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:33",
-    "FINAL": "16:49:53",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:40",
+    "FINAL": "16:31:20",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21932,11 +20376,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:53:33",
-    "FINAL": "16:56:03",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:36",
+    "FINAL": "16:34:07",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21946,11 +20389,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:11",
-    "FINAL": "16:24:46",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:37",
+    "FINAL": "16:37:20",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21960,11 +20402,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:18",
-    "FINAL": "16:25:53",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:47",
+    "FINAL": "16:41:35",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21973,12 +20414,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:44:11",
-    "FINAL": "16:47:16",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:45:28",
+    "FINAL": "16:46:19",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -21988,11 +20428,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:51",
-    "FINAL": "16:25:31",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:02",
+    "FINAL": "16:50:47",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -22002,11 +20441,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:18",
-    "FINAL": "16:12:13",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:13",
+    "FINAL": "16:53:54",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-26 11:59:15",
@@ -22016,11 +20454,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:25:12",
-    "FINAL": "16:28:07",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:18",
+    "FINAL": "16:57:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22030,11 +20467,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:18",
-    "FINAL": "16:20:58",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:55",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22044,11 +20480,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:48",
-    "FINAL": "16:05:43",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:44",
+    "FINAL": "16:05:39",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22058,11 +20493,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:48",
-    "FINAL": "16:57:33",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:03",
+    "FINAL": "16:10:48",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22072,11 +20506,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:57",
-    "FINAL": "16:59:22",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:34",
+    "FINAL": "16:15:24",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22086,11 +20519,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:31",
-    "FINAL": "16:31:26",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:59",
+    "FINAL": "16:20:46",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22100,11 +20532,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:46",
-    "FINAL": "16:18:36",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:35",
+    "FINAL": "16:25:22",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22114,11 +20545,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:06",
-    "FINAL": "16:37:21",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:16",
+    "FINAL": "16:30:05",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22128,11 +20558,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:27",
-    "FINAL": "16:24:02",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:35",
+    "FINAL": "16:35:09",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22142,11 +20571,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:46",
-    "FINAL": "16:46:36",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:28",
+    "FINAL": "16:39:26",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22156,11 +20584,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:46:57",
-    "FINAL": "16:50:42",
-    "TEMPO": "00:03:45",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:22",
+    "FINAL": "16:44:18",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22170,11 +20597,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:09:26",
-    "FINAL": "16:11:56",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:47",
+    "FINAL": "16:49:34",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22184,11 +20610,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:24",
-    "FINAL": "16:30:34",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:00",
+    "FINAL": "16:53:38",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-29 11:59:15",
@@ -22197,12 +20622,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE SG",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:02:43",
-    "FINAL": "16:05:08",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:57:28",
+    "FINAL": "16:58:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-06-30 11:59:15",
@@ -22212,11 +20636,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LITRÃO",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:32:43",
-    "FINAL": "16:36:53",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:59",
+    "TEMPO": "00:00:59",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22226,11 +20649,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:21",
-    "FINAL": "16:52:11",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22240,11 +20662,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:11",
-    "FINAL": "16:05:16",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:35",
+    "FINAL": "16:04:12",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22254,11 +20675,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:53:43",
-    "FINAL": "16:57:53",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:15",
+    "FINAL": "16:08:00",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22268,11 +20688,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:46",
-    "FINAL": "16:13:26",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:37",
+    "FINAL": "16:12:28",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22282,11 +20701,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:10",
-    "FINAL": "16:48:10",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:56",
+    "FINAL": "16:16:46",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22296,11 +20714,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:31",
-    "FINAL": "16:51:11",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:50",
+    "FINAL": "16:20:27",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22310,11 +20727,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:07",
-    "FINAL": "16:26:42",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:51",
+    "FINAL": "16:23:48",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22324,11 +20740,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:00:36",
-    "FINAL": "16:03:16",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:35",
+    "FINAL": "16:28:29",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22338,11 +20753,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:23",
-    "FINAL": "16:59:53",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:34",
+    "FINAL": "16:32:12",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22352,11 +20766,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:28",
-    "FINAL": "16:52:38",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:26",
+    "FINAL": "16:36:24",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22366,11 +20779,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:11",
-    "FINAL": "16:23:01",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:41",
+    "FINAL": "16:41:16",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22380,11 +20792,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:54:53",
-    "FINAL": "16:58:08",
-    "TEMPO": "00:03:15",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:31",
+    "FINAL": "16:44:24",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22394,11 +20805,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:45",
-    "FINAL": "16:27:30",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:14",
+    "FINAL": "16:49:11",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22408,11 +20818,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:00",
-    "FINAL": "16:35:20",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:07",
+    "FINAL": "16:53:47",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-02 11:59:15",
@@ -22422,11 +20831,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:05",
-    "FINAL": "16:25:10",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:04",
+    "FINAL": "16:57:03",
+    "TEMPO": "00:00:59",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22436,11 +20844,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:14",
-    "FINAL": "16:32:29",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22450,11 +20857,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:42:42",
-    "FINAL": "16:46:37",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:56",
+    "FINAL": "16:05:44",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22464,11 +20870,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:23",
-    "FINAL": "16:31:38",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:04",
+    "FINAL": "16:09:48",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22478,11 +20883,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:18",
-    "FINAL": "16:46:38",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:58",
+    "FINAL": "16:13:56",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22492,11 +20896,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:16",
-    "FINAL": "16:57:56",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:12",
+    "FINAL": "16:18:55",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22506,11 +20909,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:10",
-    "FINAL": "16:48:50",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:39",
+    "FINAL": "16:22:20",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22520,11 +20922,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:56",
-    "FINAL": "16:47:56",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:59",
+    "FINAL": "16:25:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22534,11 +20935,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:38:59",
-    "FINAL": "16:42:19",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:47",
+    "FINAL": "16:29:44",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22548,11 +20948,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:25:09",
-    "FINAL": "16:28:44",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:29",
+    "FINAL": "16:34:23",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22562,11 +20961,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:11",
-    "FINAL": "16:47:26",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:19",
+    "FINAL": "16:39:00",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22576,11 +20974,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:23:26",
-    "FINAL": "16:26:56",
-    "TEMPO": "00:03:30",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:31",
+    "FINAL": "16:42:12",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22590,11 +20987,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:15",
-    "FINAL": "16:46:35",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:03",
+    "FINAL": "16:45:41",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22604,11 +21000,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:53",
-    "FINAL": "16:15:53",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:09",
+    "FINAL": "16:49:53",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22618,11 +21013,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:29",
-    "FINAL": "16:53:24",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:58",
+    "FINAL": "16:53:44",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-03 11:59:15",
@@ -22632,11 +21026,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:05:49",
-    "FINAL": "16:09:24",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:54",
+    "FINAL": "16:57:40",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22646,11 +21039,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:31",
-    "FINAL": "16:42:21",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22660,11 +21052,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:38",
-    "FINAL": "16:42:43",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:37",
+    "FINAL": "16:04:13",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22674,11 +21065,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:34",
-    "FINAL": "16:28:24",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:20",
+    "FINAL": "16:06:50",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22688,11 +21078,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:33",
-    "FINAL": "16:41:53",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:33",
+    "FINAL": "16:10:11",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22702,11 +21091,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:49",
-    "FINAL": "16:21:24",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:52",
+    "FINAL": "16:13:30",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22716,11 +21104,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:12:19",
-    "FINAL": "16:15:24",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:06",
+    "FINAL": "16:16:37",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22730,11 +21117,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:50",
-    "FINAL": "16:17:45",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:43",
+    "FINAL": "16:19:23",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22744,11 +21130,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:39",
-    "FINAL": "16:10:59",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:51",
+    "FINAL": "16:22:32",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22758,11 +21143,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:18",
-    "FINAL": "16:20:13",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:05",
+    "FINAL": "16:25:44",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22771,12 +21155,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:12:48",
-    "FINAL": "16:16:13",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:28:23",
+    "FINAL": "16:28:56",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22786,11 +21169,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:10",
-    "FINAL": "16:20:30",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:19",
+    "FINAL": "16:31:59",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22800,11 +21182,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:29",
-    "FINAL": "16:18:59",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:17",
+    "FINAL": "16:35:45",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22814,11 +21195,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:27",
-    "FINAL": "16:18:47",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:55",
+    "FINAL": "16:38:25",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22828,11 +21208,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:33",
-    "FINAL": "16:50:53",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:15",
+    "FINAL": "16:40:48",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22842,11 +21221,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:02",
-    "FINAL": "16:37:47",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:42",
+    "FINAL": "16:43:24",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22856,11 +21234,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:41",
-    "FINAL": "16:42:31",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:49",
+    "FINAL": "16:46:26",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22870,11 +21247,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:51",
-    "FINAL": "16:30:31",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:47",
+    "FINAL": "16:49:16",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22883,12 +21259,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:54:38",
-    "FINAL": "16:58:08",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:51:38",
+    "FINAL": "16:52:14",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22897,12 +21272,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:34:20",
-    "FINAL": "16:37:30",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:55:09",
+    "FINAL": "16:55:43",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-04 11:59:15",
@@ -22912,11 +21286,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:47",
-    "FINAL": "16:52:07",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:46",
+    "FINAL": "16:58:20",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22926,11 +21299,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:07:49",
-    "FINAL": "16:11:59",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:39",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22940,11 +21312,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:15",
-    "FINAL": "16:52:40",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:06",
+    "FINAL": "16:03:34",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22954,11 +21325,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:31:24",
-    "FINAL": "16:35:29",
-    "TEMPO": "00:04:05",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:52",
+    "FINAL": "16:06:20",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22968,11 +21338,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:45",
-    "FINAL": "16:30:25",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:09",
+    "FINAL": "16:08:35",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22982,11 +21351,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:04",
-    "FINAL": "16:16:24",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:12",
+    "FINAL": "16:10:42",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -22996,11 +21364,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:52:54",
-    "FINAL": "16:57:04",
-    "TEMPO": "00:04:10",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:04",
+    "FINAL": "16:13:34",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23010,11 +21377,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:29",
-    "FINAL": "16:28:14",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:41",
+    "FINAL": "16:16:13",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23023,12 +21389,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:03:55",
-    "FINAL": "16:07:30",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:18:40",
+    "FINAL": "16:19:09",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23038,11 +21403,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:03:13",
-    "FINAL": "16:06:23",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:13",
+    "FINAL": "16:21:39",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23052,11 +21416,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:02",
-    "FINAL": "16:04:07",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:07",
+    "FINAL": "16:23:40",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23066,11 +21429,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:14:32",
-    "FINAL": "16:18:02",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:09",
+    "FINAL": "16:26:41",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23080,11 +21442,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:08:13",
-    "FINAL": "16:11:23",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:40",
+    "FINAL": "16:29:08",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23094,11 +21455,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:04",
-    "FINAL": "16:32:34",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:04",
+    "FINAL": "16:31:39",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23108,11 +21468,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:59",
-    "FINAL": "16:09:49",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:34",
+    "FINAL": "16:34:04",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23121,12 +21480,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:13:45",
-    "FINAL": "16:17:10",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:35:53",
+    "FINAL": "16:36:28",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23136,11 +21494,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:42",
-    "FINAL": "16:53:02",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:55",
+    "FINAL": "16:39:22",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23150,11 +21507,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:11:28",
-    "FINAL": "16:16:08",
-    "TEMPO": "00:04:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:35",
+    "FINAL": "16:42:10",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23164,11 +21520,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:18",
-    "FINAL": "16:26:23",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:41",
+    "FINAL": "16:45:15",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23178,11 +21533,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:14",
-    "FINAL": "16:53:54",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:27",
+    "FINAL": "16:48:01",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23192,11 +21546,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:56:21",
-    "FINAL": "16:59:51",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:38",
+    "FINAL": "16:51:13",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23206,11 +21559,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:20",
-    "FINAL": "16:19:15",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:48",
+    "FINAL": "16:54:17",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23220,11 +21572,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:50:19",
-    "FINAL": "16:52:59",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:00",
+    "FINAL": "16:56:24",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-06 11:59:15",
@@ -23234,11 +21585,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:22",
-    "FINAL": "16:28:02",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:14",
+    "FINAL": "16:58:40",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23248,11 +21598,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:58",
-    "FINAL": "16:06:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:50",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23262,11 +21611,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:07",
-    "FINAL": "16:27:47",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:23",
+    "FINAL": "16:05:04",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23276,11 +21624,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:28",
-    "FINAL": "16:40:13",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:02",
+    "FINAL": "16:10:56",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23290,11 +21637,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:10",
-    "FINAL": "16:44:10",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:06",
+    "FINAL": "16:16:46",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23304,11 +21650,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:05",
-    "FINAL": "16:48:50",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:15",
+    "FINAL": "16:20:53",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23318,11 +21663,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:11",
-    "FINAL": "16:27:06",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:26",
+    "FINAL": "16:27:18",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23331,12 +21675,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:30:29",
-    "FINAL": "16:33:19",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:32:56",
+    "FINAL": "16:33:47",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23346,11 +21689,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:39:41",
-    "FINAL": "16:42:36",
-    "TEMPO": "00:02:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:48",
+    "FINAL": "16:38:26",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23360,11 +21702,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:00",
-    "FINAL": "16:57:10",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:28",
+    "FINAL": "16:44:07",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23374,11 +21715,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:32",
-    "FINAL": "16:10:12",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:36",
+    "FINAL": "16:48:12",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23388,11 +21728,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:38",
-    "FINAL": "16:20:18",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:13",
+    "FINAL": "16:52:48",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-07 11:59:15",
@@ -23402,11 +21741,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:50",
-    "FINAL": "16:40:40",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:26",
+    "FINAL": "16:58:04",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23416,11 +21754,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:46:54",
-    "FINAL": "16:50:44",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23429,12 +21766,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:09:50",
-    "FINAL": "16:13:20",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:12:22",
+    "FINAL": "16:13:09",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23444,11 +21780,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:05",
-    "FINAL": "16:20:30",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:12",
+    "FINAL": "16:29:58",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23458,11 +21793,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:47:04",
-    "FINAL": "16:49:59",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:31",
+    "FINAL": "16:35:25",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23472,11 +21806,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:20",
-    "FINAL": "16:21:55",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:34",
+    "FINAL": "16:43:22",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-08 11:59:15",
@@ -23486,11 +21819,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:56",
-    "FINAL": "16:04:46",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:24",
+    "FINAL": "16:58:03",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-09 11:59:15",
@@ -23500,11 +21832,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:10:18",
-    "FINAL": "16:12:38",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-09 11:59:15",
@@ -23514,11 +21845,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:02",
-    "FINAL": "16:36:17",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:18",
+    "FINAL": "16:57:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23528,11 +21858,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:38",
-    "FINAL": "16:58:23",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:31",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23542,11 +21871,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:05",
-    "FINAL": "16:08:45",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:15",
+    "FINAL": "16:02:36",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23556,11 +21884,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:55:51",
-    "FINAL": "16:59:01",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:06",
+    "FINAL": "16:04:38",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23570,11 +21897,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:57",
-    "FINAL": "16:44:22",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:04",
+    "FINAL": "16:07:32",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23584,11 +21910,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:32:28",
-    "FINAL": "16:35:13",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:00",
+    "FINAL": "16:09:24",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23598,11 +21923,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:18",
-    "FINAL": "16:51:13",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:58",
+    "FINAL": "16:11:18",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23612,11 +21936,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:51",
-    "FINAL": "16:30:36",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:25",
+    "FINAL": "16:12:45",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23626,11 +21949,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:42",
-    "FINAL": "16:44:37",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:33",
+    "FINAL": "16:15:00",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23640,11 +21962,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:38",
-    "FINAL": "16:27:53",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:28",
+    "FINAL": "16:16:54",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23654,11 +21975,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:14:46",
-    "FINAL": "16:17:26",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:59",
+    "FINAL": "16:19:22",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23668,11 +21988,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:08:56",
-    "FINAL": "16:11:36",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:18",
+    "FINAL": "16:21:47",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23682,11 +22001,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:02:58",
-    "FINAL": "16:05:53",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:52",
+    "FINAL": "16:24:16",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23696,11 +22014,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:55",
-    "FINAL": "16:58:50",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:37",
+    "FINAL": "16:26:04",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23710,11 +22027,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:31:55",
-    "FINAL": "16:36:10",
-    "TEMPO": "00:04:15",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:04",
+    "FINAL": "16:28:31",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23724,11 +22040,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:58",
-    "FINAL": "16:34:58",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:21",
+    "FINAL": "16:30:44",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23738,11 +22053,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:24:08",
-    "FINAL": "16:27:13",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:24",
+    "FINAL": "16:32:52",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23752,11 +22066,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:54",
-    "FINAL": "16:25:54",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:27",
+    "FINAL": "16:34:50",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23766,11 +22079,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:47",
-    "FINAL": "16:26:07",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:29",
+    "FINAL": "16:36:58",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23780,11 +22092,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:16:58",
-    "FINAL": "16:19:53",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:05",
+    "FINAL": "16:39:24",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23794,11 +22105,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:33",
-    "FINAL": "16:44:43",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:33",
+    "FINAL": "16:41:00",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23808,11 +22118,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:57",
-    "FINAL": "16:12:57",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:05",
+    "FINAL": "16:43:25",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23822,11 +22131,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:09:48",
-    "FINAL": "16:12:53",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:52",
+    "FINAL": "16:45:15",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23836,11 +22144,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:18:39",
-    "FINAL": "16:21:14",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:40",
+    "FINAL": "16:47:04",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23850,11 +22157,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:17:53",
-    "FINAL": "16:21:33",
-    "TEMPO": "00:03:40",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:30",
+    "FINAL": "16:48:51",
+    "TEMPO": "00:00:21",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23864,11 +22170,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:39:09",
-    "FINAL": "16:41:49",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:21",
+    "FINAL": "16:50:39",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23878,11 +22183,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:29",
-    "FINAL": "16:12:49",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:11",
+    "FINAL": "16:52:30",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23892,11 +22196,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:19",
-    "FINAL": "16:06:14",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:03",
+    "FINAL": "16:54:29",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23906,11 +22209,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:37",
-    "FINAL": "16:56:27",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:32",
+    "FINAL": "16:56:52",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-13 11:59:15",
@@ -23920,11 +22222,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:36",
-    "FINAL": "16:16:21",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:18",
+    "FINAL": "16:58:44",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -23933,12 +22234,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SUBZERO 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 15,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:43:13",
-    "FINAL": "16:46:48",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:32",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -23948,11 +22248,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:06:45",
-    "FINAL": "16:10:05",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:09",
+    "FINAL": "16:03:50",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -23962,11 +22261,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:19:13",
-    "FINAL": "16:21:53",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:19",
+    "FINAL": "16:06:54",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -23976,11 +22274,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:16:15",
-    "FINAL": "16:19:25",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:06",
+    "FINAL": "16:09:43",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -23990,11 +22287,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:09:38",
-    "FINAL": "16:13:23",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:30",
+    "FINAL": "16:13:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24004,11 +22300,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:20:45",
-    "FINAL": "16:23:50",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:07",
+    "FINAL": "16:16:39",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24018,11 +22313,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:23:18",
-    "FINAL": "16:27:08",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:58",
+    "FINAL": "16:19:38",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24032,11 +22326,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:34:44",
-    "FINAL": "16:39:39",
-    "TEMPO": "00:04:55",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:11",
+    "FINAL": "16:22:44",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24046,11 +22339,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:44",
-    "FINAL": "16:20:29",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:42",
+    "FINAL": "16:25:16",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24059,12 +22351,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:37:35",
-    "FINAL": "16:40:40",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:28:00",
+    "FINAL": "16:28:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24074,11 +22365,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:22:49",
-    "FINAL": "16:25:54",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:30",
+    "FINAL": "16:31:59",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24088,11 +22378,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:01",
-    "FINAL": "16:26:01",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:31",
+    "FINAL": "16:35:08",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24102,11 +22391,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:25",
-    "FINAL": "16:56:55",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:18",
+    "FINAL": "16:37:46",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24116,11 +22404,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:25:04",
-    "FINAL": "16:28:44",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:00",
+    "FINAL": "16:40:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24130,11 +22417,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:14",
-    "FINAL": "16:58:59",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:06",
+    "FINAL": "16:44:40",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24144,11 +22430,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:23:50",
-    "FINAL": "16:26:45",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:17",
+    "FINAL": "16:47:50",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24158,11 +22443,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:01",
-    "FINAL": "16:16:51",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:06",
+    "FINAL": "16:50:33",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24172,11 +22456,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:50",
-    "FINAL": "16:48:25",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:12",
+    "FINAL": "16:52:54",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24186,11 +22469,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:30:24",
-    "FINAL": "16:33:14",
-    "TEMPO": "00:02:50",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:55:12",
+    "FINAL": "16:55:42",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-14 11:59:15",
@@ -24200,11 +22482,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:52:43",
-    "FINAL": "16:55:48",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:09",
+    "FINAL": "16:58:37",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24214,11 +22495,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 21,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:31",
-    "FINAL": "16:14:31",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24228,11 +22508,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:49",
-    "FINAL": "16:13:09",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:49",
+    "FINAL": "16:05:38",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24242,11 +22521,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:21:03",
-    "FINAL": "16:23:38",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:20",
+    "FINAL": "16:11:08",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24256,11 +22534,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:02",
-    "FINAL": "16:41:57",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:40",
+    "FINAL": "16:17:21",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24270,11 +22547,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:23:14",
-    "FINAL": "16:26:59",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:32",
+    "FINAL": "16:21:12",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24284,11 +22560,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:12:59",
-    "FINAL": "16:15:19",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:24",
+    "FINAL": "16:26:11",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24298,11 +22573,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:05:27",
-    "FINAL": "16:09:42",
-    "TEMPO": "00:04:15",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:17",
+    "FINAL": "16:30:00",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24312,11 +22586,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:46",
-    "FINAL": "16:24:06",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:28",
+    "FINAL": "16:35:04",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24326,11 +22599,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:31:56",
-    "FINAL": "16:35:16",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:28",
+    "FINAL": "16:39:05",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24340,11 +22612,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:52",
-    "FINAL": "16:55:57",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:55",
+    "FINAL": "16:43:42",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24354,11 +22625,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:49:14",
-    "FINAL": "16:53:09",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:56",
+    "FINAL": "16:48:46",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24368,11 +22638,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:04:37",
-    "FINAL": "16:07:52",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:26",
+    "FINAL": "16:53:12",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-15 11:59:15",
@@ -24382,11 +22651,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:21:47",
-    "FINAL": "16:26:27",
-    "TEMPO": "00:04:40",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:29",
+    "FINAL": "16:57:22",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24396,11 +22664,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 32,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:18:49",
-    "FINAL": "16:22:34",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:58",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24410,11 +22677,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 16,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:18",
-    "FINAL": "16:41:03",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:17",
+    "FINAL": "16:05:08",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24424,11 +22690,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:11:14",
-    "FINAL": "16:13:54",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:38",
+    "FINAL": "16:09:24",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24438,11 +22703,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 9,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:10",
-    "FINAL": "16:19:35",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:12:48",
+    "FINAL": "16:13:27",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24452,11 +22716,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:14:54",
+    "INICIO": "16:17:16",
     "FINAL": "16:17:59",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24466,11 +22729,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:30:34",
-    "FINAL": "16:33:34",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:14",
+    "FINAL": "16:21:53",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24480,11 +22742,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:09",
-    "FINAL": "16:43:59",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:35",
+    "FINAL": "16:25:18",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24494,11 +22755,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:15",
-    "FINAL": "16:37:15",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:59",
+    "FINAL": "16:28:38",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24508,11 +22768,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:25",
-    "FINAL": "16:16:50",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:38",
+    "FINAL": "16:33:28",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24522,11 +22781,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:52",
-    "FINAL": "16:06:47",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:51",
+    "FINAL": "16:38:31",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24536,11 +22794,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:41:01",
-    "FINAL": "16:44:26",
-    "TEMPO": "00:03:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:33",
+    "FINAL": "16:42:08",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24550,11 +22807,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:00",
-    "FINAL": "16:07:40",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:29",
+    "FINAL": "16:45:10",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24564,11 +22820,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:17",
-    "FINAL": "16:42:57",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:52",
+    "FINAL": "16:49:42",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24578,11 +22833,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:19",
-    "FINAL": "16:12:24",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:50",
+    "FINAL": "16:53:42",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-16 11:59:15",
@@ -24592,11 +22846,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:28",
-    "FINAL": "16:21:03",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:38",
+    "FINAL": "16:58:14",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24606,11 +22859,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:01",
-    "FINAL": "16:04:21",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:44",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24620,11 +22872,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:52",
-    "FINAL": "16:05:17",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:22",
+    "FINAL": "16:04:00",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24634,11 +22885,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:22:18",
-    "FINAL": "16:24:48",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:08",
+    "FINAL": "16:06:38",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24648,11 +22898,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:01:50",
-    "FINAL": "16:05:35",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:24",
+    "FINAL": "16:09:06",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24662,11 +22911,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:40",
-    "FINAL": "16:31:05",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:52",
+    "FINAL": "16:12:22",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24676,11 +22924,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:38",
-    "FINAL": "16:58:03",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:06",
+    "FINAL": "16:14:44",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24689,12 +22936,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:03:55",
-    "FINAL": "16:07:00",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:17:10",
+    "FINAL": "16:17:40",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24704,11 +22950,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:54:21",
-    "FINAL": "16:58:31",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:55",
+    "FINAL": "16:20:27",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24717,12 +22962,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "AP LATA 473 MP",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:42:45",
-    "FINAL": "16:45:25",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:22:45",
+    "FINAL": "16:23:16",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24732,11 +22976,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:58",
-    "FINAL": "16:56:48",
-    "TEMPO": "00:03:50",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:25",
+    "FINAL": "16:26:04",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24746,11 +22989,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:40:48",
-    "FINAL": "16:45:18",
-    "TEMPO": "00:04:30",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:06",
+    "FINAL": "16:29:50",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24760,11 +23002,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:31:37",
-    "FINAL": "16:34:22",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:17",
+    "FINAL": "16:32:47",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24774,11 +23015,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:01:45",
-    "FINAL": "16:05:00",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:51",
+    "FINAL": "16:35:32",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24788,11 +23028,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:30",
-    "FINAL": "16:42:20",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:43",
+    "FINAL": "16:39:15",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24801,12 +23040,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP 473ML",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:21:23",
-    "FINAL": "16:24:53",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:41:55",
+    "FINAL": "16:42:32",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24816,11 +23054,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:54",
-    "FINAL": "16:44:34",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:35",
+    "FINAL": "16:46:04",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24830,11 +23067,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:28",
-    "FINAL": "16:25:58",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:32",
+    "FINAL": "16:49:13",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24844,11 +23080,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:01:16",
-    "FINAL": "16:03:41",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:59",
+    "FINAL": "16:52:24",
+    "TEMPO": "00:00:25",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24858,11 +23093,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:44",
-    "FINAL": "16:12:34",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:39",
+    "FINAL": "16:55:19",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-17 11:59:15",
@@ -24872,11 +23106,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:08",
-    "FINAL": "16:09:28",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:03",
+    "FINAL": "16:58:32",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24886,11 +23119,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:41",
-    "FINAL": "16:27:46",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:20",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24900,11 +23132,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:46",
-    "FINAL": "16:39:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:01:31",
+    "FINAL": "16:01:50",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24914,11 +23145,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:53",
-    "FINAL": "16:41:23",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:05",
+    "FINAL": "16:03:20",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24928,11 +23158,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:04",
-    "FINAL": "16:43:54",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:13",
+    "FINAL": "16:04:32",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24942,11 +23171,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:42",
-    "FINAL": "16:19:02",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:01",
+    "FINAL": "16:06:17",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24956,11 +23184,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:17:36",
-    "FINAL": "16:21:11",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:34",
+    "FINAL": "16:07:50",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24970,11 +23197,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:32:36",
-    "FINAL": "16:36:16",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:01",
+    "FINAL": "16:09:19",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24984,11 +23210,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:52:58",
-    "FINAL": "16:56:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:32",
+    "FINAL": "16:10:47",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -24998,11 +23223,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:44:29",
-    "FINAL": "16:47:29",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:45",
+    "FINAL": "16:12:04",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25012,11 +23236,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:48:13",
-    "FINAL": "16:51:23",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:23",
+    "FINAL": "16:13:38",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25026,11 +23249,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:18:59",
-    "FINAL": "16:22:09",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:37",
+    "FINAL": "16:14:51",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25040,11 +23262,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:09",
-    "FINAL": "16:39:14",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:09",
+    "FINAL": "16:16:22",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25054,11 +23275,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:00",
-    "FINAL": "16:12:50",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:32",
+    "FINAL": "16:17:48",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25068,11 +23288,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:38:06",
-    "FINAL": "16:41:01",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:02",
+    "FINAL": "16:19:19",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25082,11 +23301,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:44",
-    "FINAL": "16:47:59",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:37",
+    "FINAL": "16:20:54",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25096,11 +23314,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:24:44",
-    "FINAL": "16:27:59",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:49",
+    "FINAL": "16:22:08",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25110,11 +23327,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:42:55",
-    "FINAL": "16:45:20",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:14",
+    "FINAL": "16:23:28",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25124,11 +23340,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:38",
-    "FINAL": "16:54:33",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:21",
+    "FINAL": "16:24:38",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25138,11 +23353,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:54",
-    "FINAL": "16:05:49",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:40",
+    "FINAL": "16:25:58",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25152,11 +23366,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:08:20",
-    "FINAL": "16:11:45",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:07",
+    "FINAL": "16:27:20",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25166,11 +23379,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:15",
-    "FINAL": "16:36:55",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:34",
+    "FINAL": "16:28:48",
+    "TEMPO": "00:00:14",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25180,11 +23392,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:53:04",
-    "FINAL": "16:55:34",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:59",
+    "FINAL": "16:30:11",
+    "TEMPO": "00:00:12",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25194,11 +23405,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 8.069999999999998e-05,
-    "INICIO": "16:41:22",
-    "FINAL": "16:43:52",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:19",
+    "FINAL": "16:31:35",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25208,11 +23418,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:11",
-    "FINAL": "16:13:16",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:33",
+    "FINAL": "16:32:49",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25222,11 +23431,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:21",
-    "FINAL": "16:54:11",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:50",
+    "FINAL": "16:34:08",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25236,11 +23444,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:53:11",
-    "FINAL": "16:56:56",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:07",
+    "FINAL": "16:35:23",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25250,11 +23457,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:58",
-    "FINAL": "16:04:48",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:24",
+    "FINAL": "16:36:44",
+    "TEMPO": "00:00:20",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25264,11 +23470,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:26",
-    "FINAL": "16:51:31",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:46",
+    "FINAL": "16:38:04",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25277,12 +23482,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:34:03",
-    "FINAL": "16:36:58",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:39:16",
+    "FINAL": "16:39:34",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25292,11 +23496,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:23:29",
-    "FINAL": "16:26:24",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:41",
+    "FINAL": "16:41:00",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25306,11 +23509,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:26:33",
-    "FINAL": "16:30:18",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:21",
+    "FINAL": "16:42:40",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25320,11 +23522,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:06",
-    "FINAL": "16:25:16",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:00",
+    "FINAL": "16:44:16",
+    "TEMPO": "00:00:16",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25333,12 +23534,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "RED BULL 473ML C12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:01:48",
-    "FINAL": "16:05:28",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:45:23",
+    "FINAL": "16:45:42",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25348,11 +23548,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:50:03",
-    "FINAL": "16:53:08",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:49",
+    "FINAL": "16:47:11",
+    "TEMPO": "00:00:22",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25362,11 +23561,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:04",
-    "FINAL": "16:57:39",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:46",
+    "FINAL": "16:49:05",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25376,11 +23574,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:27:25",
-    "FINAL": "16:31:20",
-    "TEMPO": "00:03:55",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:27",
+    "FINAL": "16:50:45",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25390,11 +23587,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:23:56",
-    "FINAL": "16:27:26",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:07",
+    "FINAL": "16:52:20",
+    "TEMPO": "00:00:13",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25404,11 +23600,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:38:30",
-    "FINAL": "16:41:10",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:17",
+    "FINAL": "16:53:35",
+    "TEMPO": "00:00:18",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25418,11 +23613,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:25:38",
-    "FINAL": "16:29:08",
-    "TEMPO": "00:03:30",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:45",
+    "FINAL": "16:55:02",
+    "TEMPO": "00:00:17",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25432,11 +23626,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:42:48",
-    "FINAL": "16:48:03",
-    "TEMPO": "00:05:15",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:07",
+    "FINAL": "16:56:26",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25446,11 +23639,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:02:05",
-    "FINAL": "16:07:15",
-    "TEMPO": "00:05:10",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:28",
+    "FINAL": "16:57:43",
+    "TEMPO": "00:00:15",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-20 11:59:15",
@@ -25460,11 +23652,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:17:54",
-    "FINAL": "16:21:14",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:45",
+    "FINAL": "16:59:04",
+    "TEMPO": "00:00:19",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25474,11 +23665,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 51,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:30",
-    "FINAL": "16:20:00",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25488,11 +23678,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 13,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:52",
-    "FINAL": "16:16:47",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:47",
+    "FINAL": "16:04:31",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25502,11 +23691,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:29:03",
-    "FINAL": "16:32:03",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:48",
+    "FINAL": "16:07:28",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25516,11 +23704,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:22",
-    "FINAL": "16:23:47",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:15",
+    "FINAL": "16:10:54",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25530,11 +23717,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:34:02",
-    "FINAL": "16:37:47",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:36",
+    "FINAL": "16:14:09",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25543,12 +23729,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LT 473ML SH C/12 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:38:52",
-    "FINAL": "16:41:47",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:16:05",
+    "FINAL": "16:16:35",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25558,11 +23743,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 269ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 8.07e-05,
-    "INICIO": "16:32:35",
-    "FINAL": "16:35:45",
-    "TEMPO": "00:03:10",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:08",
+    "FINAL": "16:19:39",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25572,11 +23756,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:30",
-    "FINAL": "16:56:40",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:47",
+    "FINAL": "16:22:28",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25586,11 +23769,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:51:18",
-    "FINAL": "16:53:53",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:51",
+    "FINAL": "16:25:18",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25600,11 +23782,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:29",
-    "FINAL": "16:23:14",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:17",
+    "FINAL": "16:27:44",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25614,11 +23795,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:37",
-    "FINAL": "16:25:57",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:54",
+    "FINAL": "16:30:29",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25628,11 +23808,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:02",
-    "FINAL": "16:19:37",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:47",
+    "FINAL": "16:33:14",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25641,12 +23820,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ANTARCTICA SUBZERO LT 473ML SH C/12 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:36",
-    "FINAL": "16:49:26",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:34:39",
+    "FINAL": "16:35:17",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25656,11 +23834,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:30:55",
-    "FINAL": "16:34:20",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:28",
+    "FINAL": "16:38:06",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25670,11 +23847,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:03:33",
-    "FINAL": "16:06:03",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:52",
+    "FINAL": "16:41:32",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25684,11 +23860,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:14:19",
-    "FINAL": "16:18:34",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:47",
+    "FINAL": "16:44:20",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25698,11 +23873,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:12",
-    "FINAL": "16:53:57",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:26",
+    "FINAL": "16:47:07",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25712,11 +23886,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:53:14",
-    "FINAL": "16:57:04",
-    "TEMPO": "00:03:50",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:16",
+    "FINAL": "16:50:54",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25726,11 +23899,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:29:58",
-    "FINAL": "16:33:33",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:53",
+    "FINAL": "16:54:25",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-22 11:59:15",
@@ -25740,11 +23912,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:09:32",
-    "FINAL": "16:12:42",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:05",
+    "FINAL": "16:57:49",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25754,11 +23925,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:18",
-    "FINAL": "16:24:13",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:43",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25768,11 +23938,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:57",
-    "FINAL": "16:58:27",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:05",
+    "FINAL": "16:04:47",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25782,11 +23951,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:00:38",
-    "FINAL": "16:03:03",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:26",
+    "FINAL": "16:08:06",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25796,11 +23964,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:20:39",
-    "FINAL": "16:23:24",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:19",
+    "FINAL": "16:11:56",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25810,11 +23977,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:14",
-    "FINAL": "16:53:04",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:20",
+    "FINAL": "16:16:06",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25824,11 +23990,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:17",
-    "FINAL": "16:54:22",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:03",
+    "FINAL": "16:19:54",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25838,11 +24003,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:46:36",
-    "FINAL": "16:49:26",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:52",
+    "FINAL": "16:24:40",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25852,11 +24016,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:28:16",
-    "FINAL": "16:31:21",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:47",
+    "FINAL": "16:28:27",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25866,11 +24029,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:45:25",
-    "FINAL": "16:48:30",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:30",
+    "FINAL": "16:32:15",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25880,11 +24042,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:54",
-    "FINAL": "16:26:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:48",
+    "FINAL": "16:36:30",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25894,11 +24055,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:14",
-    "FINAL": "16:06:09",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:03",
+    "FINAL": "16:39:50",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25908,11 +24068,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:13:44",
-    "FINAL": "16:16:39",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:49",
+    "FINAL": "16:43:25",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25922,11 +24081,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:04",
-    "FINAL": "16:50:44",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:46:41",
+    "FINAL": "16:47:23",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25936,11 +24094,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:09:12",
-    "FINAL": "16:11:47",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:47",
+    "FINAL": "16:50:38",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25950,11 +24107,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:48",
-    "FINAL": "16:19:03",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:44",
+    "FINAL": "16:54:28",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-23 11:59:15",
@@ -25964,11 +24120,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:40",
-    "FINAL": "16:51:00",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:32",
+    "FINAL": "16:58:09",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -25978,11 +24133,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:21",
-    "FINAL": "16:04:06",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -25992,11 +24146,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:21:36",
-    "FINAL": "16:23:56",
-    "TEMPO": "00:02:20",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:24",
+    "FINAL": "16:05:09",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26006,11 +24159,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:07:31",
-    "FINAL": "16:10:11",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:17",
+    "FINAL": "16:09:07",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26020,11 +24172,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:16",
-    "FINAL": "16:36:01",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:43",
+    "FINAL": "16:12:22",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26034,11 +24185,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:52",
-    "FINAL": "16:39:47",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:54",
+    "FINAL": "16:15:46",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26048,11 +24198,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:13",
-    "FINAL": "16:15:23",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:08",
+    "FINAL": "16:19:42",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26061,12 +24210,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LT 473ML SH C/12 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:36:53",
-    "FINAL": "16:39:48",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:21:46",
+    "FINAL": "16:22:32",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26076,11 +24224,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:50:23",
-    "FINAL": "16:53:13",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:25",
+    "FINAL": "16:27:01",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26090,11 +24237,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:07:40",
-    "FINAL": "16:11:00",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:13",
+    "FINAL": "16:30:54",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26103,12 +24249,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BRAHMA CHOPP LT 473ML SH C/12 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:33:52",
-    "FINAL": "16:37:12",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:34:24",
+    "FINAL": "16:35:06",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26118,11 +24263,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:05:16",
-    "FINAL": "16:09:06",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:19",
+    "FINAL": "16:38:13",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26132,11 +24276,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:14:41",
-    "FINAL": "16:17:21",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:41",
+    "FINAL": "16:42:27",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26146,11 +24289,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:15:17",
-    "FINAL": "16:19:02",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:44:59",
+    "FINAL": "16:45:47",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26160,11 +24302,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:18:38",
-    "FINAL": "16:21:43",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:49:30",
+    "FINAL": "16:50:00",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26174,11 +24315,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:01:02",
-    "FINAL": "16:04:32",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:49",
+    "FINAL": "16:53:36",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-24 11:59:15",
@@ -26188,11 +24328,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:04:42",
-    "FINAL": "16:07:17",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:21",
+    "FINAL": "16:58:01",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26202,11 +24341,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 14,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:24",
-    "FINAL": "16:17:19",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:54",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26216,11 +24354,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML ",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:51",
-    "FINAL": "16:31:06",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:02",
+    "FINAL": "16:07:58",
+    "TEMPO": "00:00:56",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26230,11 +24367,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:24:45",
-    "FINAL": "16:28:25",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:28",
+    "FINAL": "16:16:23",
+    "TEMPO": "00:00:55",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26244,11 +24380,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:14",
-    "FINAL": "16:25:09",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:48",
+    "FINAL": "16:21:24",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26258,11 +24393,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:44:35",
-    "FINAL": "16:48:05",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:58",
+    "FINAL": "16:25:36",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26272,11 +24406,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:19:15",
-    "FINAL": "16:22:25",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:04",
+    "FINAL": "16:31:45",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26286,11 +24419,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:47:07",
-    "FINAL": "16:50:02",
-    "TEMPO": "00:02:55",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:12",
+    "FINAL": "16:35:42",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26300,11 +24432,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:50:52",
-    "FINAL": "16:54:02",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:51",
+    "FINAL": "16:39:27",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26314,11 +24445,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": " PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:27:15",
-    "FINAL": "16:31:40",
-    "TEMPO": "00:04:25",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:29",
+    "FINAL": "16:48:16",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-27 11:59:15",
@@ -26328,11 +24458,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:51",
-    "FINAL": "16:40:26",
-    "TEMPO": "00:03:35",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:41",
+    "FINAL": "16:57:31",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26342,11 +24471,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 33,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:10:19",
-    "FINAL": "16:13:29",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26356,11 +24484,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:18",
-    "FINAL": "16:29:23",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:03",
+    "FINAL": "16:03:42",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26370,11 +24497,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:52",
-    "FINAL": "16:58:37",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:06:11",
+    "FINAL": "16:06:48",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26384,11 +24510,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 7,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:43:20",
-    "FINAL": "16:46:05",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:09:14",
+    "FINAL": "16:09:50",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26397,12 +24522,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LT 473ML SH C/12 NPAL MULTPACK 12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 6,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:41:29",
-    "FINAL": "16:44:04",
-    "TEMPO": "00:02:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:12:10",
+    "FINAL": "16:12:41",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26412,11 +24536,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:23",
-    "FINAL": "16:20:38",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:43",
+    "FINAL": "16:15:24",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26426,11 +24549,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:50",
-    "FINAL": "16:53:20",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:34",
+    "FINAL": "16:18:16",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26440,11 +24562,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:16:26",
-    "FINAL": "16:19:31",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:20",
+    "FINAL": "16:21:51",
+    "TEMPO": "00:00:31",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26454,11 +24575,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:17",
-    "FINAL": "16:49:27",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:15",
+    "FINAL": "16:24:46",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26468,11 +24588,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:42:22",
-    "FINAL": "16:45:07",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:26:59",
+    "FINAL": "16:27:34",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26482,11 +24601,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:48:54",
-    "FINAL": "16:52:34",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:29",
+    "FINAL": "16:30:10",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26496,11 +24614,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:47:23",
-    "FINAL": "16:50:03",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:39",
+    "FINAL": "16:33:15",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26509,12 +24626,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SPATEN N LT 473ML CX CARTAO C/12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:46:45",
-    "FINAL": "16:50:05",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:36:08",
+    "FINAL": "16:36:46",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26524,11 +24640,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:37:28",
-    "FINAL": "16:40:53",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:22",
+    "FINAL": "16:39:48",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26537,12 +24652,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE AGUA MIN C GAS GFA PET 510ML FD C/12",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:31:05",
-    "FINAL": "16:34:10",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:41:24",
+    "FINAL": "16:42:03",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26552,11 +24666,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:00:03",
-    "FINAL": "16:03:58",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:00",
+    "FINAL": "16:45:28",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26566,11 +24679,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:44:11",
-    "FINAL": "16:47:51",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:54",
+    "FINAL": "16:48:35",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26580,11 +24692,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:49",
-    "FINAL": "16:38:34",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:56",
+    "FINAL": "16:51:22",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26594,11 +24705,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:37:17",
-    "FINAL": "16:40:42",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:53:24",
+    "FINAL": "16:53:53",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26608,11 +24718,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:16:00",
-    "FINAL": "16:19:55",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:07",
+    "FINAL": "16:56:39",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-28 11:59:15",
@@ -26622,11 +24731,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:54:01",
-    "FINAL": "16:57:16",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:29",
+    "FINAL": "16:58:52",
+    "TEMPO": "00:00:23",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26636,11 +24744,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 22,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:51",
-    "FINAL": "16:29:26",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:57",
+    "TEMPO": "00:00:57",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26650,11 +24757,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:22",
-    "FINAL": "16:07:27",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:48",
+    "FINAL": "16:05:36",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26664,11 +24770,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:55",
-    "FINAL": "16:39:00",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:40",
+    "FINAL": "16:11:19",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26678,11 +24783,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:45:01",
-    "FINAL": "16:48:21",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:50",
+    "FINAL": "16:15:31",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26692,11 +24796,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:21:59",
-    "FINAL": "16:25:29",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:27",
+    "FINAL": "16:19:04",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26706,11 +24809,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:25",
-    "FINAL": "16:57:05",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:09",
+    "FINAL": "16:22:49",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26720,11 +24822,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:14",
-    "FINAL": "16:18:34",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:14",
+    "FINAL": "16:28:01",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26734,11 +24835,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:15",
-    "FINAL": "16:56:35",
-    "TEMPO": "00:04:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:05",
+    "FINAL": "16:34:03",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26748,11 +24848,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 200ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:57:24",
-    "FINAL": "16:59:39",
-    "TEMPO": "00:02:15",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:32",
+    "FINAL": "16:39:05",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26762,11 +24861,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:15",
-    "FINAL": "16:52:30",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:55",
+    "FINAL": "16:43:32",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26776,11 +24874,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:40:14",
-    "FINAL": "16:43:19",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:05",
+    "FINAL": "16:47:41",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26790,11 +24887,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:15:06",
-    "FINAL": "16:18:21",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:35",
+    "FINAL": "16:52:16",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-29 11:59:15",
@@ -26804,11 +24900,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:04:29",
-    "FINAL": "16:08:24",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:52",
+    "FINAL": "16:57:39",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26818,11 +24913,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:05",
-    "FINAL": "16:39:55",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:48",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26832,11 +24926,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 12,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:59",
-    "FINAL": "16:17:04",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:29",
+    "FINAL": "16:05:03",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26846,11 +24939,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:55:31",
-    "FINAL": "16:58:51",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:17",
+    "FINAL": "16:07:53",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26860,11 +24952,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:59",
-    "FINAL": "16:49:04",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:10:13",
+    "FINAL": "16:10:55",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26874,11 +24965,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:06",
-    "FINAL": "16:58:56",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:13:28",
+    "FINAL": "16:14:09",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26888,11 +24978,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:12:07",
-    "FINAL": "16:15:37",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:17",
+    "FINAL": "16:17:53",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26902,11 +24991,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:56:29",
-    "FINAL": "16:59:54",
-    "TEMPO": "00:03:25",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:24",
+    "FINAL": "16:21:05",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26916,11 +25004,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:30",
-    "FINAL": "16:48:15",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:14",
+    "FINAL": "16:25:00",
+    "TEMPO": "00:00:46",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26930,11 +25017,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:02:57",
-    "FINAL": "16:07:12",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:24",
+    "FINAL": "16:28:01",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26944,11 +25030,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:24:41",
-    "FINAL": "16:28:06",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:10",
+    "FINAL": "16:30:52",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26958,11 +25043,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML ",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:55:49",
-    "FINAL": "16:59:29",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:18",
+    "FINAL": "16:33:54",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26972,11 +25056,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:27:59",
-    "FINAL": "16:31:09",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:17",
+    "FINAL": "16:36:46",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -26986,11 +25069,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:17:10",
-    "FINAL": "16:20:00",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:46",
+    "FINAL": "16:39:23",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27000,11 +25082,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:24:54",
-    "FINAL": "16:27:59",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:41:54",
+    "FINAL": "16:42:24",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27014,11 +25095,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:49",
-    "FINAL": "16:57:54",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:10",
+    "FINAL": "16:45:39",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27028,11 +25108,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:38",
-    "FINAL": "16:23:53",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:44",
+    "FINAL": "16:48:20",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27042,11 +25121,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:00",
-    "FINAL": "16:09:10",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:59",
+    "FINAL": "16:51:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27056,11 +25134,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0007499999999999999,
-    "INICIO": "16:19:49",
-    "FINAL": "16:23:54",
-    "TEMPO": "00:04:05",
-    "META": "00:05:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:40",
+    "FINAL": "16:55:19",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-30 11:59:15",
@@ -27070,11 +25147,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:47:26",
-    "FINAL": "16:51:21",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:07",
+    "FINAL": "16:58:35",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27084,11 +25160,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:19",
-    "FINAL": "16:46:04",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27098,11 +25173,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:29",
-    "FINAL": "16:57:44",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:02:57",
+    "FINAL": "16:03:24",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27112,11 +25186,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:35:19",
-    "FINAL": "16:38:09",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:31",
+    "FINAL": "16:06:08",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27125,12 +25198,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:46:26",
-    "FINAL": "16:48:51",
-    "TEMPO": "00:02:25",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:08:36",
+    "FINAL": "16:09:08",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27140,11 +25212,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:33:22",
-    "FINAL": "16:36:27",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:17",
+    "FINAL": "16:11:58",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27154,11 +25225,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:16:13",
-    "FINAL": "16:19:53",
-    "TEMPO": "00:03:40",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:14:15",
+    "FINAL": "16:14:45",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27168,11 +25238,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:35:43",
-    "FINAL": "16:38:43",
-    "TEMPO": "00:03:00",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:17:09",
+    "FINAL": "16:17:40",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27182,11 +25251,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:01",
-    "FINAL": "16:29:06",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:54",
+    "FINAL": "16:20:26",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27196,11 +25264,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 200ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 6e-05,
-    "INICIO": "16:37:58",
-    "FINAL": "16:40:08",
-    "TEMPO": "00:02:10",
-    "META": "00:03:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:29",
+    "FINAL": "16:22:57",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27210,11 +25277,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:56",
-    "FINAL": "16:41:46",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:19",
+    "FINAL": "16:25:46",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27224,11 +25290,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 330ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 9.900000000000001e-05,
-    "INICIO": "16:40:19",
-    "FINAL": "16:42:54",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:18",
+    "FINAL": "16:28:42",
+    "TEMPO": "00:00:24",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27238,11 +25303,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:49:01",
-    "FINAL": "16:51:51",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:30:55",
+    "FINAL": "16:31:33",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27252,25 +25316,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:22:07",
-    "FINAL": "16:25:52",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:34:39",
+    "FINAL": "16:35:22",
+    "TEMPO": "00:00:43",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
     "Mês": "JULHO",
     "CodProduto": 6181,
     "Descricao": "AGUA MIN DIAS DAVILA S/GAS PET 500ML CAIXA C/12",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:18:07",
-    "FINAL": "16:21:02",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:37:39",
+    "FINAL": "16:38:11",
+    "TEMPO": "00:00:32",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27279,12 +25341,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SPATEN N LT 473ML CX CARTAO C/12",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:06:14",
-    "FINAL": "16:09:54",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:40:21",
+    "FINAL": "16:40:48",
+    "TEMPO": "00:00:26",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27294,11 +25355,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:33:40",
-    "FINAL": "16:37:00",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:42",
+    "FINAL": "16:43:21",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27308,11 +25368,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:46",
-    "FINAL": "16:17:31",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:45",
+    "FINAL": "16:46:18",
+    "TEMPO": "00:00:33",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27322,11 +25381,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:54:05",
-    "FINAL": "16:56:50",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:48:48",
+    "FINAL": "16:49:26",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27336,11 +25394,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:53:19",
-    "FINAL": "16:56:19",
-    "TEMPO": "00:03:00",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:28",
+    "FINAL": "16:53:02",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27350,11 +25407,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:02:59",
-    "FINAL": "16:06:04",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:58",
+    "FINAL": "16:55:36",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-07-31 11:59:15",
@@ -27364,11 +25420,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:38",
-    "FINAL": "16:29:13",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:07",
+    "FINAL": "16:58:35",
+    "TEMPO": "00:00:28",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27378,11 +25433,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 11,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:48:38",
-    "FINAL": "16:51:43",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27392,11 +25446,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:50",
-    "FINAL": "16:31:25",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:40",
+    "FINAL": "16:04:24",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27406,11 +25459,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:41:28",
-    "FINAL": "16:44:38",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:07:48",
+    "FINAL": "16:08:29",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27419,12 +25471,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 3,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:24:03",
-    "FINAL": "16:27:18",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:14:10",
+    "FINAL": "16:14:44",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27433,12 +25484,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "SKOL LT 473ML SH C/12 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:39:30",
-    "FINAL": "16:42:25",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:18:43",
+    "FINAL": "16:19:28",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27448,11 +25498,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:13",
-    "FINAL": "16:45:18",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:23:24",
+    "FINAL": "16:24:16",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27462,11 +25511,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:48:35",
-    "FINAL": "16:51:05",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:29:37",
+    "FINAL": "16:30:17",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27476,11 +25524,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:04:19",
-    "FINAL": "16:08:04",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:33:01",
+    "FINAL": "16:33:55",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27490,11 +25537,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0001065,
-    "INICIO": "16:22:29",
-    "FINAL": "16:25:59",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:12",
+    "FINAL": "16:39:47",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27504,11 +25550,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:05:27",
-    "FINAL": "16:09:12",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:08",
+    "FINAL": "16:45:47",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27518,11 +25563,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:54",
-    "FINAL": "16:29:29",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:50:20",
+    "FINAL": "16:51:14",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-03 11:59:15",
@@ -27532,11 +25576,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 250ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 7.5e-05,
-    "INICIO": "16:28:18",
-    "FINAL": "16:31:03",
-    "TEMPO": "00:02:45",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:00",
+    "FINAL": "16:57:45",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27546,11 +25589,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:43:53",
-    "FINAL": "16:47:08",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:34",
+    "TEMPO": "00:00:34",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27560,11 +25602,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:01:44",
-    "FINAL": "16:05:19",
-    "TEMPO": "00:03:35",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:16",
+    "FINAL": "16:09:03",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27574,11 +25615,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:28",
-    "FINAL": "16:41:13",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:18:18",
+    "FINAL": "16:19:02",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27588,11 +25628,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML ",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:33",
-    "FINAL": "16:34:48",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:56",
+    "FINAL": "16:32:34",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27602,11 +25641,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:29:46",
-    "FINAL": "16:33:46",
-    "TEMPO": "00:04:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:01",
+    "FINAL": "16:42:40",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27616,11 +25654,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:32:19",
-    "FINAL": "16:35:29",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:48",
+    "FINAL": "16:48:26",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-04 11:59:15",
@@ -27630,11 +25667,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:04:26",
-    "FINAL": "16:07:16",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:01",
+    "FINAL": "16:57:46",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27644,25 +25680,23 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:33:32",
-    "FINAL": "16:36:42",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:41",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
     "Mês": "AGOSTO",
     "CodProduto": 6181,
     "Descricao": "AGUA MIN DIAS DAVILA S/GAS PET 500ML CAIXA C/12",
-    "EMBALAGEM": 0,
+    "EMBALAGEM": "PET 500ML",
     "Quantidade": 6,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:51:23",
-    "FINAL": "16:54:08",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:04:18",
+    "FINAL": "16:05:07",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27672,11 +25706,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:45:45",
-    "FINAL": "16:49:25",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:07",
+    "FINAL": "16:08:52",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27686,11 +25719,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:13:40",
-    "FINAL": "16:16:55",
-    "TEMPO": "00:03:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:58",
+    "FINAL": "16:12:50",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27700,11 +25732,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:02:46",
-    "FINAL": "16:05:56",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:48",
+    "FINAL": "16:17:32",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27714,11 +25745,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:04",
-    "FINAL": "16:23:54",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:21:01",
+    "FINAL": "16:21:40",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27728,11 +25758,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:52:30",
-    "FINAL": "16:56:15",
-    "TEMPO": "00:03:45",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:25:05",
+    "FINAL": "16:25:55",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27742,11 +25771,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:31:23",
-    "FINAL": "16:34:28",
-    "TEMPO": "00:03:05",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:54",
+    "FINAL": "16:29:32",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27756,11 +25784,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:15:04",
-    "FINAL": "16:18:09",
-    "TEMPO": "00:03:05",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:31:50",
+    "FINAL": "16:32:40",
+    "TEMPO": "00:00:50",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27770,11 +25797,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:58",
-    "FINAL": "16:42:43",
-    "TEMPO": "00:03:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:35:46",
+    "FINAL": "16:36:25",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27784,11 +25810,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:06:56",
-    "FINAL": "16:10:36",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:38:36",
+    "FINAL": "16:39:28",
+    "TEMPO": "00:00:52",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27798,11 +25823,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:51:25",
-    "FINAL": "16:54:40",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:43:25",
+    "FINAL": "16:44:04",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27812,11 +25836,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1,5L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.00045,
-    "INICIO": "16:31:00",
-    "FINAL": "16:34:35",
-    "TEMPO": "00:03:35",
-    "META": "00:05:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:09",
+    "FINAL": "16:47:58",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27826,11 +25849,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:46:29",
-    "FINAL": "16:49:29",
-    "TEMPO": "00:03:00",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:52:06",
+    "FINAL": "16:53:04",
+    "TEMPO": "00:00:58",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-06 11:59:15",
@@ -27840,11 +25862,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:22:54",
-    "FINAL": "16:25:44",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:57:19",
+    "FINAL": "16:57:59",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27854,11 +25875,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 17,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:03:44",
-    "FINAL": "16:06:59",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27868,11 +25888,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 10,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:51:03",
-    "FINAL": "16:54:23",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:06",
+    "FINAL": "16:03:36",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27882,11 +25901,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 8,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:39:51",
-    "FINAL": "16:43:01",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:05:45",
+    "FINAL": "16:06:24",
+    "TEMPO": "00:00:39",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27896,11 +25914,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:27:46",
-    "FINAL": "16:30:31",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:33",
+    "FINAL": "16:09:09",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27910,11 +25927,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:42:46",
-    "FINAL": "16:46:56",
-    "TEMPO": "00:04:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:53",
+    "FINAL": "16:12:33",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27924,11 +25940,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:22:49",
-    "FINAL": "16:25:39",
-    "TEMPO": "00:02:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:15:25",
+    "FINAL": "16:16:03",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27938,11 +25953,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:00:24",
-    "FINAL": "16:02:54",
-    "TEMPO": "00:02:30",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:19:05",
+    "FINAL": "16:19:35",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27952,11 +25966,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:36:47",
-    "FINAL": "16:39:57",
-    "TEMPO": "00:03:10",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:22:05",
+    "FINAL": "16:22:46",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27965,12 +25978,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:17:54",
-    "FINAL": "16:20:29",
-    "TEMPO": "00:02:35",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:25:05",
+    "FINAL": "16:25:44",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27980,11 +25992,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 350ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:26:11",
-    "FINAL": "16:28:56",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:28:49",
+    "FINAL": "16:29:31",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -27993,12 +26004,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "BUDWEISER LATA 473ML SIX-PACK SH C/2 NPAL",
     "EMBALAGEM": "LATA 473ML",
     "Quantidade": 2,
-    "HECTO LITRO PERDIDO": 0.00014189999999999998,
-    "INICIO": "16:20:23",
-    "FINAL": "16:23:18",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.0001419,
+    "INICIO": "16:32:20",
+    "FINAL": "16:33:01",
+    "TEMPO": "00:00:41",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28008,11 +26018,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:34:52",
-    "FINAL": "16:38:12",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:17",
+    "FINAL": "16:36:52",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28022,11 +26031,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:46:29",
-    "FINAL": "16:50:44",
-    "TEMPO": "00:04:15",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:39:22",
+    "FINAL": "16:39:59",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28036,11 +26044,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:20:47",
-    "FINAL": "16:23:27",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:42:00",
+    "FINAL": "16:42:42",
+    "TEMPO": "00:00:42",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28050,11 +26057,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:25:57",
-    "FINAL": "16:28:52",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:45:42",
+    "FINAL": "16:46:09",
+    "TEMPO": "00:00:27",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28064,11 +26070,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:36:50",
-    "FINAL": "16:40:30",
-    "TEMPO": "00:03:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:55",
+    "FINAL": "16:48:32",
+    "TEMPO": "00:00:37",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28078,11 +26083,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:47",
-    "FINAL": "16:16:42",
-    "TEMPO": "00:02:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:36",
+    "FINAL": "16:52:14",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28092,11 +26096,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:14:09",
-    "FINAL": "16:16:54",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:54:55",
+    "FINAL": "16:55:24",
+    "TEMPO": "00:00:29",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-07 11:59:15",
@@ -28106,11 +26109,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:25:31",
-    "FINAL": "16:28:51",
-    "TEMPO": "00:03:20",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:58:00",
+    "FINAL": "16:58:30",
+    "TEMPO": "00:00:30",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28120,11 +26122,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:44:48",
-    "FINAL": "16:48:38",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:00:00",
+    "FINAL": "16:00:36",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28134,11 +26135,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 5,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:39:51",
-    "FINAL": "16:43:06",
-    "TEMPO": "00:03:15",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:03:49",
+    "FINAL": "16:04:42",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28148,11 +26148,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:54:42",
-    "FINAL": "16:57:27",
-    "TEMPO": "00:02:45",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:08:29",
+    "FINAL": "16:09:04",
+    "TEMPO": "00:00:35",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28162,11 +26161,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:31:09",
-    "FINAL": "16:34:34",
-    "TEMPO": "00:03:25",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:11:56",
+    "FINAL": "16:12:49",
+    "TEMPO": "00:00:53",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28176,11 +26174,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:37:57",
-    "FINAL": "16:41:47",
-    "TEMPO": "00:03:50",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:16:50",
+    "FINAL": "16:17:38",
+    "TEMPO": "00:00:48",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28190,11 +26187,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 4,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:47",
-    "FINAL": "16:53:17",
-    "TEMPO": "00:03:30",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:20:30",
+    "FINAL": "16:21:08",
+    "TEMPO": "00:00:38",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28204,11 +26200,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 3,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:36:23",
-    "FINAL": "16:39:03",
-    "TEMPO": "00:02:40",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:24:25",
+    "FINAL": "16:25:01",
+    "TEMPO": "00:00:36",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28218,11 +26213,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:38:33",
-    "FINAL": "16:41:13",
-    "TEMPO": "00:02:40",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:27:53",
+    "FINAL": "16:28:44",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28232,11 +26226,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 500ML",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.00015,
-    "INICIO": "16:02:24",
-    "FINAL": "16:05:39",
-    "TEMPO": "00:03:15",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:32:37",
+    "FINAL": "16:33:21",
+    "TEMPO": "00:00:44",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28246,11 +26239,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 1L",
     "Quantidade": 2,
     "HECTO LITRO PERDIDO": 0.0003,
-    "INICIO": "16:54:20",
-    "FINAL": "16:57:40",
-    "TEMPO": "00:03:20",
-    "META": "00:04:30",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:36:59",
+    "FINAL": "16:37:48",
+    "TEMPO": "00:00:49",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28260,11 +26252,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "LATA 355ML",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.000105,
-    "INICIO": "16:13:41",
-    "FINAL": "16:16:51",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:40:46",
+    "FINAL": "16:41:31",
+    "TEMPO": "00:00:45",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28273,12 +26264,11 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "Descricao": "ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12",
     "EMBALAGEM": "PET 510ML",
     "Quantidade": 1,
-    "HECTO LITRO PERDIDO": 0.00015299999999999998,
-    "INICIO": "16:54:46",
-    "FINAL": "16:57:51",
-    "TEMPO": "00:03:05",
-    "META": "00:03:30",
-    "META_BATIDA": "SIM"
+    "HECTO LITRO PERDIDO": 0.000153,
+    "INICIO": "16:44:29",
+    "FINAL": "16:45:10",
+    "TEMPO": "00:00:40",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28288,11 +26278,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:41:41",
-    "FINAL": "16:45:36",
-    "TEMPO": "00:03:55",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:47:58",
+    "FINAL": "16:48:52",
+    "TEMPO": "00:00:54",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28302,11 +26291,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:49:41",
-    "FINAL": "16:52:51",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:51:53",
+    "FINAL": "16:52:40",
+    "TEMPO": "00:00:47",
+    "META": "🟢 META BATIDA"
   },
   {
     "Data": "2026-08-10 11:59:15",
@@ -28316,11 +26304,10 @@ export const SAMPLE_DESPEJO_JSON: any = [
     "EMBALAGEM": "PET 2L",
     "Quantidade": 1,
     "HECTO LITRO PERDIDO": 0.0006,
-    "INICIO": "16:13:52",
-    "FINAL": "16:17:02",
-    "TEMPO": "00:03:10",
-    "META": "00:04:00",
-    "META_BATIDA": "SIM"
+    "INICIO": "16:56:35",
+    "FINAL": "16:57:26",
+    "TEMPO": "00:00:51",
+    "META": "🟢 META BATIDA"
   }
 
 ];

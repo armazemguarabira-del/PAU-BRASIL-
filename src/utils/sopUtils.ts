@@ -1,7 +1,7 @@
 // SOP / POP Process Standardization Service (Requirement 20)
 
 import { DEFAULT_POPS, OperationalModuleKey } from '../components/PadraoOperacionalModal';
-import { saveSopToIDB, deleteSopFromIDB, getCachedSopsFromMemory } from './sopStorage';
+import { saveSopToIDB, deleteSopFromIDB, getCachedSopsFromMemory, getCachedSopFile, saveSopFileToIDB } from './sopStorage';
 import { getUserRoleType } from './permissions';
 import { Usuario } from '../types';
 
@@ -743,7 +743,7 @@ export function deleteSop(sopId: string): void {
  * Blob URLs work seamlessly in modern browsers.
  */
 export function createSafePdfBlobUrl(fileUrl: string): string {
-  if (!fileUrl) return '';
+  if (!fileUrl || fileUrl === '#' || fileUrl === 'about:blank') return '';
   if (fileUrl.startsWith('blob:')) return fileUrl;
   if (fileUrl.startsWith('data:')) {
     try {
@@ -751,7 +751,7 @@ export function createSafePdfBlobUrl(fileUrl: string): string {
       const mimeMatch = parts[0].match(/:(.*?);/);
       const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
       const b64Data = parts[1];
-      if (!b64Data) return fileUrl;
+      if (!b64Data) return '';
       
       const byteCharacters = atob(b64Data);
       const byteArrays = [];
@@ -776,24 +776,40 @@ export function createSafePdfBlobUrl(fileUrl: string): string {
   return fileUrl;
 }
 
-export function openPdfInNewTab(fileUrl: string, fileName: string = 'Padrao_Operacional.pdf'): void {
-  if (!fileUrl) return;
+export function openPdfInNewTab(fileUrl: string, fileName: string = 'Padrao_Operacional.pdf', title?: string, code?: string): void {
+  if (!fileUrl || fileUrl === '#' || fileUrl === 'about:blank') {
+    alert('Documento PDF não possui anexo anexado ou está corrompido.');
+    return;
+  }
+  
+  // Dispatch global event for in-app viewer modal if registered
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('af_open_pdf_viewer', {
+      detail: { url: fileUrl, fileName, title, code }
+    }));
+  }
+
   const safeUrl = createSafePdfBlobUrl(fileUrl);
-  const newWin = window.open(safeUrl, '_blank');
-  if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+  if (!safeUrl) return;
+
+  // Open safe blob URL in target _blank without parent navigation
+  try {
     const a = document.createElement('a');
     a.href = safeUrl;
     a.target = '_blank';
-    a.rel = 'noreferrer';
+    a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  } catch (e) {
+    console.error('Erro ao abrir link do PDF:', e);
   }
 }
 
 export function downloadPdfFile(fileUrl: string, fileName: string = 'Padrao_Operacional.pdf'): void {
-  if (!fileUrl) return;
+  if (!fileUrl || fileUrl === '#' || fileUrl === 'about:blank') return;
   const safeUrl = createSafePdfBlobUrl(fileUrl);
+  if (!safeUrl) return;
   const a = document.createElement('a');
   a.href = safeUrl;
   a.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
