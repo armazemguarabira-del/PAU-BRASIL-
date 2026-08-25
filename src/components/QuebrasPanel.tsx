@@ -580,19 +580,6 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     try {
       await QuebrasRepository.create(newRow, empresa?.id || 'demo');
 
-      triggerAutoAcaoCorretiva({
-        processo: 'Gestão de Quebras',
-        colaboradorResponsavel: colaboradorQuebrou || user.nome,
-        indicador: 'Avaria e Quebra Físico-Operacional',
-        meta: '0.50% max',
-        resultadoObtido: `${quantidade} un (${selectedProd.descricao})`,
-        desvioEncontrado: `Quebra registrada na área ${area} (${chosenMotive}). Produto: ${selectedProd.descricao} [${selectedProd.codigo}]. Quantidade: ${quantidade} un.`,
-        comentarioOperador: `Ocorrência de quebra na área ${area}, turno ${turno}. Colaborador envolvido: ${colaboradorQuebrou || 'Não especificado'}`,
-        produto: selectedProd.descricao,
-        codigoProduto: String(selectedProd.codigo),
-        quantidade: Number(quantidade)
-      });
-
       setProdutoBusca('');
       setSelectedProd(null);
       setQuantidade('');

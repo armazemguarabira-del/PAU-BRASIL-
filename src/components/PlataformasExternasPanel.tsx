@@ -49,14 +49,27 @@ export interface AccessLogItem {
 
 const DEFAULT_PLATFORMS: ExternalPlatformTool[] = [
   {
+    id: 'fast-picking-dashboards',
+    name: 'Fast Picking — Dashboards & Separação',
+    category: 'Montagem, Separação & Expedição',
+    url: 'https://new.fastpicking.com.br/pickings/dashboards',
+    description: 'Portal oficial do Fast Picking para liberação de mapas, controle de montagem de paletes por coluna, acompanhamento de separação e BI em tempo real.',
+    instructions: '1. Acesse o menu de Separação > Liberar Mapas para enviar as tarefas para o Box.\n2. Monitore o SLA dos separadores e conferentes por baia.\n3. Realize o fechamento de carga com registro de PBRs e Km.',
+    status: 'active',
+    lastUpdatedBy: 'Sistema Oficial DPO',
+    lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
+    openMode: 'new_tab',
+    iconType: 'truck'
+  },
+  {
     id: 'retorno-rota',
     name: 'Plataforma de Retorno de Rota',
     category: 'Logística & Acerto de Rota',
-    url: 'https://retornoderota.paubrasil.com.br',
+    url: 'https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/',
     description: 'Ferramenta de gestão operacional para controle, aferimento e liquidação de retornos de rotas de entrega e acertos com motoristas.',
     instructions: '1. Verifique as notas de retorno e vales emitidos.\n2. Insira a placa da carreta/caminhão e o código da rota.\n3. Confirme os acertos físicos com a equipe de recepção.',
     status: 'active',
-    lastUpdatedBy: 'Sistema (Padrão)',
+    lastUpdatedBy: 'Sistema Oficial',
     lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
     openMode: 'new_tab',
     iconType: 'truck'
@@ -65,11 +78,11 @@ const DEFAULT_PLATFORMS: ExternalPlatformTool[] = [
     id: 'trocas-reposicoes',
     name: 'Plataforma de Trocas e Reposições',
     category: 'Garantia & Gestão de Avarias',
-    url: 'https://trocase-reposicoes.paubrasil.com.br',
+    url: 'https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/',
     description: 'Ferramenta de gestão para registros de trocas de produtos avariados, solicitações de reposição imediata de estoque e canal de tratativas de cliente.',
     instructions: '1. Selecione a filial/revenda e o código do produto.\n2. Anexe o laudo técnico ou foto da avaria de fábrica/cliente.\n3. Finalize a solicitação para gerar a ordem de reposição no armazém.',
     status: 'active',
-    lastUpdatedBy: 'Sistema (Padrão)',
+    lastUpdatedBy: 'Sistema Oficial',
     lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
     openMode: 'new_tab',
     iconType: 'refresh'

@@ -241,8 +241,8 @@ const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
 };
 
 export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashboardProps) {
-  const { targets, updateTarget } = useSystemTargets();
-  const metaProdutividadeCxH = targets.despejo_produtividade ?? 10;
+  const { targets, updateTarget } = useSystemTargets(empresa?.id);
+  const metaProdutividadeCxH = targets.despejo_produtividade ?? 40;
 
   const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3'>('produtividade');
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);

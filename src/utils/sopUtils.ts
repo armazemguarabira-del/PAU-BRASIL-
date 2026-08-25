@@ -34,31 +34,57 @@ export type SopModule =
   | 'estoque_x_picking'
   | 'marketplace'
   | 'central'
-  | 'contingencia';
+  | 'contingencia'
+  | 'treinamentos_qualidade'
+  | 'bloqueio_armazem'
+  | 'devolucao'
+  | 'contagem_inventario'
+  | 'gestao_ativos'
+  | 'qualidade_puxada'
+  | 'politica_estoque'
+  | 'simulador_ressuprimento'
+  | 'wlp'
+  | '5s_digital'
+  | 'temperatura'
+  | 'pragas'
+  | 'acoes';
 
 export const SOP_MODULES_LIST: { id: SopModule; label: string }[] = [
-  { id: 'quebras', label: 'Quebras' },
-  { id: 'repack', label: 'Repack' },
-  { id: 'despejo', label: 'Despejo' },
-  { id: 'picking', label: 'Picking' },
-  { id: 'gestao_capacidade', label: 'Gestão de Capacidade' },
-  { id: 'ressuprimento', label: 'Ressuprimento' },
-  { id: 'efc_efd', label: 'EFC / EFD (Pátio)' },
-  { id: 'ressuprimento_reabastecimento', label: 'Ressuprimento & Reabastecimento' },
-  { id: 'tmr', label: 'TMR (Revenda)' },
-  { id: 'empilhador', label: 'Operação Empilhador' },
-  { id: 'conferente', label: 'Conferente / ADM' },
-  { id: 'fefo', label: 'FEFO' },
-  { id: 'recebimento', label: 'Recebimento' },
-  { id: 'armazenagem', label: 'Armazenagem' },
-  { id: 'carregamento', label: 'Montagem' },
-  { id: 'efc', label: 'EFC' },
-  { id: 'efd', label: 'EFD' },
-  { id: 'estoque_x_estoque', label: 'Estoque x Estoque' },
-  { id: 'estoque_x_picking', label: 'Estoque x Picking' },
-  { id: 'marketplace', label: 'Marketplace' },
-  { id: 'central', label: 'Central' },
-  { id: 'contingencia', label: 'Contingência' },
+  { id: 'quebras', label: '💥 Quebras e Avarias' },
+  { id: 'repack', label: '📦 Repack (Reembalamento)' },
+  { id: 'despejo', label: '♻️ Despejo & Descarte' },
+  { id: 'fefo', label: '⏳ FEFO & Validades' },
+  { id: 'efc_efd', label: '🚚 EFC / EFD (Pátio & Carregamento)' },
+  { id: 'ressuprimento_reabastecimento', label: '🪵 Abastecimento & Reabastecimento (R&R)' },
+  { id: 'tmr', label: '🏬 TMR & Ciclo de Carretas' },
+  { id: 'empilhador', label: '🚜 Operação Empilhador' },
+  { id: 'conferente', label: '📋 Conferente & ADM Armazém' },
+  { id: 'carregamento', label: '📦 Montagem de Cargas (Fast Picking)' },
+  { id: 'treinamentos_qualidade', label: '🎓 Treinamentos de Qualidade (QLP)' },
+  { id: 'bloqueio_armazem', label: '🚫 Bloqueio no Armazém & PNC' },
+  { id: 'devolucao', label: '🔄 Devolução & Retorno de Rota' },
+  { id: 'contagem_inventario', label: '📊 Contagem de Inventário & Cíclico' },
+  { id: 'gestao_ativos', label: '♻️ Gestão de Ativos (PBR & Vasilhames)' },
+  { id: 'qualidade_puxada', label: '🚛 Qualidade da Puxada & Recebimento' },
+  { id: 'politica_estoque', label: '📈 Política de Estoque & Curva ABC' },
+  { id: 'simulador_ressuprimento', label: '🔄 Simulador de Ressuprimento' },
+  { id: 'contingencia', label: '🛡️ Área de Contingência' },
+  { id: 'gestao_capacidade', label: '🗺️ Gestão de Capacidade & Layout DPO' },
+  { id: 'wlp', label: '📉 WLP & Índice de Qualidade (WQI)' },
+  { id: '5s_digital', label: '✨ 5S Digital & Housekeeping' },
+  { id: 'temperatura', label: '🌡️ Padrão de Temperatura' },
+  { id: 'pragas', label: '🐜 Controle de Pragas & Higienização' },
+  { id: 'acoes', label: '🎯 Gestão de Ações & Governança SDPO' },
+  { id: 'picking', label: '🛒 Picking' },
+  { id: 'ressuprimento', label: '🔄 Ressuprimento' },
+  { id: 'recebimento', label: '📥 Recebimento' },
+  { id: 'armazenagem', label: '🏬 Armazenagem' },
+  { id: 'efc', label: '🚛 EFC' },
+  { id: 'efd', label: '🚚 EFD' },
+  { id: 'estoque_x_estoque', label: '📦 Estoque x Estoque' },
+  { id: 'estoque_x_picking', label: '🛒 Estoque x Picking' },
+  { id: 'marketplace', label: '🏪 Marketplace' },
+  { id: 'central', label: '🏢 Central Geral' },
 ];
 
 export interface CustomSopModule {
@@ -284,6 +310,431 @@ const DEFAULT_CENTRAL_SOPS: SopDocument[] = [
     historicoAlteracoes: [],
     criadoEm: '2026-05-20T08:00:00.000Z',
     atualizadoEm: '2026-05-20T08:00:00.000Z'
+  },
+  {
+    id: 'sop-fefo-01',
+    codigo: 'POP-FEFO-01',
+    nome: 'Controle de Validades e Giro FEFO no Armazém',
+    objetivo: 'Garantir que os produtos com data de vencimento mais próxima sejam expedidos primeiro (First Expired, First Out).',
+    descricao: 'Norma de rastreamento diário de lotes, bandeiras de criticidade e bloqueio automático de SKUs abaixo de 45 dias para o vencimento.',
+    passoAPasso: [
+      '1. Auditoria diária de etiquetas de lote nas posições de picking e pulmão.',
+      '2. Atualização dos lotes no painel FEFO da plataforma com status Crítico/Alerta/Normal.',
+      '3. Priorização imediata no roteamento de picking para lotes em alerta.',
+      '4. Bloqueio físico e sistêmico de produtos em risco iminente de vencimento (<30 dias).'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 03',
+    dataRevisao: '2026-07-15',
+    responsavel: 'Analista de Qualidade e FEFO',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['fefo'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-15T08:00:00.000Z',
+    atualizadoEm: '2026-07-15T08:00:00.000Z'
+  },
+  {
+    id: 'sop-efc-01',
+    codigo: 'POP-EFC-01',
+    nome: 'Eficiência de Carregamento e Despacho de Rotas (EFC/EFD)',
+    objetivo: 'Assegurar a partida pontual dos caminhões de entrega e carregamento sem gargalos de doca.',
+    descricao: 'Padrão operacional de alocação de docas, check-in de motoristas, conferência cega e liberação de manifesto de carga.',
+    passoAPasso: [
+      '1. Check-in do veículo na portaria com registro de horário no painel EFC.',
+      '2. Posicionamento na baia designada e colocação de calço de segurança nas rodas.',
+      '3. Carregamento ágil seguindo o mapa de cubagem e estabilidade do baú.',
+      '4. Lacração, conferência da nota fiscal e liberação para saída no horário da meta.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-06-10',
+    responsavel: 'Supervisor de Distribuição & Pátio',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['efc_efd', 'efc', 'efd', 'carregamento'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-02-10T08:00:00.000Z',
+    atualizadoEm: '2026-06-10T08:00:00.000Z'
+  },
+  {
+    id: 'sop-rr-01',
+    codigo: 'POP-RR-01',
+    nome: 'Abastecimento Contínuo e Reabastecimento Dinâmico (R&R)',
+    objetivo: 'Eliminar rupturas de picking durante a janela de separação através do ressuprimento preventivo do pulmão para a área de picking.',
+    descricao: 'Mapeamento de níveis de estoque mínimo, disparo de ondas de ressuprimento automático e movimentação de pallets inteiros.',
+    passoAPasso: [
+      '1. Monitoramento do mapa de calor de estoque de picking em tempo real.',
+      '2. Disparo de ordem de ressuprimento quando o nível atingir o Ponto de Reposição (30%).',
+      '3. Descida do pallet do porta-palete pelo operador de empilhadeira com trava de segurança.',
+      '4. Posicionamento e bipagem na posição de picking designada.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-07-20',
+    responsavel: 'Coordenador de Armazenagem',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['ressuprimento_reabastecimento', 'ressuprimento'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-03-01T08:00:00.000Z',
+    atualizadoEm: '2026-07-20T08:00:00.000Z'
+  },
+  {
+    id: 'sop-tmr-01',
+    codigo: 'POP-TMR-01',
+    nome: 'Gestão de Tempo Médio de Permanência de Carretas (TMR)',
+    objetivo: 'Garantir o descarregamento de carretas de fábrica e revenda dentro da janela máxima de 120 minutos.',
+    descricao: 'Fluxo de recepção de carretas, conferência de integridade de carga na puxada e rápida liberação de motoristas.',
+    passoAPasso: [
+      '1. Recepção da carreta no pátio e registro imediato de entrada no painel TMR.',
+      '2. Inspeção de lona, lacres e temperatura da carga.',
+      '3. Descarga simultânea com duas empilhadeiras em docas equipadas.',
+      '4. Liberação do motorista e registro do tempo total do ciclo.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 01',
+    dataRevisao: '2026-05-10',
+    responsavel: 'Analista de Logística / CCO',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['tmr'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-05-10T08:00:00.000Z',
+    atualizadoEm: '2026-05-10T08:00:00.000Z'
+  },
+  {
+    id: 'sop-emp-01',
+    codigo: 'POP-EMP-01',
+    nome: 'Operação Segura de Empilhadeiras e Movimentação Vertical',
+    objetivo: 'Zero acidentes de trabalho e preservação da integridade estrutural das mercadorias e estruturas porta-paletes.',
+    descricao: 'Checklist diário da máquina, limites de velocidade, regras de trânsito em cruzamentos e elevação segura de cargas.',
+    passoAPasso: [
+      '1. Realização do checklist pré-operacional (freios, buzina, vazamentos e garfos).',
+      '2. Velocidade máxima permitida de 10 km/h no armazém e uso contínuo do cinto de segurança.',
+      '3. Elevação do garfo somente com a empilhadeira parada em frente à posição de estocagem.',
+      '4. Nunca transitar com carga elevada.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 04',
+    dataRevisao: '2026-08-01',
+    responsavel: 'Engenharia de Segurança & Manutenção',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['empilhador'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-05T08:00:00.000Z',
+    atualizadoEm: '2026-08-01T08:00:00.000Z'
+  },
+  {
+    id: 'sop-cnf-01',
+    codigo: 'POP-CNF-01',
+    nome: 'Conferência Cega e Lançamento de Manifestos de Carga',
+    objetivo: 'Garantir 100% de acuracidade na conferência física versus nota fiscal na expedição e recebimento.',
+    descricao: 'Procedimento padrão de conferência item a item, contagem física de caixas e resolução de divergências.',
+    passoAPasso: [
+      '1. Recebimento do espelho cego de conferência sem visualização de quantidades prévias.',
+      '2. Contagem física das caixas e pallets na doca.',
+      '3. Registro das quantidades no coletor e validação de divergências.',
+      '4. Assinatura do termo de conferência e liberação para o motorista.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-06-25',
+    responsavel: 'Encarregado de Conferência',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['conferente'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-02-15T08:00:00.000Z',
+    atualizadoEm: '2026-06-25T08:00:00.000Z'
+  },
+  {
+    id: 'sop-trein-01',
+    codigo: 'POP-QLP-01',
+    nome: 'Treinamentos de Qualidade e Capacitação DPO (QLP)',
+    objetivo: 'Garantir que 100% dos operadores estejam treinados e certificados nos padrões de qualidade e segurança.',
+    descricao: 'Matriz de competências, frequência de reciclagens operacionais e registro de presença e eficácia.',
+    passoAPasso: [
+      '1. Mapeamento de operadores novatos ou com reciclagem pendente.',
+      '2. Aplicação do módulo teórico e prático com avaliação de retenção.',
+      '3. Registro do certificado e horas no histórico do colaborador.',
+      '4. Auditoria em campo de 30 dias para verificar aderência aos padrões.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-07-10',
+    responsavel: 'Analista de Treinamento e Qualidade',
+    status: 'Ativo',
+    escopo: 'compartilhado',
+    modulosVinculados: ['treinamentos_qualidade', 'acoes'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-03-10T08:00:00.000Z',
+    atualizadoEm: '2026-07-10T08:00:00.000Z'
+  },
+  {
+    id: 'sop-blq-01',
+    codigo: 'POP-BLQ-01',
+    nome: 'Bloqueio Preventivo e Gestão de Produtos Não Conformes (PNC)',
+    objetivo: 'Impedir a saída e entrega de qualquer produto com defeito de fábrica, desvio sensorial ou avaria.',
+    descricao: 'Critérios de segregação física na gaiola de bloqueio, emissão de fita zebrada e registro sistêmico.',
+    passoAPasso: [
+      '1. Identificação visual ou sensorial do desvio no lote.',
+      '2. Bloqueio sistêmico instantâneo na plataforma para impedir o picking.',
+      '3. Movimentação física do lote para a Área Segregada de Bloqueio.',
+      '4. Emissão de laudo com o laboratório da cervejaria e destinação final.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 03',
+    dataRevisao: '2026-08-05',
+    responsavel: 'Garantia da Qualidade & Supervisão',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['bloqueio_armazem'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-02-05T08:00:00.000Z',
+    atualizadoEm: '2026-08-05T08:00:00.000Z'
+  },
+  {
+    id: 'sop-dev-01',
+    codigo: 'POP-DEV-01',
+    nome: 'Recepção e Tratamento de Devoluções de Rota',
+    objetivo: 'Agilizar o retorno de mercadorias não entregues com triagem de qualidade e reintegração rápida ao estoque.',
+    descricao: 'Triagem de motivos de devolução (recusa, cliente fechado, avaria de transporte) e conferência de vasilhames.',
+    passoAPasso: [
+      '1. Recepção do caminhão de rota na doca de devolução.',
+      '2. Inspeção física da carga retornada e checagem da nota de devolução.',
+      '3. Segregação: produtos íntegros voltam ao estoque; avariados vão para Repack.',
+      '4. Lançamento da baixa sistêmica no painel de devoluções.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-06-30',
+    responsavel: 'Supervisor de Logística Reversa',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['devolucao'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-20T08:00:00.000Z',
+    atualizadoEm: '2026-06-30T08:00:00.000Z'
+  },
+  {
+    id: 'sop-inv-01',
+    codigo: 'POP-INV-01',
+    nome: 'Contagem de Inventário Cíclico e Auditoria de Posições',
+    objetivo: 'Garantir acuracidade de estoque superior a 99,8% em contagens físicas diárias.',
+    descricao: 'Divisão do armazém por setores ABC, contagem em duas rodadas independentes e conciliação de sobras e faltas.',
+    passoAPasso: [
+      '1. Emissão da lista de contagem cega por rua e nível.',
+      '2. Primeira contagem realizada pelo auditor independente.',
+      '3. Segunda contagem de reconferência nos itens com divergência.',
+      '4. Análise de causa raiz para qualquer discrepância antes do ajuste.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 03',
+    dataRevisao: '2026-07-25',
+    responsavel: 'Coordenador de Controladoria & Estoque',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['contagem_inventario'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-02-18T08:00:00.000Z',
+    atualizadoEm: '2026-07-25T08:00:00.000Z'
+  },
+  {
+    id: 'sop-atv-01',
+    codigo: 'POP-ATV-01',
+    nome: 'Gestão e Controle de Ativos Retornáveis (Paletes PBR e Vasilhames)',
+    objetivo: 'Manter o saldo positivo de paletes PBR e vasilhames retornáveis evitando perdas patrimoniais.',
+    descricao: 'Controle de entrada e saída de paletes com transportadoras e fábricas, triagem de paletes quebrados e reparo.',
+    passoAPasso: [
+      '1. Contagem física de paletes PBR vazios em toda descarga e carregamento.',
+      '2. Inspeção de integridade: separar paletes com tocos soltos ou tábuas trincadas.',
+      '3. Emissão do comprovante de troca de ativo com o motorista.',
+      '4. Atualização diária do saldo devedor/credor de vasilhames na plataforma.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 01',
+    dataRevisao: '2026-05-15',
+    responsavel: 'Gestor de Ativos Retornáveis',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['gestao_ativos'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-05-15T08:00:00.000Z',
+    atualizadoEm: '2026-05-15T08:00:00.000Z'
+  },
+  {
+    id: 'sop-pux-01',
+    codigo: 'POP-PUX-01',
+    nome: 'Qualidade da Puxada e Auditoria de Cargas Recebidas',
+    objetivo: 'Garantir que cargas vindas das fábricas cheguem sem tombamentos, avarias ou inconformidades de estiva.',
+    descricao: 'Auditoria visual de pallets, medição de altura, verificação de cantoneiras e registro fotográfico de avarias de transporte.',
+    passoAPasso: [
+      '1. Abertura do baú na presença do motorista para registro fotográfico inicial.',
+      '2. Avaliação de inclinação de pallets e amarração com fita.',
+      '3. Apontamento de avarias de trânsito para imputação à transportadora.',
+      '4. Lançamento do formulário de Qualidade da Puxada com índice de assertividade.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-06-18',
+    responsavel: 'Líder de Recebimento de Carga',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['qualidade_puxada'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-03-12T08:00:00.000Z',
+    atualizadoEm: '2026-06-18T08:00:00.000Z'
+  },
+  {
+    id: 'sop-cap-01',
+    codigo: 'PB-GBA-LAY-01',
+    nome: 'Gestão de Layout, Endereçamento e Capacidade Estática',
+    objetivo: 'Maximizar a taxa de ocupação do armazém garantindo fluidez logística e respeito às alturas máximas de empilhamento.',
+    descricao: 'Definição de ruas de alto fluxo, zoneamento de picking por giro (Curva ABC) e restrições de empilhamento por embalagem.',
+    passoAPasso: [
+      '1. Posicionamento de SKUs Curva A nas posições mais próximas da doca de expedição.',
+      '2. Respeito rigoroso aos limites de empilhamento vertical (máximo 3 alturas para PBR com lata, 2 para vidro).',
+      '3. Manutenção das faixas amarelas e saídas de emergência 100% desobstruídas.',
+      '4. Atualização semanal da taxa de ocupação volumétrica no dashboard.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 04',
+    dataRevisao: '2026-08-01',
+    responsavel: 'Coordenador de Armazém e Layout DPO',
+    status: 'Ativo',
+    escopo: 'compartilhado',
+    modulosVinculados: ['gestao_capacidade', 'empilhador', 'picking'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-08T08:00:00.000Z',
+    atualizadoEm: '2026-08-01T08:00:00.000Z'
+  },
+  {
+    id: 'sop-5s-01',
+    codigo: 'POP-5S-01',
+    nome: 'Auditoria 5S Digital, Organização e Housekeeping do Armazém',
+    objetivo: 'Manter o ambiente de trabalho limpo, organizado, seguro e produtivo em conformidade com os pilares DPO.',
+    descricao: 'Rotina de limpeza das ruas, destinação de restos de filme stretch, organização de ferramentas e pontuação 5S.',
+    passoAPasso: [
+      '1. Realização do Seiri (Descarte): retirar das ruas paletes quebrados e materiais sem uso.',
+      '2. Realização do Seiton (Organização): manter carrinhos e paleteiras estacionados nas vagas demarcadas.',
+      '3. Realização do Seiso (Limpeza): recolher cacos de vidro, plástico e poeira ao término do turno.',
+      '4. Auditoria semanal com nota mínima de corte de 95% de conformidade.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 03',
+    dataRevisao: '2026-07-05',
+    responsavel: 'Comitê 5S & Segurança do Trabalho',
+    status: 'Ativo',
+    escopo: 'compartilhado',
+    modulosVinculados: ['5s_digital', 'acoes'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-02-12T08:00:00.000Z',
+    atualizadoEm: '2026-07-05T08:00:00.000Z'
+  },
+  {
+    id: 'sop-tmp-01',
+    codigo: 'POP-TMP-01',
+    nome: 'Monitoramento de Temperatura e Termohigrometria do Armazém',
+    objetivo: 'Preservar a estabilidade sensorial da cerveja garantindo estocagem em temperatura adequada (< 28°C).',
+    descricao: 'Leitura diária dos termômetros digitais nos quatro quadrantes do armazém e acionamento de exaustores em picos térmicos.',
+    passoAPasso: [
+      '1. Leitura dos 4 termohigrômetros às 08h, 12h e 16h.',
+      '2. Registro no sistema da temperatura ambiente e umidade relativa.',
+      '3. Acionamento do sistema forçado de ventilação se temperatura > 27°C.',
+      '4. Registro de alerta de qualidade se ultrapassar a faixa de tolerância por mais de 4 horas.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 01',
+    dataRevisao: '2026-04-20',
+    responsavel: 'Técnico de Qualidade Assegurada',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['temperatura'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-04-20T08:00:00.000Z',
+    atualizadoEm: '2026-04-20T08:00:00.000Z'
+  },
+  {
+    id: 'sop-prg-01',
+    codigo: 'POP-PRG-01',
+    nome: 'Controle Integrado de Pragas e Higienização de Perímetro',
+    objetivo: 'Garantir zero contaminação de produtos e embalagens por roedores, pássaros ou insetos.',
+    descricao: 'Inspeção semanal das iscas de atração, barreiras físicas nas portas de doca e controle de vegetação no entorno.',
+    passoAPasso: [
+      '1. Inspeção do mapa de porta-iscas numerados e lacrados.',
+      '2. Manutenção de portas de doca fechadas quando não houver caminhão operando.',
+      '3. Vistoria diária de ralos e telas de proteção contra entrada de aves.',
+      '4. Registro do certificado da empresa de dedetização autorizada.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 02',
+    dataRevisao: '2026-06-05',
+    responsavel: 'Engenharia de Meio Ambiente e Saúde',
+    status: 'Ativo',
+    escopo: 'exclusivo',
+    modulosVinculados: ['pragas'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-25T08:00:00.000Z',
+    atualizadoEm: '2026-06-05T08:00:00.000Z'
+  },
+  {
+    id: 'sop-act-01',
+    codigo: 'POP-SDPO-01',
+    nome: 'Gestão da Rotina, Governança SDPO e Planos de Ação 5 Porquês',
+    objetivo: 'Garantir o fechamento de desvios operacionais com análise de causa raiz e planos de ação eficazes no prazo.',
+    descricao: 'Aplicação dos 5 Porquês para qualquer meta não atingida no dia, atribuição de responsável e acompanhamento no CCO.',
+    passoAPasso: [
+      '1. Identificação do desvio no fechamento diário do indicador operacional.',
+      '2. Realização da sessão dos 5 Porquês com o operador e liderança direta.',
+      '3. Cadastro do plano de ação com Ação Corretiva, Responsável e Prazo Máximo.',
+      '4. Validação semanal da eficácia e encerramento do plano de ação.'
+    ],
+    fotos: [],
+    videos: [],
+    anexos: [],
+    revisao: 'Rev 04',
+    dataRevisao: '2026-08-10',
+    responsavel: 'Gerência de Operações & Excelência SDPO',
+    status: 'Ativo',
+    escopo: 'compartilhado',
+    modulosVinculados: ['acoes', 'wlp', 'politica_estoque'],
+    historicoAlteracoes: [],
+    criadoEm: '2026-01-02T08:00:00.000Z',
+    atualizadoEm: '2026-08-10T08:00:00.000Z'
   }
 ];
 
@@ -372,6 +823,17 @@ export interface SopViewOption {
   description?: string;
 }
 
+export function resolveSopFile(key: string, existingUrl?: string, existingName?: string): { fileUrl?: string; fileName?: string } {
+  const cached = getCachedSopFile(key);
+  if (cached && cached.dataUrl && cached.dataUrl !== '#' && cached.dataUrl !== 'about:blank') {
+    return { fileUrl: cached.dataUrl, fileName: cached.name || existingName };
+  }
+  if (existingUrl && existingUrl !== '#' && existingUrl !== 'about:blank') {
+    return { fileUrl: existingUrl, fileName: existingName };
+  }
+  return { fileUrl: undefined, fileName: existingName };
+}
+
 export function getAllSopsForOperationList(operation: string): SopViewOption[] {
   const normKey = (operation || 'repack').toLowerCase().trim() as OperationalModuleKey;
   const deletedSet = getDeletedSopIds();
@@ -411,6 +873,8 @@ export function getAllSopsForOperationList(operation: string): SopViewOption[] {
         if (parsed.title || parsed.nome || parsed.fileUrl) {
           const itemTitle = parsed.title || parsed.nome || 'Padrão Operacional';
           const itemCode = parsed.code || `POP-${k.toUpperCase()}`;
+          const resolved = resolveSopFile(k, parsed.fileUrl || parsed.anexos?.[0]?.url, parsed.fileName || parsed.anexos?.[0]?.nome || `${itemCode}.pdf`);
+          
           if (!addedIds.has(itemId)) {
             addedIds.add(itemId);
             result.push({
@@ -421,8 +885,8 @@ export function getAllSopsForOperationList(operation: string): SopViewOption[] {
               steps: Array.isArray(parsed.steps) 
                 ? parsed.steps.map((s: any) => typeof s === 'string' ? s : `${s.step || ''}. ${s.title}: ${s.description}`) 
                 : (parsed.passoAPasso || []),
-              fileUrl: parsed.fileUrl || (parsed.anexos?.[0]?.url),
-              fileName: parsed.fileName || (parsed.anexos?.[0]?.nome) || `${itemCode}.pdf`,
+              fileUrl: resolved.fileUrl,
+              fileName: resolved.fileName,
               description: parsed.content || parsed.description || parsed.objetivo || parsed.descricao
             });
           }
@@ -438,14 +902,15 @@ export function getAllSopsForOperationList(operation: string): SopViewOption[] {
     const itemId = `default-pop-${matchingDefaultKey}`;
     if (!addedIds.has(itemId) && !deletedSet.has(itemId)) {
       addedIds.add(itemId);
+      const resolved = resolveSopFile(matchingDefaultKey, pop.fileUrl, pop.fileName || `${pop.code}.pdf`);
       result.push({
         id: itemId,
         code: pop.code,
         title: pop.title,
         displayName: `${pop.code} - ${pop.title}`,
         steps: pop.steps ? pop.steps.map(s => `${s.step}. ${s.title}: ${s.description}`) : [],
-        fileUrl: pop.fileUrl,
-        fileName: pop.fileName || `${pop.code}.pdf`,
+        fileUrl: resolved.fileUrl,
+        fileName: resolved.fileName,
         description: pop.content || pop.objetivo
       });
     }
@@ -469,14 +934,15 @@ export function getAllSopsForOperationList(operation: string): SopViewOption[] {
       if (matches && !addedIds.has(sop.id)) {
         addedIds.add(sop.id);
         const firstAnexo = sop.anexos?.[0];
+        const resolved = resolveSopFile(sop.id, firstAnexo?.url, firstAnexo?.nome || `${sop.codigo}.pdf`);
         result.push({
           id: sop.id,
           code: sop.codigo,
           title: sop.nome,
           displayName: `${sop.codigo} - ${sop.nome}`,
           steps: sop.passoAPasso || [],
-          fileUrl: firstAnexo?.url,
-          fileName: firstAnexo?.nome || `${sop.codigo}.pdf`,
+          fileUrl: resolved.fileUrl,
+          fileName: resolved.fileName,
           description: sop.objetivo || sop.descricao
         });
       }
@@ -513,14 +979,15 @@ export function getSopForOperation(operation: string): { code?: string; title: s
     if (rawSaved) {
       const parsed = JSON.parse(rawSaved);
       if (parsed.title || parsed.nome || parsed.fileUrl) {
+        const resolved = resolveSopFile(normKey, parsed.fileUrl || (parsed.anexos?.[0]?.url), parsed.fileName || (parsed.anexos?.[0]?.nome));
         return {
           code: parsed.code,
           title: parsed.code ? `${parsed.code} - ${parsed.title || parsed.nome}` : (parsed.title || parsed.nome || 'Padrão Operacional'),
           steps: Array.isArray(parsed.steps) 
             ? parsed.steps.map((s: any) => typeof s === 'string' ? s : `${s.step || ''}. ${s.title}: ${s.description}`) 
             : (parsed.passoAPasso || []),
-          fileUrl: parsed.fileUrl || (parsed.anexos?.[0]?.url),
-          fileName: parsed.fileName || (parsed.anexos?.[0]?.nome),
+          fileUrl: resolved.fileUrl,
+          fileName: resolved.fileName,
           description: parsed.content || parsed.description || parsed.objetivo || parsed.descricao
         };
       }
@@ -530,12 +997,13 @@ export function getSopForOperation(operation: string): { code?: string; title: s
   // 2. Direct match from DEFAULT_POPS for this specific module key
   if (DEFAULT_POPS[normKey] || DEFAULT_POPS[targetKey]) {
     const pop = DEFAULT_POPS[normKey] || DEFAULT_POPS[targetKey];
+    const resolved = resolveSopFile(normKey, pop.fileUrl, pop.fileName);
     return {
       code: pop.code,
       title: `${pop.code} - ${pop.title}`,
       steps: pop.steps ? pop.steps.map(s => `${s.step}. ${s.title}: ${s.description}`) : [],
-      fileUrl: pop.fileUrl,
-      fileName: pop.fileName,
+      fileUrl: resolved.fileUrl,
+      fileName: resolved.fileName,
       description: pop.content || pop.objetivo
     };
   }
@@ -553,12 +1021,13 @@ export function getSopForOperation(operation: string): { code?: string; title: s
 
     if (specificSop) {
       const firstAnexo = specificSop.anexos?.[0];
+      const resolved = resolveSopFile(specificSop.id, firstAnexo?.url, firstAnexo?.nome);
       return {
         code: specificSop.codigo,
         title: `${specificSop.codigo} - ${specificSop.nome}`,
         steps: specificSop.passoAPasso || [],
-        fileUrl: firstAnexo?.url,
-        fileName: firstAnexo?.nome,
+        fileUrl: resolved.fileUrl,
+        fileName: resolved.fileName,
         description: specificSop.objetivo || specificSop.descricao
       };
     }

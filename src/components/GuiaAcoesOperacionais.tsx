@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Usuario } from '../types';
-import { Search, AlertTriangle, Clock, CheckCircle2, Play, MessageSquare, Send, ShieldCheck, FilterX, Trash2 } from 'lucide-react';
+import { Search, AlertTriangle, Clock, CheckCircle2, Play, MessageSquare, Send, ShieldCheck, FilterX, Trash2, Sparkles, Check } from 'lucide-react';
 import { db } from '../firebase';
+import { getAcoesAll, cleanAllAutomaticActionsFromStorage, AcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 
 export interface ActionItem {
   id: string;
@@ -21,6 +22,7 @@ export interface ActionItem {
   parecerColaborador?: string;
   resolvidaEm?: string;
   tipo?: string;
+  origem?: string;
 }
 
 interface GuiaAcoesOperacionaisProps {
@@ -34,69 +36,108 @@ export const GuiaAcoesOperacionais: React.FC<GuiaAcoesOperacionaisProps> = ({ us
   const [actionsList, setActionsList] = useState<ActionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentsMap, setCommentsMap] = useState<Record<string, string>>({});
+  const [showFeedbackCleaned, setShowFeedbackCleaned] = useState(false);
 
-  // Fetch actions for user & role from Firestore and LocalStorage
+  // Fetch actions for user & role from Dashboards, Governança, Firestore and LocalStorage (PURGING AUTOMATIC ONES)
   const loadActions = async () => {
     setLoading(true);
     let loaded: ActionItem[] = [];
 
-    // 1. Try fetching from Firestore
+    // 1. Clean automatic mock/spam actions from storage
+    cleanAllAutomaticActionsFromStorage();
+
+    // 2. Fetch actions from Global Governance & Dashboards (simulacaoAcoesUtils)
+    try {
+      const globalAcoes = getAcoesAll();
+      globalAcoes.forEach(item => {
+        const idStr = String(item.id || '');
+        const isAuto = idStr.startsWith('auto-') || idStr.startsWith('acao-2026-') || idStr.startsWith('acao-auto-') || idStr.startsWith('melhoria-auto-') || item.simulado;
+        if (!isAuto) {
+          loaded.push({
+            id: String(item.id),
+            titulo: item.indicador || item.desvioEncontrado || 'Ação de Governança',
+            indicador: item.indicador || item.processo,
+            desvioEncontrado: item.desvioEncontrado,
+            descricao: item.contramedida || item.causaRaizDetalhe || item.desvioEncontrado || 'Tratativa de plano de ação.',
+            processo: item.processo || roleName,
+            responsavel: item.colaboradorResponsavel || item.responsavelTratativa || user.nome,
+            colaboradorNome: item.colaboradorResponsavel,
+            criadoEm: item.criadoEm || item.dataISO || new Date().toISOString(),
+            prazo: item.prazo || 'Prazo 7 Dias',
+            status: item.status === 'Concluído' ? 'concluido' : item.status === 'Em Andamento' ? 'em_andamento' : 'pendente',
+            contramedida: item.contramedida,
+            parecerColaborador: item.comentarioOperador,
+            resolvidaEm: item.status === 'Concluído' ? (item.dataFechamento || item.prazo) : undefined,
+            origem: 'dashboard_governanca'
+          });
+        }
+      });
+    } catch (e) {
+      console.warn("Error reading global dashboard actions:", e);
+    }
+
+    // 3. Try fetching from Firestore (real human actions created in UI)
     try {
       const { collection, getDocs } = await import('firebase/firestore');
       const snap = await getDocs(collection(db, 'acoes'));
       if (!snap.empty) {
         snap.docs.forEach(doc => {
           const data = doc.data();
-          loaded.push({
-            id: doc.id,
-            titulo: data.titulo || data.indicador || data.desvioEncontrado || 'Ação Operacional',
-            indicador: data.indicador || data.processo || 'Operação',
-            desvioEncontrado: data.desvioEncontrado || data.descricao,
-            descricao: data.descricao || data.contramedida || 'Acompanhar alinhamento operacional.',
-            processo: data.processo || roleName,
-            responsavel: data.responsavel || data.colaboradorNome || user.nome,
-            colaboradorId: data.colaboradorId,
-            colaboradorNome: data.colaboradorNome || data.colaborador,
-            criadoEm: data.criadoEm || new Date().toISOString(),
-            prazo: data.prazo || data.limiteEm || 'Prazo Padrão 7 Dias',
-            limiteEm: data.limiteEm,
-            status: data.status || 'pendente',
-            contramedida: data.contramedida,
-            parecerColaborador: data.parecerColaborador || data.comentario,
-            resolvidaEm: data.resolvidaEm
-          });
+          const docId = String(doc.id || '');
+          const isAutoDoc = docId.startsWith('auto-') || docId.startsWith('acao-2026-') || data.isAutomatica || data.origem === 'automatica' || data.simulado;
+          if (!isAutoDoc && !loaded.some(a => a.id === docId)) {
+            loaded.push({
+              id: docId,
+              titulo: data.titulo || data.indicador || data.desvioEncontrado || 'Ação Operacional',
+              indicador: data.indicador || data.processo || 'Operação',
+              desvioEncontrado: data.desvioEncontrado || data.descricao,
+              descricao: data.descricao || data.contramedida || 'Acompanhar alinhamento operacional.',
+              processo: data.processo || roleName,
+              responsavel: data.responsavel || data.colaboradorNome || data.colaboradorResponsavel || user.nome,
+              colaboradorId: data.colaboradorId,
+              colaboradorNome: data.colaboradorNome || data.colaborador || data.colaboradorResponsavel,
+              criadoEm: data.criadoEm || new Date().toISOString(),
+              prazo: data.prazo || data.limiteEm || 'Prazo Padrão 7 Dias',
+              limiteEm: data.limiteEm,
+              status: data.status || 'pendente',
+              contramedida: data.contramedida,
+              parecerColaborador: data.parecerColaborador || data.comentario,
+              resolvidaEm: data.resolvidaEm,
+              origem: 'firestore'
+            });
+          }
         });
       }
     } catch (err) {
       console.warn("Firestore acoes fetch error (using fallback):", err);
     }
 
-    // 2. LocalStorage Fallback
+    // 4. LocalStorage Fallback (af_desvios_acoes_v2)
     try {
       const local = localStorage.getItem('af_desvios_acoes_v2');
       if (local) {
         const parsed = JSON.parse(local);
         if (Array.isArray(parsed)) {
           parsed.forEach((item: any) => {
-            // Ignorar ações marcadas como automáticas do sistema se houver
-            if (item.isAutomatica || item.origem === 'automatica' || item.tipo === 'automatica') {
-              return;
-            }
-            if (!loaded.some(a => a.id === item.id)) {
+            const itemId = String(item.id || '');
+            const isAutoItem = itemId.startsWith('auto-') || itemId.startsWith('acao-2026-') || itemId.startsWith('acao-auto-') || itemId.startsWith('melhoria-auto-') || item.isAutomatica || item.origem === 'automatica' || item.tipo === 'automatica' || item.simulado;
+            if (!isAutoItem && !loaded.some(a => a.id === itemId)) {
               loaded.push({
-                id: String(item.id),
+                id: itemId,
                 titulo: item.indicador || item.desvioEncontrado || 'Tratativa Operacional',
                 indicador: item.indicador || item.processo,
                 desvioEncontrado: item.desvioEncontrado,
                 descricao: item.contramedida || item.causaRaiz || 'Atendimento de ocorrência operacional.',
                 processo: item.processo || roleName,
-                responsavel: item.responsavelTratativa || item.responsavel || user.nome,
-                criadoEm: item.dataCriacao || new Date().toISOString(),
+                responsavel: item.colaboradorResponsavel || item.responsavelTratativa || item.responsavel || user.nome,
+                colaboradorNome: item.colaboradorResponsavel || item.colaboradorNome,
+                criadoEm: item.dataCriacao || item.criadoEm || new Date().toISOString(),
                 prazo: item.prazo || 'Prazo 7 Dias',
                 status: item.status === 'Concluído' ? 'concluido' : item.status === 'Em Andamento' ? 'em_andamento' : 'pendente',
                 contramedida: item.contramedida,
-                parecerColaborador: item.observacao,
-                resolvidaEm: item.dataConclusao
+                parecerColaborador: item.observacao || item.parecerColaborador,
+                resolvidaEm: item.dataConclusao || item.resolvidaEm,
+                origem: 'dashboard_desvio'
               });
             }
           });
@@ -104,29 +145,38 @@ export const GuiaAcoesOperacionais: React.FC<GuiaAcoesOperacionaisProps> = ({ us
       }
     } catch (e) {}
 
-    // Remover qualquer ação puramente automática do sistema
-    loaded = loaded.filter(a => !(a.id.startsWith('auto-') || (a as any).isAutomatica));
+    // Remover estritamente qualquer ação puramente automática do sistema
+    loaded = loaded.filter(a => {
+      const idStr = String(a.id || '');
+      return !idStr.startsWith('auto-') && 
+             !idStr.startsWith('acao-2026-') && 
+             !idStr.startsWith('acao-auto-') && 
+             !idStr.startsWith('melhoria-auto-') &&
+             !(a as any).isAutomatica &&
+             !(a as any).simulado;
+    });
 
     setActionsList(loaded);
     setLoading(false);
   };
 
   const handleClearAutomaticActions = () => {
-    try {
-      const local = localStorage.getItem('af_desvios_acoes_v2');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter((item: any) => !item.id?.toString().startsWith('auto-') && !item.isAutomatica && item.origem !== 'automatica');
-          localStorage.setItem('af_desvios_acoes_v2', JSON.stringify(cleaned));
-        }
-      }
-      loadActions();
-    } catch (e) {}
+    const res = cleanAllAutomaticActionsFromStorage();
+    setShowFeedbackCleaned(true);
+    setTimeout(() => setShowFeedbackCleaned(false), 4000);
+    loadActions();
   };
 
   useEffect(() => {
     loadActions();
+
+    const handleUpdate = () => loadActions();
+    window.addEventListener('af_acoes_updated', handleUpdate);
+    window.addEventListener('af_acoes_cleaned', handleUpdate);
+    return () => {
+      window.removeEventListener('af_acoes_updated', handleUpdate);
+      window.removeEventListener('af_acoes_cleaned', handleUpdate);
+    };
   }, [user.uid, roleName]);
 
   // Normalize status string
@@ -266,6 +316,13 @@ export const GuiaAcoesOperacionais: React.FC<GuiaAcoesOperacionaisProps> = ({ us
           </button>
         </div>
       </div>
+
+      {showFeedbackCleaned && (
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 rounded-xl flex items-center gap-2.5 text-emerald-800 dark:text-emerald-200 text-xs font-bold shadow-xs animate-fadeIn">
+          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>Ações automáticas e simuladas removidas com sucesso! Exibindo apenas ações direcionadas dos Dashboards e da Governança.</span>
+        </div>
+      )}
 
       {/* STATUS TABS - STRICTLY 3 TABS (PENDENTES, EM ANDAMENTO, CONCLUÍDA) */}
       <div className="grid grid-cols-3 gap-2 bg-slate-100 dark:bg-[#090f1c] p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">

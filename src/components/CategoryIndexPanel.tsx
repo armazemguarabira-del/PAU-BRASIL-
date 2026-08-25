@@ -110,6 +110,14 @@ export const CATEGORY_DEFINITIONS: Record<
         color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
       },
       {
+        id: 'montagem-carregamento',
+        label: 'Montagem e Carregamento',
+        description: 'Painel e BI do Fast Picking, SLA de montagem por coluna, carregamento e auditoria DPO.',
+        icon: <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
+        badge: 'Fast Picking',
+        color: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60'
+      },
+      {
         id: 'repack-dashboard',
         label: 'Dashboard Repack',
         description: 'Indicadores de produtividade, velocidade cx/h e histórico do Repack.',
@@ -204,14 +212,6 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <ClipboardCheck className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
         badge: 'DTO DPO',
         color: 'border-blue-500/40 bg-blue-500/10 hover:border-blue-500/70 shadow-sm'
-      },
-      {
-        id: 'plataformas-externas',
-        label: 'Plataforma Retorno de Rota, Trocas & Reposições',
-        description: 'Ferramentas de Gestão com links de redirecionamento para Plataforma de Retorno de Rota e Plataforma de Trocas e Reposições.',
-        icon: <ExternalLink className="w-5 h-5 text-sky-600 dark:text-sky-400" />,
-        badge: 'Redirecionamentos',
-        color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
       },
       {
         id: 'auditoria-dpo',

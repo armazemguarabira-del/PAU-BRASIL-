@@ -109,18 +109,6 @@ export default function SimuladorRessuprimentoPanel({ user }: SimuladorRessuprim
       isSimulated: false
     };
 
-    if (isExceeded) {
-      triggerAutoAcaoCorretiva({
-        processo: 'Ressuprimento',
-        colaboradorResponsavel: user.nome,
-        indicador: '% Ressuprimento de Picking',
-        meta: `≤ ${metaRessuprimento}%`,
-        resultadoObtido: `${pctRes}%`,
-        desvioEncontrado: `Percentual de Ressuprimento no dia ${newDate} atingiu ${pctRes}%, excedendo a meta estipulada de ≤ ${metaRessuprimento}%.`,
-        comentarioOperador: `Estouro de meta registrado no lançamento do Ressuprimento (${res} pallets ressupridos vs ${reab} reabastecidos).`
-      });
-    }
-
     const updated = [entry, ...historico];
     setHistorico(updated);
     salvarHistoricoYTDResuprimento('demo', updated);

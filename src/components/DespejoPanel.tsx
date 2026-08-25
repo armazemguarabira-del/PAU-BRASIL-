@@ -222,18 +222,6 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     try {
       await DespejoRepository.create(newRow, empresa?.id || 'demo');
 
-      if (statusMeta.includes('ACIMA')) {
-        triggerAutoAcaoCorretiva({
-          processo: 'Despejo',
-          colaboradorResponsavel: user.nome,
-          indicador: `Produtividade Despejo (${embalagem})`,
-          meta: activeMeta,
-          resultadoObtido: tempo,
-          desvioEncontrado: `Não atingimento da meta no Despejo de ${embalagem}. Tempo realizado (${tempo}) excedeu a meta unitária (${activeMeta}). Qtd: ${quantidade} unidades.`,
-          comentarioOperador: `Operação de despejo acima da meta para ${quantidade} un de ${embalagem}.`
-        });
-      }
-
       // Reset fields
       setQuantidade('');
       setInicio('');

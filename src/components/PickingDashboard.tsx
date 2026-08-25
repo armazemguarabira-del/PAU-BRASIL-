@@ -1488,18 +1488,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
             </button>
           </div>
 
-          {/* ATALHOS DTO DIAGNÓSTICO */}
-          <button 
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'efc' } }));
-              window.dispatchEvent(new CustomEvent('app_navigate', { detail: { panel: 'dto-diagnostico', operacao: 'efc' } }));
-            }}
-            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-purple-400/40 hover:scale-[1.02] active:scale-95"
-            title="Abrir Diagnóstico DTO Operacional de Operadores (EFC/EFD)"
-          >
-            <ClipboardCheck className="w-3.5 h-3.5 text-purple-200" /> DTO Operadores
-          </button>
-
+          {/* ATALHO DTO MONTAGEM */}
           <button 
             onClick={() => {
               window.dispatchEvent(new CustomEvent('open_dto_operacao', { detail: { operacao: 'montagem' } }));
@@ -1524,16 +1513,6 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
           >
             <ShieldCheck className="w-3.5 h-3.5 text-slate-950" /> Checklist 5S
           </button>
-
-          <a 
-            href="https://fastpicking.app" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider no-underline"
-            title="Acessar plataforma Fast Picking"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-200" /> Fast Picking
-          </a>
 
           <button 
             onClick={() => setShowImportRrModal(true)}

@@ -25,7 +25,14 @@ import {
   Check,
   CalendarDays
 } from 'lucide-react';
-import { AcaoCorretiva, getAcoesAll, saveAcoes, triggerAutoAcaoCorretiva, getActiveDatabaseMode } from '../utils/simulacaoAcoesUtils';
+import { 
+  AcaoCorretiva, 
+  getAcoesAll, 
+  saveAcoes, 
+  triggerAutoAcaoCorretiva, 
+  getActiveDatabaseMode,
+  isActionMatchingProcessOrIndicator
+} from '../utils/simulacaoAcoesUtils';
 import { AcoesGeraisRepository } from '../db';
 import { Usuario } from '../types';
 
@@ -106,27 +113,9 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
 
   // Normalize and filter actions matching the specific indicator processes or keywords
   const filteredAcoes = useMemo(() => {
-    const normalizedAllowed = allowedProcessos.map(p => p.toLowerCase().trim());
-    
     return allAcoes.filter(acao => {
-      // 1. Process / Indicator match
-      const proc = (acao.processo || '').toLowerCase().trim();
-      const ind = (acao.indicador || '').toLowerCase().trim();
-      const desvio = (acao.desvioEncontrado || '').toLowerCase().trim();
-      const setor = (acao.setor || '').toLowerCase().trim();
-
-      const matchProcess = normalizedAllowed.some(allowed => {
-        return proc.includes(allowed) || 
-               ind.includes(allowed) || 
-               desvio.includes(allowed) || 
-               setor.includes(allowed) ||
-               (allowed === 'quebras' && (proc.includes('quebra') || ind.includes('quebra'))) ||
-               (allowed === 'fefo' && (proc.includes('fefo') || ind.includes('fefo') || ind.includes('validade'))) ||
-               (allowed === 'wlp' && (proc.includes('wlp') || proc.includes('pnp') || ind.includes('wlp') || ind.includes('pnp'))) ||
-               (allowed === 'montagem' && (proc.includes('montagem') || ind.includes('montagem'))) ||
-               (allowed === 'qualidade' && (proc.includes('qualidade') || proc.includes('5s') || proc.includes('temperatura') || ind.includes('5s') || ind.includes('temperatura') || ind.includes('pragas')));
-      });
-
+      // 1. Process / Indicator match using unified intelligent matcher
+      const matchProcess = isActionMatchingProcessOrIndicator(acao, allowedProcessos);
       if (!matchProcess) return false;
 
       // 2. Search term
@@ -160,136 +149,6 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
       return true;
     });
   }, [allAcoes, allowedProcessos, searchTerm, statusFilter, priorityFilter, typeFilter]);
-
-  // Seed baseline actions if none exist for this indicator so the user has immediate rich data
-  useEffect(() => {
-    if (!isOpen) return;
-    const currentActions = getAcoesAll();
-    const normalizedAllowed = allowedProcessos.map(p => p.toLowerCase().trim());
-    const hasAny = currentActions.some(a => {
-      const proc = (a.processo || '').toLowerCase();
-      const ind = (a.indicador || '').toLowerCase();
-      return normalizedAllowed.some(allowed => proc.includes(allowed) || ind.includes(allowed));
-    });
-
-    if (!hasAny && allowedProcessos.length > 0) {
-      // Auto-generate 3 sample actions for this indicator
-      const now = new Date();
-      const newItems: AcaoCorretiva[] = [
-        {
-          id: `acao-${allowedProcessos[0].toLowerCase().replace(/\s+/g, '-')}-001`,
-          data: now.toLocaleDateString('pt-BR'),
-          dataISO: now.toISOString().split('T')[0],
-          hora: '09:30',
-          processo: resolvedDefaultProcess as AcaoCorretiva['processo'],
-          setor: 'Armazém Principal',
-          colaboradorResponsavel: user?.nome || 'Operador Responsável',
-          indicador: defaultIndicador || `Indicador de Aderência — ${indicatorTitle}`,
-          meta: defaultMeta || '100% Conforme Padrão DPO',
-          resultadoObtido: '84.5% Atingido no Turno',
-          desvioEncontrado: `Desvio operacional identificado na rotina de ${indicatorTitle}: tempo de resposta acima do parâmetro.`,
-          causaRaiz: 'Método',
-          causaRaizDetalhe: 'Gargalo no fluxo de movimentação e abastecimento.',
-          status: 'Em Andamento',
-          responsavelTratativa: 'Supervisor de Operações',
-          prazo: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0],
-          comentarioOperador: 'Ajustada rotina com o turno e aplicada contramedida.',
-          historicoAlteracoes: [
-            {
-              dataHora: `${now.toLocaleDateString('pt-BR')} 09:30`,
-              usuario: user?.nome || 'Sistema',
-              alteracao: 'Plano de Ação registrado para o indicador.'
-            }
-          ],
-          simulado: false,
-          criadoEm: now.toISOString(),
-          tipoAcao: 'Corretiva',
-          prioridade: 'Alta',
-          cincoPorques: {
-            porque1: `Por que houve desvio em ${indicatorTitle}? Houve acúmulo de tarefas simultâneas.`,
-            porque2: 'Por que acumularam tarefas? Falta de nivelamento do fluxo de trabalho no início do turno.',
-            porque3: 'Por que faltou nivelamento? O checklist diário foi preenchido com atraso.',
-            porque4: 'Por que houve atraso no checklist? Dúvida técnica do operador na conferência.',
-            porque5: 'Por que havia dúvida? Necessidade de reciclagem do padrão operacional.'
-          },
-          contramedida: `Realizar alinhamento operacional diário e aplicar checklist de ${indicatorTitle} no D0.`,
-          aprovacaoGestor: 'Aprovado',
-          aceiteColaborador: true,
-          impactoEsperado: 'Garantir atingimento contínuo da meta DPO sem oscilações.'
-        },
-        {
-          id: `acao-${allowedProcessos[0].toLowerCase().replace(/\s+/g, '-')}-002`,
-          data: new Date(Date.now() - 86400000).toLocaleDateString('pt-BR'),
-          dataISO: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-          hora: '14:15',
-          processo: resolvedDefaultProcess as AcaoCorretiva['processo'],
-          setor: 'Área Operacional Doca/Pátio',
-          colaboradorResponsavel: 'Carlos Silva (Operador)',
-          indicador: defaultIndicador || `Gestão e Controle — ${indicatorTitle}`,
-          meta: defaultMeta || 'Zero Desvios Críticos',
-          resultadoObtido: 'Ocorrência registrada no turno vespertino',
-          desvioEncontrado: `Ação Preventiva / Melhoria Contínua: Padronização das ferramentas e organização no setor de ${indicatorTitle}.`,
-          causaRaiz: 'Material',
-          causaRaizDetalhe: 'Necessidade de identificação visual nas posições.',
-          status: 'Pendente',
-          responsavelTratativa: 'Coordenador Logístico',
-          prazo: new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0],
-          comentarioOperador: 'Aguardando liberação de placas de sinalização.',
-          historicoAlteracoes: [],
-          simulado: false,
-          criadoEm: new Date(Date.now() - 86400000).toISOString(),
-          tipoAcao: 'Melhoria',
-          prioridade: 'Média',
-          cincoPorques: {
-            porque1: `Por que a melhoria é necessária? Para reduzir o tempo de busca e manuseio em ${indicatorTitle}.`,
-            porque2: 'Por que há tempo de busca? As demarcações de piso estão desgastadas.',
-            porque3: 'Por que estão desgastadas? Tráfego intenso de equipamentos de movimentação.',
-            porque4: 'Por que não foram renovadas? Cronograma de manutenção previsto para o final do mês.',
-            porque5: 'Por que antecipar? Para evitar quebras e desvios de produtividade.'
-          },
-          contramedida: 'Pintura e revitalização imediata das faixas de sinalização e fluxo.',
-          aprovacaoGestor: 'Pendente',
-          aceiteColaborador: true,
-          impactoEsperado: 'Redução de 15% no tempo de ciclo da operação.'
-        },
-        {
-          id: `acao-${allowedProcessos[0].toLowerCase().replace(/\s+/g, '-')}-003`,
-          data: new Date(Date.now() - 4 * 86400000).toLocaleDateString('pt-BR'),
-          dataISO: new Date(Date.now() - 4 * 86400000).toISOString().split('T')[0],
-          hora: '11:00',
-          processo: resolvedDefaultProcess as AcaoCorretiva['processo'],
-          setor: 'Armazém / Qualidade',
-          colaboradorResponsavel: 'Matheus Barbosa (Líder)',
-          indicador: defaultIndicador || `Auditoria de Padrão — ${indicatorTitle}`,
-          meta: '100% Conforme',
-          resultadoObtido: '100% Concluído',
-          desvioEncontrado: `Adequação do POP e treinamento prático de equipe executado com sucesso em ${indicatorTitle}.`,
-          causaRaiz: 'Mão de Obra',
-          status: 'Concluído',
-          responsavelTratativa: 'Supervisor de Qualidade/VPO',
-          prazo: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-          comentarioOperador: 'Treinamento concluído com 100% de presença dos operadores.',
-          historicoAlteracoes: [],
-          simulado: false,
-          criadoEm: new Date(Date.now() - 4 * 86400000).toISOString(),
-          tipoAcao: 'Corretiva',
-          prioridade: 'Alta',
-          contramedida: 'Aplicação do Procedimento Operacional Padrão atualizado.',
-          aprovacaoGestor: 'Aprovado',
-          aceiteColaborador: true,
-          concluidoNoPrazo: true
-        }
-      ];
-
-      const existingIds = new Set(currentActions.map(a => a.id));
-      const filteredNew = newItems.filter(item => !existingIds.has(item.id));
-      if (filteredNew.length > 0) {
-        const merged = [...currentActions, ...filteredNew];
-        saveAcoes(merged);
-        setAllAcoes(merged);
-      }
-    }
-  }, [isOpen, allowedProcessos, indicatorTitle, resolvedDefaultProcess, defaultIndicador, defaultMeta, user?.nome]);
 
   // KPI Calculations
   const kpis = useMemo(() => {

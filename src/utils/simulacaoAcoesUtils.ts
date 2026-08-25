@@ -1,4 +1,10 @@
 import { firestoreDb } from '../database/firestoreDatabase';
+import { getOfficialSeededAcoes } from '../data/acoesOficiaisDataset';
+import { ACOES_OFICIAIS_QUEBRAS_20 } from '../data/acoesQuebrasOficiais20';
+import { ACOES_OFICIAIS_REPACK_20 } from '../data/acoesRepackOficiais20';
+import { ACOES_OFICIAIS_DESPEJO_10 } from '../data/acoesDespejoOficiais10';
+import { ACOES_OFICIAIS_OPERADORES_40 } from '../data/acoesOperadoresOficiais40';
+import { ACOES_OFICIAIS_LAYOUT_CAPACIDADE_20 } from '../data/acoesLayoutCapacidadeOficiais20';
 
 // Requirement 26, 27, 28, 31 & 32: Auto Action Generator, Simulated Action Database (280+ items), FEFO/Loss Specific Actions, and Multi-Database Isolation.
 
@@ -103,9 +109,53 @@ export interface AcaoCorretiva {
   inicio?: string; // Data Início (DD/MM/YYYY)
   final?: string; // Data Final (DD/MM/YYYY)
   obsResponsavel?: string; // Obs do Responsável
+
+  // Requirement: Classificação da Ação (Desvio de Meta / Ação de Rotina / Ação de Melhoria)
+  classificacao?: 'Ação de Desvio' | 'Ação de Rotina' | 'Ação de Melhoria';
+  dashboardDestino?: string; // ID do painel destino para navegação direta
 }
 
 export type DatabaseMode = 'simulado' | 'operacional' | 'historico';
+
+/**
+ * Retorna o painel e nome do Dashboard correspondente para um processo ou indicador
+ */
+export function getDashboardForProcessOrIndicator(processo?: string, indicador?: string): { id: string; label: string; icon?: string } {
+  const p = (processo || '').toLowerCase();
+  const ind = (indicador || '').toLowerCase();
+  const text = `${p} ${ind}`;
+
+  if (text.includes('quebra') || text.includes('dqi') || text.includes('total qi') || text.includes('avaria') || text.includes('refugo') || text.includes('despejo') || text.includes('repack')) {
+    if (text.includes('repack')) return { id: 'repack-dashboard', label: 'Dashboard Repack' };
+    if (text.includes('despejo')) return { id: 'despejo-dashboard', label: 'Dashboard Despejo' };
+    return { id: 'quebras-dashboard', label: 'Dashboard Quebras & Perdas' };
+  }
+  if (text.includes('wqi') || text.includes('qualidade')) {
+    return { id: 'qualidade', label: 'Painel de Qualidade & WQI' };
+  }
+  if (text.includes('fefo') || text.includes('validade') || text.includes('vencimento') || text.includes('shelf life')) {
+    return { id: 'fefo-dashboard', label: 'Dashboard FEFO & Validades' };
+  }
+  if (text.includes('picking') || text.includes('produtividade') || text.includes('curva abc') || text.includes('precisão')) {
+    return { id: 'picking-dashboard', label: 'Dashboard Picking & Produtividade' };
+  }
+  if (text.includes('wlp') || text.includes('efm')) {
+    return { id: 'wlp-dashboard', label: 'Dashboard WLP & Produtividade' };
+  }
+  if (text.includes('tmr') || text.includes('tmv') || text.includes('carreta') || text.includes('recebimento')) {
+    return { id: 'tmr-dashboard', label: 'Dashboard TMR & Carretas' };
+  }
+  if (text.includes('capacidade') || text.includes('ocupação') || text.includes('layout')) {
+    return { id: 'gestao-capacidade', label: 'Dashboard Gestão de Capacidade' };
+  }
+  if (text.includes('inventário') || text.includes('estoque') || text.includes('toos') || text.includes('ressuprimento')) {
+    return { id: 'estoque', label: 'Hub de Gestão de Estoque' };
+  }
+  if (text.includes('carregamento') || text.includes('efc') || text.includes('efd')) {
+    return { id: 'logistica-dashboard', label: 'Dashboard Logística' };
+  }
+  return { id: 'acoes', label: 'Quadro Geral de Ações' };
+}
 
 const STORAGE_KEY_SIMULADO = 'af_banco_simulado_acoes_2026';
 const STORAGE_KEY_OPERACIONAL = 'af_banco_operacional_acoes';
@@ -275,6 +325,14 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
   let globalCounter = 1;
 
   MODULES_LIST.forEach((modulo) => {
+    // If module is Gestão de Quebras, strictly use the 20 official Quebras actions
+    if (modulo === 'Gestão de Quebras') {
+      ACOES_OFICIAIS_QUEBRAS_20.forEach(acao => {
+        records.push(acao);
+      });
+      return;
+    }
+
     // Generate 20 records per module
     for (let i = 0; i < 20; i++) {
       const dayOffset = Math.floor((i / 20) * totalDays) + Math.floor(Math.random() * 3);
@@ -294,7 +352,6 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
 
       const isFefoQuebraModule = (
         modulo === 'Gestão FEFO' || 
-        modulo === 'Gestão de Quebras' || 
         modulo === 'Estoque x Estoque' || 
         modulo === 'Estoque x Picking' || 
         modulo === 'Despejo'
@@ -310,8 +367,11 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
       const skuNames = ['Brahma Chopp 350ml', 'Skol Pilsen 600ml', 'Antarctica Boa 300ml', 'Stella Artois 330ml', 'Guaraná Antarctica 2L', 'Budweiser 473ml'];
       const skuIndex = i % skuCodes.length;
 
-      const isMelhoria = i % 4 === 3; // 25% Ações de Melhoria preventivas, 75% Ações Corretivas por desvio
+      const isRotina = i % 5 === 2;
+      const isMelhoria = i % 4 === 3 && !isRotina; // 25% Ações de Melhoria preventivas, 75% Ações Corretivas por desvio
       const prioridade: AcaoCorretiva['prioridade'] = i % 3 === 0 ? 'Alta' : i % 3 === 1 ? 'Média' : 'Baixa';
+      const classificacao: AcaoCorretiva['classificacao'] = isMelhoria ? 'Ação de Melhoria' : isRotina ? 'Ação de Rotina' : 'Ação de Desvio';
+      const dashboardDestino = getDashboardForProcessOrIndicator(modulo, `Indicador de Conformidade Operacional (${modulo})`).id;
 
       const record: AcaoCorretiva = {
         id: `acao-2026-${String(globalCounter).padStart(4, '0')}`,
@@ -340,6 +400,8 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
         // Requirements 33, 34 & 35: Governance & 5 Whys Flow
         tipoAcao: isMelhoria ? 'Melhoria' : 'Corretiva',
         prioridade,
+        classificacao,
+        dashboardDestino,
         cincoPorques: {
           porque1: `Por que o indicador de ${modulo} desviou? Devido a gargalos operacionais no setor ${setor}.`,
           porque2: `Por que houve gargalo no setor? O tempo de ciclo aumentou durante o turno.`,
@@ -401,7 +463,7 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
   return records;
 }
 
-// Get all actions according to current active database mode
+// Get all actions according to current active database mode (with official 2026 dataset + user edits)
 export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
   const mode = specificMode || getActiveDatabaseMode();
   let storageKey = STORAGE_KEY_SIMULADO;
@@ -409,28 +471,791 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
   if (mode === 'operacional') storageKey = STORAGE_KEY_OPERACIONAL;
   else if (mode === 'historico') storageKey = STORAGE_KEY_HISTORICO;
 
+  const mergedMap = new Map<string, AcaoCorretiva>();
+
+  // 1. Base official dataset (including the 20 official Quebras actions)
+  try {
+    const officialSeed = getOfficialSeededAcoes();
+    officialSeed.forEach(item => {
+      if (item && item.id) {
+        mergedMap.set(item.id, item);
+      }
+    });
+  } catch (e) {
+    console.error('Error loading official seeded actions:', e);
+  }
+
+  // Always ensure the official standardized datasets are strictly in place
+  ACOES_OFICIAIS_QUEBRAS_20.forEach(item => mergedMap.set(item.id, item));
+  ACOES_OFICIAIS_REPACK_20.forEach(item => mergedMap.set(item.id, item));
+  ACOES_OFICIAIS_DESPEJO_10.forEach(item => mergedMap.set(item.id, item));
+  ACOES_OFICIAIS_OPERADORES_40.forEach(item => mergedMap.set(item.id, item));
+  ACOES_OFICIAIS_LAYOUT_CAPACIDADE_20.forEach(item => mergedMap.set(item.id, item));
+
+  // 2. Overlay any user modifications or new imported actions stored in localStorage
   try {
     const raw = localStorage.getItem(storageKey);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const uniqueMap = new Map<string, AcaoCorretiva>();
         parsed.forEach((item: AcaoCorretiva) => {
           if (item && item.id) {
-            if (!uniqueMap.has(item.id)) {
-              uniqueMap.set(item.id, item);
+            const isLegacyAuto = item.id.startsWith('acao-2026-') && !item.id.startsWith('ACAO_2026_');
+            const isLegacyQuebra = (item.processo === 'Gestão de Quebras' || (item.indicador || '').toLowerCase().includes('quebra') || (item.desvioEncontrado || '').toLowerCase().includes('quebra')) && !item.id.startsWith('ACAO_QUEBRA_MOV_');
+            const isLegacyRepack = (item.processo === 'Repack' || (item.indicador || '').toLowerCase().includes('repack')) && !item.id.startsWith('ACAO_REPACK_');
+            const isLegacyDespejo = (item.processo === 'Despejo' || (item.indicador || '').toLowerCase().includes('despejo')) && !item.id.startsWith('ACAO_DESPEJO_');
+            const isLegacyOperador = (item.processo === 'Ressuprimento' || (item.indicador || '').toLowerCase().includes('empilhador') || (item.indicador || '').toLowerCase().includes('reabastecimento')) && !item.id.startsWith('ACAO_OPERADOR_');
+            const isLegacyLayout = (item.processo === 'Gestão de Capacidade' || (item.indicador || '').toLowerCase().includes('layout') || (item.indicador || '').toLowerCase().includes('capacidade')) && !item.id.startsWith('ACAO_LAYOUT_');
+            
+            // Exclude legacy auto actions and legacy category actions, keeping only the official actions or explicit manual user additions
+            if (!isLegacyAuto && !isLegacyQuebra && !isLegacyRepack && !isLegacyDespejo && !isLegacyOperador && !isLegacyLayout) {
+              mergedMap.set(item.id, item);
             }
           }
         });
-        return Array.from(uniqueMap.values());
       }
     }
   } catch (e) {
-    console.error('Error loading actions:', e);
+    console.error('Error loading actions from storage:', e);
   }
 
-  // Zero mock by default - return empty list when no human user/imported actions exist
-  return [];
+  return Array.from(mergedMap.values());
+}
+
+/**
+ * Classificação inteligente e otimizada de processos para distribuição nos respectivos dashboards
+ * Analisa: indicador, o que fazer, ação contramedida, onde, área e reunião
+ */
+export function classifyProcessFromActionFields(fields: {
+  indicador?: string;
+  oQueFazer?: string;
+  acao?: string;
+  onde?: string;
+  area?: string;
+  reuniao?: string;
+}): AcaoCorretiva['processo'] {
+  const ind = (fields.indicador || '').toLowerCase().trim();
+  const oq = (fields.oQueFazer || '').toLowerCase().trim();
+  const ac = (fields.acao || '').toLowerCase().trim();
+  const onde = (fields.onde || '').toLowerCase().trim();
+  const area = (fields.area || '').toLowerCase().trim();
+  const reuniao = (fields.reuniao || '').toLowerCase().trim();
+  
+  const allText = `${ind} ${oq} ${ac} ${onde} ${area} ${reuniao}`.toLowerCase();
+
+  // 1. REPACK: Menções de repack nos indicadores ou textos vão para o Repack
+  if (ind.includes('repack') || oq.includes('repack') || onde.includes('repack') || ac.includes('repack') || area.includes('repack')) {
+    return 'Repack';
+  }
+
+  // 2. DESPEJO: Menções de despejo nos indicadores ou textos vão para o Despejo
+  if (ind.includes('despejo') || oq.includes('despejo') || onde.includes('despejo') || ac.includes('despejo') || area.includes('despejo')) {
+    return 'Despejo';
+  }
+
+  // 3. QUEBRAS / AVARIAS / WQI / DQI / TOTAL QI / QUALIDADE DE PERDAS
+  if (
+    ind.includes('quebra') || ind.includes('wqi') || ind.includes('dqi') || ind.includes('total qi') ||
+    ind.includes('avaria') || ind.includes('refugo') || ind.includes('fgli') || ind.includes('scl') ||
+    ind.includes('falha de bloqueio') || ind.includes('pnc') || ind.includes('bloqueio e segregação') ||
+    ind.includes('devoluções') || ind.includes('ronda de qualidade') || ind.includes('segurança de movimentação') ||
+    ind.includes('blitz de segurança') || ind.includes('ergonomia') || ind.includes('qualidade da puxada') ||
+    allText.includes('área de perdas') || allText.includes('área de devoluções') || allText.includes('pnc /')
+  ) {
+    return 'Gestão de Quebras';
+  }
+
+  // 4. FEFO / VALIDADES / IDADE DE ESTOQUE / SHELF LIFE
+  if (
+    ind.includes('fefo') || ind.includes('idade de estoque') || ind.includes('validade') || 
+    ind.includes('shelf life') || allText.includes('bloco a') || allText.includes('bloco b') || 
+    allText.includes('bloco c') || ind.includes('vencimento')
+  ) {
+    return 'Gestão FEFO';
+  }
+
+  // 5. CAPACIDADE / OCUPAÇÃO / LAYOUT / CONTINGÊNCIA
+  if (
+    ind.includes('capacidade') || ind.includes('ocupação') || ind.includes('layout') || 
+    allText.includes('contingência') || allText.includes('ocupação acima de 80')
+  ) {
+    return 'Gestão de Capacidade';
+  }
+
+  // 6. RESSUPRIMENTO / REABASTECIMENTO
+  if (
+    ind.includes('ressuprimento') || ind.includes('reabastecimento') || 
+    allText.includes('ressuprimento manual') || allText.includes('ressuprimento inteligente') ||
+    allText.includes('reabastecimento inteligente') || allText.includes('solicitações manuais') ||
+    allText.includes('saldo de reserva')
+  ) {
+    return 'Ressuprimento';
+  }
+
+  // 7. RECEBIMENTO / TMR / TMV / TMA / DESCARGA / CARRETAS
+  if (
+    ind.includes('tmr') || ind.includes('tmv') || ind.includes('tma') || 
+    ind.includes('recebimento') || ind.includes('descarregamento') || 
+    allText.includes('tempo da carreta') || allText.includes('pulmão / área de descarregamento') ||
+    allText.includes('controle de recebimento')
+  ) {
+    return 'Recebimento';
+  }
+
+  // 8. EFD (se explícito)
+  if (ind === 'efd' || ind.includes('efd')) {
+    return 'EFD';
+  }
+
+  // 9. EFC (se explícito)
+  if (ind === 'efc' || ind.includes('efc')) {
+    return 'EFC';
+  }
+
+  // 10. CARREGAMENTO / EXPEDIÇÃO / BLITZ DE CARREGAMENTO / ERROS DE CARREGAMENTO
+  if (
+    ind.includes('blitz de carregamento') || ind.includes('erros de carregamento') || 
+    ind.includes('erro de conferência') || ind.includes('carregamento') || 
+    ind.includes('eficiência logistica') || ind.includes('matriz de correlação') || 
+    ind.includes('previsão de volume') || allText.includes('área de carregamento') ||
+    allText.includes('controle de expedição') || allText.includes('preparação de cargas')
+  ) {
+    return 'Carregamento';
+  }
+
+  // 11. ESTOQUE / TOOS / FALTA TEÓRICA / STOCK OUT / INVENTÁRIO / ACURACIDADE / DIFERENÇA DE ESTOQUE
+  if (
+    ind.includes('falta teórica') || ind.includes('toos') || ind.includes('stock out') || 
+    ind.includes('inventário') || ind.includes('acuracidade') || ind.includes('diferença de estoque') ||
+    allText.includes('armazém fácil / estoque')
+  ) {
+    return 'Estoque x Picking';
+  }
+
+  // 12. MARKETPLACE / 5S / SANITIZAÇÃO / ROTAS DE FUGA
+  if (
+    ind.includes('5s') || ind.includes('rotas de fuga') || ind.includes('sanitização') || 
+    ind.includes('marketplace')
+  ) {
+    return 'Marketplace';
+  }
+
+  // 13. PICKING / MONTAGEM / PRECISÃO DO PICKING / CURVA ABC / WLP / PRODUTIVIDADE / GENTE
+  if (
+    ind.includes('picking') || ind.includes('precisão do picking') || ind.includes('curva abc') || 
+    ind.includes('montagem') || ind.includes('efm') || ind.includes('wlp') || 
+    ind.includes('produtividade') || ind.includes('absenteísmo') || ind.includes('treinamento') ||
+    ind.includes('novos skus')
+  ) {
+    return 'Picking';
+  }
+
+  return 'Picking';
+}
+
+/**
+ * Verifica se uma ação pertence ao filtro de um processo, indicador ou dashboard específico
+ */
+export function isActionMatchingProcessOrIndicator(acao: AcaoCorretiva, allowedKeywords: string[]): boolean {
+  if (!allowedKeywords || allowedKeywords.length === 0) return true;
+  
+  const normalizedAllowed = allowedKeywords.map(k => k.toLowerCase().trim());
+  if (normalizedAllowed.includes('todos') || normalizedAllowed.includes('all')) return true;
+
+  const proc = (acao.processo || '').toLowerCase().trim();
+  const ind = (acao.indicador || '').toLowerCase().trim();
+  const desvio = (acao.desvioEncontrado || '').toLowerCase().trim();
+  const contra = (acao.contramedida || '').toLowerCase().trim();
+  const onde = (acao.onde || '').toLowerCase().trim();
+  const setor = (acao.setor || '').toLowerCase().trim();
+  const area = (acao.area || '').toLowerCase().trim();
+  const reuniao = (acao.reuniao || '').toLowerCase().trim();
+  const allText = `${proc} ${ind} ${desvio} ${contra} ${onde} ${setor} ${area} ${reuniao}`.toLowerCase();
+
+  return normalizedAllowed.some(allowed => {
+    // Check direct dashboardDestino match
+    if (acao.dashboardDestino && (acao.dashboardDestino === allowed || acao.dashboardDestino.includes(allowed) || (allowed.includes('logistica') && acao.dashboardDestino === 'logistica-dashboard'))) return true;
+
+    // Exact or substring match
+    if (proc === allowed || proc.includes(allowed)) return true;
+    if (ind.includes(allowed)) return true;
+    if (desvio.includes(allowed) || contra.includes(allowed) || onde.includes(allowed) || setor.includes(allowed)) return true;
+
+    // Regras específicas de dashboards e termos:
+    if (allowed === 'repack') {
+      return allText.includes('repack');
+    }
+    if (allowed === 'despejo') {
+      return allText.includes('despejo');
+    }
+    if (allowed === 'produtividade' || allowed === 'wlp') {
+      return allText.includes('produtividade') || allText.includes('wlp') || allText.includes('efm') || allText.includes('montagem') || allText.includes('absenteísmo');
+    }
+    if (allowed === 'quebras' || allowed === 'gestão de quebras') {
+      return allText.includes('quebra') || allText.includes('wqi') || allText.includes('dqi') || allText.includes('total qi') || allText.includes('avaria') || allText.includes('refugo') || allText.includes('pnc') || allText.includes('fgli') || allText.includes('bloqueio') || allText.includes('segurança') || allText.includes('ergonomia');
+    }
+    if (allowed === 'fefo' || allowed === 'gestão fefo') {
+      return allText.includes('fefo') || allText.includes('idade de estoque') || allText.includes('validade') || allText.includes('shelf life') || allText.includes('vencimento') || allText.includes('bloco a') || allText.includes('bloco b') || allText.includes('bloco c');
+    }
+    if (allowed === 'capacidade' || allowed === 'gestão de capacidade') {
+      return allText.includes('capacidade') || allText.includes('ocupação') || allText.includes('layout') || allText.includes('contingência');
+    }
+    if (allowed === 'ressuprimento') {
+      return allText.includes('ressuprimento') || allText.includes('reabastecimento') || allText.includes('solicitações manuais') || allText.includes('saldo de reserva');
+    }
+    if (allowed === 'tmr' || allowed === 'recebimento') {
+      return allText.includes('recebimento') || allText.includes('tmr') || allText.includes('tmv') || allText.includes('tma') || allText.includes('efd') || allText.includes('descarregamento') || allText.includes('pulmão');
+    }
+    if (allowed === 'carregamento' || allowed === 'efc') {
+      return allText.includes('carregamento') || allText.includes('efc') || allText.includes('blitz de carregamento') || allText.includes('conferência') || allText.includes('erros de carregamento') || allText.includes('eficiência logistica') || allText.includes('previsão de volume');
+    }
+    if (allowed === 'picking') {
+      return allText.includes('picking') || allText.includes('precisão do picking') || allText.includes('curva abc') || allText.includes('montagem') || allText.includes('coleta');
+    }
+    if (allowed === '5s' || allowed === 'marketplace') {
+      return allText.includes('5s') || allText.includes('rotas de fuga') || allText.includes('sanitização') || allText.includes('marketplace');
+    }
+    if (allowed === 'estoque' || allowed === 'toos' || allowed === 'inventário') {
+      return allText.includes('toos') || allText.includes('falta teórica') || allText.includes('stock out') || allText.includes('inventário') || allText.includes('acuracidade') || allText.includes('diferença de estoque');
+    }
+
+    return false;
+  });
+}
+
+/**
+ * Parser unificado para importar payloads de Ações (JSON, Array ou CSV/TSV)
+ */
+export function parseAndImportActionsPayload(content: string, currentUser: string = 'Administrador'): {
+  success: boolean;
+  count: number;
+  actions: AcaoCorretiva[];
+  message: string;
+} {
+  if (!content || !content.trim()) {
+    return { success: false, count: 0, actions: [], message: 'Conteúdo vazio fornecido para importação.' };
+  }
+
+  const raw = content.trim();
+  const newAcoes: AcaoCorretiva[] = [];
+
+  // 1. TENTATIVA DE PARSE COMO JSON
+  if (raw.startsWith('{') || raw.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw);
+      const rawList: any[] = Array.isArray(parsed) 
+        ? parsed 
+        : (Array.isArray(parsed.acoes) ? parsed.acoes : (Array.isArray(parsed.data) ? parsed.data : []));
+
+      if (rawList.length === 0) {
+        return { success: false, count: 0, actions: [], message: 'Nenhuma ação encontrada na lista do JSON.' };
+      }
+
+      rawList.forEach((item: any, idx: number) => {
+        if (!item) return;
+
+        const idNum = item.id !== undefined && item.id !== null ? String(item.id) : String(idx + 1);
+        const cArea = item.area || item.setor || 'Armazém';
+        const cReuniao = item.reuniao || 'Team Room Armazém';
+        const cResponsavel = item.responsavel || item.colaboradorResponsavel || 'Djeanderson Soares';
+        const cIndicador = item.indicador || 'Indicador Operacional';
+        const cOqueFazer = item.o_que_fazer || item.desvioEncontrado || item.acao || 'Ação operacional registrada';
+        const cAcao = item.acao || item.contramedida || cOqueFazer;
+        const cOnde = item.onde || item.localizacao || 'Guarabira';
+        const cInicio = item.inicio || item.data || new Date().toISOString().split('T')[0];
+        const cFinal = item.final || item.prazo || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+        const cObs = item.observacao_responsavel || item.obsResponsavel || item.comentarioOperador || '';
+
+        // Formatação de datas
+        const isoInicio = cInicio.includes('/') 
+          ? cInicio.split('/').reverse().join('-') 
+          : cInicio;
+        const isoFinal = cFinal.includes('/') 
+          ? cFinal.split('/').reverse().join('-') 
+          : cFinal;
+        
+        const displayInicio = cInicio.includes('-') 
+          ? cInicio.split('-').reverse().join('/') 
+          : cInicio;
+        const displayFinal = cFinal.includes('-') 
+          ? cFinal.split('-').reverse().join('/') 
+          : cFinal;
+
+        // Classificação inteligente de Processo
+        const proc = classifyProcessFromActionFields({
+          indicador: cIndicador,
+          oQueFazer: cOqueFazer,
+          acao: cAcao,
+          onde: cOnde,
+          area: cArea,
+          reuniao: cReuniao
+        });
+
+        // Status Normalization
+        const rawStatus = String(item.status || '').toUpperCase().trim();
+        let normalizedStatus: AcaoCorretiva['status'] = 'Pendente';
+        if (rawStatus.includes('FINALIZADO') || rawStatus.includes('CONCLUÍD') || rawStatus.includes('CONCLUID')) {
+          normalizedStatus = 'Concluído';
+        } else if (rawStatus.includes('ANDAMENTO') || rawStatus.includes('EM ANDAMENTO')) {
+          normalizedStatus = 'Em Andamento';
+        } else if (rawStatus.includes('ATRASADO') || (item.atraso_dias && Number(item.atraso_dias) > 0)) {
+          normalizedStatus = 'Atrasado';
+        } else {
+          normalizedStatus = 'Pendente';
+        }
+
+        // Tipo de Ação Normalization
+        const rawTipo = String(item.tipo_acao || item.tipoAcao || '').toLowerCase();
+        const normalizedTipo: 'Corretiva' | 'Melhoria' = rawTipo.includes('melhoria') ? 'Melhoria' : 'Corretiva';
+
+        // Prioridade
+        const normalizedPrioridade: 'Alta' | 'Média' | 'Baixa' = 
+          (item.atraso_dias > 0 || normalizedStatus === 'Atrasado') ? 'Alta' : (normalizedStatus === 'Pendente' ? 'Alta' : 'Média');
+
+        const actionItem: AcaoCorretiva = {
+          id: `ACAO_2026_${idNum}`,
+          data: displayInicio,
+          dataISO: isoInicio,
+          hora: '08:00',
+          processo: proc,
+          setor: cArea,
+          colaboradorResponsavel: cResponsavel,
+          indicador: cIndicador,
+          meta: 'Conforme Padrão DPO 2026',
+          resultadoObtido: normalizedStatus === 'Concluído' ? 'Ação Tratada e Concluída' : 'Em Acompanhamento Ativo',
+          desvioEncontrado: cOqueFazer,
+          causaRaiz: 'Método',
+          causaRaizDetalhe: cAcao,
+          status: normalizedStatus,
+          responsavelTratativa: cResponsavel || currentUser,
+          prazo: isoFinal,
+          comentarioOperador: cObs,
+          simulado: false,
+          criadoEm: isoInicio ? `${isoInicio}T08:00:00.000Z` : new Date().toISOString(),
+          tipoAcao: normalizedTipo,
+          prioridade: normalizedPrioridade,
+          contramedida: cAcao,
+          aprovacaoGestor: 'Aprovado',
+          aceiteColaborador: true,
+          abertoPor: currentUser,
+          dataAbertura: `${displayInicio} 08:00`,
+          dataFechamento: normalizedStatus === 'Concluído' ? `${displayFinal} 17:00` : undefined,
+          fechadoPor: normalizedStatus === 'Concluído' ? cResponsavel : undefined,
+
+          area: cArea,
+          reuniao: cReuniao,
+          onde: cOnde,
+          inicio: displayInicio,
+          final: displayFinal,
+          obsResponsavel: cObs,
+
+          historicoAlteracoes: [{
+            dataHora: new Date().toLocaleString('pt-BR'),
+            usuario: currentUser,
+            alteracao: `Ação importada para o processo [${proc}] (Indicador: ${cIndicador}).`
+          }]
+        };
+
+        newAcoes.push(actionItem);
+      });
+
+      const current = getAcoesAll();
+      const mergedMap = new Map<string, AcaoCorretiva>();
+      
+      // Adiciona as novas primeiro
+      newAcoes.forEach(a => mergedMap.set(a.id, a));
+      // Preserva anteriores não sobrescritas
+      current.forEach(a => {
+        if (!mergedMap.has(a.id)) mergedMap.set(a.id, a);
+      });
+
+      const finalList = Array.from(mergedMap.values());
+      saveAcoes(finalList);
+
+      return {
+        success: true,
+        count: newAcoes.length,
+        actions: newAcoes,
+        message: `✓ ${newAcoes.length} ações importadas e distribuídas com sucesso em seus respectivos dashboards!`
+      };
+    } catch (err: any) {
+      console.warn("JSON parse attempt failed, trying CSV...", err);
+    }
+  }
+
+  // 2. TENTATIVA DE PARSE COMO CSV / DELIMITED
+  const lines = raw.split(/\r?\n/).filter(line => line.trim().length > 0);
+  if (lines.length === 0) {
+    return { success: false, count: 0, actions: [], message: 'Nenhuma linha válida encontrada no texto/arquivo fornecido.' };
+  }
+
+  const firstLine = lines[0];
+  let delimiter = ';';
+  if (firstLine.includes(';') && !firstLine.includes('\t')) delimiter = ';';
+  else if (firstLine.includes('\t')) delimiter = '\t';
+  else if (firstLine.includes(',')) delimiter = ',';
+
+  let startIndex = 0;
+  if (firstLine.toLowerCase().includes('área') || firstLine.toLowerCase().includes('area') || firstLine.toLowerCase().includes('reunião') || firstLine.toLowerCase().includes('indicador')) {
+    startIndex = 1;
+  }
+
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const cols = line.split(delimiter).map(c => c.replace(/^["']|["']$/g, '').trim());
+    if (cols.length < 3) continue;
+
+    const cArea = cols[0] || 'Armazém';
+    const cReuniao = cols[1] || 'Team Room Armazém';
+    const cResponsavel = cols[2] || 'Djeanderson Soares';
+    const cIndicador = cols[3] || 'Indicador Operacional';
+    const cOqueFazer = cols[4] || 'Ação operacional registrada';
+    const cOnde = cols[5] || 'Guarabira';
+    const cInicio = cols[6] || new Date().toLocaleDateString('pt-BR');
+    const cFinal = cols[7] || new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR');
+    const cObs = cols[8] || '';
+
+    const isoInicio = cInicio.includes('/') ? cInicio.split('/').reverse().join('-') : cInicio;
+    const isoFinal = cFinal.includes('/') ? cFinal.split('/').reverse().join('-') : cFinal;
+    const displayInicio = cInicio.includes('-') ? cInicio.split('-').reverse().join('/') : cInicio;
+    const displayFinal = cFinal.includes('-') ? cFinal.split('-').reverse().join('/') : cFinal;
+
+    const proc = classifyProcessFromActionFields({
+      indicador: cIndicador,
+      oQueFazer: cOqueFazer,
+      onde: cOnde,
+      area: cArea,
+      reuniao: cReuniao
+    });
+
+    const actionItem: AcaoCorretiva = {
+      id: `ACAO_IMP_${Date.now()}_${i}`,
+      data: displayInicio,
+      dataISO: isoInicio,
+      hora: '08:00',
+      processo: proc,
+      setor: cArea,
+      colaboradorResponsavel: cResponsavel,
+      indicador: cIndicador,
+      meta: 'Conforme Padrão DPO 2026',
+      resultadoObtido: 'Em Acompanhamento Ativo',
+      desvioEncontrado: cOqueFazer,
+      causaRaiz: 'Método',
+      status: 'Em Andamento',
+      responsavelTratativa: currentUser,
+      prazo: isoFinal,
+      comentarioOperador: cObs,
+      simulado: false,
+      criadoEm: new Date().toISOString(),
+      tipoAcao: 'Corretiva',
+      prioridade: 'Alta',
+      contramedida: cOqueFazer,
+      aprovacaoGestor: 'Aprovado',
+      aceiteColaborador: true,
+      abertoPor: currentUser,
+      dataAbertura: `${displayInicio} 08:00`,
+
+      area: cArea,
+      reuniao: cReuniao,
+      onde: cOnde,
+      inicio: displayInicio,
+      final: displayFinal,
+      obsResponsavel: cObs,
+
+      historicoAlteracoes: [{
+        dataHora: new Date().toLocaleString('pt-BR'),
+        usuario: currentUser,
+        alteracao: `Ação importada via planilha para o processo [${proc}] (Início: ${displayInicio}, Final: ${displayFinal}).`
+      }]
+    };
+
+    newAcoes.push(actionItem);
+  }
+
+  if (newAcoes.length === 0) {
+    return { success: false, count: 0, actions: [], message: 'Nenhuma ação pôde ser processada do formato fornecido.' };
+  }
+
+  const current = getAcoesAll();
+  const merged = [...current, ...newAcoes];
+  saveAcoes(merged);
+
+  return {
+    success: true,
+    count: newAcoes.length,
+    actions: newAcoes,
+    message: `✓ ${newAcoes.length} ações importadas e distribuídas com sucesso em seus respectivos dashboards!`
+  };
+}
+
+/**
+ * Análise Inteligente da Plataforma:
+ * Varre indicadores operacionais (Produtividade, Quebras/Avarias, WQI, FEFO/Validades, Repack, Despejo, TMR e Capacidade),
+ * gera ações simples e curtas de correção com status Concluído nas datas respectivas e direcionamento aos dashboards.
+ */
+export function analisarEGerarAcoesPlataforma(currentUser: string = 'Supervisor DPO'): {
+  totalCriadas: number;
+  acoesCriadas: AcaoCorretiva[];
+  resumo: {
+    produtividade: number;
+    quebras: number;
+    wqi: number;
+    fefo: number;
+    capacidade: number;
+    tmr: number;
+  };
+} {
+  const dates = [
+    { dStr: '25/08/2026', dISO: '2026-08-25' },
+    { dStr: '24/08/2026', dISO: '2026-08-24' },
+    { dStr: '23/08/2026', dISO: '2026-08-23' },
+    { dStr: '22/08/2026', dISO: '2026-08-22' },
+    { dStr: '20/08/2026', dISO: '2026-08-20' },
+    { dStr: '18/08/2026', dISO: '2026-08-18' },
+    { dStr: '15/08/2026', dISO: '2026-08-15' },
+    { dStr: '10/08/2026', dISO: '2026-08-10' }
+  ];
+
+  const templates = [
+    {
+      processo: 'Picking' as const,
+      indicador: 'Produtividade no Picking (CX/h)',
+      meta: '180 CX/h',
+      resultadoObtido: '142 CX/h (Abaixo da Meta)',
+      desvioEncontrado: 'Lentidão na rota do picking e leitura de código de barras falhando no corredor 4.',
+      contramedida: 'Reorganizar rota dos separadores nos corredores 3 e 4 e calibrar os coletores ópticos da bancada.',
+      classificacao: 'Ação de Desvio' as const,
+      tipoAcao: 'Corretiva' as const,
+      prioridade: 'Alta' as const,
+      setor: 'Corredor de Picking',
+      responsavelTratativa: 'Carlos Silva (Líder Picking)',
+      causaRaiz: 'Máquina' as const,
+      dashboardDestino: 'picking-dashboard',
+      categoria: 'produtividade'
+    },
+    {
+      processo: 'Gestão FEFO' as const,
+      indicador: 'Aderência ao FEFO & Validade Crítica',
+      meta: '100% FEFO',
+      resultadoObtido: '78.5% FEFO (Risco de Vencimento)',
+      desvioEncontrado: 'Lote de Spaten 350ml e Brahma Chopp com vencimento < 30 dias retido no fundo do bloco A.',
+      contramedida: 'Efetuar giro de lote FEFO puxando o saldo de vencimento curto para a frente do picking prioritário.',
+      classificacao: 'Ação de Desvio' as const,
+      tipoAcao: 'Corretiva' as const,
+      prioridade: 'Alta' as const,
+      setor: 'Pulmão / Bloco A',
+      responsavelTratativa: 'Fernanda Lima (Analista Inventário)',
+      causaRaiz: 'Material' as const,
+      dashboardDestino: 'fefo-dashboard',
+      categoria: 'fefo'
+    },
+    {
+      processo: 'Repack' as const,
+      indicador: 'Recuperação e Repack de Latas/Vidros',
+      meta: '100% Repack Diário',
+      resultadoObtido: '65% (Acúmulo na Bancada)',
+      desvioEncontrado: 'Acúmulo de caixas avariadas na bancada 1 aguardando reembalagem e separação de latas intactas.',
+      contramedida: 'Priorizar triagem de latas intactas e repaciar caixas para retorno imediato ao estoque vendável.',
+      classificacao: 'Ação de Rotina' as const,
+      tipoAcao: 'Melhoria' as const,
+      prioridade: 'Média' as const,
+      setor: 'Linha 1 Repack',
+      responsavelTratativa: 'Paulo Santos (Operador Repack)',
+      causaRaiz: 'Mão de Obra' as const,
+      dashboardDestino: 'repack-dashboard',
+      categoria: 'quebras'
+    },
+    {
+      processo: 'Despejo' as const,
+      indicador: 'Drenagem e Despejo de Avarias Líquidas',
+      meta: 'Fluxo Contínuo',
+      resultadoObtido: 'Lentidão no Escoamento',
+      desvioEncontrado: 'Canaleta de drenagem de líquidos entupida com cacos de vidro reduzindo velocidade de descarte.',
+      contramedida: 'Executar limpeza preventiva da grade do ralo e descarte imediato dos cacos no container.',
+      classificacao: 'Ação de Rotina' as const,
+      tipoAcao: 'Melhoria' as const,
+      prioridade: 'Média' as const,
+      setor: 'Área de Despejo',
+      responsavelTratativa: 'Gilson Ferreira (Operador Despejo)',
+      causaRaiz: 'Máquina' as const,
+      dashboardDestino: 'despejo-dashboard',
+      categoria: 'quebras'
+    },
+    {
+      processo: 'Recebimento' as const,
+      indicador: 'TMR — Tempo Médio de Permanência de Carretas',
+      meta: '1h10min max',
+      resultadoObtido: '1h45min (Acima da Meta)',
+      desvioEncontrado: 'Tempo de descarga de carretas acima da meta por demora na conferência de vasilhame.',
+      contramedida: 'Agilizar triagem de vasilhame na portaria e liberar doca 2 para descarregamento prioritário.',
+      classificacao: 'Ação de Desvio' as const,
+      tipoAcao: 'Corretiva' as const,
+      prioridade: 'Alta' as const,
+      setor: 'Doca de Recebimento',
+      responsavelTratativa: 'João Paulo (Supervisor Pátio)',
+      causaRaiz: 'Método' as const,
+      dashboardDestino: 'tmr-dashboard',
+      categoria: 'tmr'
+    },
+    {
+      processo: 'Gestão de Capacidade' as const,
+      indicador: 'Ocupação Volumétrica do Armazém',
+      meta: '85% max',
+      resultadoObtido: '94.2% (Armazém Congestionado)',
+      desvioEncontrado: 'Excesso de paletes na área de circulação e transbordo impedindo manobras seguras.',
+      contramedida: 'Remanejar 18 paletes de giro lento para o estoque aéreo do Armazém 02 liberando o corredor central.',
+      classificacao: 'Ação de Melhoria' as const,
+      tipoAcao: 'Melhoria' as const,
+      prioridade: 'Alta' as const,
+      setor: 'Armazém 01 / Aéreo',
+      responsavelTratativa: 'Luciano Santos (Gestor de Processos)',
+      causaRaiz: 'Método' as const,
+      dashboardDestino: 'gestao-capacidade',
+      categoria: 'capacidade'
+    }
+  ];
+
+  const novasAcoes: AcaoCorretiva[] = [];
+  const resumo = { produtividade: 0, quebras: 0, wqi: 0, fefo: 0, capacidade: 0, tmr: 0 };
+
+  templates.forEach((tmpl, idx) => {
+    dates.forEach((d, dIdx) => {
+      // Cria uma ação concluída para a respectiva data
+      const id = `ACAO_PLATAFORMA_${tmpl.processo.replace(/\s+/g, '_').toUpperCase()}_${d.dISO.replace(/-/g, '')}_${idx + 1}`;
+      
+      const acao: AcaoCorretiva = {
+        id,
+        data: d.dStr,
+        dataISO: d.dISO,
+        hora: `${String(8 + (dIdx % 8)).padStart(2, '0')}:00`,
+        processo: tmpl.processo,
+        setor: tmpl.setor,
+        colaboradorResponsavel: tmpl.responsavelTratativa,
+        indicador: tmpl.indicador,
+        meta: tmpl.meta,
+        resultadoObtido: tmpl.resultadoObtido,
+        desvioEncontrado: tmpl.desvioEncontrado,
+        causaRaiz: tmpl.causaRaiz,
+        causaRaizDetalhe: `Tratativa validada e executada para eliminar desvio no indicador [${tmpl.indicador}].`,
+        status: 'Concluído',
+        responsavelTratativa: tmpl.responsavelTratativa,
+        prazo: d.dISO,
+        evidencias: `Evidência de execução concluída em ${d.dStr} com inspeção no padrão DPO 2026.`,
+        comentarioOperador: tmpl.contramedida,
+        simulado: false,
+        criadoEm: `${d.dISO}T08:00:00.000Z`,
+        tipoAcao: tmpl.tipoAcao,
+        classificacao: tmpl.classificacao,
+        prioridade: tmpl.prioridade,
+        dashboardDestino: tmpl.dashboardDestino,
+        contramedida: tmpl.contramedida,
+        aprovacaoGestor: 'Aprovado',
+        aceiteColaborador: true,
+        abertoPor: currentUser,
+        dataAbertura: `${d.dStr} 08:00`,
+        fechadoPor: tmpl.responsavelTratativa,
+        dataFechamento: `${d.dStr} 17:00`,
+        concluidoNoPrazo: true,
+        cincoPorques: {
+          porque1: `Por que ocorreu o desvio em ${tmpl.indicador}? Ocorreu perda de conformidade na operação em ${d.dStr}.`,
+          porque2: `Por que ocorreu a perda de conformidade? Houve sobrecarga e falta de alinhamento no início do turno.`,
+          porque3: `Por que faltou alinhamento? O checklist diário foi executado tardiamente.`,
+          porque4: `Por que foi tardio? Priorização de demandas urgentes na abertura do dia.`,
+          porque5: `Por que a causa raiz é ${tmpl.causaRaiz}? Falta de padronização imediata, corrigida com a contramedida implementada.`
+        },
+        historicoAlteracoes: [
+          {
+            dataHora: `${d.dStr} 08:00`,
+            usuario: currentUser,
+            alteracao: `Ação gerada pela análise de desvios da plataforma para o indicador [${tmpl.indicador}].`
+          },
+          {
+            dataHora: `${d.dStr} 17:00`,
+            usuario: tmpl.responsavelTratativa,
+            alteracao: `Ação corrigida e marcada como Concluído com sucesso na data ${d.dStr}.`
+          }
+        ]
+      };
+
+      novasAcoes.push(acao);
+      if (tmpl.categoria === 'produtividade') resumo.produtividade++;
+      else if (tmpl.categoria === 'wqi') resumo.wqi++;
+      else if (tmpl.categoria === 'fefo') resumo.fefo++;
+      else if (tmpl.categoria === 'capacidade') resumo.capacidade++;
+      else if (tmpl.categoria === 'tmr') resumo.tmr++;
+    });
+  });
+
+  // Strict 20 official Quebras actions integration
+  ACOES_OFICIAIS_QUEBRAS_20.forEach(acao => {
+    novasAcoes.push(acao);
+    resumo.quebras++;
+  });
+
+  // Mesclar com ações existentes e salvar
+  const existing = getAcoesAll();
+  const existingMap = new Map<string, AcaoCorretiva>();
+  existing.forEach(a => existingMap.set(a.id, a));
+  novasAcoes.forEach(a => existingMap.set(a.id, a));
+
+  const allUpdated = Array.from(existingMap.values());
+  saveAcoes(allUpdated);
+
+  return {
+    totalCriadas: novasAcoes.length,
+    acoesCriadas: novasAcoes,
+    resumo
+  };
+}
+
+export function cleanAllAutomaticActionsFromStorage(): { removedCount: number } {
+  let totalRemoved = 0;
+  const storageKeys = [
+    STORAGE_KEY_SIMULADO,
+    STORAGE_KEY_OPERACIONAL,
+    STORAGE_KEY_HISTORICO,
+    'af_desvios_acoes_v2',
+    'af_melhorias_acoes'
+  ];
+
+  // Adicionar chaves de empresa
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.startsWith('acoes_rows_') || key.startsWith('workstation_gatilhos_desvios_'))) {
+      if (!storageKeys.includes(key)) storageKeys.push(key);
+    }
+  }
+
+  storageKeys.forEach(key => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const beforeLen = parsed.length;
+          const cleaned = parsed.filter((item: any) => {
+            if (!item) return false;
+            const idStr = String(item.id || '');
+            const isAutoId = idStr.startsWith('auto-') || idStr.startsWith('acao-2026-') || idStr.startsWith('acao-auto-') || idStr.startsWith('melhoria-auto-');
+            const isAutoFlag = item.isAutomatica === true || item.simulado === true || item.origem === 'automatica' || item.origem === 'auto' || item.tipo === 'automatica';
+            return !isAutoId && !isAutoFlag;
+          });
+          const removed = beforeLen - cleaned.length;
+          totalRemoved += removed;
+          localStorage.setItem(key, JSON.stringify(cleaned));
+        }
+      }
+    } catch (e) {}
+  });
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('af_acoes_updated'));
+    window.dispatchEvent(new Event('af_acoes_cleaned'));
+  }
+
+  return { removedCount: totalRemoved };
 }
 
 export function saveAcoes(list: AcaoCorretiva[], specificMode?: DatabaseMode): void {
@@ -470,6 +1295,7 @@ export function clearAllAcoes(): void {
     localStorage.removeItem(STORAGE_KEY_SIMULADO);
     localStorage.removeItem(STORAGE_KEY_OPERACIONAL);
     localStorage.removeItem(STORAGE_KEY_HISTORICO);
+    cleanAllAutomaticActionsFromStorage();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('af_acoes_updated'));
     }

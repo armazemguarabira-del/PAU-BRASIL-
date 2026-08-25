@@ -341,7 +341,22 @@ export default function PadraoOperacionalPanel({
     { id: 'tmr', label: '🏬 TMR (Revendas)' },
     { id: 'empilhador', label: '🚜 Operação Empilhador' },
     { id: 'conferente', label: '📋 Conferente / ADM' },
-    { id: 'carregamento', label: '📦 Montagem / Carregamento' }
+    { id: 'carregamento', label: '📦 Montagem / Carregamento' },
+    { id: 'treinamentos_qualidade', label: '🎓 Treinamentos Qualidade (QLP)' },
+    { id: 'bloqueio_armazem', label: '🚫 Bloqueio no Armazém' },
+    { id: 'devolucao', label: '🔄 Devolução de Rota' },
+    { id: 'contagem_inventario', label: '📊 Contagem de Inventário' },
+    { id: 'gestao_ativos', label: '🪵 Gestão de Ativos (Paletes/Vasilhames)' },
+    { id: 'qualidade_puxada', label: '🚛 Qualidade da Puxada' },
+    { id: 'politica_estoque', label: '📈 Política de Estoque (ABC)' },
+    { id: 'simulador_ressuprimento', label: '🧮 Simulador de Ressuprimento' },
+    { id: 'contingencia', label: '🛡️ Plano de Contingência' },
+    { id: 'gestao_capacidade', label: '📐 Gestão de Capacidade & Layout' },
+    { id: 'wlp', label: '📉 Gestão WLP / Perdas' },
+    { id: '5s_digital', label: '🧹 5S Digital & Housekeeping' },
+    { id: 'temperatura', label: '🌡️ Controle de Temperatura' },
+    { id: 'pragas', label: '🪤 Controle de Pragas' },
+    { id: 'acoes', label: '🎯 Gestão de Ações SDPO' }
   ];
 
   const processTabs = [

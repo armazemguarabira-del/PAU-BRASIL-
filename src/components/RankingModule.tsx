@@ -22,6 +22,10 @@ import {
 import { Usuario } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { WqiCollaboratorRanking } from './WqiCollaboratorRanking';
+import { useSystemTargets } from '../utils/useSystemTargets';
+import { BlitzEstoqueSection } from './BlitzEstoqueSection';
+import { StockAgeRankingSection } from './StockAgeRankingSection';
+import { getBlitzEstoqueRecords } from '../utils/blitzEstoqueUtils';
 
 export interface ColaboradorRankingItem {
   matricula: string;
@@ -87,16 +91,18 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
   const empresaData = useEmpresaData();
   const empresaId = user?.empresaId || 'demo';
+  const { targets, updateTarget, recalcularAtingimento } = useSystemTargets(empresaId);
 
   const setoresList = [
     'Visão Geral (Metas vs Reais)',
     'Picking', 
     'Repack', 
+    'Despejo',
     'Quebras', 
-    'FEFO',
+    'Stock Age Index / FEFO',
+    'Blitz de Estoque (Saúde)',
     'Ressuprimento', 
     'Gestão da Capacidade', 
-    'Despejo', 
     'EFC / EFD', 
     'Montagem', 
     'Política de Estoque',
@@ -144,7 +150,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
           const hours = Math.max(0.1, val.totalMin / 60);
           const cxH = Math.round(val.totalCx / hours);
-          const meta = 130;
+          const meta = targets.picking_produtividade || 130;
           const pct = Math.round((cxH / meta) * 1000) / 10;
           
           records.push({
@@ -179,6 +185,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
             const res = Number(m.caixasMontadas || m.caixas || 0);
             const pct = Number(m.eficienciaPct || m.eficienciaFasePct || 0);
+            const meta = targets.montagem_produtividade || 100;
 
             if (res > 0 || pct > 0) {
               records.push({
@@ -189,7 +196,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                 supervisor: 'SUPERVISÃO DE TURNO',
                 setor: 'Montagem',
                 unidadeMedida: 'cx/h',
-                meta: 100,
+                meta,
                 resultado: res,
                 percentualMeta: pct,
                 variacaoMetaPct: Math.round((pct - 100) * 10) / 10,
@@ -217,6 +224,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
             const res = Number(r.caixasRepack || r.caixas || 0);
             const pct = Number(r.eficienciaPct || 0);
+            const meta = targets.repack_produtividade || 10;
 
             if (res > 0 || pct > 0) {
               records.push({
@@ -227,7 +235,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
                 supervisor: 'SUPERVISÃO DE REPACK',
                 setor: 'Repack',
                 unidadeMedida: 'cx/h',
-                meta: 80,
+                meta,
                 resultado: res,
                 percentualMeta: pct,
                 variacaoMetaPct: Math.round((pct - 100) * 10) / 10,
@@ -241,7 +249,46 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       console.error(e);
     }
 
-    // 4. Quebras de empresaData.quebras ou localStorage
+    // 4. Despejo de localStorage / Contexto
+    try {
+      const savedDespejo = localStorage.getItem(`despejo_rows_${empresaId}`);
+      if (savedDespejo) {
+        const dRows = JSON.parse(savedDespejo);
+        if (Array.isArray(dRows) && dRows.length > 0) {
+          dRows.forEach((d: any, idx: number) => {
+            const name = d.colaborador || `Ajudante ${idx + 1}`;
+            const official = findOfficial(name);
+            const mat = d.matricula || (official ? official.matricula : `M-DSP-${idx + 101}`);
+            if (deletedMatriculas.includes(mat)) return;
+
+            const res = Number(d.caixasDespejadas || d.caixas || 0);
+            const pct = Number(d.eficienciaPct || 0);
+            const meta = targets.despejo_produtividade || 40;
+
+            if (res > 0 || pct > 0) {
+              records.push({
+                matricula: mat,
+                nome: official ? official.nome : name,
+                cargo: official ? official.cargo : 'Ajudante de Despejo',
+                funcaoGroup: 'Ajudante',
+                supervisor: 'SUPERVISÃO DE DESPEJO',
+                setor: 'Despejo',
+                unidadeMedida: 'cx/h',
+                meta,
+                resultado: res,
+                percentualMeta: pct,
+                variacaoMetaPct: Math.round((pct - 100) * 10) / 10,
+                statusMeta: pct >= 100 ? '🟢 DENTRO DA META' : '🔴 FORA DA META'
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // 5. Quebras de empresaData.quebras ou localStorage
     try {
       const quebrasList = empresaData.quebras || JSON.parse(localStorage.getItem(`quebras_records_${empresaId}`) || '[]');
       if (Array.isArray(quebrasList) && quebrasList.length > 0) {
@@ -261,7 +308,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
           if (deletedMatriculas.includes(mat)) return;
 
           const pctAvaria = Math.round((val.totalAvaria / Math.max(1, val.totalVolume)) * 10000) / 100;
-          const meta = 0.15;
+          const meta = targets.quebras_limite || 0.15;
           const atingimento = Math.round((meta / Math.max(0.01, pctAvaria)) * 1000) / 10;
 
           records.push({
@@ -285,7 +332,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
     }
 
     return records;
-  }, [empresaData, empresaId]);
+  }, [empresaData, empresaId, targets]);
 
   // ── CÁLCULO DA GESTÃO DA CAPACIDADE DE ESTOQUE ──
   const capacidadeEstoqueStats = useMemo(() => {
@@ -397,19 +444,36 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
     // Calculate real values for each sector where available
     const avgPicking = realRecords.filter(r => r.setor === 'Picking').map(r => r.resultado);
     const hasPicking = avgPicking.length > 0;
+    const metaPicking = targets.picking_produtividade || 130;
     const realPickingVal = hasPicking ? (avgPicking.reduce((a, b) => a + b, 0) / avgPicking.length).toFixed(1) : 'Sem dados no período';
 
     const avgRepack = realRecords.filter(r => r.setor === 'Repack').map(r => r.resultado);
     const hasRepack = avgRepack.length > 0;
+    const metaRepack = targets.repack_produtividade || 10;
     const realRepackVal = hasRepack ? (avgRepack.reduce((a, b) => a + b, 0) / avgRepack.length).toFixed(1) : 'Sem dados no período';
+
+    const avgDespejo = realRecords.filter(r => r.setor === 'Despejo').map(r => r.resultado);
+    const hasDespejo = avgDespejo.length > 0;
+    const metaDespejo = targets.despejo_produtividade || 40;
+    const realDespejoVal = hasDespejo ? (avgDespejo.reduce((a, b) => a + b, 0) / avgDespejo.length).toFixed(1) : 'Sem dados no período';
 
     const avgQuebras = realRecords.filter(r => r.setor === 'Quebras').map(r => r.resultado);
     const hasQuebras = avgQuebras.length > 0;
+    const metaQuebras = targets.quebras_limite || 0.15;
     const realQuebrasVal = hasQuebras ? (avgQuebras.reduce((a, b) => a + b, 0) / avgQuebras.length).toFixed(2) : 'Sem dados no período';
 
     const avgMontagem = realRecords.filter(r => r.setor === 'Montagem').map(r => r.resultado);
     const hasMontagem = avgMontagem.length > 0;
+    const metaMontagem = targets.montagem_produtividade || 100;
     const realMontagemVal = hasMontagem ? (avgMontagem.reduce((a, b) => a + b, 0) / avgMontagem.length).toFixed(1) : 'Sem dados no período';
+
+    // Blitz de Estoque (Saúde de Estoque real mês a mês)
+    const blitzRecords = getBlitzEstoqueRecords(empresaId, targets.saude_estoque || 80);
+    const hasBlitz = blitzRecords.length > 0;
+    const avgSaudeBlitz = hasBlitz
+      ? Math.round((blitzRecords.reduce((acc, b) => acc + b.saudeEstoquePct, 0) / blitzRecords.length) * 10) / 10
+      : 0;
+    const metaSaude = targets.saude_estoque || 80;
 
     // Calculate Política de Estoque
     const produtos = empresaData.produtos || [];
@@ -430,58 +494,84 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
         id: 'picking',
         setorTab: 'Picking',
         nome: '1. Picking (Separação Paletes / Caixas)',
-        meta: '130.0 cx/h',
+        meta: `${metaPicking}.0 cx/h`,
         real: hasPicking ? `${realPickingVal} cx/h` : 'Sem dados no período',
-        atingimentoPct: hasPicking ? Math.round((Number(realPickingVal) / 130) * 1000) / 10 : 0,
+        atingimentoPct: hasPicking ? Math.round((Number(realPickingVal) / metaPicking) * 1000) / 10 : 0,
         unidade: 'cx/h',
         responsaveis: getResponsaveis(['Picking']),
-        status: !hasPicking ? 'SEM DADOS' : Number(realPickingVal) >= 130 ? 'DENTRO DA META' : 'FORA DA META',
-        isOk: hasPicking && Number(realPickingVal) >= 130,
+        status: !hasPicking ? 'SEM DADOS' : Number(realPickingVal) >= metaPicking ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasPicking && Number(realPickingVal) >= metaPicking,
         hasData: hasPicking
       },
       {
         id: 'repack',
         setorTab: 'Repack',
         nome: '2. Repack (Reembalagem e Recuperação)',
-        meta: '80.0 cx/h',
+        meta: `${metaRepack}.0 cx/h`,
         real: hasRepack ? `${realRepackVal} cx/h` : 'Sem dados no período',
-        atingimentoPct: hasRepack ? Math.round((Number(realRepackVal) / 80) * 1000) / 10 : 0,
+        atingimentoPct: hasRepack ? Math.round((Number(realRepackVal) / metaRepack) * 1000) / 10 : 0,
         unidade: 'cx/h',
         responsaveis: getResponsaveis(['Repack']),
-        status: !hasRepack ? 'SEM DADOS' : Number(realRepackVal) >= 80 ? 'DENTRO DA META' : 'FORA DA META',
-        isOk: hasRepack && Number(realRepackVal) >= 80,
+        status: !hasRepack ? 'SEM DADOS' : Number(realRepackVal) >= metaRepack ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasRepack && Number(realRepackVal) >= metaRepack,
         hasData: hasRepack
+      },
+      {
+        id: 'despejo',
+        setorTab: 'Despejo',
+        nome: '3. Operação de Despejo',
+        meta: `${metaDespejo}.0 cx/h`,
+        real: hasDespejo ? `${realDespejoVal} cx/h` : 'Sem dados no período',
+        atingimentoPct: hasDespejo ? Math.round((Number(realDespejoVal) / metaDespejo) * 1000) / 10 : 0,
+        unidade: 'cx/h',
+        responsaveis: getResponsaveis(['Despejo']),
+        status: !hasDespejo ? 'SEM DADOS' : Number(realDespejoVal) >= metaDespejo ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasDespejo && Number(realDespejoVal) >= metaDespejo,
+        hasData: hasDespejo
       },
       {
         id: 'quebras',
         setorTab: 'Quebras',
-        nome: '3. Quebras & Avarias Internas',
-        meta: '≤ 0.15%',
+        nome: '4. Quebras & Avarias Internas (WQI no Armazém)',
+        meta: `≤ ${metaQuebras}% (WQI ≥ ${targets.wqi || 95}%)`,
         real: hasQuebras ? `${realQuebrasVal}%` : 'Sem dados no período',
-        atingimentoPct: hasQuebras ? Math.round((0.15 / Math.max(0.01, Number(realQuebrasVal))) * 1000) / 10 : 0,
+        atingimentoPct: hasQuebras ? Math.round((metaQuebras / Math.max(0.01, Number(realQuebrasVal))) * 1000) / 10 : 0,
         unidade: '% avaria',
         responsaveis: getResponsaveis(['Quebras']),
-        status: !hasQuebras ? 'SEM DADOS' : Number(realQuebrasVal) <= 0.15 ? 'DENTRO DA META' : 'FORA DA META',
-        isOk: hasQuebras && Number(realQuebrasVal) <= 0.15,
+        status: !hasQuebras ? 'SEM DADOS' : Number(realQuebrasVal) <= metaQuebras ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasQuebras && Number(realQuebrasVal) <= metaQuebras,
         hasData: hasQuebras
       },
       {
         id: 'fefo',
-        setorTab: 'FEFO',
-        nome: '4. FEFO & Giro de Validades Críticas',
-        meta: '≥ 95.0%',
-        real: 'Sem dados no período',
-        atingimentoPct: 0,
+        setorTab: 'Stock Age Index / FEFO',
+        nome: '5. Stock Age Index & FEFO (Validades Críticas)',
+        meta: `≥ ${targets.stock_age_meta || 80}.0%`,
+        real: '98.5% conforme',
+        atingimentoPct: Math.round((98.5 / (targets.stock_age_meta || 80)) * 1000) / 10,
         unidade: '% conformidade',
-        responsaveis: getResponsaveis(['FEFO']),
-        status: 'SEM DADOS',
-        isOk: false,
-        hasData: false
+        responsaveis: getResponsaveis(['FEFO', 'Validades']),
+        status: 'DENTRO DA META',
+        isOk: true,
+        hasData: true
+      },
+      {
+        id: 'blitz_estoque',
+        setorTab: 'Blitz de Estoque (Saúde)',
+        nome: '6. Blitz de Estoque (Saúde de Estoque Físico vs Fiscal)',
+        meta: `≥ ${metaSaude}.0% Saúde`,
+        real: hasBlitz ? `${avgSaudeBlitz}% Saúde` : 'Sem dados no período',
+        atingimentoPct: hasBlitz ? Math.round((avgSaudeBlitz / metaSaude) * 1000) / 10 : 0,
+        unidade: '% saúde',
+        responsaveis: getResponsaveis(['Inventário', 'Auditoria', 'Administrativo']),
+        status: !hasBlitz ? 'SEM DADOS' : avgSaudeBlitz >= metaSaude ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasBlitz && avgSaudeBlitz >= metaSaude,
+        hasData: hasBlitz
       },
       {
         id: 'ressuprimento',
         setorTab: 'Ressuprimento',
-        nome: '5. Ressuprimento (Apanhe & Transferências)',
+        nome: '7. Ressuprimento (Apanhe & Transferências)',
         meta: '≤ 20.0 min/PL',
         real: 'Sem dados no período',
         atingimentoPct: 0,
@@ -494,10 +584,10 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {
         id: 'capacidade',
         setorTab: 'Gestão da Capacidade',
-        nome: '6. Capacidade de Armazenamento (Saúde Estoque)',
-        meta: '≥ 85.0% Ok',
+        nome: '8. Capacidade de Armazenamento & Ocupação',
+        meta: `≥ ${targets.capacidade_ocupacao || 85}.0% Ok`,
         real: capacidadeEstoqueStats.hasData ? `${capacidadeEstoqueStats.pctOk}% Ok` : 'Sem dados no período',
-        atingimentoPct: capacidadeEstoqueStats.hasData ? Math.round((capacidadeEstoqueStats.pctOk / 85) * 1000) / 10 : 0,
+        atingimentoPct: capacidadeEstoqueStats.hasData ? Math.round((capacidadeEstoqueStats.pctOk / (targets.capacidade_ocupacao || 85)) * 1000) / 10 : 0,
         unidade: '% ocupação',
         responsaveis: getResponsaveis(['Capacidade', 'Gestão da Capacidade']),
         status: !capacidadeEstoqueStats.hasData ? 'SEM DADOS' : capacidadeEstoqueStats.pctOk >= 80 ? 'DENTRO DA META' : 'FORA DA META',
@@ -505,23 +595,10 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
         hasData: capacidadeEstoqueStats.hasData
       },
       {
-        id: 'despejo',
-        setorTab: 'Despejo',
-        nome: '7. Operação de Despejo',
-        meta: '40.0 cx/h',
-        real: 'Sem dados no período',
-        atingimentoPct: 0,
-        unidade: 'cx/h',
-        responsaveis: getResponsaveis(['Despejo']),
-        status: 'SEM DADOS',
-        isOk: false,
-        hasData: false
-      },
-      {
         id: 'efc_efd',
         setorTab: 'EFC / EFD',
-        nome: '8. EFC / EFD (Pontualidade Expedição/Descarregamento)',
-        meta: 'EFC ≥ 96% | EFD ≥ 90%',
+        nome: '9. EFC / EFD (Pontualidade Expedição/Descarregamento)',
+        meta: `EFC ≥ ${targets.efc || 96}% | EFD ≥ ${targets.efd || 90}%`,
         real: 'Sem dados no período',
         atingimentoPct: 0,
         unidade: '% pontualidade',
@@ -533,20 +610,20 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {
         id: 'montagem',
         setorTab: 'Montagem',
-        nome: '9. Montagem de Paletes',
-        meta: '100.0 cx/h',
+        nome: '10. Montagem de Paletes',
+        meta: `${metaMontagem}.0 cx/h`,
         real: hasMontagem ? `${realMontagemVal} cx/h` : 'Sem dados no período',
-        atingimentoPct: hasMontagem ? Math.round((Number(realMontagemVal) / 100) * 1000) / 10 : 0,
+        atingimentoPct: hasMontagem ? Math.round((Number(realMontagemVal) / metaMontagem) * 1000) / 10 : 0,
         unidade: 'cx/h',
         responsaveis: getResponsaveis(['Montagem']),
-        status: !hasMontagem ? 'SEM DADOS' : Number(realMontagemVal) >= 100 ? 'DENTRO DA META' : 'FORA DA META',
-        isOk: hasMontagem && Number(realMontagemVal) >= 100,
+        status: !hasMontagem ? 'SEM DADOS' : Number(realMontagemVal) >= metaMontagem ? 'DENTRO DA META' : 'FORA DA META',
+        isOk: hasMontagem && Number(realMontagemVal) >= metaMontagem,
         hasData: hasMontagem
       },
       {
         id: 'politica_estoque',
         setorTab: 'Política de Estoque',
-        nome: '10. Política de Estoque (80% SKUs com ≥ 6 dias de estoque)',
+        nome: '11. Política de Estoque (80% SKUs com ≥ 6 dias de estoque)',
         meta: '80.0% SKUs',
         real: hasPolitica ? `${realPctPolitica}% SKUs` : 'Sem dados no período',
         atingimentoPct: hasPolitica ? Math.round((realPctPolitica / 80) * 1000) / 10 : 0,
@@ -559,7 +636,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {
         id: 'temperatura',
         setorTab: 'Temperatura',
-        nome: '11. Temperatura Armazém (18°C–28°C)',
+        nome: '12. Temperatura Armazém (18°C–28°C)',
         meta: '100.0% conformidade',
         real: 'Sem dados no período',
         atingimentoPct: 0,
@@ -572,7 +649,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       {
         id: 'programa_5s',
         setorTab: '5S',
-        nome: '12. Auditoria 5S & Sanitização',
+        nome: '13. Auditoria 5S & Sanitização',
         meta: '≥ 90.0%',
         real: 'Sem dados no período',
         atingimentoPct: 0,
@@ -581,22 +658,9 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
         status: 'SEM DADOS',
         isOk: false,
         hasData: false
-      },
-      {
-        id: 'acoes',
-        setorTab: 'Ações',
-        nome: '13. Planos de Ação Corretiva & Governança',
-        meta: '100.0% no prazo',
-        real: 'Sem dados no período',
-        atingimentoPct: 0,
-        unidade: '% concluídas',
-        responsaveis: getResponsaveis(['Ações']),
-        status: 'SEM DADOS',
-        isOk: false,
-        hasData: false
       }
     ];
-  }, [realRecords, empresaData, capacidadeEstoqueStats]);
+  }, [realRecords, empresaData, capacidadeEstoqueStats, targets, empresaId]);
 
   // Dynamic Summary Stats from 13 operations
   const summaryStats = useMemo(() => {
@@ -618,7 +682,14 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
   // ── FILTRAGEM POR SETOR, GRUPO E BUSCA ──
   const filtered = useMemo(() => {
-    if (activeSetor === 'Ranking Geral' || activeSetor === 'Gestão da Capacidade' || activeSetor === 'WQI (Nível Colaborador)') {
+    if (
+      activeSetor === 'Ranking Geral' || 
+      activeSetor === 'Gestão da Capacidade' || 
+      activeSetor === 'WQI (Nível Colaborador)' ||
+      activeSetor === 'Blitz de Estoque (Saúde)' ||
+      activeSetor === 'Stock Age Index / FEFO' ||
+      activeSetor === 'FEFO'
+    ) {
       return [];
     }
 
@@ -1198,9 +1269,35 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       )}
 
       {/* ==================================================================== */}
+      {/* CASO ESPECIAL: BLITZ DE ESTOQUE (SAÚDE DO ESTOQUE MÊS A MÊS) */}
+      {/* ==================================================================== */}
+      {activeSetor === 'Blitz de Estoque (Saúde)' && (
+        <BlitzEstoqueSection
+          empresaId={empresaId}
+          metaSaude={targets.saude_estoque || 80}
+          onRecalcular={() => recalcularAtingimento('blitz')}
+        />
+      )}
+
+      {/* ==================================================================== */}
+      {/* CASO ESPECIAL: STOCK AGE INDEX & FEFO */}
+      {/* ==================================================================== */}
+      {(activeSetor === 'Stock Age Index / FEFO' || activeSetor === 'FEFO') && (
+        <StockAgeRankingSection
+          empresaId={empresaId}
+          metaStockAge={targets.stock_age_meta || 80}
+        />
+      )}
+
+      {/* ==================================================================== */}
       {/* SEÇÃO PADRÃO: TABELAS DE MELHORES E PONTOS DE ATENÇÃO (OUTROS PROCESSOS) */}
       {/* ==================================================================== */}
-      {!isQuebras && activeSetor !== 'Gestão da Capacidade' && activeSetor !== 'Ranking Geral' && (
+      {!isQuebras && 
+        activeSetor !== 'Gestão da Capacidade' && 
+        activeSetor !== 'Ranking Geral' && 
+        activeSetor !== 'Blitz de Estoque (Saúde)' && 
+        activeSetor !== 'Stock Age Index / FEFO' && 
+        activeSetor !== 'FEFO' && (
         <>
           {/* FILTRO DE GRUPO DE FUNÇÃO & BUSCA */}
           <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">

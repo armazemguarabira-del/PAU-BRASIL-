@@ -40,7 +40,24 @@ export type OperationalModuleKey =
   | 'efc'
   | 'tmr'
   | 'efc_efd'
-  | 'ressuprimento_reabastecimento';
+  | 'ressuprimento_reabastecimento'
+  | 'conferente'
+  | 'treinamentos_qualidade'
+  | 'bloqueio_armazem'
+  | 'devolucao'
+  | 'contagem_inventario'
+  | 'gestao_ativos'
+  | 'qualidade_puxada'
+  | 'politica_estoque'
+  | 'simulador_ressuprimento'
+  | 'contingencia'
+  | 'gestao_capacidade'
+  | 'wlp'
+  | '5s_digital'
+  | 'temperatura'
+  | 'pragas'
+  | 'acoes'
+  | 'carregamento';
 
 export interface POPDocument {
   title: string;
@@ -394,6 +411,273 @@ export const DEFAULT_POPS: Record<OperationalModuleKey, POPDocument> = {
       { step: 1, title: 'Nivelamento de Estoque Mínimo', description: 'Monitore as baias críticas antes que esvaziem para evitar paralisação dos separadores.' },
       { step: 2, title: 'Separação e Critério FEFO', description: 'Confira a validade do lote retirado no bloco central antes de alocar na baia de picking.' },
       { step: 3, title: 'Posicionamento e Confirmação', description: 'Garanta o alinhamento do palete e dê baixa no painel do empilhador.' }
+    ]
+  },
+  conferente: {
+    title: 'Procedimento Operacional Padrão - Conferente e Administração de Armazém',
+    code: 'POP-CNF-01',
+    version: '02',
+    lastUpdated: '2026-06-25',
+    updatedBy: 'Encarregado de Conferência',
+    objetivo: 'Garantir 100% de acuracidade na conferência física versus nota fiscal na expedição e recebimento.',
+    content: 'Procedimento padrão de conferência item a item, contagem física de caixas e resolução de divergências.',
+    safetyEPIs: ['Bota com Biqueira de Aço', 'Colete Refletivo', 'Luva de Proteção'],
+    steps: [
+      { step: 1, title: 'Recebimento do Espelho Cego', description: 'Receber a guia cega de conferência sem visualização prévia de quantidades.' },
+      { step: 2, title: 'Contagem Física na Doca', description: 'Realizar a contagem física das caixas e paletes na doca designada.' },
+      { step: 3, title: 'Validação no Coletor', description: 'Registrar as quantidades e apontar divergências para reconferência.' },
+      { step: 4, title: 'Liberação de Manifesto', description: 'Assinar o termo de conferência e liberar o manifesto de carga.' }
+    ]
+  },
+  treinamentos_qualidade: {
+    title: 'Procedimento Operacional Padrão - Treinamentos de Qualidade (QLP)',
+    code: 'POP-QLP-01',
+    version: '02',
+    lastUpdated: '2026-07-10',
+    updatedBy: 'Analista de Qualidade e DPO',
+    objetivo: 'Garantir que 100% dos operadores estejam treinados e certificados nos padrões de qualidade e segurança.',
+    content: 'Matriz de competências, frequência de reciclagens operacionais e registro de presença e eficácia.',
+    safetyEPIs: ['Crachá de Identificação', 'EPIs de Campo Conforme Área'],
+    steps: [
+      { step: 1, title: 'Mapeamento de Necessidades', description: 'Identificar colaboradores com reciclagem vencida ou novos entrantes.' },
+      { step: 2, title: 'Aplicação do Treinamento', description: 'Ministrar conteúdo teórico e prático com avaliação de retenção.' },
+      { step: 3, title: 'Registro do Certificado', description: 'Lançar a presença e horas no histórico do colaborador.' },
+      { step: 4, title: 'Auditoria de Aderência', description: 'Auditar em campo a aplicação prática do padrão nos primeiros 30 dias.' }
+    ]
+  },
+  bloqueio_armazem: {
+    title: 'Procedimento Operacional Padrão - Bloqueio de Armazém & PNC',
+    code: 'POP-BLQ-01',
+    version: '03',
+    lastUpdated: '2026-08-05',
+    updatedBy: 'Garantia da Qualidade & Supervisão',
+    objetivo: 'Impedir a saída e entrega de qualquer produto com defeito de fábrica, desvio sensorial ou avaria.',
+    content: 'Critérios de segregação física na gaiola de bloqueio, emissão de fita zebrada e registro sistêmico.',
+    safetyEPIs: ['Luva Anticorte', 'Bota com Biqueira de Aço', 'Óculos de Proteção'],
+    steps: [
+      { step: 1, title: 'Identificação do Desvio', description: 'Detectar não conformidade visual, de rotulagem ou integridade no lote.' },
+      { step: 2, title: 'Bloqueio Sistêmico Imediato', description: 'Efetuar a trava sistêmica na plataforma impedindo a reserva para rotas.' },
+      { step: 3, title: 'Segregação Física', description: 'Transferir o palete para a área delimitada com fita de bloqueio.' },
+      { step: 4, title: 'Emissão de Laudo e Destinação', description: 'Emitir laudo técnico e definir devolução à fábrica ou despejo.' }
+    ]
+  },
+  devolucao: {
+    title: 'Procedimento Operacional Padrão - Devolução e Retorno de Rota',
+    code: 'POP-DEV-01',
+    version: '02',
+    lastUpdated: '2026-06-30',
+    updatedBy: 'Supervisor de Logística Reversa',
+    objetivo: 'Agilizar o retorno de mercadorias não entregues com triagem de qualidade e reintegração rápida ao estoque.',
+    content: 'Triagem de motivos de devolução (recusa, cliente fechado, avaria de transporte) e conferência de vasilhames.',
+    safetyEPIs: ['Bota de Segurança', 'Luva Pigmentada', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Recepção do Veículo', description: 'Receber o caminhão na doca de reversa e conferir o espelho de devolução.' },
+      { step: 2, title: 'Inspeção e Segregação', description: 'Verificar produtos intactos para reestocagem e avarias para Repack.' },
+      { step: 3, title: 'Conferência de Vasilhames', description: 'Validar a quantidade de garrafas e engradados retornados.' },
+      { step: 4, title: 'Baixa Sistêmica no Painel', description: 'Efetuar o fechamento no módulo de devolução com motivo detalhado.' }
+    ]
+  },
+  contagem_inventario: {
+    title: 'Procedimento Operacional Padrão - Contagem de Inventário Cíclico',
+    code: 'POP-INV-01',
+    version: '03',
+    lastUpdated: '2026-07-25',
+    updatedBy: 'Controladoria e Estoque',
+    objetivo: 'Garantir acuracidade de estoque superior a 99,8% em contagens físicas diárias.',
+    content: 'Divisão do armazém por setores ABC, contagem em duas rodadas independentes e conciliação de sobras e faltas.',
+    safetyEPIs: ['Bota com Biqueira de Aço', 'Colete Refletivo', 'Prancheta/Coletor'],
+    steps: [
+      { step: 1, title: 'Emissão da Lista Cega', description: 'Gerar lista de posições para auditoria sem quantidades visíveis.' },
+      { step: 2, title: 'Primeira Contagem', description: 'Executar contagem física minuciosa caixa a caixa.' },
+      { step: 3, title: 'Reconferência de Divergências', description: 'Realizar segunda contagem cruzada nos itens com saldo discordante.' },
+      { step: 4, title: 'Análise de Causa Raiz', description: 'Investigar desvios antes de qualquer ajuste contábil de estoque.' }
+    ]
+  },
+  gestao_ativos: {
+    title: 'Procedimento Operacional Padrão - Gestão de Ativos Retornáveis',
+    code: 'POP-ATV-01',
+    version: '01',
+    lastUpdated: '2026-05-15',
+    updatedBy: 'Gestor de Ativos Retornáveis',
+    objetivo: 'Manter o saldo positivo de paletes PBR e vasilhames retornáveis evitando perdas patrimoniais.',
+    content: 'Controle de entrada e saída de paletes com transportadoras e fábricas, triagem de paletes quebrados e reparo.',
+    safetyEPIs: ['Bota com Biqueira de Aço', 'Luva de Raspa', 'Óculos de Proteção'],
+    steps: [
+      { step: 1, title: 'Contagem na Carga/Descarga', description: 'Registrar o saldo de paletes PBR em todos os manifestos de entrada e saída.' },
+      { step: 2, title: 'Triagem de Paletes Avariados', description: 'Segregar paletes danificados para o lote de manutenção ou descarte.' },
+      { step: 3, title: 'Comprovante de Ativos', description: 'Emitir comprovante assinado de devolução/recebimento com o motorista.' },
+      { step: 4, title: 'Fechamento do Saldo Diário', description: 'Lançar o balanço de ativos no painel de controle da plataforma.' }
+    ]
+  },
+  qualidade_puxada: {
+    title: 'Procedimento Operacional Padrão - Qualidade da Puxada e Recebimento',
+    code: 'POP-PUX-01',
+    version: '02',
+    lastUpdated: '2026-06-18',
+    updatedBy: 'Líder de Recebimento de Carga',
+    objetivo: 'Garantir que cargas vindas das fábricas cheguem sem tombamentos, avarias ou inconformidades de estiva.',
+    content: 'Auditoria visual de pallets, medição de altura, verificação de cantoneiras e registro fotográfico de avarias de transporte.',
+    safetyEPIs: ['Capacete com Jugular', 'Bota Antiperfurante', 'Óculos de Proteção', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Abertura e Registro Fotográfico', description: 'Fotografar a carga antes da descarga na presença do motorista.' },
+      { step: 2, title: 'Avaliação de Estiva e Inclinação', description: 'Medir ângulos e estabilidade dos paletes antes de posicionar as pás.' },
+      { step: 3, title: 'Apontamento de Avarias de Trânsito', description: 'Registrar laudo de avaria imputando responsabilidade de transporte.' },
+      { step: 4, title: 'Fechamento do Índice de Puxada', description: 'Cadastrar os dados no formulário de Qualidade da Puxada.' }
+    ]
+  },
+  politica_estoque: {
+    title: 'Procedimento Operacional Padrão - Política de Estoque e Curva ABC',
+    code: 'POP-EST-01',
+    version: '02',
+    lastUpdated: '2026-07-12',
+    updatedBy: 'Planejamento e Controle de Estoque (PCE)',
+    objetivo: 'Garantir níveis de estoque ideais por categoria de giro, evitando tanto rupturas quanto custos de excesso.',
+    content: 'Parâmetros de estoque mínimo, estoque de segurança, ponto de pedido e curva ABC de faturamento e volume.',
+    safetyEPIs: ['EPIs Padrão de Armazém'],
+    steps: [
+      { step: 1, title: 'Classificação Curva ABC', description: 'Atualizar mensalmente o enquadramento de SKUs em A (alto giro), B e C.' },
+      { step: 2, title: 'Monitoramento de DDI', description: 'Acompanhar os Dias de Disponibilidade de Inventário por família.' },
+      { step: 3, title: 'Ajuste de Parâmetros de Compra', description: 'Alinhar pedidos de fábrica com a previsão de vendas DPO.' }
+    ]
+  },
+  simulador_ressuprimento: {
+    title: 'Procedimento Operacional Padrão - Simulador de Ressuprimento',
+    code: 'POP-SIM-01',
+    version: '01',
+    lastUpdated: '2026-06-20',
+    updatedBy: 'Engenharia de Processos Logísticos',
+    objetivo: 'Dimensionar a capacidade de ressuprimento de picking para picos sazonais e turnos de alta demanda.',
+    content: 'Simulação matemática de tempos de ciclo de empilhadeiras, distâncias médias de viagem e buffer de pulmão.',
+    safetyEPIs: ['EPIs Padrão de Armazém'],
+    steps: [
+      { step: 1, title: 'Inserção da Demanda Prevista', description: 'Carregar os volumes de caixas projetados para a janela de expedição.' },
+      { step: 2, title: 'Cálculo de Empilhadeiras Necessárias', description: 'Executar a simulação para obter a quantidade de máquinas necessárias.' },
+      { step: 3, title: 'Ajuste de Escala Operacional', description: 'Adequar a escala de operadores com base no relatório gerado.' }
+    ]
+  },
+  contingencia: {
+    title: 'Procedimento Operacional Padrão - Plano de Contingência do Armazém',
+    code: 'POP-CTG-01',
+    version: '03',
+    lastUpdated: '2026-08-02',
+    updatedBy: 'Comitê de Crise e Continuidade Operacional',
+    objetivo: 'Assegurar a continuidade do carregamento e expedição em situações de queda de energia, falha de rede ou sinistros.',
+    content: 'Fluxo manual de separação, impressão offline de manifestos de contingência e acionamento de gerador de emergência.',
+    safetyEPIs: ['Lanternas Portáteis', 'Capacete com Jugular', 'Bota com Biqueira de Aço', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Declaração do Estado de Contingência', description: 'Liderança operacional formaliza a ativação do plano contingencial.' },
+      { step: 2, title: 'Ativação de Processos Manuais', description: 'Iniciar conferência por mapas físicos impressos previamente.' },
+      { step: 3, title: 'Comunicação com o CCO', description: 'Reportar o status e horários previstos de restabelecimento.' },
+      { step: 4, title: 'Conciliação Pós-Retorno', description: 'Digitar no sistema todas as baixas manuais executadas durante a contingência.' }
+    ]
+  },
+  gestao_capacidade: {
+    title: 'Procedimento Operacional Padrão - Gestão de Capacidade e Layout DPO',
+    code: 'PB-GBA-LAY-01',
+    version: '04',
+    lastUpdated: '2026-08-01',
+    updatedBy: 'Coordenador de Armazém e Layout DPO',
+    objetivo: 'Maximizar a taxa de ocupação do armazém garantindo fluidez logística e respeito às alturas máximas de empilhamento.',
+    content: 'Definição de ruas de alto fluxo, zoneamento de picking por giro (Curva ABC) e restrições de empilhamento por embalagem.',
+    safetyEPIs: ['Capacete com Jugular', 'Bota Antiperfurante', 'Óculos de Proteção', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Posicionamento Curva A', description: 'Alocar SKUs de alto giro nas posições mais próximas das docas de saída.' },
+      { step: 2, title: 'Respeito ao Empilhamento Máximo', description: 'Seguir rigorosamente o limite de 3 alturas para latas e 2 para garrafas de vidro.' },
+      { step: 3, title: 'Desobstrução de Corredores', description: 'Manter faixas amarelas de pedestres e rotas de fuga 100% livres.' },
+      { step: 4, title: 'Atualização de Ocupação Volumétrica', description: 'Lançar semanalmente o percentual de ocupação estática e dinâmica.' }
+    ]
+  },
+  wlp: {
+    title: 'Procedimento Operacional Padrão - Gestão de Perdas e Índice WLP (WQI)',
+    code: 'POP-WLP-01',
+    version: '02',
+    lastUpdated: '2026-07-18',
+    updatedBy: 'Garantia da Qualidade & CCO',
+    objetivo: 'Manter o índice de perdas (WLP) e qualidade (WQI) dentro das metas corporativas Ambev (< 0,08%).',
+    content: 'Controle de quebras internas, avarias de manuseio, perdas de líquido em despejo e reconciliação de volumes.',
+    safetyEPIs: ['EPIs de Campo Conforme Área'],
+    steps: [
+      { step: 1, title: 'Apuração Diária das Ocorrências', description: 'Consolidar todas as quebras registradas no dia em hectolitros (HL).' },
+      { step: 2, title: 'Cálculo do Índice WLP', description: 'Dividir o volume perdido pelo volume total movimentado na unidade.' },
+      { step: 3, title: 'Tratamento dos Gatilhos', description: 'Abrir 5 Porquês para qualquer dia com WLP acima do limite de controle.' }
+    ]
+  },
+  '5s_digital': {
+    title: 'Procedimento Operacional Padrão - Auditoria 5S Digital & Housekeeping',
+    code: 'POP-5S-01',
+    version: '03',
+    lastUpdated: '2026-07-05',
+    updatedBy: 'Comitê 5S & Segurança do Trabalho',
+    objetivo: 'Manter o ambiente de trabalho limpo, organizado, seguro e produtivo em conformidade com os pilares DPO.',
+    content: 'Rotina de limpeza das ruas, destinação de restos de filme stretch, organização de ferramentas e pontuação 5S.',
+    safetyEPIs: ['Luva de Proteção', 'Bota com Biqueira de Aço', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Seiri (Descarte)', description: 'Retirar das ruas paletes quebrados, sucatas e materiais sem utilização.' },
+      { step: 2, title: 'Seiton (Organização)', description: 'Manter paleteiras, coletores e cones em seus locais demarcados.' },
+      { step: 3, title: 'Seiso (Limpeza)', description: 'Recolher imediatamente restos de plástico, cacos e pó nas baias.' },
+      { step: 4, title: 'Auditoria e Pontuação', description: 'Realizar auditoria semanal com pontuação mínima de 95% de conformidade.' }
+    ]
+  },
+  temperatura: {
+    title: 'Procedimento Operacional Padrão - Controle de Temperatura do Armazém',
+    code: 'POP-TMP-01',
+    version: '01',
+    lastUpdated: '2026-04-20',
+    updatedBy: 'Técnico de Qualidade Assegurada',
+    objetivo: 'Preservar a estabilidade sensorial da cerveja garantindo estocagem em temperatura adequada (< 28°C).',
+    content: 'Leitura diária dos termômetros digitais nos quatro quadrantes do armazém e acionamento de exaustores em picos térmicos.',
+    safetyEPIs: ['Colete Refletivo', 'Bota com Biqueira de Aço'],
+    steps: [
+      { step: 1, title: 'Leitura dos Termohigrômetros', description: 'Registrar as leituras dos 4 sensores às 08h, 12h e 16h.' },
+      { step: 2, title: 'Acionamento de Ventilação', description: 'Ligar o sistema de exaustores quando a temperatura ultrapassar 27°C.' },
+      { step: 3, title: 'Notificação de Alerta', description: 'Emitir alerta de qualidade se houver temperatura excessiva contínua.' }
+    ]
+  },
+  pragas: {
+    title: 'Procedimento Operacional Padrão - Controle Integrado de Pragas',
+    code: 'POP-PRG-01',
+    version: '02',
+    lastUpdated: '2026-06-05',
+    updatedBy: 'Engenharia de Meio Ambiente e Saúde',
+    objetivo: 'Garantir zero contaminação de produtos e embalagens por roedores, pássaros ou insetos.',
+    content: 'Inspeção semanal das iscas de atração, barreiras físicas nas portas de doca e controle de vegetação no entorno.',
+    safetyEPIs: ['Luva Nitrílica', 'Bota de Segurança', 'Óculos de Proteção'],
+    steps: [
+      { step: 1, title: 'Vistoria das Porta-Iscas', description: 'Inspecionar e registrar as condições das estações de controle numeradas.' },
+      { step: 2, title: 'Fechamento de Docas', description: 'Manter portas e portões abaixados durante intervalos operacionais.' },
+      { step: 3, title: 'Verificação de Barreiras', description: 'Checar a vedação de ralos, canaletas e telas protetoras contra aves.' }
+    ]
+  },
+  acoes: {
+    title: 'Procedimento Operacional Padrão - Governança SDPO e Planos de Ação',
+    code: 'POP-SDPO-01',
+    version: '04',
+    lastUpdated: '2026-08-10',
+    updatedBy: 'Gerência de Operações & Excelência SDPO',
+    objetivo: 'Garantir o fechamento de desvios operacionais com análise de causa raiz e planos de ação eficazes no prazo.',
+    content: 'Aplicação dos 5 Porquês para qualquer meta não atingida no dia, atribuição de responsável e acompanhamento no CCO.',
+    safetyEPIs: ['EPIs Padrão da Unidade'],
+    steps: [
+      { step: 1, title: 'Identificação de Desvio de Meta', description: 'Detectar não atingimento de produtividade ou metas operacionais no fechamento diário.' },
+      { step: 2, title: 'Sessão dos 5 Porquês', description: 'Conduzir investigação com o colaborador e liderança para encontrar a causa raiz.' },
+      { step: 3, title: 'Cadastro do Plano de Ação', description: 'Registrar a ação corretiva com responsável definido e prazo de execução.' },
+      { step: 4, title: 'Validação de Eficácia', description: 'Verificar no CCO a sustentabilidade do resultado e encerrar a ação.' }
+    ]
+  },
+  carregamento: {
+    title: 'Procedimento Operacional Padrão - Montagem de Cargas e Expedição',
+    code: 'POP-CRG-01',
+    version: '02',
+    lastUpdated: '2026-07-22',
+    updatedBy: 'Supervisão de Carregamento Fast Picking',
+    objetivo: 'Garantir a montagem ágil, estável e segura de paletes e carregamento dos caminhões de entrega.',
+    content: 'Padrão de amarração, amarração com filme stretch, calçamento de veículos e saída pontual.',
+    safetyEPIs: ['Capacete com Jugular', 'Bota com Biqueira de Aço', 'Óculos de Proteção', 'Colete Refletivo'],
+    steps: [
+      { step: 1, title: 'Liberação de Mapas', description: 'Liberar ordens de carregamento por box no sistema Fast Picking.' },
+      { step: 2, title: 'Montagem Estável por Colunas', description: 'Montar paletes com base pesada e amarração stretch de 4 voltas.' },
+      { step: 3, title: 'Conferência e Fechamento', description: 'Conferente valida itens e registra o fechamento da carga.' },
+      { step: 4, title: 'Linha de Vida e Liberação', description: 'Realizar amarração segura e manobrar para a vaga de saída do pátio.' }
     ]
   }
 };

@@ -1604,14 +1604,27 @@ export default function DashboardOverview({
                 </button>
               </div>
 
-              <div key={popRefreshKey} className="space-y-2 text-xs">
+              <div key={popRefreshKey} className="space-y-2 text-xs max-h-96 overflow-y-auto pr-1">
                 {[
                   { key: 'repack' as OperationalModuleKey, name: 'Repack' },
                   { key: 'despejo' as OperationalModuleKey, name: 'Despejo' },
                   { key: 'armazem' as OperationalModuleKey, name: 'EFC / EFD (Armazém)' },
                   { key: 'validades' as OperationalModuleKey, name: 'FEFO / Validades' },
-                  { key: 'empilhador' as OperationalModuleKey, name: 'Movimentação / Picking' },
-                  { key: 'quebras' as OperationalModuleKey, name: 'Quebras e Avarias' }
+                  { key: 'ressuprimento_reabastecimento' as OperationalModuleKey, name: 'Abastecimento (R&R)' },
+                  { key: 'empilhador' as OperationalModuleKey, name: 'Operação Empilhador' },
+                  { key: 'conferente' as OperationalModuleKey, name: 'Conferente / ADM' },
+                  { key: 'carregamento' as OperationalModuleKey, name: 'Montagem / Carregamento' },
+                  { key: 'tmr' as OperationalModuleKey, name: 'TMR (Revendas)' },
+                  { key: 'quebras' as OperationalModuleKey, name: 'Quebras e Avarias' },
+                  { key: 'treinamentos_qualidade' as OperationalModuleKey, name: 'Treinamentos Qualidade (QLP)' },
+                  { key: 'bloqueio_armazem' as OperationalModuleKey, name: 'Bloqueio no Armazém' },
+                  { key: 'devolucao' as OperationalModuleKey, name: 'Devolução de Rota' },
+                  { key: 'contagem_inventario' as OperationalModuleKey, name: 'Contagem de Inventário' },
+                  { key: 'gestao_ativos' as OperationalModuleKey, name: 'Gestão de Ativos (Paletes/Vasilhames)' },
+                  { key: 'qualidade_puxada' as OperationalModuleKey, name: 'Qualidade da Puxada' },
+                  { key: 'gestao_capacidade' as OperationalModuleKey, name: 'Capacidade & Layout' },
+                  { key: '5s_digital' as OperationalModuleKey, name: '5S Digital & Housekeeping' },
+                  { key: 'acoes' as OperationalModuleKey, name: 'Gestão de Ações SDPO' }
                 ].map((item) => {
                   const sop = getSopForOperation(item.key);
                   const hasPdfFile = Boolean(sop.fileUrl);

@@ -11,7 +11,6 @@ import A3BoardComponent from './A3BoardComponent';
 import CalendarFilter from './CalendarFilter';
 import { SimuladorAgilidadeMeta } from './SimuladorAgilidadeMeta';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
-import { SopManagerModal } from './SopManagerModal';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { useSystemTargets } from '../utils/useSystemTargets';
@@ -239,7 +238,7 @@ const COLORS = {
 const PIE_COLORS = [COLORS.azul, COLORS.verde, COLORS.amarelo, COLORS.roxo, COLORS.vermelho];
 
 export default function RepackDashboard({ user, empresa, onBack }: RepackDashboardProps) {
-  const { targets, updateTarget } = useSystemTargets();
+  const { targets, updateTarget } = useSystemTargets(empresa?.id);
   const metaProdutividadeCxH = targets['repack_produtividade'] || 10;
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
@@ -3542,14 +3541,6 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
           </div>
         </div>
       )}
-
-      {/* ── MODAL DE GESTÃO DO PADRÃO OPERACIONAL (POP/SOP) ── */}
-      <SopManagerModal 
-        operation="repack" 
-        operationName="Repack" 
-        isOpen={isPopModalOpen} 
-        onClose={() => setIsPopModalOpen(false)} 
-      />
 
       {/* ── DEDICATED ACTION MODAL (FILTERED EXCLUSIVELY FOR REPACK) ── */}
       <IndicatorActionModal

@@ -110,7 +110,7 @@ export default function Sidebar({
       subtitle: 'Indicadores, BI & Gráficos',
       icon: <BarChart2 className="w-5 h-5 text-sky-400" />,
       subItems: [
-        'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
+        'visao-geral', 'montagem-carregamento', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
         'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 'ranking-produtividade', 
         'qualidade', 'kpi-arvore'
       ]
@@ -121,7 +121,7 @@ export default function Sidebar({
       subtitle: 'Governança, DPO & Inventários',
       icon: <Sliders className="w-5 h-5 text-blue-400" />,
       subItems: [
-        'dto-diagnostico', 'dto', 'plataformas-externas', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
+        'dto-diagnostico', 'dto', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
         'contagem-inventario', 'gestao-ativos', 'qualidade-puxada', 
         'ciclo-carretas', 'politica-estoque', 'simulador-ressuprimento', 'importacao-contagens', 
         'venda-media', 'area-contingencia', 'padronizacao-processos', 'simulacao-acoes', 

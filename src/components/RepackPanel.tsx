@@ -317,18 +317,6 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     try {
       await RepackRepository.create(newRow, empresa?.id || 'demo');
 
-      if (isAboveMeta) {
-        triggerAutoAcaoCorretiva({
-          processo: 'Repack',
-          colaboradorResponsavel: user.nome,
-          indicador: `Produtividade Repack (${embalagem})`,
-          meta: activeMeta,
-          resultadoObtido: duracao,
-          desvioEncontrado: `Não atingimento da meta no Repack de ${embalagem}. Tempo realizado (${duracao}) excedeu a meta (${activeMeta}). Motivo: ${motivoNaoBaterMeta.trim()}`,
-          comentarioOperador: motivoNaoBaterMeta.trim()
-        });
-      }
-
       // Reset fields
       setQuantidade('');
       setInicio('');

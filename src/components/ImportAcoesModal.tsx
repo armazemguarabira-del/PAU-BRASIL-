@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { AcaoCorretiva, getAcoesAll, saveAcoes } from '../utils/simulacaoAcoesUtils';
+import { 
+  AcaoCorretiva, 
+  getAcoesAll, 
+  saveAcoes, 
+  parseAndImportActionsPayload,
+  classifyProcessFromActionFields 
+} from '../utils/simulacaoAcoesUtils';
 import { 
   X, 
   Upload, 
@@ -12,7 +18,10 @@ import {
   Calendar, 
   User, 
   Building2, 
-  HelpCircle 
+  HelpCircle,
+  FileCode2,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 interface ImportAcoesModalProps {
@@ -32,6 +41,7 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
   const [fileText, setFileText] = useState('');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [processPreview, setProcessPreview] = useState<Record<string, number> | null>(null);
 
   // Manual Form State matching the 9 columns of Image 2
   const [area, setArea] = useState('Armazém');
@@ -79,6 +89,64 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
     return new Date().toLocaleDateString('pt-BR');
   };
 
+  // Download official JSON template
+  const handleDownloadJsonTemplate = () => {
+    const jsonSample = {
+      versao: "2026.08",
+      origem: "ACOES_FINAIS_MELHORADAS_DATAS_CALENDARIO_FINAL.xlsx",
+      descricao: "Plano de ações DPO / Armazém 2026 para importação em aplicativo.",
+      total_acoes: 2,
+      data_limite: "2026-08-28",
+      acoes: [
+        {
+          id: 1,
+          area: "Armazém",
+          reuniao: "RPS Frota",
+          responsavel: "Djeanderson Soares",
+          indicador: "TMV / TMR",
+          tipo_acao: "Rotina",
+          o_que_fazer: "Separar tempos do ciclo",
+          acao: "Dividir o tempo da carreta entre chegada, descarregamento, atendimento e liberação.",
+          onde: "Pulmão / área de descarregamento",
+          inicio: "2026-01-02",
+          final: "2026-01-03",
+          prazo_dias: 2,
+          atraso_dias: 0,
+          status: "FINALIZADO",
+          farol: "Cinza",
+          observacao_responsavel: "Feito: O ciclo foi separado por etapa para localizar o maior tempo."
+        },
+        {
+          id: 3,
+          area: "Armazém",
+          reuniao: "Team Room Armazém",
+          responsavel: "Djeanderson Soares",
+          indicador: "Repack produtividade",
+          tipo_acao: "Ação de melhoria",
+          o_que_fazer: "Organizar repack",
+          acao: "Retirar filme, cartão e materiais sem uso da bancada de repack.",
+          onde: "Repack / bancada de montagem",
+          inicio: "2026-01-02",
+          final: "2026-01-05",
+          prazo_dias: 2,
+          atraso_dias: 0,
+          status: "FINALIZADO",
+          farol: "Cinza",
+          observacao_responsavel: "Foi realizada a tratativa de Repack produtividade."
+        }
+      ]
+    };
+
+    const blob = new Blob([JSON.stringify(jsonSample, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Modelo_Importacao_Acoes_VPO.json');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Download official CSV template
   const handleDownloadTemplate = () => {
     const csvHeader = 'Área;Reunião;Responsável;Indicador;O que fazer;Onde;Início;Final;Obs do Responsável\n';
@@ -94,123 +162,30 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
     document.body.removeChild(link);
   };
 
-  // Process text or CSV file upload
+  // Process text or file upload (JSON or CSV)
   const handleProcessImportText = (text: string) => {
     setErrorMsg(null);
     setSuccessMsg(null);
+    setProcessPreview(null);
 
-    const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-    if (lines.length === 0) {
-      setErrorMsg('Nenhuma linha válida encontrada no texto/arquivo fornecido.');
+    const result = parseAndImportActionsPayload(text, currentUser);
+
+    if (!result.success || result.count === 0) {
+      setErrorMsg(result.message || 'Nenhuma ação pôde ser processada. Verifique o formato do JSON ou CSV.');
       return;
     }
 
-    const currentAcoes = getAcoesAll();
-    const newAcoes: AcaoCorretiva[] = [];
-    let importedCount = 0;
+    // Calcula prévia de distribuição por processo
+    const counts: Record<string, number> = {};
+    result.actions.forEach(a => {
+      counts[a.processo] = (counts[a.processo] || 0) + 1;
+    });
+    setProcessPreview(counts);
 
-    // Detect delimiter (; or , or tab)
-    const firstLine = lines[0];
-    let delimiter = ';';
-    if (firstLine.includes(';') && !firstLine.includes('\t')) delimiter = ';';
-    else if (firstLine.includes('\t')) delimiter = '\t';
-    else if (firstLine.includes(',')) delimiter = ',';
-
-    // Check if header row exists
-    let startIndex = 0;
-    if (firstLine.toLowerCase().includes('área') || firstLine.toLowerCase().includes('area') || firstLine.toLowerCase().includes('reunião')) {
-      startIndex = 1;
-    }
-
-    for (let i = startIndex; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const cols = line.split(delimiter).map(c => c.replace(/^["']|["']$/g, '').trim());
-      if (cols.length < 3) continue;
-
-      const cArea = cols[0] || 'Armazém';
-      const cReuniao = cols[1] || 'GMD / VPO';
-      const cResponsavel = cols[2] || 'Não informado';
-      const cIndicador = cols[3] || 'Desvio Operacional';
-      const cOqueFazer = cols[4] || 'Ação corretiva/sugestiva pendente de acompanhamento';
-      const cOnde = cols[5] || 'Guarabira';
-      const cInicio = cols[6] || new Date().toLocaleDateString('pt-BR');
-      const cFinal = cols[7] || new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR');
-      const cObs = cols[8] || '';
-
-      const isoInicio = parseDateToISO(cInicio);
-      const isoFinal = parseDateToISO(cFinal);
-      const displayInicio = parseDateToDisplay(cInicio);
-      const displayFinal = parseDateToDisplay(cFinal);
-
-      // Map area to valid process type if applicable
-      let processType: AcaoCorretiva['processo'] = 'Picking';
-      const areaLower = cArea.toLowerCase();
-      if (areaLower.includes('repack')) processType = 'Repack';
-      else if (areaLower.includes('despejo')) processType = 'Despejo';
-      else if (areaLower.includes('quebra') || areaLower.includes('avaria')) processType = 'Gestão de Quebras';
-      else if (areaLower.includes('fefo')) processType = 'Gestão FEFO';
-      else if (areaLower.includes('capacidade')) processType = 'Gestão de Capacidade';
-      else if (areaLower.includes('ressuprimento')) processType = 'Ressuprimento';
-
-      const actionItem: AcaoCorretiva = {
-        id: `ACAO_IMP_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
-        data: displayInicio,
-        dataISO: isoInicio,
-        hora: '08:00',
-        processo: processType,
-        setor: cArea,
-        colaboradorResponsavel: cResponsavel,
-        indicador: cIndicador,
-        meta: 'Conforme Plano',
-        resultadoObtido: 'Acompanhamento Ativo',
-        desvioEncontrado: cOqueFazer,
-        causaRaiz: 'Método',
-        status: 'Em Andamento',
-        responsavelTratativa: currentUser,
-        prazo: isoFinal,
-        comentarioOperador: cObs,
-        simulado: false,
-        criadoEm: new Date().toISOString(),
-        tipoAcao: 'Corretiva',
-        prioridade: 'Alta',
-        contramedida: cOqueFazer,
-        aprovacaoGestor: 'Aprovado',
-        aceiteColaborador: true,
-        abertoPor: currentUser,
-        dataAbertura: `${displayInicio} 08:00`,
-        
-        // Extended fields matching Image 2
-        area: cArea,
-        reuniao: cReuniao,
-        onde: cOnde,
-        inicio: displayInicio,
-        final: displayFinal,
-        obsResponsavel: cObs,
-
-        historicoAlteracoes: [{
-          dataHora: new Date().toLocaleString('pt-BR'),
-          usuario: currentUser,
-          alteracao: `Ação retroativa importada via planilha (Início: ${displayInicio}, Final: ${displayFinal}).`
-        }]
-      };
-
-      newAcoes.push(actionItem);
-      importedCount++;
-    }
-
-    if (importedCount === 0) {
-      setErrorMsg('Nenhuma linha pôde ser processada. Verifique o formato do arquivo ou use a importação manual.');
-      return;
-    }
-
-    const updatedList = [...currentAcoes, ...newAcoes];
-    saveAcoes(updatedList);
-    setSuccessMsg(`✓ ${importedCount} ações retroativas importadas com sucesso nas datas especificadas!`);
+    setSuccessMsg(result.message);
     setTimeout(() => {
       onClose();
-    }, 1500);
+    }, 2000);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,11 +215,13 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
     const displayInicio = parseDateToDisplay(inicio);
     const displayFinal = parseDateToDisplay(final);
 
-    let processType: AcaoCorretiva['processo'] = 'Picking';
-    const areaLower = area.toLowerCase();
-    if (areaLower.includes('repack')) processType = 'Repack';
-    else if (areaLower.includes('despejo')) processType = 'Despejo';
-    else if (areaLower.includes('quebra')) processType = 'Gestão de Quebras';
+    const processType = classifyProcessFromActionFields({
+      indicador,
+      oQueFazer: oqueFazer,
+      onde,
+      area,
+      reuniao
+    });
 
     const newAction: AcaoCorretiva = {
       id: `ACAO_MANUAL_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -283,13 +260,13 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
       historicoAlteracoes: [{
         dataHora: new Date().toLocaleString('pt-BR'),
         usuario: currentUser,
-        alteracao: `Ação cadastrada manualmente com datas retroativas (Início: ${displayInicio}, Final: ${displayFinal}).`
+        alteracao: `Ação cadastrada manualmente para o processo [${processType}] (Início: ${displayInicio}, Final: ${displayFinal}).`
       }]
     };
 
     const current = getAcoesAll();
     saveAcoes([...current, newAction]);
-    setSuccessMsg('✓ Ação cadastrada e salva com sucesso!');
+    setSuccessMsg('✓ Ação cadastrada e salva com sucesso no processo ' + processType + '!');
     setTimeout(() => {
       onClose();
     }, 1200);
@@ -366,76 +343,75 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
         {activeTab === 'import' && (
           <div className="space-y-4">
             <div className="p-4 bg-[#0b1222] border border-indigo-500/20 rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span className="text-xs font-extrabold uppercase text-indigo-400 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4" /> Formato da Planilha de Importação
+                  <FileCode2 className="w-4 h-4" /> Formatos Suportados: JSON (.json) ou Planilha (.csv / .txt)
                 </span>
-                <button
-                  onClick={handleDownloadTemplate}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow transition-all"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Baixar Modelo CSV</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadJsonTemplate}
+                    className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Modelo JSON</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 cursor-pointer shadow transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Modelo CSV</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="overflow-x-auto bg-[#111a30] p-3 rounded-lg border border-slate-800">
-                <table className="w-full text-left text-[10px] font-mono text-slate-300 border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-700 text-amber-400 font-bold uppercase">
-                      <th className="p-1.5">Área</th>
-                      <th className="p-1.5">Reunião</th>
-                      <th className="p-1.5">Responsável</th>
-                      <th className="p-1.5">Indicador</th>
-                      <th className="p-1.5">O que fazer</th>
-                      <th className="p-1.5">Onde</th>
-                      <th className="p-1.5">Início</th>
-                      <th className="p-1.5">Final</th>
-                      <th className="p-1.5">Obs do Responsável</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="text-slate-400">
-                      <td className="p-1.5">Armazém</td>
-                      <td className="p-1.5">RPS ARMAZEM</td>
-                      <td className="p-1.5">KATHYEL ROCHA</td>
-                      <td className="p-1.5">Falta Teórica TOOS</td>
-                      <td className="p-1.5 truncate max-w-[120px]">Acompanhar todo dia no sistema...</td>
-                      <td className="p-1.5">Guarabira</td>
-                      <td className="p-1.5 text-emerald-400 font-bold">01/06/2026</td>
-                      <td className="p-1.5 text-emerald-400 font-bold">05/06/2026</td>
-                      <td className="p-1.5 truncate max-w-[120px]">Acompanhamento iniciado...</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <p className="text-[11px] text-slate-300">
+                O importador lê automaticamente o arquivo com a estrutura <code className="text-amber-400 font-mono">{"{ versao, origem, acoes: [ ... ] }"}</code> ou linhas de planilha, identifica cada indicador (ex: <span className="text-emerald-400 font-bold">Repack</span>, <span className="text-emerald-400 font-bold">Despejo</span>, <span className="text-emerald-400 font-bold">Produtividade WLP</span>, <span className="text-emerald-400 font-bold">FEFO</span>, <span className="text-emerald-400 font-bold">Quebras</span>, <span className="text-emerald-400 font-bold">TMR</span>) e distribui de forma inteligente para os respectivos dashboards.
+              </p>
+
+              {processPreview && (
+                <div className="p-3 bg-[#111a30] border border-emerald-500/30 rounded-xl space-y-1.5">
+                  <span className="text-[11px] font-black uppercase text-emerald-300 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-emerald-400" /> Distribuição Automática por Processo:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {Object.entries(processPreview).map(([proc, count]) => (
+                      <span key={proc} className="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-200 text-[10px] font-bold rounded-md">
+                        {proc}: <strong className="text-emerald-400">{count}</strong>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* FILE UPLOAD & TEXT AREA */}
             <div className="space-y-2">
               <label className="text-xs font-extrabold uppercase text-slate-300 block">
-                Selecione o arquivo CSV ou cole o conteúdo da planilha abaixo:
+                Selecione o arquivo JSON / CSV ou cole o conteúdo abaixo:
               </label>
 
               <div className="flex items-center gap-3">
-                <label className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer flex items-center gap-2 transition-all">
+                <label className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer flex items-center gap-2 transition-all shadow">
                   <Upload className="w-4 h-4" />
-                  <span>Escolher Arquivo (.csv / .txt)</span>
+                  <span>Escolher Arquivo (.json / .csv / .txt)</span>
                   <input
                     type="file"
-                    accept=".csv,.txt,.tsv"
+                    accept=".json,.csv,.txt,.tsv"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
                 </label>
-                <span className="text-xs text-slate-400">ou cole diretamente no campo abaixo:</span>
+                <span className="text-xs text-slate-400">ou cole o JSON/CSV diretamente no campo abaixo:</span>
               </div>
 
               <textarea
-                rows={6}
+                rows={7}
                 value={fileText}
                 onChange={e => setFileText(e.target.value)}
-                placeholder="Cole aqui as linhas copiadas do Excel / Google Sheets ou CSV separadas por ponto-e-vírgula (;)..."
+                placeholder='Cole aqui o JSON {"versao": "2026.08", "acoes": [...]} ou o conteúdo CSV...'
                 className="w-full bg-[#0b1222] border border-slate-700 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-indigo-500"
               />
             </div>
@@ -452,10 +428,10 @@ export const ImportAcoesModal: React.FC<ImportAcoesModalProps> = ({
                 type="button"
                 onClick={() => handleProcessImportText(fileText)}
                 disabled={!fileText.trim()}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-2"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-2 shadow"
               >
-                <Upload className="w-4 h-4" />
-                <span>Processar e Importar Ações</span>
+                <Sparkles className="w-4 h-4 text-indigo-300" />
+                <span>Processar e Distribuir Ações</span>
               </button>
             </div>
           </div>
