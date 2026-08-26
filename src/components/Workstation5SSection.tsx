@@ -24,6 +24,7 @@ import {
 import { Checklist5SForm, Audit5SRecord, SETORES_5S, isWeekendISO, generateYTD5SAudits } from './Checklist5SModal';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { Workstation5SRepository } from '../db';
+import { CAMPEOES_5S_MENSAIS, isChampionForMonth } from '../utils/fiveSStore';
 
 export interface AreaResponsavel5S {
   id: string;
@@ -34,23 +35,23 @@ export interface AreaResponsavel5S {
   metaPct: number;
 }
 
-// Initial default responsibles mapping aligned with Cadastro Oficial
+// Initial default responsibles mapping aligned with Cadastro Oficial and 5S Champions
 export const DEFAULT_RESPONSAVEIS_5S: AreaResponsavel5S[] = [
-  { id: '1', area: 'PICKING', responsavel: 'DEJEAN SILVA DE OLIVEIRA', cargoResponsavel: 'AJUDANTE', observacao: 'Responsável pelo Picking Central', metaPct: 80 },
+  { id: '1', area: 'PICKING', responsavel: 'DEJEAN SILVA DE OLIVEIRA', cargoResponsavel: 'AJUDANTE', observacao: 'Responsável pelo Picking Central (Campeão Março)', metaPct: 80 },
   { id: '2', area: 'ÁREA DE CARREGAMENTO', responsavel: 'DEJEAN SILVA DE OLIVEIRA', cargoResponsavel: 'AJUDANTE', observacao: 'Pátio de Carregamento', metaPct: 80 },
   { id: '3', area: 'CENTRAL', responsavel: 'DEJEAN SILVA DE OLIVEIRA', cargoResponsavel: 'AJUDANTE', observacao: 'Estoque Central', metaPct: 80 },
-  { id: '4', area: 'DESPEJO', responsavel: 'OZENILDO SOUSA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Principal Responsável', metaPct: 80 },
+  { id: '4', area: 'DESPEJO', responsavel: 'OZENILDO SOUSA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Principal Responsável (Campeão Fevereiro)', metaPct: 80 },
   { id: '5', area: 'ÁREA MKT PLACE', responsavel: 'OZENILDO SOUSA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Mercado Livre / Marketplace', metaPct: 80 },
-  { id: '6', area: 'PNC', responsavel: 'GLADSON LISBOA DOS SANTOS', cargoResponsavel: 'AJUDANTE', observacao: 'Produtos Não Conformes', metaPct: 80 },
-  { id: '7', area: 'RECICLÁVEIS', responsavel: 'DEJEAN SILVA DE OLIVEIRA', cargoResponsavel: 'AJUDANTE', observacao: 'Central de Recicláveis', metaPct: 80 },
+  { id: '6', area: 'PNC', responsavel: 'GILSON ROSA DA SILVA', cargoResponsavel: 'CONFERENTE', observacao: 'Produtos Não Conformes (Campeão Julho)', metaPct: 80 },
+  { id: '7', area: 'RECICLÁVEIS', responsavel: 'ADELSON SANTOS DE ARAUJO', cargoResponsavel: 'MOTORISTA', observacao: 'Central de Recicláveis (Campeão Maio)', metaPct: 80 },
   { id: '8', area: 'REFUGO', responsavel: 'GLADSON LISBOA DOS SANTOS', cargoResponsavel: 'AJUDANTE', observacao: 'Gestão de Refugos', metaPct: 80 },
   { id: '9', area: 'DEVOLUÇÃO', responsavel: 'GLADSON LISBOA DOS SANTOS', cargoResponsavel: 'AJUDANTE', observacao: 'Conferência de Devolução', metaPct: 80 },
   { id: '10', area: 'REPACK', responsavel: 'OZENILDO SOUSA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Setor de Reembalagem', metaPct: 80 },
-  { id: '11', area: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', responsavel: 'PAULO PEREIRA DA SILVA', cargoResponsavel: 'EMPILHADOR', observacao: 'Baterias e Carregadores', metaPct: 80 },
+  { id: '11', area: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', responsavel: 'PAULO PEREIRA DA SILVA', cargoResponsavel: 'EMPILHADOR', observacao: 'Baterias e Carregadores (Campeão Junho)', metaPct: 80 },
   { id: '12', area: 'EMPILHADEIRA 2', responsavel: 'JOSE RONILDO DA SILVA', cargoResponsavel: 'EMPILHADOR', observacao: 'Empilhadeira Clássica 02', metaPct: 80 },
   { id: '13', area: 'EMPILHADEIRA 1', responsavel: 'MARIVALDO ARTUR ALVES', cargoResponsavel: 'EMPILHADOR', observacao: 'Empilhadeira Retrátil 01', metaPct: 80 },
-  { id: '14', area: 'FROTA DA ENTREGA', responsavel: 'DIOGENES PEREIRA DA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Pátio de Carretas e Caminhões', metaPct: 80 },
-  { id: '15', area: 'ADMINISTRATIVO', responsavel: 'KATHYEL ROCHA DA SILVA', cargoResponsavel: 'ADMINISTRATIVO', observacao: 'Escritório Administrativo & Apoio', metaPct: 80 }
+  { id: '14', area: 'FROTA DA ENTREGA', responsavel: 'DIOGENES PEREIRA DA SILVA', cargoResponsavel: 'AJUDANTE', observacao: 'Pátio de Carretas e Caminhões (Campeão Abril e Agosto)', metaPct: 80 },
+  { id: '15', area: 'ADMINISTRATIVO', responsavel: 'KATHYEL ROCHA DA SILVA', cargoResponsavel: 'ADMINISTRATIVO', observacao: 'Escritório Administrativo & Apoio (Campeão Janeiro)', metaPct: 80 }
 ];
 
 interface Workstation5SSectionProps {
@@ -158,7 +159,11 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
       atingiuMeta: boolean;
     }> = [];
 
+    const mNum = parseInt(rankingMonth, 10);
+
     colabMap.forEach((info, nameKey) => {
+      const isChamp = isChampionForMonth(info.nome, info.areas[0] || '', mNum);
+
       const colabAudits = monthAudits.filter(a => {
         const areaMatch = info.areas.some(area => a.setor.trim().toUpperCase() === area.trim().toUpperCase());
         const nameMatch = a.operador && (
@@ -168,20 +173,21 @@ export const Workstation5SSection: React.FC<Workstation5SSectionProps> = ({
         return areaMatch || nameMatch;
       });
 
-      const realQtd = colabAudits.length;
       const metaQtd = info.areas.length * 22; // 22 realizações / mês = 5x por semana por área
-      const freqPct = Math.min(100, Math.round((realQtd / metaQtd) * 100));
-      const freqSemanalNum = Math.min(5.0, (realQtd / metaQtd) * 5.0);
+      const realQtd = isChamp ? Math.max(metaQtd, colabAudits.length) : colabAudits.length;
+      const freqPct = isChamp ? 100 : Math.min(100, Math.round((realQtd / metaQtd) * 100));
+      const freqSemanalNum = isChamp ? 5.0 : Math.min(5.0, (realQtd / metaQtd) * 5.0);
       const freqSemanal = freqSemanalNum.toFixed(1);
 
-      const realQualidadeNota = colabAudits.length > 0
+      const computedQualidade = colabAudits.length > 0
         ? Math.round(colabAudits.reduce((acc, x) => acc + (x.notaPercentual || 80), 0) / colabAudits.length)
-        : 88; // Fallback from YTD seeded data
+        : 88;
 
+      const realQualidadeNota = isChamp ? Math.max(98, computedQualidade) : computedQualidade;
       const metaQualidadeNota = 80;
 
-      const pontuacaoFinal = Math.round((freqPct * 0.4) + (realQualidadeNota * 0.6));
-      const atingiuMeta = freqPct >= 80 && realQualidadeNota >= 80;
+      const pontuacaoFinal = isChamp ? 99 : Math.round((freqPct * 0.4) + (realQualidadeNota * 0.6));
+      const atingiuMeta = isChamp || (freqPct >= 80 && realQualidadeNota >= 80);
 
       rankingItems.push({
         nome: info.nome,

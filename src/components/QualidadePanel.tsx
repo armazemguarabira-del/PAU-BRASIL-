@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 import { Usuario, Empresa } from '../types';
 import { Checklist5SModal, ImportExport5SModal, generateYTD5SAudits, Audit5SRecord, exportAuditsToExcel } from './Checklist5SModal';
-import { getStored5SAudits, CAMPEOES_5S_MENSAIS } from '../utils/fiveSStore';
+import { getStored5SAudits, CAMPEOES_5S_MENSAIS, isChampionForMonth } from '../utils/fiveSStore';
 import { RondaGsaComponent } from './RondaGsaComponent';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { QuadroAcoesDpo } from './QuadroAcoesDpo';
@@ -832,17 +832,21 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
         }
       });
 
-      const realQtd = colabAudits.length;
-      const isExempt = numAreas === 0 && realQtd === 0;
-      const pctQtdAtingimento = isExempt ? 100 : (metaQtd > 0 ? Math.min(100, Math.round((realQtd / metaQtd) * 100)) : 0);
+      const mNum = parseInt(selectedMonth5S, 10);
+      const isChampMonth = isChampionForMonth(colab.nome, assignedAreas[0] || '', mNum);
 
-      const avgQuality = realQtd > 0
+      const realQtd = isChampMonth ? Math.max(metaQtd, colabAudits.length) : colabAudits.length;
+      const isExempt = numAreas === 0 && realQtd === 0;
+      const pctQtdAtingimento = isChampMonth ? 100 : (isExempt ? 100 : (metaQtd > 0 ? Math.min(100, Math.round((realQtd / metaQtd) * 100)) : 0));
+
+      const calculatedQuality = realQtd > 0
         ? Math.round(colabAudits.reduce((acc, curr) => acc + (curr.notaPercentual || 0), 0) / realQtd)
         : (numAreas > 0 ? 88 : 0);
 
+      const avgQuality = isChampMonth ? 100 : calculatedQuality;
       const metaQualidade = 85; // Meta oficial de 85% conforme solicitação
-      const notaFinal = isExempt ? 0 : Math.round(avgQuality * (0.5 + 0.5 * (pctQtdAtingimento / 100)));
-      const atingiu = isExempt ? true : notaFinal >= metaQualidade;
+      const notaFinal = isChampMonth ? 100 : (isExempt ? 0 : Math.round(avgQuality * (0.5 + 0.5 * (pctQtdAtingimento / 100))));
+      const atingiu = isChampMonth ? true : (isExempt ? true : notaFinal >= metaQualidade);
 
       const secondName = colab.nome.split(' ')[1] ? colab.nome.split(' ')[1][0] + '.' : '';
       const shortName = `${firstName} ${secondName}`.trim();

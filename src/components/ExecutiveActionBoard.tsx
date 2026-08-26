@@ -68,10 +68,16 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProcesso, setSelectedProcesso] = useState<string>('todos');
-  const [selectedTipo, setSelectedTipo] = useState<string>('todos'); // Corretiva | Melhoria
+  const [selectedTipo, setSelectedTipo] = useState<string>('todos'); // Corretiva | Rotina | Melhoria
+  const [selectedIndicador, setSelectedIndicador] = useState<string>('todos');
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>('todos'); // Alta | Média | Baixa
   const [selectedStatus, setSelectedStatus] = useState<string>('todos');
   const [selectedAprovacao, setSelectedAprovacao] = useState<string>('todos');
+  
+  // Date Filters
+  const [dataInicioFilter, setDataInicioFilter] = useState<string>('');
+  const [dataFimFilter, setDataFimFilter] = useState<string>('');
+  const [datePreset, setDatePreset] = useState<'todas' | 'hoje' | '7dias' | 'mes' | 'ano2026'>('todas');
 
   // Modal for Action Detail / 5 Whys / Closure Flow
   const [activeItem, setActiveItem] = useState<AcaoCorretiva | null>(null);
@@ -81,24 +87,24 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   // Manual Form State
   const [manualForm, setManualForm] = useState({
     dataCriacao: new Date().toISOString().split('T')[0],
-    processo: 'Repack' as AcaoCorretiva['processo'],
+    processo: 'Picking' as AcaoCorretiva['processo'],
     tipoAcao: 'Corretiva' as 'Corretiva' | 'Melhoria',
     prioridade: 'Alta' as 'Alta' | 'Média' | 'Baixa',
-    indicador: 'Produtividade de Turno',
-    meta: '100% Executado',
-    resultadoObtido: '82% Executado',
-    desvioEncontrado: 'Atraso na liberação de paletes na linha 1',
-    setor: 'Armazém 01',
-    colaboradorResponsavel: user?.nome || 'Operador de Turno',
+    indicador: 'Produtividade de Linha / Separação',
+    meta: '100% Executado no Padrão DPO',
+    resultadoObtido: 'Desvio identificado na rotina operacional',
+    desvioEncontrado: '',
+    setor: 'Armazém / Linha de Separação',
+    colaboradorResponsavel: user?.nome || 'Operador Responsável',
     responsavelTratativa: 'Supervisor de Operações',
     prazo: new Date(Date.now() + 3*86400000).toISOString().split('T')[0],
-    porque1: 'Por que o indicador desviou? Houve atraso na entrega de insumos.',
-    porque2: 'Por que faltou insumo? A empilhadeira estava em outra tarefa.',
-    porque3: 'Por que a empilhadeira estava ocupada? Não havia priorização no WMS.',
-    porque4: 'Por que não havia priorização? Parâmetro de fila desatualizado.',
-    porque5: 'Por que o parâmetro estava desatualizado? Falha na rotina de checagem inicial.',
-    contramedida: 'Atualizar parâmetro no WMS e alocar empilhador dedicado.',
-    impactoEsperado: 'Evitar parada de linha e garantir 100% da meta diária'
+    porque1: '',
+    porque2: '',
+    porque3: '',
+    porque4: '',
+    porque5: '',
+    contramedida: '',
+    impactoEsperado: 'Normalização imediata do processo e cumprimento da meta'
   });
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -111,8 +117,10 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
     };
 
     window.addEventListener('af_acoes_updated', handleUpdate);
+    window.addEventListener('af_acoes_dpo_updated', handleUpdate);
     return () => {
       window.removeEventListener('af_acoes_updated', handleUpdate);
+      window.removeEventListener('af_acoes_dpo_updated', handleUpdate);
     };
   }, [dbMode]);
 
@@ -121,6 +129,57 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   };
 
   const isDark = theme === 'dark';
+
+  // Extract all unique indicators from current actions
+  const uniqueIndicadores = useMemo(() => {
+    const set = new Set<string>();
+    acoes.forEach(a => {
+      if (a.indicador && a.indicador.trim() !== '') {
+        set.add(a.indicador.trim());
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [acoes]);
+
+  // Handle Preset Changes
+  const handleDatePreset = (preset: 'todas' | 'hoje' | '7dias' | 'mes' | 'ano2026') => {
+    setDatePreset(preset);
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    if (preset === 'todas') {
+      setDataInicioFilter('');
+      setDataFimFilter('');
+    } else if (preset === 'hoje') {
+      setDataInicioFilter(todayStr);
+      setDataFimFilter(todayStr);
+    } else if (preset === '7dias') {
+      const past7 = new Date(now.getTime() - 7 * 86400000).toISOString().split('T')[0];
+      setDataInicioFilter(past7);
+      setDataFimFilter(todayStr);
+    } else if (preset === 'mes') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      setDataInicioFilter(firstDay);
+      setDataFimFilter(lastDay);
+    } else if (preset === 'ano2026') {
+      setDataInicioFilter('2026-01-01');
+      setDataFimFilter('2026-12-31');
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSelectedProcesso('todos');
+    setSelectedTipo('todos');
+    setSelectedIndicador('todos');
+    setSelectedPrioridade('todos');
+    setSelectedStatus('todos');
+    setSelectedAprovacao('todos');
+    setDataInicioFilter('');
+    setDataFimFilter('');
+    setDatePreset('todas');
+  };
 
   // KPI Metrics
   const metrics = useMemo(() => {
@@ -136,12 +195,45 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   // Filtered List
   const filteredAcoes = useMemo(() => {
     return acoes.filter(a => {
+      // Processo
       if (selectedProcesso !== 'todos' && a.processo !== selectedProcesso) return false;
-      if (selectedTipo !== 'todos' && a.tipoAcao !== selectedTipo) return false;
+      
+      // Tipo (Corretiva / Rotina / Melhoria)
+      if (selectedTipo !== 'todos') {
+        const itemTipo = a.tipoAcao || 'Corretiva';
+        if (selectedTipo === 'Melhoria' && itemTipo !== 'Melhoria') return false;
+        if (selectedTipo === 'Corretiva' && itemTipo !== 'Corretiva') return false;
+      }
+
+      // Indicador
+      if (selectedIndicador !== 'todos' && a.indicador !== selectedIndicador) return false;
+
+      // Prioridade
       if (selectedPrioridade !== 'todos' && a.prioridade !== selectedPrioridade) return false;
+
+      // Status
       if (selectedStatus !== 'todos' && a.status !== selectedStatus) return false;
+
+      // Aprovação do Gestor
       if (selectedAprovacao !== 'todos' && (a.aprovacaoGestor || 'Pendente') !== selectedAprovacao) return false;
 
+      // Date Range Filter (dataISO or data format DD/MM/YYYY)
+      let itemDateISO = a.dataISO;
+      if (!itemDateISO && a.data) {
+        const parts = a.data.split('/');
+        if (parts.length === 3) {
+          itemDateISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+
+      if (dataInicioFilter && itemDateISO) {
+        if (itemDateISO < dataInicioFilter) return false;
+      }
+      if (dataFimFilter && itemDateISO) {
+        if (itemDateISO > dataFimFilter) return false;
+      }
+
+      // Search Term
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
         return (
@@ -151,12 +243,24 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
           a.colaboradorResponsavel.toLowerCase().includes(q) ||
           a.responsavelTratativa.toLowerCase().includes(q) ||
           a.desvioEncontrado.toLowerCase().includes(q) ||
-          (a.contramedida || '').toLowerCase().includes(q)
+          (a.contramedida || '').toLowerCase().includes(q) ||
+          (a.setor || '').toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [acoes, selectedProcesso, selectedTipo, selectedPrioridade, selectedStatus, selectedAprovacao, searchTerm]);
+  }, [
+    acoes, 
+    selectedProcesso, 
+    selectedTipo, 
+    selectedIndicador, 
+    selectedPrioridade, 
+    selectedStatus, 
+    selectedAprovacao, 
+    dataInicioFilter, 
+    dataFimFilter, 
+    searchTerm
+  ]);
 
   // Handle Save Action (Approval, Aceite, Evidence)
   const handleSaveActiveItem = () => {
@@ -338,28 +442,50 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
         </div>
       </div>
 
-      {/* FILTER BAR */}
-      <div className={`p-4 rounded-xl border space-y-3 ${isDark ? 'bg-[#1e293b]/40 border-slate-700/80' : 'bg-slate-50 border-slate-200'}`}>
-        <div className="flex items-center justify-between font-black text-xs uppercase tracking-wider text-slate-400">
-          <span className="flex items-center gap-1.5"><Filter className="w-3.5 h-3.5 text-indigo-400" /> Filtros Executivos de Governança</span>
-          <span>{filteredAcoes.length} de {acoes.length} ações</span>
+      {/* FILTER BAR COM FILTRO DE DATA, INDICADOR E TIPO */}
+      <div className={`p-4 rounded-2xl border space-y-3.5 ${isDark ? 'bg-[#1e293b]/50 border-slate-700/80' : 'bg-slate-50 border-slate-200'}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-black text-xs uppercase tracking-wider text-slate-400">
+          <span className="flex items-center gap-1.5 text-indigo-400">
+            <Filter className="w-4 h-4" /> Filtros Executivos de Governança Unificada
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-slate-300">
+              Exibindo <span className="text-indigo-400 font-bold">{filteredAcoes.length}</span> de <span className="font-bold">{acoes.length}</span> ações
+            </span>
+            {(searchTerm || selectedProcesso !== 'todos' || selectedTipo !== 'todos' || selectedIndicador !== 'todos' || selectedPrioridade !== 'todos' || selectedStatus !== 'todos' || selectedAprovacao !== 'todos' || dataInicioFilter || dataFimFilter) && (
+              <button
+                onClick={handleResetFilters}
+                className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-md text-[10px] font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" /> Limpar Filtros
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* LINHA 1: BUSCA, PROCESSO, TIPO, INDICADOR, PRIORIDADE, STATUS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
           {/* BUSCA */}
-          <input
-            type="text"
-            placeholder="Buscar por termo ou SKU..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
-          />
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar termo, SKU, responsável..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className={`w-full pl-8 pr-3 py-2 rounded-xl text-xs outline-none border transition-all ${
+                isDark ? 'bg-[#0b1222] border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-300 text-slate-800 focus:border-indigo-500'
+              }`}
+            />
+          </div>
 
-          {/* PROCESSO (14 MODULOS) */}
+          {/* FILTRO DE PROCESSO */}
           <select
             value={selectedProcesso}
             onChange={e => setSelectedProcesso(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
+            className={`px-3 py-2 rounded-xl text-xs font-bold outline-none border ${
+              isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+            }`}
           >
             <option value="todos">Todos os 14 Processos</option>
             {MODULES_LIST.map(m => (
@@ -367,14 +493,48 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
             ))}
           </select>
 
+          {/* FILTRO DE TIPO (CORRETIVA / ROTINA / MELHORIA) */}
+          <select
+            value={selectedTipo}
+            onChange={e => setSelectedTipo(e.target.value)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold outline-none border ${
+              selectedTipo !== 'todos'
+                ? selectedTipo === 'Melhoria'
+                  ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
+                  : 'border-rose-500 text-rose-400 bg-rose-500/10'
+                : isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+            }`}
+          >
+            <option value="todos">Todos os Tipos de Ação</option>
+            <option value="Corretiva">Ação Corretiva (Desvio / Gatilho)</option>
+            <option value="Rotina">Ação de Rotina (Padrão Operacional)</option>
+            <option value="Melhoria">Ação de Melhoria Preventiva (TOR)</option>
+          </select>
+
+          {/* FILTRO DE INDICADOR */}
+          <select
+            value={selectedIndicador}
+            onChange={e => setSelectedIndicador(e.target.value)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold outline-none border truncate ${
+              selectedIndicador !== 'todos' ? 'border-indigo-500 text-indigo-400' : isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+            }`}
+          >
+            <option value="todos">Todos os Indicadores ({uniqueIndicadores.length})</option>
+            {uniqueIndicadores.map(ind => (
+              <option key={ind} value={ind}>{ind}</option>
+            ))}
+          </select>
+
           {/* PRIORIDADE */}
           <select
             value={selectedPrioridade}
             onChange={e => setSelectedPrioridade(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
+            className={`px-3 py-2 rounded-xl text-xs font-bold outline-none border ${
+              selectedPrioridade !== 'todos' ? 'border-amber-500 text-amber-400' : isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+            }`}
           >
             <option value="todos">Todas Prioridades</option>
-            <option value="Alta">Alta Prioridade</option>
+            <option value="Alta">Alta Prioridade (Crítica)</option>
             <option value="Média">Média Prioridade</option>
             <option value="Baixa">Baixa Prioridade</option>
           </select>
@@ -383,7 +543,9 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
           <select
             value={selectedStatus}
             onChange={e => setSelectedStatus(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
+            className={`px-3 py-2 rounded-xl text-xs font-bold outline-none border ${
+              isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+            }`}
           >
             <option value="todos">Todos os Status</option>
             <option value="Pendente">Pendente</option>
@@ -391,21 +553,89 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
             <option value="Concluído">Concluído</option>
             <option value="Atrasado">Atrasado</option>
           </select>
+        </div>
 
-          {/* APROVAÇÃO DO GESTOR */}
-          <select
-            value={selectedAprovacao}
-            onChange={e => setSelectedAprovacao(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
-          >
-            <option value="todos">Aprovação Gestor</option>
-            <option value="Aprovado">Aprovadas</option>
-            <option value="Pendente">Pendentes de Aceite</option>
-          </select>
+        {/* LINHA 2: FILTRO DE DATA (DATA INÍCIO, DATA FIM, PRESETS) & GOVERNANÇA */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/40 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Período:
+            </span>
+
+            {/* PRESET CHIPS */}
+            <div className="flex items-center gap-1 flex-wrap">
+              {[
+                { id: 'todas', label: 'Todas as Datas' },
+                { id: 'hoje', label: 'Hoje' },
+                { id: '7dias', label: 'Últimos 7 dias' },
+                { id: 'mes', label: 'Mês Atual' },
+                { id: 'ano2026', label: 'Ano 2026' }
+              ].map(preset => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleDatePreset(preset.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer border ${
+                    datePreset === preset.id
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                      : isDark
+                      ? 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
+                      : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            {/* DATE INPUTS */}
+            <div className="flex items-center gap-1.5 ml-1">
+              <input
+                type="date"
+                value={dataInicioFilter}
+                onChange={e => {
+                  setDataInicioFilter(e.target.value);
+                  setDatePreset('todas');
+                }}
+                className={`px-2 py-1 rounded-lg text-xs border font-mono ${
+                  isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+                }`}
+                title="Data Início"
+              />
+              <span className="text-slate-400 font-bold">até</span>
+              <input
+                type="date"
+                value={dataFimFilter}
+                onChange={e => {
+                  setDataFimFilter(e.target.value);
+                  setDatePreset('todas');
+                }}
+                className={`px-2 py-1 rounded-lg text-xs border font-mono ${
+                  isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+                }`}
+                title="Data Fim"
+              />
+            </div>
+          </div>
+
+          {/* FILTRO DE APROVAÇÃO DO GESTOR */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase">Governança:</span>
+            <select
+              value={selectedAprovacao}
+              onChange={e => setSelectedAprovacao(e.target.value)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold outline-none border ${
+                isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
+              }`}
+            >
+              <option value="todos">Todas Situações</option>
+              <option value="Aprovado">Aprovado pelo Gestor</option>
+              <option value="Pendente">Pendente de Aceite</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* TABLE / LIST OF ACTIONS */}
+      {/* TABLE / LIST OF ACTIONS (UNIFICADA NO MODELO EXECUTIVO) */}
       <div className="overflow-x-auto rounded-xl border border-slate-700/50">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
@@ -413,10 +643,10 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
               isDark ? 'bg-[#1e293b] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
             }`}>
               <th className="p-3">Processo / Indicador</th>
-              <th className="p-3">Prioridade</th>
-              <th className="p-3">Desvio / Oportunidade</th>
-              <th className="p-3">Responsável</th>
-              <th className="p-3">Prazo</th>
+              <th className="p-3">Tipo / Prioridade</th>
+              <th className="p-3">Desvio / Oportunidade & Contramedida</th>
+              <th className="p-3">Responsável & Setor</th>
+              <th className="p-3">Cronograma / Prazo</th>
               <th className="p-3">Governança (Gestor & Aceite)</th>
               <th className="p-3 text-center">Status</th>
               <th className="p-3 text-right">Ação</th>
@@ -425,33 +655,46 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
           <tbody className={`divide-y ${isDark ? 'divide-slate-800/80' : 'divide-slate-200'}`}>
             {filteredAcoes.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-slate-400 font-bold">
-                  Nenhuma ação encontrada para os parâmetros informados.
+                <td colSpan={8} className="p-8 text-center text-slate-400 font-bold space-y-2">
+                  <p className="text-sm">Nenhuma ação encontrada para os filtros selecionados.</p>
+                  <p className="text-xs text-slate-400 font-normal">
+                    Cadastre uma nova ação pelo botão "+ Nova Ação" ou registre ações diretamente nos dashboards operacionais.
+                  </p>
                 </td>
               </tr>
             ) : (
               filteredAcoes.map(item => {
                 const isApproved = item.aprovacaoGestor === 'Aprovado';
                 const hasAceite = item.aceiteColaborador;
+                const isMelhoria = item.tipoAcao === 'Melhoria';
+
+                // Check if action is overdue
+                const nowISO = new Date().toISOString().split('T')[0];
+                const isOverdue = item.status !== 'Concluído' && item.prazo && item.prazo < nowISO;
 
                 return (
                   <tr 
                     key={item.id} 
                     className={`hover:bg-indigo-500/5 transition-all ${
-                      item.prioridade === 'Alta' ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-transparent'
+                      item.prioridade === 'Alta' ? 'border-l-4 border-l-rose-500' : isMelhoria ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-transparent'
                     }`}
                   >
                     <td className="p-3">
                       <span className="font-black text-xs block text-indigo-400">{item.processo}</span>
-                      <span className="text-[10px] text-slate-400 block">{item.indicador}</span>
+                      <span className="text-[11px] font-bold text-slate-300 block">{item.indicador}</span>
                       <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-mono">
                         <Calendar className="w-3 h-3 text-indigo-400" />
-                        <span>Criado: {item.data}{item.hora ? ` ${item.hora}` : ''}</span>
+                        <span>Data: {item.data}{item.hora ? ` ${item.hora}` : ''}</span>
                       </span>
                     </td>
 
-                    <td className="p-3 font-semibold">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase block w-max ${
+                    <td className="p-3 space-y-1">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block mr-1 ${
+                        isMelhoria ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                      }`}>
+                        {item.tipoAcao || 'Corretiva'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block ${
                         item.prioridade === 'Alta' ? 'bg-rose-600 text-white' : item.prioridade === 'Média' ? 'bg-amber-600 text-white' : 'bg-slate-600 text-white'
                       }`}>
                         {item.prioridade}
@@ -459,23 +702,33 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                     </td>
 
                     <td className="p-3 max-w-xs">
-                      <span className="font-bold block truncate" title={item.desvioEncontrado}>
+                      <span className="font-bold block text-slate-200 truncate" title={item.desvioEncontrado}>
                         {item.desvioEncontrado}
                       </span>
                       {item.contramedida && (
-                        <span className="text-[10px] text-slate-400 block italic truncate">
+                        <span className="text-[10px] text-indigo-300/90 block italic truncate mt-0.5">
                           💡 Contramedida: {item.contramedida}
                         </span>
                       )}
                     </td>
 
                     <td className="p-3 font-medium">
-                      <span className="block font-bold">{item.colaboradorResponsavel}</span>
-                      <span className="text-[10px] text-slate-400">Gestor: {item.responsavelTratativa}</span>
+                      <span className="block font-bold text-slate-200">{item.colaboradorResponsavel}</span>
+                      <span className="text-[10px] text-slate-400 block">Setor: {item.setor}</span>
+                      <span className="text-[10px] text-slate-400 block">Gestor: {item.responsavelTratativa}</span>
                     </td>
 
                     <td className="p-3 font-mono text-[11px]">
-                      {item.prazo}
+                      <span className="block font-bold">{item.prazo}</span>
+                      {item.status === 'Concluído' ? (
+                        <span className="text-[9px] font-black text-emerald-400 uppercase">Concluído</span>
+                      ) : isOverdue ? (
+                        <span className="text-[9px] font-black text-rose-400 uppercase flex items-center gap-0.5">
+                          <AlertTriangle className="w-2.5 h-2.5" /> Atrasado
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-black text-amber-400 uppercase">No Prazo</span>
+                      )}
                     </td>
 
                     <td className="p-3">
@@ -495,13 +748,29 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                     </td>
 
                     <td className="p-3 text-center">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-block ${
-                        item.status === 'Concluído' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-                        item.status === 'Atrasado' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' :
-                        'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      }`}>
-                        {item.status}
-                      </span>
+                      <select
+                        value={item.status}
+                        onChange={e => {
+                          const newStatus = e.target.value as any;
+                          const updated = {
+                            ...item,
+                            status: newStatus,
+                            situacaoMeta: newStatus === 'Concluído' ? 'Atingida' : item.situacaoMeta
+                          };
+                          updateAcaoCorretiva(updated, user?.nome || 'Gestor Executivo');
+                          loadData();
+                        }}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase cursor-pointer outline-none border transition-all ${
+                          item.status === 'Concluído' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
+                          item.status === 'Atrasado' ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' :
+                          'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        }`}
+                      >
+                        <option value="Pendente">Pendente</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Atrasado">Atrasado</option>
+                      </select>
                     </td>
 
                     <td className="p-3 text-right">
@@ -511,9 +780,10 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                             setActiveItem(item);
                             setIsModalOpen(true);
                           }}
-                          className="px-3 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1"
+                          className="px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1"
+                          title="Visualizar e Editar 5 Porquês e Tratativa Completa"
                         >
-                          <Edit2 className="w-3.5 h-3.5" /> 5 Porquês & Tratativa
+                          <Edit2 className="w-3.5 h-3.5" /> Tratativa & 5 Porquês
                         </button>
                         <button
                           onClick={() => handleDeleteAction(item.id)}

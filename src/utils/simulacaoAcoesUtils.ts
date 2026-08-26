@@ -104,6 +104,7 @@ export interface AcaoCorretiva {
   inicio?: string; // Data Início (DD/MM/YYYY)
   final?: string; // Data Final (DD/MM/YYYY)
   obsResponsavel?: string; // Obs do Responsável
+  etapasVerificacao?: string[]; // Etapas de verificação e checklist
 }
 
 export type DatabaseMode = 'simulado' | 'operacional' | 'historico';
@@ -402,47 +403,239 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
   return records;
 }
 
-// Get all actions according to current active database mode (with official 2026 dataset + user edits)
-export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
-  const mode = specificMode || getActiveDatabaseMode();
-  let storageKey = STORAGE_KEY_SIMULADO;
+// UNIFIED STORAGE KEYS FROM DASHBOARDS
+export const UNIFIED_ACOES_DPO_KEY = 'af_acoes_dpo_unificadas_2026';
+export const MONTAGEM_ACOES_KEY = 'af_acoes_montagem_fastpicking';
+export const DESVIOS_ACOES_KEY = 'af_acoes_desvios_gatilhos_v1';
+export const MELHORIAS_ACOES_KEY = 'af_acoes_melhorias_tor_v1';
 
-  if (mode === 'operacional') storageKey = STORAGE_KEY_OPERACIONAL;
-  else if (mode === 'historico') storageKey = STORAGE_KEY_HISTORICO;
+// Helper to normalize any dashboard action item into standard AcaoCorretiva
+export function normalizeToActionCorretiva(item: any): AcaoCorretiva | null {
+  if (!item || !item.id) return null;
 
-  const mergedMap = new Map<string, AcaoCorretiva>();
+  // Check if this is an old mock seed item (e.g. acao-2026-0001 from old generator)
+  const isOldMockSeed = typeof item.id === 'string' && item.id.startsWith('acao-2026-') && !item.id.startsWith('ACAO_2026_');
+  if (isOldMockSeed) return null;
 
-  // 1. Base official dataset (1639 actions)
-  try {
-    const officialSeed = getOfficialSeededAcoes();
-    officialSeed.forEach(item => {
-      if (item && item.id) {
-        mergedMap.set(item.id, item);
+  const now = new Date();
+  const defaultDateISO = now.toISOString().split('T')[0];
+  const defaultDateStr = now.toLocaleDateString('pt-BR');
+
+  // Date resolution
+  let dataISO = item.dataISO || item.dataInicio || item.inicio || defaultDateISO;
+  let dataStr = item.data || defaultDateStr;
+  if (!dataStr && dataISO) {
+    try {
+      const parts = dataISO.split('-');
+      if (parts.length === 3) {
+        dataStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
       }
-    });
-  } catch (e) {
-    console.error('Error loading official seeded actions:', e);
+    } catch (e) {
+      dataStr = defaultDateStr;
+    }
   }
 
-  // 2. Overlay any user modifications or new imported actions stored in localStorage
+  // Process resolution
+  let processo: AcaoCorretiva['processo'] = 'Picking';
+  const rawProc = String(item.processo || item.area || '').trim();
+  if (rawProc.toLowerCase().includes('repack')) processo = 'Repack';
+  else if (rawProc.toLowerCase().includes('despejo')) processo = 'Despejo';
+  else if (rawProc.toLowerCase().includes('quebra') || rawProc.toLowerCase().includes('avaria') || rawProc.toLowerCase().includes('qualidade')) processo = 'Gestão de Quebras';
+  else if (rawProc.toLowerCase().includes('fefo') || rawProc.toLowerCase().includes('validade')) processo = 'Gestão FEFO';
+  else if (rawProc.toLowerCase().includes('capacidade') || rawProc.toLowerCase().includes('armazen') || rawProc.toLowerCase().includes('layout')) processo = 'Gestão de Capacidade';
+  else if (rawProc.toLowerCase().includes('picking')) processo = 'Picking';
+  else if (rawProc.toLowerCase().includes('montagem')) processo = 'Picking';
+  else if (rawProc.toLowerCase().includes('wlp') || rawProc.toLowerCase().includes('pnp')) processo = 'EFC';
+  else if (rawProc.toLowerCase().includes('tmr') || rawProc.toLowerCase().includes('recebimento')) processo = 'Recebimento';
+  else if (rawProc.toLowerCase().includes('carregamento') || rawProc.toLowerCase().includes('expedi')) processo = 'Carregamento';
+  else if (rawProc.toLowerCase().includes('marketplace') || rawProc.toLowerCase().includes('ecommerce')) processo = 'Marketplace';
+  else if (rawProc.toLowerCase().includes('ressuprimento')) processo = 'Ressuprimento';
+  else if (rawProc.toLowerCase().includes('efd')) processo = 'EFD';
+  else if (rawProc.toLowerCase().includes('efc')) processo = 'EFC';
+  else if (rawProc.toLowerCase().includes('estoque')) processo = 'Estoque x Estoque';
+  else {
+    processo = classifyProcessFromActionFields({
+      indicador: item.indicador || item.indicadorBeneficiado,
+      oQueFazer: item.oQueFazer || item.oQueSeraFeito || item.desvioEncontrado,
+      acao: item.resolucao || item.contramedida || item.comoExecutar,
+      onde: item.local || item.setor || item.ondeLocal,
+      area: item.area || item.pilarDPO,
+      reuniao: item.reuniao || item.reuniaoTOR
+    });
+  }
+
+  // Type resolution
+  let tipoAcao: AcaoCorretiva['tipoAcao'] = 'Corretiva';
+  const rawTipo = String(item.tipoAcao || item.tipo || '').toLowerCase();
+  if (rawTipo.includes('melhoria')) tipoAcao = 'Melhoria';
+  else if (rawTipo.includes('rotina')) tipoAcao = 'Corretiva'; // Treated as operational routine in governance
+  else tipoAcao = 'Corretiva';
+
+  // Priority / Criticidade resolution
+  let prioridade: AcaoCorretiva['prioridade'] = 'Alta';
+  const rawCrit = String(item.prioridade || item.criticidade || item.severidade || '').toLowerCase();
+  if (rawCrit.includes('baixa') || rawCrit.includes('p3')) prioridade = 'Baixa';
+  else if (rawCrit.includes('média') || rawCrit.includes('media') || rawCrit.includes('p2')) prioridade = 'Média';
+  else prioridade = 'Alta';
+
+  // Status resolution
+  let status: AcaoCorretiva['status'] = 'Pendente';
+  const rawStatus = String(item.status || item.statusTOR || '').toLowerCase();
+  if (rawStatus.includes('conclu') || rawStatus.includes('validado') || rawStatus.includes('padronizada')) status = 'Concluído';
+  else if (rawStatus.includes('andamento') || rawStatus.includes('execução') || rawStatus.includes('teste')) status = 'Em Andamento';
+  else if (rawStatus.includes('atrasad')) status = 'Atrasado';
+  else status = 'Pendente';
+
+  const desvio = item.desvioEncontrado || item.oQueFazer || item.tituloMelhoria || item.oportunidadeIdentificada || 'Ocorrência registrada no dashboard';
+  const contramedida = item.contramedida || item.resolucao || item.comoExecutar || item.oQueSeraFeito || '';
+  const indicador = item.indicador || item.indicadorBeneficiado || `Indicador Operacional (${processo})`;
+  const responsavel = item.colaboradorResponsavel || item.responsavel || item.responsavelPrincipal || item.responsavelTratativa || 'Operador Responsável';
+  const supervisor = item.responsavelTratativa || item.supervisor || item.abertoPor || item.registradoPor || 'Supervisor de Operações';
+  const setor = item.setor || item.local || item.ondeLocal || 'Armazém / Operações';
+  const prazo = item.prazo || item.dataTermino || item.prazoImplantacao || item.final || new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
+
+  return {
+    id: String(item.id),
+    data: dataStr,
+    dataISO,
+    hora: item.hora || '08:00',
+    processo,
+    setor,
+    colaboradorResponsavel: responsavel,
+    indicador,
+    meta: item.meta || item.metaMelhoria || '100% Executado no Padrão DPO',
+    resultadoObtido: item.resultadoObtido || 'Desvio identificado na rotina',
+    desvioEncontrado: desvio,
+    causaRaiz: item.causaRaiz || item.causaRaiz4M || 'Método',
+    causaRaizDetalhe: item.causaRaizDetalhe || '',
+    status,
+    responsavelTratativa: supervisor,
+    prazo,
+    evidencias: item.evidencias || '',
+    comentarioOperador: item.comentarioOperador || desvio,
+    historicoAlteracoes: item.historicoAlteracoes || [{
+      dataHora: `${dataStr} 08:00`,
+      usuario: supervisor,
+      alteracao: `Ação (${tipoAcao}) unificada do dashboard ${processo}.`
+    }],
+    simulado: false,
+    criadoEm: item.criadoEm || `${dataISO}T08:00:00.000Z`,
+    tipoAcao,
+    prioridade,
+    cincoPorques: item.cincoPorques ? {
+      porque1: item.cincoPorques.porque1 || item.cincoPorques.pq1 || '',
+      porque2: item.cincoPorques.porque2 || item.cincoPorques.pq2 || '',
+      porque3: item.cincoPorques.porque3 || item.cincoPorques.pq3 || '',
+      porque4: item.cincoPorques.porque4 || item.cincoPorques.pq4 || '',
+      porque5: item.cincoPorques.porque5 || item.cincoPorques.pq5 || ''
+    } : {
+      porque1: `Por que ocorreu o desvio? ${desvio.substring(0, 70)}`,
+      porque2: '',
+      porque3: '',
+      porque4: '',
+      porque5: ''
+    },
+    contramedida,
+    aprovacaoGestor: item.aprovacaoGestor || (status === 'Concluído' ? 'Aprovado' : 'Pendente'),
+    aceiteColaborador: item.aceiteColaborador !== undefined ? item.aceiteColaborador : (status === 'Concluído'),
+    impactoEsperado: item.impactoEsperado || item.ganhoEsperado || 'Normalização imediata do processo',
+    situacaoMeta: item.situacaoMeta || (status === 'Concluído' ? 'Atingida' : 'Em Risco'),
+    etapasVerificacao: item.etapasVerificacao,
+    produto: item.produto,
+    codigoProduto: item.codigoProduto,
+    lote: item.lote,
+    validade: item.validade
+  };
+}
+
+// Get all actions unified from platform dashboards (without dummy 1639 mock records)
+export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
+  const mergedMap = new Map<string, AcaoCorretiva>();
+
+  // 1. Load from UNIFIED_ACOES_DPO_KEY (QuadroAcoesDpo across all dashboards)
   try {
-    const raw = localStorage.getItem(storageKey);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        parsed.forEach((item: AcaoCorretiva) => {
-          if (item && item.id) {
-            const isLegacyAuto = item.id.startsWith('acao-2026-') && !item.id.startsWith('ACAO_2026_');
-            if (!isLegacyAuto) {
-              mergedMap.set(item.id, item);
-            }
+    const rawUnified = localStorage.getItem(UNIFIED_ACOES_DPO_KEY);
+    if (rawUnified) {
+      const parsed = JSON.parse(rawUnified);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          const norm = normalizeToActionCorretiva(item);
+          if (norm && norm.id) {
+            mergedMap.set(norm.id, norm);
           }
         });
       }
     }
   } catch (e) {
-    console.error('Error loading actions from storage:', e);
+    console.error('Error loading unified dashboard actions:', e);
   }
+
+  // 2. Load from Montagem / FastPicking
+  try {
+    const rawMont = localStorage.getItem(MONTAGEM_ACOES_KEY);
+    if (rawMont) {
+      const parsed = JSON.parse(rawMont);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          const norm = normalizeToActionCorretiva(item);
+          if (norm && norm.id) {
+            mergedMap.set(norm.id, norm);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  // 3. Load from Desvios / Gatilhos
+  try {
+    const rawDesvios = localStorage.getItem(DESVIOS_ACOES_KEY);
+    if (rawDesvios) {
+      const parsed = JSON.parse(rawDesvios);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          const norm = normalizeToActionCorretiva(item);
+          if (norm && norm.id) {
+            mergedMap.set(norm.id, norm);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  // 4. Load from Melhorias / TOR
+  try {
+    const rawMelhorias = localStorage.getItem(MELHORIAS_ACOES_KEY);
+    if (rawMelhorias) {
+      const parsed = JSON.parse(rawMelhorias);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          const norm = normalizeToActionCorretiva(item);
+          if (norm && norm.id) {
+            mergedMap.set(norm.id, norm);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  // 5. Load user-created operational actions from storage
+  const storageKeys = [STORAGE_KEY_OPERACIONAL, STORAGE_KEY_SIMULADO];
+  storageKeys.forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((item: any) => {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id) {
+              mergedMap.set(norm.id, norm);
+            }
+          });
+        }
+      }
+    } catch (e) {}
+  });
 
   return Array.from(mergedMap.values());
 }
@@ -960,6 +1153,31 @@ export function cleanAllAutomaticActionsFromStorage(): { removedCount: number } 
   return { removedCount: totalRemoved };
 }
 
+export function toAcaoDpoItem(item: AcaoCorretiva): any {
+  return {
+    id: item.id,
+    processo: item.processo,
+    tipo: item.tipoAcao === 'Melhoria' ? 'Melhoria' : 'Corretiva',
+    indicador: item.indicador,
+    criticidade: item.prioridade || 'Alta',
+    oQueFazer: item.desvioEncontrado,
+    resolucao: item.contramedida || '',
+    dataInicio: item.dataISO || (item.data ? item.data.split('/').reverse().join('-') : new Date().toISOString().split('T')[0]),
+    dataTermino: item.prazo || item.dataISO || new Date().toISOString().split('T')[0],
+    responsavel: item.colaboradorResponsavel || 'Colaborador',
+    local: item.setor || 'Armazém',
+    status: item.status === 'Concluído' ? 'Concluído' : item.status === 'Em Andamento' ? 'Em Andamento' : 'Pendente',
+    etapasVerificacao: item.etapasVerificacao,
+    cincoPorques: item.cincoPorques ? {
+      pq1: item.cincoPorques.porque1,
+      pq2: item.cincoPorques.porque2,
+      pq3: item.cincoPorques.porque3,
+      pq4: item.cincoPorques.porque4,
+      pq5: item.cincoPorques.porque5,
+    } : undefined
+  };
+}
+
 export function saveAcoes(list: AcaoCorretiva[], specificMode?: DatabaseMode): void {
   const mode = specificMode || getActiveDatabaseMode();
   let storageKey = STORAGE_KEY_SIMULADO;
@@ -979,9 +1197,16 @@ export function saveAcoes(list: AcaoCorretiva[], specificMode?: DatabaseMode): v
 
   try {
     localStorage.setItem(storageKey, JSON.stringify(cleanList));
+    localStorage.setItem(STORAGE_KEY_OPERACIONAL, JSON.stringify(cleanList));
+    
+    // Sync to unified dashboard storage
+    const dpoList = cleanList.map(toAcaoDpoItem);
+    localStorage.setItem(UNIFIED_ACOES_DPO_KEY, JSON.stringify(dpoList));
+
     // Dispatch event so all UI components update in real time
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('af_acoes_updated'));
+      window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
       const empresaId = localStorage.getItem('af_empresa_id') || 'demo';
       if (cleanList.length > 0) {
         firestoreDb.batchUpsert('acoes', cleanList, empresaId).catch(() => {});
@@ -994,12 +1219,17 @@ export function saveAcoes(list: AcaoCorretiva[], specificMode?: DatabaseMode): v
 
 export function clearAllAcoes(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY_SIMULADO);
-    localStorage.removeItem(STORAGE_KEY_OPERACIONAL);
-    localStorage.removeItem(STORAGE_KEY_HISTORICO);
+    localStorage.setItem(STORAGE_KEY_SIMULADO, '[]');
+    localStorage.setItem(STORAGE_KEY_OPERACIONAL, '[]');
+    localStorage.setItem(STORAGE_KEY_HISTORICO, '[]');
+    localStorage.setItem(UNIFIED_ACOES_DPO_KEY, '[]');
+    localStorage.setItem(MONTAGEM_ACOES_KEY, '[]');
+    localStorage.setItem(DESVIOS_ACOES_KEY, '[]');
+    localStorage.setItem(MELHORIAS_ACOES_KEY, '[]');
     cleanAllAutomaticActionsFromStorage();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('af_acoes_updated'));
+      window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
     }
   } catch (e) {
     console.error('Error clearing actions:', e);
@@ -1211,15 +1441,43 @@ export function updateAcaoCorretiva(item: AcaoCorretiva, usuario: string = 'Usu�
 
 export function deleteAcaoCorretiva(id: string): void {
   const currentList = getAcoesAll();
-  const filtered = currentList.filter(a => a.id !== id);
+  const filtered = currentList.filter(a => String(a.id) !== String(id));
   saveAcoes(filtered);
+
+  // Clean from all other sub-keys
+  [MONTAGEM_ACOES_KEY, DESVIOS_ACOES_KEY, MELHORIAS_ACOES_KEY].forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const next = parsed.filter((item: any) => String(item.id) !== String(id));
+          localStorage.setItem(k, JSON.stringify(next));
+        }
+      }
+    } catch (e) {}
+  });
 }
 
 export function deleteAcoesBatch(ids: string[]): void {
   const currentList = getAcoesAll();
-  const setIds = new Set(ids);
-  const filtered = currentList.filter(a => !setIds.has(a.id));
+  const setIds = new Set(ids.map(String));
+  const filtered = currentList.filter(a => !setIds.has(String(a.id)));
   saveAcoes(filtered);
+
+  // Clean from all other sub-keys
+  [MONTAGEM_ACOES_KEY, DESVIOS_ACOES_KEY, MELHORIAS_ACOES_KEY].forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const next = parsed.filter((item: any) => !setIds.has(String(item.id)));
+          localStorage.setItem(k, JSON.stringify(next));
+        }
+      }
+    } catch (e) {}
+  });
 }
 
 // Requirement 32: Management functions for simulated database

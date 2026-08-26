@@ -295,6 +295,7 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
     try {
       localStorage.setItem(UNIFIED_ACOES_STORAGE_KEY, JSON.stringify(acoes));
       window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
+      window.dispatchEvent(new CustomEvent('af_acoes_updated'));
     } catch (e) {
       console.error('Erro ao salvar ações:', e);
     }
