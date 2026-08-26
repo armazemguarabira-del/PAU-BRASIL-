@@ -48,9 +48,7 @@ import {
   deleteAcaoCorretiva,
   deleteAcoesBatch,
   restoreSimulatedDatabase,
-  exportAcoesCSV,
-  getDashboardForProcessOrIndicator,
-  analisarEGerarAcoesPlataforma
+  exportAcoesCSV
 } from '../utils/simulacaoAcoesUtils';
 import { Usuario } from '../types';
 
@@ -70,17 +68,10 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProcesso, setSelectedProcesso] = useState<string>('todos');
-  const [selectedClassificacao, setSelectedClassificacao] = useState<string>('todos'); // Ação de Desvio | Ação de Rotina | Ação de Melhoria
   const [selectedTipo, setSelectedTipo] = useState<string>('todos'); // Corretiva | Melhoria
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>('todos'); // Alta | Média | Baixa
   const [selectedStatus, setSelectedStatus] = useState<string>('todos');
   const [selectedAprovacao, setSelectedAprovacao] = useState<string>('todos');
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
-  };
 
   // Modal for Action Detail / 5 Whys / Closure Flow
   const [activeItem, setActiveItem] = useState<AcaoCorretiva | null>(null);
@@ -151,17 +142,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
       if (selectedStatus !== 'todos' && a.status !== selectedStatus) return false;
       if (selectedAprovacao !== 'todos' && (a.aprovacaoGestor || 'Pendente') !== selectedAprovacao) return false;
 
-      if (selectedClassificacao !== 'todos') {
-        const itemClass = a.classificacao || (
-          a.tipoAcao === 'Melhoria' 
-            ? 'Ação de Melhoria' 
-            : (a.indicador?.toLowerCase().includes('rotina') || a.desvioEncontrado?.toLowerCase().includes('rotina')) 
-            ? 'Ação de Rotina' 
-            : 'Ação de Desvio'
-        );
-        if (itemClass !== selectedClassificacao) return false;
-      }
-
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
         return (
@@ -176,7 +156,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
       }
       return true;
     });
-  }, [acoes, selectedProcesso, selectedTipo, selectedPrioridade, selectedStatus, selectedAprovacao, selectedClassificacao, searchTerm]);
+  }, [acoes, selectedProcesso, selectedTipo, selectedPrioridade, selectedStatus, selectedAprovacao, searchTerm]);
 
   // Handle Save Action (Approval, Aceite, Evidence)
   const handleSaveActiveItem = () => {
@@ -301,18 +281,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
         {/* TOP CONTROLS */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => {
-              const res = analisarEGerarAcoesPlataforma(user?.nome || 'Supervisor DPO');
-              loadData();
-              showToast(`✓ Análise inteligente concluída: ${res.totalCriadas} ações operacionais geradas e concluídas nas respectivas datas!`);
-            }}
-            className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2 border border-emerald-400/30"
-            title="Analisar Desvios da Plataforma (Produtividade, WQI, FEFO, Quebras) e Gerar Ações Concluídas"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-200" /> Analisar Desvios da Plataforma
-          </button>
-
-          <button
             onClick={() => setIsImportModalOpen(true)}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2 border border-indigo-400/30"
           >
@@ -346,13 +314,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
           </button>
         </div>
       </div>
-
-      {toastMsg && (
-        <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMsg}</span>
-        </div>
-      )}
 
       {/* METRICS CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -393,18 +354,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
             onChange={e => setSearchTerm(e.target.value)}
             className={`px-3 py-2 rounded-lg text-xs outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
           />
-
-          {/* CLASSIFICAÇÃO */}
-          <select
-            value={selectedClassificacao}
-            onChange={e => setSelectedClassificacao(e.target.value)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold outline-none border ${isDark ? 'bg-[#0b1222] border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
-          >
-            <option value="todos">Todas as Classificações</option>
-            <option value="Ação de Desvio">Ação de Desvio</option>
-            <option value="Ação de Rotina">Ação de Rotina</option>
-            <option value="Ação de Melhoria">Ação de Melhoria</option>
-          </select>
 
           {/* PROCESSO (14 MODULOS) */}
           <select
@@ -463,7 +412,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
             <tr className={`border-b uppercase text-[10px] font-black tracking-wider ${
               isDark ? 'bg-[#1e293b] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
             }`}>
-              <th className="p-3">Classificação</th>
               <th className="p-3">Processo / Indicador</th>
               <th className="p-3">Prioridade</th>
               <th className="p-3">Desvio / Oportunidade</th>
@@ -477,7 +425,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
           <tbody className={`divide-y ${isDark ? 'divide-slate-800/80' : 'divide-slate-200'}`}>
             {filteredAcoes.length === 0 ? (
               <tr>
-                <td colSpan={9} className="p-8 text-center text-slate-400 font-bold">
+                <td colSpan={8} className="p-8 text-center text-slate-400 font-bold">
                   Nenhuma ação encontrada para os parâmetros informados.
                 </td>
               </tr>
@@ -485,14 +433,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
               filteredAcoes.map(item => {
                 const isApproved = item.aprovacaoGestor === 'Aprovado';
                 const hasAceite = item.aceiteColaborador;
-                const itemClass = item.classificacao || (
-                  item.tipoAcao === 'Melhoria' 
-                    ? 'Ação de Melhoria' 
-                    : (item.indicador?.toLowerCase().includes('rotina') || item.desvioEncontrado?.toLowerCase().includes('rotina')) 
-                    ? 'Ação de Rotina' 
-                    : 'Ação de Desvio'
-                );
-                const dashInfo = getDashboardForProcessOrIndicator(item.processo, item.indicador);
 
                 return (
                   <tr 
@@ -501,18 +441,6 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                       item.prioridade === 'Alta' ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-transparent'
                     }`}
                   >
-                    <td className="p-3">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase flex items-center gap-1 w-max border ${
-                        itemClass === 'Ação de Desvio'
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : itemClass === 'Ação de Rotina'
-                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      }`}>
-                        {itemClass}
-                      </span>
-                    </td>
-
                     <td className="p-3">
                       <span className="font-black text-xs block text-indigo-400">{item.processo}</span>
                       <span className="text-[10px] text-slate-400 block">{item.indicador}</span>
@@ -577,33 +505,20 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
                     </td>
 
                     <td className="p-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                        <button
-                          onClick={() => {
-                            if (typeof window !== 'undefined' && dashInfo.id) {
-                              window.dispatchEvent(new CustomEvent('app_navigate', { detail: dashInfo.id }));
-                            }
-                          }}
-                          className="px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 rounded-lg text-[10px] font-black uppercase cursor-pointer transition-all flex items-center gap-1"
-                          title={`Acessar ${dashInfo.label}`}
-                        >
-                          <Zap className="w-3 h-3 text-indigo-400" /> Dashboard
-                        </button>
-
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
                             setActiveItem(item);
                             setIsModalOpen(true);
                           }}
-                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-black uppercase cursor-pointer transition-all flex items-center gap-1"
+                          className="px-3 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1"
                         >
-                          <Edit2 className="w-3 h-3" /> Analisar
+                          <Edit2 className="w-3.5 h-3.5" /> 5 Porquês & Tratativa
                         </button>
-
                         <button
                           onClick={() => handleDeleteAction(item.id)}
                           className="p-1.5 text-rose-400 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 rounded-lg cursor-pointer transition-all"
-                          title="Excluir ação"
+                          title="Excluir Ação"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

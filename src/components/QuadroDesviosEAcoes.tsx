@@ -10,12 +10,9 @@ import {
   getAcoesAll, 
   saveAcoes, 
   clearAllAcoes,
-  MODULES_LIST,
-  getDashboardForProcessOrIndicator,
-  analisarEGerarAcoesPlataforma
+  MODULES_LIST 
 } from '../utils/simulacaoAcoesUtils';
 import { ImportAcoesModal } from './ImportAcoesModal';
-import { ActionDetailModal } from './ActionDetailModal';
 import { 
   AlertTriangle, 
   CheckCircle2, 
@@ -221,7 +218,6 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
   // Governance Filter states
   const [filterColaborador, setFilterColaborador] = useState<string>('todos');
   const [filterOperacao, setFilterOperacao] = useState<string>('todos');
-  const [filterClassificacao, setFilterClassificacao] = useState<string>('todos');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [processFilter, setProcessFilter] = useState<string>('todos');
 
@@ -230,18 +226,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
   const [isActionsCollapsed, setIsActionsCollapsed] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
-  // Modal for Action Detail Analysis
-  const [selectedActionForDetail, setSelectedActionForDetail] = useState<AcaoCorretiva | null>(null);
-  const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState<boolean>(false);
-
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Platform Automated Deviation Analysis Execution
-  const handleRunPlatformAnalysis = () => {
-    const res = analisarEGerarAcoesPlataforma(userName);
-    loadData();
-    showToast(`✓ Análise Inteligente: ${res.totalCriadas} ações operacionais (Produtividade, WQI, FEFO, Quebras) geradas e marcadas como concluídas nas datas devidas!`);
-  };
 
   // Clear all actions
   const handleClearAllAcoes = () => {
@@ -845,18 +830,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       if (filterOperacao !== 'todos') {
         if (a.processo !== filterOperacao) return false;
       }
-      // 3. Classificação Filter
-      if (filterClassificacao !== 'todos') {
-        const itemClass = a.classificacao || (
-          a.tipoAcao === 'Melhoria' 
-            ? 'Ação de Melhoria' 
-            : (a.indicador?.toLowerCase().includes('rotina') || a.desvioEncontrado?.toLowerCase().includes('rotina')) 
-            ? 'Ação de Rotina' 
-            : 'Ação de Desvio'
-        );
-        if (itemClass !== filterClassificacao) return false;
-      }
-      // 4. Status Filter
+      // 3. Status Filter
       if (filterStatus !== 'todos') {
         if (filterStatus === 'Atrasado') {
           if (!checkIsOverdue(a.prazo, a.status) && !a.justificativaAtraso && a.status !== 'Atrasado') return false;
@@ -870,7 +844,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
       }
       return true;
     });
-  }, [acoes, filterColaborador, filterOperacao, filterClassificacao, filterStatus]);
+  }, [acoes, filterColaborador, filterOperacao, filterStatus]);
 
   // Performance metrics calculated from the filtered actions
   const estatisticasGovernança = useMemo(() => {
@@ -1055,17 +1029,6 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-blue-100 dark:border-slate-800">
-            {/* Analisar Desvios & Gerar Ações da Plataforma */}
-            <button
-              type="button"
-              onClick={handleRunPlatformAnalysis}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-md border border-emerald-400/30 whitespace-nowrap"
-              title="Analisar indicadores da plataforma (Produtividade, Quebras, WQI, FEFO, Avarias) e gerar ações concluídas nas respectivas datas"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
-              <span>⚡ Analisar Desvios da Plataforma</span>
-            </button>
-
             {/* Ação de Desvio */}
             <button
               type="button"
@@ -1401,22 +1364,9 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                           
                           {/* HEADER CARD */}
                           <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 flex-wrap sm:flex-nowrap">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono font-bold text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 truncate">
-                                {acao.processo}
-                              </span>
-
-                              {/* Classificação Badge */}
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider border ${
-                                (acao.classificacao === 'Ação de Desvio' || (!acao.classificacao && acao.tipoAcao !== 'Melhoria' && !acao.indicador?.toLowerCase().includes('rotina')))
-                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
-                                  : (acao.classificacao === 'Ação de Rotina' || (!acao.classificacao && (acao.indicador?.toLowerCase().includes('rotina') || acao.desvioEncontrado?.toLowerCase().includes('rotina'))))
-                                  ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
-                                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                              }`}>
-                                {acao.classificacao || (acao.tipoAcao === 'Melhoria' ? 'Ação de Melhoria' : (acao.indicador?.toLowerCase().includes('rotina') ? 'Ação de Rotina' : 'Ação de Desvio'))}
-                              </span>
-                            </div>
+                            <span className="text-[10px] font-mono font-bold text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 truncate">
+                              {acao.processo}
+                            </span>
 
                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shrink-0 ${
                               acao.status === 'Concluído'
@@ -1524,47 +1474,15 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                     </div>
 
                     {/* BARRA DE AÇÕES INFERIOR */}
-                    <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                       <span className="text-[9px] font-mono text-slate-500">Responsável: {acao.responsavelTratativa}</span>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {/* Botão Analisar / Detalhes */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedActionForDetail(acao);
-                            setIsActionDetailModalOpen(true);
-                          }}
-                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 border border-slate-300 dark:border-slate-700 shadow-xs"
-                          title="Abrir e analisar detalhes desta ação"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-blue-500" />
-                          <span>Analisar</span>
-                        </button>
-
-                        {/* Botão Ir para Dashboard */}
-                        {(() => {
-                          const targetDash = getDashboardForProcessOrIndicator(acao.processo, acao.indicador);
-                          return (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                window.dispatchEvent(new CustomEvent('app_navigate', { detail: targetDash.id }));
-                              }}
-                              className="px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 border border-indigo-500/30 shadow-xs"
-                              title={`Ir para o Dashboard de ${targetDash.label}`}
-                            >
-                              <ExternalLink className="w-3 h-3 text-indigo-500" />
-                              <span className="hidden sm:inline">Dashboard</span>
-                            </button>
-                          );
-                        })()}
-
+                      <div className="flex items-center gap-2">
                         {acao.status === 'Pendente' && !isOverdue && (
                           <button
                             type="button"
                             onClick={() => handleIniciarAgora(acao.id)}
-                            className="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 shadow-md"
+                            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 shadow-md"
                           >
                             <Play className="w-3 h-3 fill-white" /> Iniciar
                           </button>
@@ -1573,14 +1491,14 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                         <button
                           type="button"
                           onClick={() => handleToggleStatusAcao(acao.id, acao.status)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                             acao.status === 'Concluído'
                               ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
                           }`}
                         >
                           <Check className="w-3.5 h-3.5" />
-                          {acao.status === 'Concluído' ? 'Reabrir' : 'Concluir'}
+                          {acao.status === 'Concluído' ? 'Reabrir Ação' : 'Concluir Ação'}
                         </button>
                       </div>
                     </div>
@@ -1609,7 +1527,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
               </strong>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
               {/* FILTRO 1: POR COLABORADOR */}
               <div>
@@ -1645,24 +1563,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 </select>
               </div>
 
-              {/* FILTRO 3: POR CLASSIFICAÇÃO */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
-                  Filtrar Por Classificação:
-                </label>
-                <select
-                  value={filterClassificacao}
-                  onChange={e => setFilterClassificacao(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 font-bold"
-                >
-                  <option value="todos">Todas as Classificações</option>
-                  <option value="Ação de Desvio">Ação de Desvio</option>
-                  <option value="Ação de Rotina">Ação de Rotina</option>
-                  <option value="Ação de Melhoria">Ação de Melhoria</option>
-                </select>
-              </div>
-
-              {/* FILTRO 4: POR STATUS */}
+              {/* FILTRO 3: POR STATUS */}
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Filtrar Por Status da Ação:
@@ -1697,7 +1598,7 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                 <AlertCircle className="w-10 h-10 text-amber-500 dark:text-amber-400 mx-auto" />
                 <strong className="text-sm text-slate-900 dark:text-white block font-black">Nenhuma ação encontrada para os filtros selecionados</strong>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  Tente alterar os filtros de Colaborador, Operação, Classificação ou Status acima.
+                  Tente alterar os filtros de Colaborador, Operação ou Status acima.
                 </p>
               </div>
             ) : (
@@ -1717,23 +1618,10 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                       }`}
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 flex-wrap gap-1.5">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-mono text-teal-800 dark:text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-500/15 dark:bg-teal-500/20 border border-teal-500/30">
-                              {acao.processo}
-                            </span>
-
-                            {/* Classificação Badge */}
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider border ${
-                              (acao.classificacao === 'Ação de Desvio' || (!acao.classificacao && acao.tipoAcao !== 'Melhoria' && !acao.indicador?.toLowerCase().includes('rotina')))
-                                ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
-                                : (acao.classificacao === 'Ação de Rotina' || (!acao.classificacao && (acao.indicador?.toLowerCase().includes('rotina') || acao.desvioEncontrado?.toLowerCase().includes('rotina'))))
-                                ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
-                                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                            }`}>
-                              {acao.classificacao || (acao.tipoAcao === 'Melhoria' ? 'Ação de Melhoria' : (acao.indicador?.toLowerCase().includes('rotina') ? 'Ação de Rotina' : 'Ação de Desvio'))}
-                            </span>
-                          </div>
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="text-[10px] font-mono text-teal-800 dark:text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-500/15 dark:bg-teal-500/20 border border-teal-500/30">
+                            {acao.processo}
+                          </span>
 
                           <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
                             acao.status === 'Concluído'
@@ -1786,47 +1674,15 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                         <span className="text-[9px] font-mono text-slate-500">ID: {acao.id}</span>
 
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {/* Botão Analisar */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedActionForDetail(acao);
-                              setIsActionDetailModalOpen(true);
-                            }}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 border border-slate-300 dark:border-slate-700 shadow-xs"
-                            title="Abrir e analisar detalhes desta ação"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-blue-500" />
-                            <span>Analisar</span>
-                          </button>
-
-                          {/* Botão Ir para Dashboard */}
-                          {(() => {
-                            const targetDash = getDashboardForProcessOrIndicator(acao.processo, acao.indicador);
-                            return (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  window.dispatchEvent(new CustomEvent('app_navigate', { detail: targetDash.id }));
-                                }}
-                                className="px-2.5 py-1 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 border border-indigo-500/30 shadow-xs"
-                                title={`Ir para o Dashboard de ${targetDash.label}`}
-                              >
-                                <ExternalLink className="w-3 h-3 text-indigo-500" />
-                                <span className="hidden sm:inline">Dashboard</span>
-                              </button>
-                            );
-                          })()}
-
+                        <div className="flex items-center gap-2">
                           {isOverdue && (
                             <button
                               type="button"
                               onClick={() => handleOpenJustifyModal(acao)}
-                              className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
                             >
                               Reagendar
                             </button>
@@ -2204,27 +2060,6 @@ export const QuadroDesviosEAcoes: React.FC<QuadroDesviosEAcoesProps> = ({
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         currentUser={userName}
-      />
-
-      {/* MODAL DE ANÁLISE DETALHADA DA AÇÃO */}
-      <ActionDetailModal
-        isOpen={isActionDetailModalOpen}
-        acao={selectedActionForDetail}
-        onClose={() => {
-          setIsActionDetailModalOpen(false);
-          setSelectedActionForDetail(null);
-        }}
-        onSaveAction={(updated) => {
-          const all = getAcoesAll();
-          const next = all.map(a => a.id === updated.id ? updated : a);
-          saveAcoes(next);
-          loadData();
-          setSelectedActionForDetail(updated);
-          showToast('✓ Ação atualizada com sucesso!');
-        }}
-        onToggleStatus={handleToggleStatusAcao}
-        onOpenJustifyModal={handleOpenJustifyModal}
-        userName={userName}
       />
     </div>
   );

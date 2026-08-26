@@ -1,10 +1,5 @@
 import { firestoreDb } from '../database/firestoreDatabase';
 import { getOfficialSeededAcoes } from '../data/acoesOficiaisDataset';
-import { ACOES_OFICIAIS_QUEBRAS_20 } from '../data/acoesQuebrasOficiais20';
-import { ACOES_OFICIAIS_REPACK_20 } from '../data/acoesRepackOficiais20';
-import { ACOES_OFICIAIS_DESPEJO_10 } from '../data/acoesDespejoOficiais10';
-import { ACOES_OFICIAIS_OPERADORES_40 } from '../data/acoesOperadoresOficiais40';
-import { ACOES_OFICIAIS_LAYOUT_CAPACIDADE_20 } from '../data/acoesLayoutCapacidadeOficiais20';
 
 // Requirement 26, 27, 28, 31 & 32: Auto Action Generator, Simulated Action Database (280+ items), FEFO/Loss Specific Actions, and Multi-Database Isolation.
 
@@ -109,53 +104,9 @@ export interface AcaoCorretiva {
   inicio?: string; // Data Início (DD/MM/YYYY)
   final?: string; // Data Final (DD/MM/YYYY)
   obsResponsavel?: string; // Obs do Responsável
-
-  // Requirement: Classificação da Ação (Desvio de Meta / Ação de Rotina / Ação de Melhoria)
-  classificacao?: 'Ação de Desvio' | 'Ação de Rotina' | 'Ação de Melhoria';
-  dashboardDestino?: string; // ID do painel destino para navegação direta
 }
 
 export type DatabaseMode = 'simulado' | 'operacional' | 'historico';
-
-/**
- * Retorna o painel e nome do Dashboard correspondente para um processo ou indicador
- */
-export function getDashboardForProcessOrIndicator(processo?: string, indicador?: string): { id: string; label: string; icon?: string } {
-  const p = (processo || '').toLowerCase();
-  const ind = (indicador || '').toLowerCase();
-  const text = `${p} ${ind}`;
-
-  if (text.includes('quebra') || text.includes('dqi') || text.includes('total qi') || text.includes('avaria') || text.includes('refugo') || text.includes('despejo') || text.includes('repack')) {
-    if (text.includes('repack')) return { id: 'repack-dashboard', label: 'Dashboard Repack' };
-    if (text.includes('despejo')) return { id: 'despejo-dashboard', label: 'Dashboard Despejo' };
-    return { id: 'quebras-dashboard', label: 'Dashboard Quebras & Perdas' };
-  }
-  if (text.includes('wqi') || text.includes('qualidade')) {
-    return { id: 'qualidade', label: 'Painel de Qualidade & WQI' };
-  }
-  if (text.includes('fefo') || text.includes('validade') || text.includes('vencimento') || text.includes('shelf life')) {
-    return { id: 'fefo-dashboard', label: 'Dashboard FEFO & Validades' };
-  }
-  if (text.includes('picking') || text.includes('produtividade') || text.includes('curva abc') || text.includes('precisão')) {
-    return { id: 'picking-dashboard', label: 'Dashboard Picking & Produtividade' };
-  }
-  if (text.includes('wlp') || text.includes('efm')) {
-    return { id: 'wlp-dashboard', label: 'Dashboard WLP & Produtividade' };
-  }
-  if (text.includes('tmr') || text.includes('tmv') || text.includes('carreta') || text.includes('recebimento')) {
-    return { id: 'tmr-dashboard', label: 'Dashboard TMR & Carretas' };
-  }
-  if (text.includes('capacidade') || text.includes('ocupação') || text.includes('layout')) {
-    return { id: 'gestao-capacidade', label: 'Dashboard Gestão de Capacidade' };
-  }
-  if (text.includes('inventário') || text.includes('estoque') || text.includes('toos') || text.includes('ressuprimento')) {
-    return { id: 'estoque', label: 'Hub de Gestão de Estoque' };
-  }
-  if (text.includes('carregamento') || text.includes('efc') || text.includes('efd')) {
-    return { id: 'logistica-dashboard', label: 'Dashboard Logística' };
-  }
-  return { id: 'acoes', label: 'Quadro Geral de Ações' };
-}
 
 const STORAGE_KEY_SIMULADO = 'af_banco_simulado_acoes_2026';
 const STORAGE_KEY_OPERACIONAL = 'af_banco_operacional_acoes';
@@ -325,14 +276,6 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
   let globalCounter = 1;
 
   MODULES_LIST.forEach((modulo) => {
-    // If module is Gestão de Quebras, strictly use the 20 official Quebras actions
-    if (modulo === 'Gestão de Quebras') {
-      ACOES_OFICIAIS_QUEBRAS_20.forEach(acao => {
-        records.push(acao);
-      });
-      return;
-    }
-
     // Generate 20 records per module
     for (let i = 0; i < 20; i++) {
       const dayOffset = Math.floor((i / 20) * totalDays) + Math.floor(Math.random() * 3);
@@ -352,6 +295,7 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
 
       const isFefoQuebraModule = (
         modulo === 'Gestão FEFO' || 
+        modulo === 'Gestão de Quebras' || 
         modulo === 'Estoque x Estoque' || 
         modulo === 'Estoque x Picking' || 
         modulo === 'Despejo'
@@ -367,11 +311,8 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
       const skuNames = ['Brahma Chopp 350ml', 'Skol Pilsen 600ml', 'Antarctica Boa 300ml', 'Stella Artois 330ml', 'Guaraná Antarctica 2L', 'Budweiser 473ml'];
       const skuIndex = i % skuCodes.length;
 
-      const isRotina = i % 5 === 2;
-      const isMelhoria = i % 4 === 3 && !isRotina; // 25% Ações de Melhoria preventivas, 75% Ações Corretivas por desvio
+      const isMelhoria = i % 4 === 3; // 25% Ações de Melhoria preventivas, 75% Ações Corretivas por desvio
       const prioridade: AcaoCorretiva['prioridade'] = i % 3 === 0 ? 'Alta' : i % 3 === 1 ? 'Média' : 'Baixa';
-      const classificacao: AcaoCorretiva['classificacao'] = isMelhoria ? 'Ação de Melhoria' : isRotina ? 'Ação de Rotina' : 'Ação de Desvio';
-      const dashboardDestino = getDashboardForProcessOrIndicator(modulo, `Indicador de Conformidade Operacional (${modulo})`).id;
 
       const record: AcaoCorretiva = {
         id: `acao-2026-${String(globalCounter).padStart(4, '0')}`,
@@ -400,8 +341,6 @@ export function generateFullSimulatedDatabase2026(): AcaoCorretiva[] {
         // Requirements 33, 34 & 35: Governance & 5 Whys Flow
         tipoAcao: isMelhoria ? 'Melhoria' : 'Corretiva',
         prioridade,
-        classificacao,
-        dashboardDestino,
         cincoPorques: {
           porque1: `Por que o indicador de ${modulo} desviou? Devido a gargalos operacionais no setor ${setor}.`,
           porque2: `Por que houve gargalo no setor? O tempo de ciclo aumentou durante o turno.`,
@@ -473,7 +412,7 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
 
   const mergedMap = new Map<string, AcaoCorretiva>();
 
-  // 1. Base official dataset (including the 20 official Quebras actions)
+  // 1. Base official dataset (1639 actions)
   try {
     const officialSeed = getOfficialSeededAcoes();
     officialSeed.forEach(item => {
@@ -485,13 +424,6 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
     console.error('Error loading official seeded actions:', e);
   }
 
-  // Always ensure the official standardized datasets are strictly in place
-  ACOES_OFICIAIS_QUEBRAS_20.forEach(item => mergedMap.set(item.id, item));
-  ACOES_OFICIAIS_REPACK_20.forEach(item => mergedMap.set(item.id, item));
-  ACOES_OFICIAIS_DESPEJO_10.forEach(item => mergedMap.set(item.id, item));
-  ACOES_OFICIAIS_OPERADORES_40.forEach(item => mergedMap.set(item.id, item));
-  ACOES_OFICIAIS_LAYOUT_CAPACIDADE_20.forEach(item => mergedMap.set(item.id, item));
-
   // 2. Overlay any user modifications or new imported actions stored in localStorage
   try {
     const raw = localStorage.getItem(storageKey);
@@ -501,14 +433,7 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
         parsed.forEach((item: AcaoCorretiva) => {
           if (item && item.id) {
             const isLegacyAuto = item.id.startsWith('acao-2026-') && !item.id.startsWith('ACAO_2026_');
-            const isLegacyQuebra = (item.processo === 'Gestão de Quebras' || (item.indicador || '').toLowerCase().includes('quebra') || (item.desvioEncontrado || '').toLowerCase().includes('quebra')) && !item.id.startsWith('ACAO_QUEBRA_MOV_');
-            const isLegacyRepack = (item.processo === 'Repack' || (item.indicador || '').toLowerCase().includes('repack')) && !item.id.startsWith('ACAO_REPACK_');
-            const isLegacyDespejo = (item.processo === 'Despejo' || (item.indicador || '').toLowerCase().includes('despejo')) && !item.id.startsWith('ACAO_DESPEJO_');
-            const isLegacyOperador = (item.processo === 'Ressuprimento' || (item.indicador || '').toLowerCase().includes('empilhador') || (item.indicador || '').toLowerCase().includes('reabastecimento')) && !item.id.startsWith('ACAO_OPERADOR_');
-            const isLegacyLayout = (item.processo === 'Gestão de Capacidade' || (item.indicador || '').toLowerCase().includes('layout') || (item.indicador || '').toLowerCase().includes('capacidade')) && !item.id.startsWith('ACAO_LAYOUT_');
-            
-            // Exclude legacy auto actions and legacy category actions, keeping only the official actions or explicit manual user additions
-            if (!isLegacyAuto && !isLegacyQuebra && !isLegacyRepack && !isLegacyDespejo && !isLegacyOperador && !isLegacyLayout) {
+            if (!isLegacyAuto) {
               mergedMap.set(item.id, item);
             }
           }
@@ -673,9 +598,6 @@ export function isActionMatchingProcessOrIndicator(acao: AcaoCorretiva, allowedK
   const allText = `${proc} ${ind} ${desvio} ${contra} ${onde} ${setor} ${area} ${reuniao}`.toLowerCase();
 
   return normalizedAllowed.some(allowed => {
-    // Check direct dashboardDestino match
-    if (acao.dashboardDestino && (acao.dashboardDestino === allowed || acao.dashboardDestino.includes(allowed) || (allowed.includes('logistica') && acao.dashboardDestino === 'logistica-dashboard'))) return true;
-
     // Exact or substring match
     if (proc === allowed || proc.includes(allowed)) return true;
     if (ind.includes(allowed)) return true;
@@ -987,226 +909,6 @@ export function parseAndImportActionsPayload(content: string, currentUser: strin
     count: newAcoes.length,
     actions: newAcoes,
     message: `✓ ${newAcoes.length} ações importadas e distribuídas com sucesso em seus respectivos dashboards!`
-  };
-}
-
-/**
- * Análise Inteligente da Plataforma:
- * Varre indicadores operacionais (Produtividade, Quebras/Avarias, WQI, FEFO/Validades, Repack, Despejo, TMR e Capacidade),
- * gera ações simples e curtas de correção com status Concluído nas datas respectivas e direcionamento aos dashboards.
- */
-export function analisarEGerarAcoesPlataforma(currentUser: string = 'Supervisor DPO'): {
-  totalCriadas: number;
-  acoesCriadas: AcaoCorretiva[];
-  resumo: {
-    produtividade: number;
-    quebras: number;
-    wqi: number;
-    fefo: number;
-    capacidade: number;
-    tmr: number;
-  };
-} {
-  const dates = [
-    { dStr: '25/08/2026', dISO: '2026-08-25' },
-    { dStr: '24/08/2026', dISO: '2026-08-24' },
-    { dStr: '23/08/2026', dISO: '2026-08-23' },
-    { dStr: '22/08/2026', dISO: '2026-08-22' },
-    { dStr: '20/08/2026', dISO: '2026-08-20' },
-    { dStr: '18/08/2026', dISO: '2026-08-18' },
-    { dStr: '15/08/2026', dISO: '2026-08-15' },
-    { dStr: '10/08/2026', dISO: '2026-08-10' }
-  ];
-
-  const templates = [
-    {
-      processo: 'Picking' as const,
-      indicador: 'Produtividade no Picking (CX/h)',
-      meta: '180 CX/h',
-      resultadoObtido: '142 CX/h (Abaixo da Meta)',
-      desvioEncontrado: 'Lentidão na rota do picking e leitura de código de barras falhando no corredor 4.',
-      contramedida: 'Reorganizar rota dos separadores nos corredores 3 e 4 e calibrar os coletores ópticos da bancada.',
-      classificacao: 'Ação de Desvio' as const,
-      tipoAcao: 'Corretiva' as const,
-      prioridade: 'Alta' as const,
-      setor: 'Corredor de Picking',
-      responsavelTratativa: 'Carlos Silva (Líder Picking)',
-      causaRaiz: 'Máquina' as const,
-      dashboardDestino: 'picking-dashboard',
-      categoria: 'produtividade'
-    },
-    {
-      processo: 'Gestão FEFO' as const,
-      indicador: 'Aderência ao FEFO & Validade Crítica',
-      meta: '100% FEFO',
-      resultadoObtido: '78.5% FEFO (Risco de Vencimento)',
-      desvioEncontrado: 'Lote de Spaten 350ml e Brahma Chopp com vencimento < 30 dias retido no fundo do bloco A.',
-      contramedida: 'Efetuar giro de lote FEFO puxando o saldo de vencimento curto para a frente do picking prioritário.',
-      classificacao: 'Ação de Desvio' as const,
-      tipoAcao: 'Corretiva' as const,
-      prioridade: 'Alta' as const,
-      setor: 'Pulmão / Bloco A',
-      responsavelTratativa: 'Fernanda Lima (Analista Inventário)',
-      causaRaiz: 'Material' as const,
-      dashboardDestino: 'fefo-dashboard',
-      categoria: 'fefo'
-    },
-    {
-      processo: 'Repack' as const,
-      indicador: 'Recuperação e Repack de Latas/Vidros',
-      meta: '100% Repack Diário',
-      resultadoObtido: '65% (Acúmulo na Bancada)',
-      desvioEncontrado: 'Acúmulo de caixas avariadas na bancada 1 aguardando reembalagem e separação de latas intactas.',
-      contramedida: 'Priorizar triagem de latas intactas e repaciar caixas para retorno imediato ao estoque vendável.',
-      classificacao: 'Ação de Rotina' as const,
-      tipoAcao: 'Melhoria' as const,
-      prioridade: 'Média' as const,
-      setor: 'Linha 1 Repack',
-      responsavelTratativa: 'Paulo Santos (Operador Repack)',
-      causaRaiz: 'Mão de Obra' as const,
-      dashboardDestino: 'repack-dashboard',
-      categoria: 'quebras'
-    },
-    {
-      processo: 'Despejo' as const,
-      indicador: 'Drenagem e Despejo de Avarias Líquidas',
-      meta: 'Fluxo Contínuo',
-      resultadoObtido: 'Lentidão no Escoamento',
-      desvioEncontrado: 'Canaleta de drenagem de líquidos entupida com cacos de vidro reduzindo velocidade de descarte.',
-      contramedida: 'Executar limpeza preventiva da grade do ralo e descarte imediato dos cacos no container.',
-      classificacao: 'Ação de Rotina' as const,
-      tipoAcao: 'Melhoria' as const,
-      prioridade: 'Média' as const,
-      setor: 'Área de Despejo',
-      responsavelTratativa: 'Gilson Ferreira (Operador Despejo)',
-      causaRaiz: 'Máquina' as const,
-      dashboardDestino: 'despejo-dashboard',
-      categoria: 'quebras'
-    },
-    {
-      processo: 'Recebimento' as const,
-      indicador: 'TMR — Tempo Médio de Permanência de Carretas',
-      meta: '1h10min max',
-      resultadoObtido: '1h45min (Acima da Meta)',
-      desvioEncontrado: 'Tempo de descarga de carretas acima da meta por demora na conferência de vasilhame.',
-      contramedida: 'Agilizar triagem de vasilhame na portaria e liberar doca 2 para descarregamento prioritário.',
-      classificacao: 'Ação de Desvio' as const,
-      tipoAcao: 'Corretiva' as const,
-      prioridade: 'Alta' as const,
-      setor: 'Doca de Recebimento',
-      responsavelTratativa: 'João Paulo (Supervisor Pátio)',
-      causaRaiz: 'Método' as const,
-      dashboardDestino: 'tmr-dashboard',
-      categoria: 'tmr'
-    },
-    {
-      processo: 'Gestão de Capacidade' as const,
-      indicador: 'Ocupação Volumétrica do Armazém',
-      meta: '85% max',
-      resultadoObtido: '94.2% (Armazém Congestionado)',
-      desvioEncontrado: 'Excesso de paletes na área de circulação e transbordo impedindo manobras seguras.',
-      contramedida: 'Remanejar 18 paletes de giro lento para o estoque aéreo do Armazém 02 liberando o corredor central.',
-      classificacao: 'Ação de Melhoria' as const,
-      tipoAcao: 'Melhoria' as const,
-      prioridade: 'Alta' as const,
-      setor: 'Armazém 01 / Aéreo',
-      responsavelTratativa: 'Luciano Santos (Gestor de Processos)',
-      causaRaiz: 'Método' as const,
-      dashboardDestino: 'gestao-capacidade',
-      categoria: 'capacidade'
-    }
-  ];
-
-  const novasAcoes: AcaoCorretiva[] = [];
-  const resumo = { produtividade: 0, quebras: 0, wqi: 0, fefo: 0, capacidade: 0, tmr: 0 };
-
-  templates.forEach((tmpl, idx) => {
-    dates.forEach((d, dIdx) => {
-      // Cria uma ação concluída para a respectiva data
-      const id = `ACAO_PLATAFORMA_${tmpl.processo.replace(/\s+/g, '_').toUpperCase()}_${d.dISO.replace(/-/g, '')}_${idx + 1}`;
-      
-      const acao: AcaoCorretiva = {
-        id,
-        data: d.dStr,
-        dataISO: d.dISO,
-        hora: `${String(8 + (dIdx % 8)).padStart(2, '0')}:00`,
-        processo: tmpl.processo,
-        setor: tmpl.setor,
-        colaboradorResponsavel: tmpl.responsavelTratativa,
-        indicador: tmpl.indicador,
-        meta: tmpl.meta,
-        resultadoObtido: tmpl.resultadoObtido,
-        desvioEncontrado: tmpl.desvioEncontrado,
-        causaRaiz: tmpl.causaRaiz,
-        causaRaizDetalhe: `Tratativa validada e executada para eliminar desvio no indicador [${tmpl.indicador}].`,
-        status: 'Concluído',
-        responsavelTratativa: tmpl.responsavelTratativa,
-        prazo: d.dISO,
-        evidencias: `Evidência de execução concluída em ${d.dStr} com inspeção no padrão DPO 2026.`,
-        comentarioOperador: tmpl.contramedida,
-        simulado: false,
-        criadoEm: `${d.dISO}T08:00:00.000Z`,
-        tipoAcao: tmpl.tipoAcao,
-        classificacao: tmpl.classificacao,
-        prioridade: tmpl.prioridade,
-        dashboardDestino: tmpl.dashboardDestino,
-        contramedida: tmpl.contramedida,
-        aprovacaoGestor: 'Aprovado',
-        aceiteColaborador: true,
-        abertoPor: currentUser,
-        dataAbertura: `${d.dStr} 08:00`,
-        fechadoPor: tmpl.responsavelTratativa,
-        dataFechamento: `${d.dStr} 17:00`,
-        concluidoNoPrazo: true,
-        cincoPorques: {
-          porque1: `Por que ocorreu o desvio em ${tmpl.indicador}? Ocorreu perda de conformidade na operação em ${d.dStr}.`,
-          porque2: `Por que ocorreu a perda de conformidade? Houve sobrecarga e falta de alinhamento no início do turno.`,
-          porque3: `Por que faltou alinhamento? O checklist diário foi executado tardiamente.`,
-          porque4: `Por que foi tardio? Priorização de demandas urgentes na abertura do dia.`,
-          porque5: `Por que a causa raiz é ${tmpl.causaRaiz}? Falta de padronização imediata, corrigida com a contramedida implementada.`
-        },
-        historicoAlteracoes: [
-          {
-            dataHora: `${d.dStr} 08:00`,
-            usuario: currentUser,
-            alteracao: `Ação gerada pela análise de desvios da plataforma para o indicador [${tmpl.indicador}].`
-          },
-          {
-            dataHora: `${d.dStr} 17:00`,
-            usuario: tmpl.responsavelTratativa,
-            alteracao: `Ação corrigida e marcada como Concluído com sucesso na data ${d.dStr}.`
-          }
-        ]
-      };
-
-      novasAcoes.push(acao);
-      if (tmpl.categoria === 'produtividade') resumo.produtividade++;
-      else if (tmpl.categoria === 'wqi') resumo.wqi++;
-      else if (tmpl.categoria === 'fefo') resumo.fefo++;
-      else if (tmpl.categoria === 'capacidade') resumo.capacidade++;
-      else if (tmpl.categoria === 'tmr') resumo.tmr++;
-    });
-  });
-
-  // Strict 20 official Quebras actions integration
-  ACOES_OFICIAIS_QUEBRAS_20.forEach(acao => {
-    novasAcoes.push(acao);
-    resumo.quebras++;
-  });
-
-  // Mesclar com ações existentes e salvar
-  const existing = getAcoesAll();
-  const existingMap = new Map<string, AcaoCorretiva>();
-  existing.forEach(a => existingMap.set(a.id, a));
-  novasAcoes.forEach(a => existingMap.set(a.id, a));
-
-  const allUpdated = Array.from(existingMap.values());
-  saveAcoes(allUpdated);
-
-  return {
-    totalCriadas: novasAcoes.length,
-    acoesCriadas: novasAcoes,
-    resumo
   };
 }
 

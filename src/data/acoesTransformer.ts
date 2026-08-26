@@ -1,4 +1,4 @@
-import { AcaoCorretiva, classifyProcessFromActionFields, getDashboardForProcessOrIndicator } from '../utils/simulacaoAcoesUtils';
+import { AcaoCorretiva, classifyProcessFromActionFields } from '../utils/simulacaoAcoesUtils';
 
 export interface RawAcaoItem {
   id: number;
@@ -44,24 +44,6 @@ export function convertRawItemToAcaoCorretiva(item: RawAcaoItem): AcaoCorretiva 
   const rawTipo = (item.tipo_acao || '').toLowerCase();
   const normalizedTipo: 'Corretiva' | 'Melhoria' = rawTipo.includes('melhoria') ? 'Melhoria' : 'Corretiva';
 
-  let classificacao: AcaoCorretiva['classificacao'] = 'Ação de Desvio';
-  if (rawTipo.includes('rotina')) {
-    classificacao = 'Ação de Rotina';
-  } else if (rawTipo.includes('melhoria')) {
-    classificacao = 'Ação de Melhoria';
-  } else if (rawTipo.includes('desvio') || rawTipo.includes('corretiv')) {
-    classificacao = 'Ação de Desvio';
-  } else if (
-    (item.indicador || '').toLowerCase().includes('rotina') ||
-    (item.o_que_fazer || '').toLowerCase().includes('rotina') ||
-    (item.o_que_fazer || '').toLowerCase().includes('acompanhar') ||
-    (item.o_que_fazer || '').toLowerCase().includes('separar tempos')
-  ) {
-    classificacao = 'Ação de Rotina';
-  }
-
-  const dashboardDestino = getDashboardForProcessOrIndicator(proc, item.indicador).id;
-
   const isoInicio = item.inicio.includes('/') 
     ? item.inicio.split('/').reverse().join('-') 
     : item.inicio;
@@ -100,8 +82,6 @@ export function convertRawItemToAcaoCorretiva(item: RawAcaoItem): AcaoCorretiva 
     simulado: false,
     criadoEm: isoInicio ? `${isoInicio}T08:00:00.000Z` : new Date().toISOString(),
     tipoAcao: normalizedTipo,
-    classificacao,
-    dashboardDestino,
     prioridade,
     contramedida: item.acao || item.o_que_fazer,
     aprovacaoGestor: 'Aprovado',
@@ -121,7 +101,7 @@ export function convertRawItemToAcaoCorretiva(item: RawAcaoItem): AcaoCorretiva 
     historicoAlteracoes: [{
       dataHora: `${displayInicio} 08:00`,
       usuario: item.responsavel || 'Djeanderson Soares',
-      alteracao: `Ação oficial cadastrada no plano DPO 2026 para [${proc}] (Classificação: ${classificacao}, Indicador: ${item.indicador}).`
+      alteracao: `Ação oficial cadastrada no plano DPO 2026 para [${proc}] (Indicador: ${item.indicador}).`
     }]
   };
 }

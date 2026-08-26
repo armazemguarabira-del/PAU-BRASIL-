@@ -110,14 +110,6 @@ export const CATEGORY_DEFINITIONS: Record<
         color: 'border-sky-500/30 bg-sky-500/5 hover:border-sky-500/60'
       },
       {
-        id: 'montagem-carregamento',
-        label: 'Montagem e Carregamento',
-        description: 'Painel e BI do Fast Picking, SLA de montagem por coluna, carregamento e auditoria DPO.',
-        icon: <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
-        badge: 'Fast Picking',
-        color: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60'
-      },
-      {
         id: 'repack-dashboard',
         label: 'Dashboard Repack',
         description: 'Indicadores de produtividade, velocidade cx/h e histórico do Repack.',

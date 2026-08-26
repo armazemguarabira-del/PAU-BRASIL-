@@ -49,19 +49,6 @@ export interface AccessLogItem {
 
 const DEFAULT_PLATFORMS: ExternalPlatformTool[] = [
   {
-    id: 'fast-picking-dashboards',
-    name: 'Fast Picking — Dashboards & Separação',
-    category: 'Montagem, Separação & Expedição',
-    url: 'https://new.fastpicking.com.br/pickings/dashboards',
-    description: 'Portal oficial do Fast Picking para liberação de mapas, controle de montagem de paletes por coluna, acompanhamento de separação e BI em tempo real.',
-    instructions: '1. Acesse o menu de Separação > Liberar Mapas para enviar as tarefas para o Box.\n2. Monitore o SLA dos separadores e conferentes por baia.\n3. Realize o fechamento de carga com registro de PBRs e Km.',
-    status: 'active',
-    lastUpdatedBy: 'Sistema Oficial DPO',
-    lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
-    openMode: 'new_tab',
-    iconType: 'truck'
-  },
-  {
     id: 'retorno-rota',
     name: 'Plataforma de Retorno de Rota',
     category: 'Logística & Acerto de Rota',

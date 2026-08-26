@@ -1,7 +1,6 @@
 import { WLP_MAY_2026_RAW } from './wlpMay2026';
 import { WLP_JUNE_2026_RAW } from './wlpJune2026';
 import { WLP_JULY_2026_RAW } from './wlpJuly2026';
-import { WLP_AUGUST_2026_RAW } from './wlpAugust2026';
 
 export interface OfficialWlpRow {
   Data: string; // YYYY-MM-DD
@@ -1124,6 +1123,5 @@ export const WLP_OFFICIAL_DATASET_2026: OfficialWlpRow[] = [
 
   ...(WLP_MAY_2026_RAW as OfficialWlpRow[]),
   ...(WLP_JUNE_2026_RAW as OfficialWlpRow[]),
-  ...(WLP_JULY_2026_RAW as OfficialWlpRow[]),
-  ...(WLP_AUGUST_2026_RAW as OfficialWlpRow[])
+  ...(WLP_JULY_2026_RAW as OfficialWlpRow[])
 ];

@@ -18,7 +18,6 @@ import ControlePanel from './components/ControlePanel';
 import ExportarPanel from './components/ExportarPanel';
 import FirebasePanel from './components/FirebasePanel';
 import RepackDashboard from './components/RepackDashboard';
-import MontagemCarregamentoDashboard from './components/MontagemCarregamentoDashboard';
 import DespejoDashboard from './components/DespejoDashboard';
 import LogisticaDashboard from './components/LogisticaDashboard';
 import QuebrasDashboard from './components/QuebrasDashboard';
@@ -753,8 +752,6 @@ export default function App() {
         return <AjudantePanel user={user} empresa={empresa} theme={theme} />;
       case 'repack-dashboard':
         return <RepackDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
-      case 'montagem-carregamento':
-        return <MontagemCarregamentoDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'despejo-dashboard':
         return <DespejoDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'logistica-dashboard':

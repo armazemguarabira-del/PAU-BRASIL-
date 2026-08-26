@@ -110,7 +110,7 @@ export default function Sidebar({
       subtitle: 'Indicadores, BI & Gráficos',
       icon: <BarChart2 className="w-5 h-5 text-sky-400" />,
       subItems: [
-        'visao-geral', 'montagem-carregamento', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
+        'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
         'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 'ranking-produtividade', 
         'qualidade', 'kpi-arvore'
       ]
