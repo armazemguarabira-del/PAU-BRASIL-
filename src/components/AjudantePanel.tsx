@@ -12,6 +12,7 @@ const QuebrasPanel = lazy(() => import('./QuebrasPanel'));
 const Checklist5SForm = lazy(() => import('./Checklist5SModal').then(m => ({ default: m.Checklist5SForm })));
 const Collaborator5SPerformanceCard = lazy(() => import('./Checklist5SModal').then(m => ({ default: m.Collaborator5SPerformanceCard })));
 const GuiaAcoesOperacionais = lazy(() => import('./GuiaAcoesOperacionais').then(m => ({ default: m.GuiaAcoesOperacionais })));
+const GuiaMontagemPanel = lazy(() => import('./GuiaMontagemPanel'));
 
 const SubPanelSkeleton = () => (
   <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-500 animate-pulse">
@@ -74,8 +75,8 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
   const shiftStorageKey = `ajudante_shift_${empresaId}_${user.uid || user.nome}`;
   const historyStorageKey = `ajudante_history_${empresaId}_${user.uid || user.nome}`;
 
-  // Tab State: 'repack' | 'despejo' | 'quebras' | 'retorno_rota' | '5s' | 'historico' | 'acoes'
-  const [activeTab, setActiveTab] = useState<'repack' | 'despejo' | 'quebras' | 'retorno_rota' | '5s' | 'historico' | 'acoes'>('repack');
+  // Tab State: 'repack' | 'despejo' | 'quebras' | 'retorno_rota' | '5s' | 'historico' | 'acoes' | 'montagem'
+  const [activeTab, setActiveTab] = useState<'repack' | 'despejo' | 'quebras' | 'retorno_rota' | '5s' | 'historico' | 'acoes' | 'montagem'>('repack');
 
   // Shift State
   const [shiftStarted, setShiftStarted] = useState<boolean>(() => {
@@ -849,6 +850,18 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
           <Zap className="w-3.5 h-3.5 shrink-0" />
           <span>7. GUIA AÇÕES</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('montagem')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'montagem'
+              ? 'bg-amber-600 text-white shadow-sm'
+              : 'text-amber-500 dark:text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+          <span>8. MONTAGEM & FAST PICKING</span>
+        </button>
       </div>
 
       {/* TAB CONTENT 1: REPACK */}
@@ -1142,6 +1155,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
       {activeTab === 'acoes' && (
         <Suspense fallback={<SubPanelSkeleton />}>
           <GuiaAcoesOperacionais user={user} roleName="Ajudante" />
+        </Suspense>
+      )}
+
+      {/* TAB CONTENT 8: GUIA DE MONTAGEM & FAST PICKING */}
+      {activeTab === 'montagem' && (
+        <Suspense fallback={<SubPanelSkeleton />}>
+          <GuiaMontagemPanel user={user} empresa={empresa} theme={theme} />
         </Suspense>
       )}
 

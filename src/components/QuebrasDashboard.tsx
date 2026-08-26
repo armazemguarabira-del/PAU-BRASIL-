@@ -49,13 +49,14 @@ import LossHierarchyTree from './LossHierarchyTree';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { Checklist5SModal } from './Checklist5SModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 
 interface QuebrasDashboardProps {
   user: Usuario;
   empresa: Empresa | null;
   onBack?: () => void;
   theme?: 'light' | 'dark';
-  initialSubTab?: 'indicadores' | 'arvore' | 'wqi' | 'boarda3';
+  initialSubTab?: 'indicadores' | 'arvore' | 'wqi' | 'boarda3' | 'acoes';
 }
 
 interface ActionPlan5W2H {
@@ -188,7 +189,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     Boolean(startDate) || 
     Boolean(endDate);
   const [secondChartMode, setSecondChartMode] = useState<'grupo' | 'embalagem'>('grupo');
-  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'arvore' | 'wqi' | 'boarda3'>(initialSubTab || 'indicadores');
+  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'arvore' | 'wqi' | 'boarda3' | 'acoes'>(initialSubTab || 'indicadores');
   const [isPopModalOpen, setIsPopModalOpen] = useState(false);
   const [is5SModalOpen, setIs5SModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -678,14 +679,15 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
               Árvore de Perdas
             </button>
             <button 
-              onClick={() => setActiveSubTab('boarda3')}
-              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer ${
-                activeSubTab === 'boarda3' 
-                  ? (theme === 'dark' ? 'bg-blue-600 text-white shadow-sm' : 'bg-[#032b5e] text-white shadow-sm') 
+              onClick={() => setActiveSubTab('acoes')}
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'acoes' || activeSubTab === 'boarda3'
+                  ? (theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm') 
                   : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-[#032b5e] bg-transparent')
               }`}
             >
-              Quadro de Ações
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              Ações DPO (Quebras)
             </button>
           </div>
 
@@ -718,10 +720,10 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
           </button>
 
           <button 
-            onClick={() => setIsActionModalOpen(true)}
+            onClick={() => setActiveSubTab('acoes')}
             className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-blue-400/30"
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" /> Plano de Ações (Quebras)
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" /> Gerar Ações
           </button>
 
           {/* REQUISITO 23: 3 SELETORES LADO A LADO: R$, HL, SKU */}
@@ -2276,8 +2278,16 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
         />
       )}
 
-      {activeSubTab === 'boarda3' && (
-        <A3BoardComponent user={user} empresa={empresa} dashboard="quebras" />
+      {(activeSubTab === 'acoes' || activeSubTab === 'boarda3') && (
+        <QuadroAcoesDpo
+          user={user}
+          empresa={empresa}
+          theme={theme}
+          processoFilter="Quebras"
+          title="Quadro de Ações — Gestão e Recolha de Quebras"
+          subtitle="Tratativas DPO, contramedidas 5W2H e planos de ação para redução de perdas no armazém."
+          onBack={() => setActiveSubTab('indicadores')}
+        />
       )}
 
       {/* FOOTER BLOCK */}

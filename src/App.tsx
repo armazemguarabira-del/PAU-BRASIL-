@@ -44,6 +44,7 @@ import CategoryIndexPanel from './components/CategoryIndexPanel';
 import PlataformasExternasPanel from './components/PlataformasExternasPanel';
 import ArmazemFacilPadrao02 from './components/ArmazemFacilPadrao02';
 import DtoDiagnosticoPanel from './components/DtoDiagnosticoPanel';
+import GuiaMontagemPanel from './components/GuiaMontagemPanel';
 import { TreinamentosQualidadePanel, 
   BloqueioArmazemPanel, 
   DevolucaoPanel, 
@@ -750,6 +751,9 @@ export default function App() {
       case 'ajudante':
       case 'repack':
         return <AjudantePanel user={user} empresa={empresa} theme={theme} />;
+      case 'montagem':
+      case 'guia-montagem':
+        return <GuiaMontagemPanel user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'repack-dashboard':
         return <RepackDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'despejo-dashboard':

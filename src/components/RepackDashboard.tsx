@@ -13,6 +13,7 @@ import { SimuladorAgilidadeMeta } from './SimuladorAgilidadeMeta';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 import { useSystemTargets } from '../utils/useSystemTargets';
 import { buildOfficialRepackRows } from '../utils/repackDefaultData';
 import { 
@@ -237,7 +238,7 @@ const COLORS = {
 
 const PIE_COLORS = [COLORS.azul, COLORS.verde, COLORS.amarelo, COLORS.roxo, COLORS.vermelho];
 
-export default function RepackDashboard({ user, empresa, onBack }: RepackDashboardProps) {
+export default function RepackDashboard({ user, empresa, onBack, theme = 'light' }: RepackDashboardProps) {
   const { targets, updateTarget } = useSystemTargets(empresa?.id);
   const metaProdutividadeCxH = targets['repack_produtividade'] || 10;
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -278,7 +279,7 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
     } catch (e) {}
   };
 
-  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'boarda3'>('produtividade');
+  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'boarda3' | 'acoes'>('produtividade');
   const [isCompact, setIsCompact] = useState(false);
   const [biPage, setBiPage] = useState<'geral' | 'comparativos' | 'historico'>('geral');
   const [actualRepackRows, setActualRepackRows] = useState<RepackRow[]>([]);
@@ -1823,11 +1824,11 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
           </button>
 
           <button
-            onClick={() => setIsActionModalOpen(true)}
+            onClick={() => setActiveSubTab('acoes')}
             className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-lg shadow-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border border-blue-400/30"
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Plano de Ações (Repack)</span>
+            <span>Gerar Ações</span>
           </button>
 
           <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200/60">
@@ -1838,10 +1839,16 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
               Produtividade & BI
             </button>
             <button 
+              onClick={() => setActiveSubTab('acoes')}
+              className={`px-3 py-1 rounded font-sans font-bold text-[9px] uppercase tracking-wider transition-all border-none cursor-pointer ${activeSubTab === 'acoes' ? 'bg-[#032b5e] text-white shadow-xs' : 'text-gray-500 hover:text-[#032b5e] bg-transparent'}`}
+            >
+              ⚡ Gerar Ações
+            </button>
+            <button 
               onClick={() => setActiveSubTab('boarda3')}
               className={`px-3 py-1 rounded font-sans font-bold text-[9px] uppercase tracking-wider transition-all border-none cursor-pointer ${activeSubTab === 'boarda3' ? 'bg-[#032b5e] text-white shadow-xs' : 'text-gray-500 hover:text-[#032b5e] bg-transparent'}`}
             >
-              Quadro de Ações
+              Quadro A3
             </button>
           </div>
 
@@ -3409,6 +3416,19 @@ export default function RepackDashboard({ user, empresa, onBack }: RepackDashboa
             </div>
           </div>
         </section>
+      )}
+
+      {/* ── QUADRO DE AÇÕES DPO UNIFICADO (REPACK) ── */}
+      {activeSubTab === 'acoes' && (
+        <QuadroAcoesDpo
+          user={user}
+          empresa={empresa}
+          theme={theme}
+          processoFilter="Repack"
+          title="Quadro de Ações — Repack / Reembalagem"
+          subtitle="Planos de ação, contramedidas 5W2H e tratativas com cronograma de início e término."
+          onBack={() => setActiveSubTab('produtividade')}
+        />
       )}
 
       {/* ── MODAL: NOVO REGISTRO / CRONÔMETRO ── */}

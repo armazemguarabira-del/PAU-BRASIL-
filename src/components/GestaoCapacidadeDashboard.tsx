@@ -59,6 +59,7 @@ import CurvaAbcTrimestralTab from './CurvaAbcTrimestralTab';
 import MatrizAbcLogisticaPanel from './MatrizAbcLogisticaPanel';
 import { LayoutPanZoomViewer } from './LayoutPanZoomViewer';
 import { getMediaItem, setMediaItem, removeMediaItem } from '../utils/idbStorage';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 
 
 // Storage Area Capacity Limits from specifications
@@ -157,7 +158,7 @@ interface GestaoCapacidadeProps {
   user: Usuario;
   empresa: Empresa | null;
   theme?: 'light' | 'dark';
-  initialTab?: 'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519';
+  initialTab?: 'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519' | 'matriz-abc-logistica' | 'acoes';
   onBack?: () => void;
 }
 
@@ -168,8 +169,8 @@ export default function GestaoCapacidadeDashboard({
   initialTab = 'governanca-visual',
   onBack
 }: GestaoCapacidadeProps) {
-  // Master Tab State for ETAPA 15 Unification + Curva ABC + Matriz ABC Logistica
-  const [activeMasterTab, setActiveMasterTab] = useState<'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519' | 'matriz-abc-logistica'>(initialTab as any);
+  // Master Tab State for ETAPA 15 Unification + Curva ABC + Matriz ABC Logistica + Ações DPO
+  const [activeMasterTab, setActiveMasterTab] = useState<'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519' | 'matriz-abc-logistica' | 'acoes'>(initialTab as any);
 
   // Sub-section for Governança Visual
   const [govSection, setGovSection] = useState<'layout' | 'matriz' | 'zonas'>('layout');
@@ -831,11 +832,11 @@ export default function GestaoCapacidadeDashboard({
           </button>
 
           <button
-            onClick={() => setIsActionModalOpen(true)}
+            onClick={() => setActiveMasterTab('acoes')}
             className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer border border-blue-400/30"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-            Plano de Ações (Capacidade & Layout)
+            Gerar Ações
           </button>
 
           {onBack && (
@@ -850,65 +851,77 @@ export default function GestaoCapacidadeDashboard({
       </div>
 
       {/* MASTER UNIFIED TAB NAVIGATION (ETAPA 15 REQUIREMENT) */}
-      <div className="flex items-center gap-2 bg-[#0b1222] p-1.5 rounded-2xl border border-slate-800 shadow-md">
+      <div className="flex flex-wrap items-center gap-2 bg-[#0b1222] p-1.5 rounded-2xl border border-slate-800 shadow-md">
         <button
           onClick={() => setActiveMasterTab('governanca-visual')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMasterTab === 'governanca-visual'
               ? 'bg-[#032b5e] text-white border border-amber-500/50 shadow-md ring-2 ring-amber-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
         >
           <Map className="w-4 h-4 text-amber-400" />
-          1. Governança Visual, Layout & Matriz
+          1. Layout & Matriz
         </button>
 
         <button
           onClick={() => setActiveMasterTab('capacidade-instalada')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMasterTab === 'capacidade-instalada'
               ? 'bg-[#032b5e] text-white border border-blue-500/50 shadow-md ring-2 ring-blue-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
         >
           <Layers className="w-4 h-4 text-sky-400" />
-          2. Capacidade Instalada
+          2. Capacidade
         </button>
 
         <button
           onClick={() => setActiveMasterTab('politica-estoque')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMasterTab === 'politica-estoque'
               ? 'bg-[#032b5e] text-white border border-emerald-500/50 shadow-md ring-2 ring-emerald-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
         >
           <BarChart2 className="w-4 h-4 text-emerald-400" />
-          3. Política de Estoque (6 Dias DPO)
+          3. Política 6 Dias
         </button>
 
         <button
           onClick={() => setActiveMasterTab('curva-abc-030519')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMasterTab === 'curva-abc-030519'
               ? 'bg-[#032b5e] text-white border border-amber-500/50 shadow-md ring-2 ring-amber-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
         >
           <TrendingUp className="w-4 h-4 text-amber-400" />
-          4. Curva ABC (03.05.19)
+          4. Curva ABC
         </button>
 
         <button
           onClick={() => setActiveMasterTab('matriz-abc-logistica')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMasterTab === 'matriz-abc-logistica'
               ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white border border-blue-400 shadow-md ring-2 ring-blue-400/30'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
         >
           <Sparkles className="w-4 h-4 text-amber-300" />
-          5. Matriz ABC Logística
+          5. Matriz Logística
+        </button>
+
+        <button
+          onClick={() => setActiveMasterTab('acoes')}
+          className={`flex-1 py-3 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeMasterTab === 'acoes'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border border-blue-400 shadow-md ring-2 ring-blue-400/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          6. Ações DPO (Capacidade & Layout)
         </button>
       </div>
 
@@ -2209,6 +2222,21 @@ export default function GestaoCapacidadeDashboard({
       {activeMasterTab === 'matriz-abc-logistica' && (
         <div className="animate-fadeIn space-y-6">
           <MatrizAbcLogisticaPanel user={user} empresaId={empresa?.id || 'demo'} />
+        </div>
+      )}
+
+      {/* ── MASTER TAB 6: QUADRO DE AÇÕES DPO (CAPACIDADE & LAYOUT & POLÍTICA DE ESTOQUE) ── */}
+      {activeMasterTab === 'acoes' && (
+        <div className="animate-fadeIn space-y-6">
+          <QuadroAcoesDpo
+            user={user}
+            empresa={empresa}
+            theme={theme || 'light'}
+            processoFilter="Armazenagem"
+            title="Quadro de Ações — Gestão de Capacidade, Layout & Estoque"
+            subtitle="Planos de ação 5W2H, contramedidas de ocupação de armazém, layout e política de estoque."
+            onBack={() => setActiveMasterTab('governanca-visual')}
+          />
         </div>
       )}
 

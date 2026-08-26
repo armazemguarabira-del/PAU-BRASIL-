@@ -45,9 +45,10 @@ import {
 } from 'lucide-react';
 import { Usuario, Empresa } from '../types';
 import { Checklist5SModal, ImportExport5SModal, generateYTD5SAudits, Audit5SRecord, exportAuditsToExcel } from './Checklist5SModal';
-import { getStored5SAudits } from '../utils/fiveSStore';
+import { getStored5SAudits, CAMPEOES_5S_MENSAIS } from '../utils/fiveSStore';
 import { RondaGsaComponent } from './RondaGsaComponent';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 import { exportChecklist5SOfficialPdf, getDefaultScoresForPercentage } from '../utils/exportChecklist5SPdf';
 import { Official5SDigitalAuditModal } from './Official5SDigitalAuditModal';
 import { OperationalNotificationBell } from './OperationalNotificationBell';
@@ -108,8 +109,8 @@ export const DEFAULT_AREA_RESPONSAVEIS: Record<string, string> = {
   'CENTRAL': 'DEJEAN SILVA DE OLIVEIRA',
   'DESPEJO': 'OZENILDO SOUSA SILVA',
   'ÁREA MKT PLACE': 'OZENILDO SOUSA SILVA',
-  'PNC': 'GLADSON LISBOA DOS SANTOS',
-  'RECICLÁVEIS': 'DEJEAN SILVA DE OLIVEIRA',
+  'PNC': 'GILSON ROSA DA SILVA',
+  'RECICLÁVEIS': 'ADELSON SANTOS DE ARAUJO',
   'REFUGO': 'GLADSON LISBOA DOS SANTOS',
   'DEVOLUÇÃO': 'GLADSON LISBOA DOS SANTOS',
   'REPACK': 'OZENILDO SOUSA SILVA',
@@ -130,8 +131,8 @@ export const LISTA_5S_OFICIAL: Area5SOficial[] = [
   { id: '3', area: 'CENTRAL', responsavel: 'DEJEAN SILVA DE OLIVEIRA', observacao: 'Estoque central de rotatividade', metaPct: 80, realPctDefault: 90 },
   { id: '4', area: 'DESPEJO', responsavel: 'OZENILDO SOUSA SILVA', observacao: 'Área de descarte e triagem', metaPct: 80, realPctDefault: 88 },
   { id: '5', area: 'ÁREA MKT PLACE', responsavel: 'OZENILDO SOUSA SILVA', observacao: 'Mercado Livre / Vendas diretas', metaPct: 80, realPctDefault: 76 },
-  { id: '6', area: 'PNC', responsavel: 'GLADSON LISBOA DOS SANTOS', observacao: 'Segregação de Não Conformes', metaPct: 80, realPctDefault: 84 },
-  { id: '7', area: 'RECICLÁVEIS', responsavel: 'DEJEAN SILVA DE OLIVEIRA', observacao: 'Prensa e enfardamento de papelão', metaPct: 80, realPctDefault: 86 },
+  { id: '6', area: 'PNC', responsavel: 'GILSON ROSA DA SILVA', observacao: 'Segregação de Não Conformes', metaPct: 80, realPctDefault: 84 },
+  { id: '7', area: 'RECICLÁVEIS', responsavel: 'ADELSON SANTOS DE ARAUJO', observacao: 'Prensa e enfardamento de papelão', metaPct: 80, realPctDefault: 86 },
   { id: '8', area: 'REFUGO', responsavel: 'GLADSON LISBOA DOS SANTOS', observacao: 'Avaria e descarte de cacos', metaPct: 80, realPctDefault: 72 },
   { id: '9', area: 'DEVOLUÇÃO', responsavel: 'GLADSON LISBOA DOS SANTOS', observacao: 'Conferência de retornáveis', metaPct: 80, realPctDefault: 83 },
   { id: '10', area: 'REPACK', responsavel: 'OZENILDO SOUSA SILVA', observacao: 'Reembalagem e montagem de pacotes', metaPct: 80, realPctDefault: 92 },
@@ -399,7 +400,7 @@ interface QualidadePanelProps {
 }
 
 export default function QualidadePanel({ user, empresa, theme = 'dark' }: QualidadePanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'temperatura' | '5s' | 'pragas' | 'ronda_gsa'>('temperatura');
+  const [activeSubTab, setActiveSubTab] = useState<'temperatura' | '5s' | 'pragas' | 'ronda_gsa' | 'acoes'>('temperatura');
   const [active5SView, setActive5SView] = useState<'geral_frota' | 'ranking_colaboradores' | 'ranking_areas' | 'historico_auditorias'>('geral_frota');
 
   // ── 5S AUDIT & RESPONSIBLES STATE ──
@@ -1483,14 +1484,25 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
             >
               <ClipboardList className="w-4 h-4 text-blue-400" /> 4. Ronda de Qualidade Semanal GSA
             </button>
+
+            <button
+              onClick={() => setActiveSubTab('acoes')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                activeSubTab === 'acoes'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black shadow-lg shadow-blue-500/20'
+                  : 'bg-[#0b1222] text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 5. Ações DPO (Qualidade & 5S)
+            </button>
           </div>
 
           <button
-            onClick={() => setIsActionModalOpen(true)}
+            onClick={() => setActiveSubTab('acoes')}
             className="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg border border-blue-400/30 shrink-0"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-            Plano de Ações (Qualidade & 5S)
+            Gerar Ações
           </button>
         </div>
       </div>
@@ -2793,6 +2805,62 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
           {/* ── SUB-ABA 2: RANKING POR COLABORADOR (APENAS RESPONSÁVEIS POR ÁREAS) ── */}
           {active5SView === 'ranking_colaboradores' && (
             <div className="space-y-6">
+              {/* 👑 QUADRO HISTÓRICO DE CAMPEÕES MENSAIS 5S */}
+              <div className="bg-[#0b1222] border border-amber-500/30 rounded-2xl p-5 shadow-lg relative overflow-hidden space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                      <Award className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        Campeões Mensais de 5S <span className="text-amber-400 font-mono text-xs">(Ano 2026)</span>
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Galeria oficial dos colaboradores destaque com meta atingida de Janeiro a Agosto
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700 w-fit">
+                    Clique no mês para filtrar o ranking e auditorias
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                  {Object.values(CAMPEOES_5S_MENSAIS).map(champ => {
+                    const isSelected = selectedMonth5S === champ.mesStr;
+                    return (
+                      <button
+                        key={champ.mesNum}
+                        onClick={() => setSelectedMonth5S(champ.mesStr)}
+                        className={`flex flex-col p-3 rounded-xl border transition-all text-left relative cursor-pointer group ${
+                          isSelected
+                            ? 'bg-amber-500/15 border-amber-400 shadow-md shadow-amber-500/10 ring-1 ring-amber-400/50'
+                            : 'bg-slate-900/80 hover:bg-slate-800/80 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1.5">
+                          <span className={`text-[10px] font-black uppercase tracking-wider ${isSelected ? 'text-amber-300' : 'text-slate-400'}`}>
+                            {champ.mesNome.substring(0, 3)}
+                          </span>
+                          <span className="text-xs">👑</span>
+                        </div>
+                        <span className="text-xs font-black text-white truncate w-full group-hover:text-amber-300 transition-colors">
+                          {champ.apelido}
+                        </span>
+                        <span className="text-[9px] text-slate-400 truncate w-full font-mono mt-0.5">
+                          {champ.cargo}
+                        </span>
+                        <div className="mt-2 pt-1.5 border-t border-slate-800/60 flex items-center justify-between">
+                          <span className="text-[9px] text-emerald-400 font-bold">100% Meta</span>
+                          <span className="text-[10px] font-mono font-black text-amber-400">1º Lugar</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* PÓDIO DOS 3 PRIMEIROS COLOCADOS DO 5S */}
               {(() => {
                 const rankingList = [...collaborator5SStats.filter(c => c.numAreas > 0)].sort((a, b) => b.notaFinal - a.notaFinal || b.realQtd - a.realQtd);
@@ -4289,6 +4357,21 @@ export default function QualidadePanel({ user, empresa, theme = 'dark' }: Qualid
       {/* ── SEÇÃO 4: RONDA DE QUALIDADE SEMANAL GSA ── */}
       {activeSubTab === 'ronda_gsa' && (
         <RondaGsaComponent user={user} empresaId={empresa?.id} />
+      )}
+
+      {/* ── SEÇÃO 5: QUADRO DE AÇÕES DPO (QUALIDADE & 5S) ── */}
+      {activeSubTab === 'acoes' && (
+        <div className="animate-fadeIn space-y-6">
+          <QuadroAcoesDpo
+            user={user}
+            empresa={empresa}
+            theme={theme || 'dark'}
+            processoFilter="Qualidade"
+            title="Quadro de Ações — Qualidade, 5S & Auditorias"
+            subtitle="Planos de ação 5W2H, contramedidas de auditoria 5S, controle térmico e desvios de pragas/GSA."
+            onBack={() => setActiveSubTab('temperatura')}
+          />
+        </div>
       )}
 
       {/* MODAL OFICIAL DIGITAL DE AUDITORIA 5S (ADAPTADO MOBILE & PRINT/UPLOAD PDF) */}

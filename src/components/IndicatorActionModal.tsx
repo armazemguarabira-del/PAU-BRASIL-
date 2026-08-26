@@ -492,7 +492,7 @@ export const IndicatorActionModal: React.FC<IndicatorActionModalProps> = ({
               className="w-full md:w-auto px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
             >
               {isCreatingNew ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              <span>{isCreatingNew ? 'Cancelar Nova Ação' : `+ Criar Nova Ação para ${indicatorTitle}`}</span>
+              <span>{isCreatingNew ? 'Cancelar' : '+ Gerar Ações'}</span>
             </button>
           </div>
 

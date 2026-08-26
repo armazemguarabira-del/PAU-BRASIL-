@@ -72,6 +72,7 @@ import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/
 import { triggerAutoAcaoCorretiva, triggerAutoAcaoMelhoriaPreventiva } from '../utils/simulacaoAcoesUtils';
 import html2canvas from 'html2canvas';
 import { syncFefoDemandsFromValidades, getStoredFefoDemands, updateFefoDemandStatus } from '../utils/fefoDemandManager';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 
 interface FefoDashboardProps {
   user: Usuario;
@@ -81,7 +82,7 @@ interface FefoDashboardProps {
 }
 
 // Sub-pages defined by user
-type FefoPage = 'validades' | 'stock-age' | 'futuro-shelf' | 'escoamento' | 'estoque-estoque' | 'estoque-picking' | 'boarda3' | 'fefo-empilhador' | 'executiva' | 'rlp' | 'shelf-life' | 'rlp-semanal';
+type FefoPage = 'validades' | 'stock-age' | 'futuro-shelf' | 'escoamento' | 'estoque-estoque' | 'estoque-picking' | 'boarda3' | 'acoes' | 'fefo-empilhador' | 'executiva' | 'rlp' | 'shelf-life' | 'rlp-semanal';
 
 interface RLPMeeting {
   id: string;
@@ -292,7 +293,7 @@ const getFirstDayOfMonth = (year: number, month: number) => {
   return new Date(year, month, 1).getDay();
 };
 
-export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardProps) {
+export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }: FefoDashboardProps) {
   const [activeTab, setActiveTab] = useState<FefoPage>('validades');
   const [viewUnit, setViewUnit] = useState<'u' | 'he'>('u');
   const [selectedBlock, setSelectedBlock] = useState<string>('A1');
@@ -1710,11 +1711,11 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
 
             <button
               type="button"
-              onClick={() => setIsActionModalOpen(true)}
+              onClick={() => setActiveTab('acoes')}
               className="px-3.5 py-2 rounded-xl font-black text-xs uppercase bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-blue-400/30"
             >
               <CheckCircle className="w-4 h-4 text-emerald-300" />
-              <span>Plano de Ações (FEFO)</span>
+              <span>Gerar Ações</span>
             </button>
 
             <div className="flex flex-col">
@@ -1781,10 +1782,10 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
               ⚡ Est. x Pick.
             </button>
             <button 
-              onClick={() => setActiveTab('boarda3')}
-              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'boarda3' ? 'bg-[#032b5e] text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
+              onClick={() => setActiveTab('acoes')}
+              className={`px-2.5 py-2 rounded-xl font-sans font-extrabold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center text-center ${activeTab === 'acoes' || activeTab === 'boarda3' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:text-[#032b5e] hover:bg-white/60 bg-transparent'}`}
             >
-              🚨 Quadro Ações
+              🚨 Ações DPO (FEFO)
             </button>
             <button 
               onClick={() => setActiveTab('fefo-empilhador')}
@@ -4334,21 +4335,16 @@ export default function FefoDashboard({ user, empresa, onBack }: FefoDashboardPr
         </div>
       )}
 
-      {activeTab === 'boarda3' && (
-        <div id="quadro-acoes-container" className="flex flex-col gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
-          <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
-            <span className="font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-              🚨 QUADRO EXECUTIVO DE AÇÕES CORRETIVAS E PREVENTIVAS
-            </span>
-            <button
-              onClick={handleExportQuadroAcoesImagem}
-              className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border-none"
-            >
-              📸 Exportar Quadro como Imagem
-            </button>
-          </div>
-          <A3BoardComponent user={user} empresa={empresa} dashboard="fefo" />
-        </div>
+      {(activeTab === 'acoes' || activeTab === 'boarda3') && (
+        <QuadroAcoesDpo
+          user={user}
+          empresa={empresa}
+          theme={theme || 'light'}
+          processoFilter="Validade"
+          title="Quadro de Ações — FEFO & Gestão de Validades"
+          subtitle="Planos de ação, tratativas RLP, contramedidas 5W2H e desvios de validade."
+          onBack={() => setActiveTab('validades')}
+        />
       )}
 
 

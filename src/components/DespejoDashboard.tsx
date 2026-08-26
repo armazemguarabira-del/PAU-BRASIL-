@@ -70,6 +70,7 @@ import { SimuladorAgilidadeMeta } from './SimuladorAgilidadeMeta';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 import { getItemHlInfo, getEmbalagemName } from './WqiTab';
@@ -240,11 +241,11 @@ const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
   return list;
 };
 
-export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashboardProps) {
+export default function DespejoDashboard({ user, empresa, onBack, theme = 'light' }: DespejoDashboardProps) {
   const { targets, updateTarget } = useSystemTargets(empresa?.id);
   const metaProdutividadeCxH = targets.despejo_produtividade ?? 40;
 
-  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3'>('produtividade');
+  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3' | 'acoes'>('produtividade');
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);
   const [actualQuebras, setActualQuebras] = useState<QuebraRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1555,16 +1556,16 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
 
           {/* DEDICATED ACTION BUTTON FILTERING DESPEJO */}
           <button
-            onClick={() => setIsActionModalOpen(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all border border-blue-400/30"
+            onClick={() => setActiveSubTab('acoes')}
+            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all border border-blue-400/30 cursor-pointer"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-            <span>Plano de Ações (Despejo)</span>
+            <span>Gerar Ações</span>
           </button>
 
           <button
             onClick={() => setIsRegisterModalOpen(true)}
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Novo Despejo</span>
@@ -1573,7 +1574,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
           <div className="flex items-center bg-gray-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
             <button 
               onClick={() => setActiveSubTab('produtividade')}
-              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                 activeSubTab === 'produtividade' 
                   ? 'bg-[#032b5e] dark:bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 dark:text-slate-400 hover:text-[#032b5e]'
@@ -1583,7 +1584,7 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
             </button>
             <button 
               onClick={() => setActiveSubTab('shelf')}
-              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeSubTab === 'shelf' 
                   ? 'bg-[#032b5e] dark:bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 dark:text-slate-400 hover:text-[#032b5e]'
@@ -1593,14 +1594,24 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
               <span>SHELF</span>
             </button>
             <button 
+              onClick={() => setActiveSubTab('acoes')}
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                activeSubTab === 'acoes' 
+                  ? 'bg-[#032b5e] dark:bg-blue-600 text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-slate-400 hover:text-[#032b5e]'
+              }`}
+            >
+              ⚡ Gerar Ações
+            </button>
+            <button 
               onClick={() => setActiveSubTab('boarda3')}
-              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                 activeSubTab === 'boarda3' 
                   ? 'bg-[#032b5e] dark:bg-blue-600 text-white shadow-sm' 
                   : 'text-gray-600 dark:text-slate-400 hover:text-[#032b5e]'
               }`}
             >
-              Quadro de Ações A3
+              Quadro A3
             </button>
           </div>
         </div>
@@ -2884,6 +2895,19 @@ export default function DespejoDashboard({ user, empresa, onBack }: DespejoDashb
           </div>
 
         </div>
+      )}
+
+      {/* SUB TAB: QUADRO DE AÇÕES DPO (DESPEJO) */}
+      {activeSubTab === 'acoes' && (
+        <QuadroAcoesDpo
+          user={user}
+          empresa={empresa}
+          theme={theme}
+          processoFilter="Despejo"
+          title="Quadro de Ações — Despejo & Descarte"
+          subtitle="Planos de ação, contramedidas 5W2H e tratativas com cronograma de início e término."
+          onBack={() => setActiveSubTab('produtividade')}
+        />
       )}
 
       {/* SUB TAB: QUADRO DE AÇÕES A3 */}

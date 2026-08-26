@@ -45,6 +45,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import RetroactiveWlpFaturadoJsonImport from './RetroactiveWlpFaturadoJsonImport';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 
 export interface HistoricalVolumeRowItem {
   m: string;
@@ -156,15 +157,19 @@ export const ALL_MONTHS_NAV = [
 interface WlpDashboardProps {
   user: any;
   empresaId?: string;
+  empresa?: any;
+  theme?: 'light' | 'dark';
 }
 
 export const WlpDashboard: React.FC<WlpDashboardProps> = ({
   user,
-  empresaId = 'demo'
+  empresaId = 'demo',
+  empresa,
+  theme = 'light'
 }) => {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedMesAno, setSelectedMesAno] = useState<string>('08/2026');
-  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente' | 'importacao_json'>('indicador');
+  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente' | 'importacao_json' | 'acoes'>('indicador');
 
   // Filtro Entre Dias (Intervalo de Datas)
   const [filterMode, setFilterMode] = useState<'MES' | 'INTERVALO'>('MES');
@@ -1343,11 +1348,11 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-3 border-t border-slate-800/80">
           <button
             type="button"
-            onClick={() => setIsActionModalOpen(true)}
+            onClick={() => setActiveSubTab('acoes')}
             className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 border border-blue-400/30 whitespace-nowrap"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
-            <span>Plano de Ações (WLP / PNP)</span>
+            <span>Gerar Ações</span>
           </button>
 
           <button
@@ -2535,6 +2540,18 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
           <span>Importar Dados Retroativos (JSON)</span>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
         </button>
+
+        <button
+          onClick={() => setActiveSubTab('acoes')}
+          className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-2 ${
+            activeSubTab === 'acoes'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white bg-transparent'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>Ações DPO (WLP)</span>
+        </button>
       </div>
 
       {/* GUIA DE IMPORTAÇÃO RETROATIVA JSON DE VOLUME FATURADO & JORNADAS WLP */}
@@ -3692,6 +3709,21 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* QUADRO DE AÇÕES DPO (WLP & PNP) */}
+      {activeSubTab === 'acoes' && (
+        <div className="animate-fadeIn">
+          <QuadroAcoesDpo
+            user={user}
+            empresa={empresa}
+            theme={theme || 'light'}
+            processoFilter="WLP"
+            title="Quadro de Ações — WLP & Produtividade PNP"
+            subtitle="Planos de ação, contramedidas 5W2H e desvios de produtividade HH e horas extras."
+            onBack={() => setActiveSubTab('indicador')}
+          />
         </div>
       )}
 

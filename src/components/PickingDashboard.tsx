@@ -16,6 +16,7 @@ import { ImportRrJsonModal } from './ImportRrJsonModal';
 import LogisticaDashboard from './LogisticaDashboard';
 import TmrDashboard from './TmrDashboard';
 import SimulacaoAcoesPanel from './SimulacaoAcoesPanel';
+import { QuadroAcoesDpo } from './QuadroAcoesDpo';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart2, 
@@ -1397,7 +1398,7 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
                 : 'text-slate-400 hover:text-white bg-transparent'
             }`}
           >
-            📋 Planos de Ação
+            📋 Ações DPO (Picking)
           </button>
 
           {/* ATALHO DTO DIAGNÓSTICO OPERACIONAL (OPERADORES) */}
@@ -1425,7 +1426,15 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
       )}
 
       {mainModule === 'acoes' && (
-        <SimulacaoAcoesPanel user={user} />
+        <QuadroAcoesDpo 
+          user={user} 
+          empresa={empresa} 
+          theme={theme}
+          processoFilter="Picking"
+          title="Quadro de Ações — Picking & Operadores"
+          subtitle="Planos de ação, tratativas de desvio e contramedidas com cronograma de início e término."
+          onBack={() => setMainModule('operadores')}
+        />
       )}
 
       {(mainModule === 'operadores' || mainModule === 'rr_bi') && (
@@ -1528,6 +1537,14 @@ A proporção de separação 'Após Carregamento' (${duringVsAfterData.aposPct}%
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             Exportar XLS
+          </button>
+
+          <button 
+            onClick={() => setMainModule('acoes')}
+            className="px-3.5 py-1.5 text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-md border border-emerald-400/30"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Gerar Ações
           </button>
         </div>
       </div>

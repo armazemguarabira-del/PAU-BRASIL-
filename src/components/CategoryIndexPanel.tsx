@@ -92,6 +92,14 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <ClipboardCheck className="w-5 h-5 text-teal-600 dark:text-teal-400" />,
         badge: 'Conferência',
         color: 'border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60'
+      },
+      {
+        id: 'montagem',
+        label: 'Guia de Montagem & Fast Picking',
+        description: 'Integração Fast Picking, geração de ações de montagem e análise no detalhe de desvios.',
+        icon: <Zap className="w-5 h-5 text-amber-500 dark:text-amber-400" />,
+        badge: 'Fast Picking',
+        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
       }
     ]
   },
@@ -156,14 +164,6 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
         badge: 'Armazém & ABC',
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
-      },
-      {
-        id: 'ranking-produtividade',
-        label: 'Ranking de Produtividade',
-        description: 'Gamificação e quadro de destaques do time operacional.',
-        icon: <Award className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
-        badge: 'Gamificação',
-        color: 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
       },
       {
         id: 'wlp-dashboard',

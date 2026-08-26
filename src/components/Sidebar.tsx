@@ -102,7 +102,7 @@ export default function Sidebar({
       label: 'Produtividade',
       subtitle: 'Apontamento & Operações',
       icon: <Zap className="w-5 h-5 text-amber-400" />,
-      subItems: ['ajudante', 'empilhador', 'conferente']
+      subItems: ['ajudante', 'empilhador', 'conferente', 'montagem']
     },
     {
       id: 'cat-dashboards',
@@ -111,7 +111,7 @@ export default function Sidebar({
       icon: <BarChart2 className="w-5 h-5 text-sky-400" />,
       subItems: [
         'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
-        'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 'ranking-produtividade', 
+        'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 
         'qualidade', 'kpi-arvore'
       ]
     },

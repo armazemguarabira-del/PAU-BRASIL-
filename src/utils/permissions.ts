@@ -215,6 +215,8 @@ export function isPanelAllowedForUser(
     panelId === 'visao-geral' ||
     panelId === 'dashboard' ||
     panelId === 'landing' ||
+    panelId === 'montagem' ||
+    panelId === 'guia-montagem' ||
     panelId === 'ranking-produtividade' ||
     panelId === 'qualidade' ||
     panelId === 'dn-swot' ||

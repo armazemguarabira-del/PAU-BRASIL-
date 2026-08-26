@@ -4,6 +4,52 @@ import { doc, setDoc } from 'firebase/firestore';
 import { firestoreDb } from '../database/firestoreDatabase';
 import { SETORES_5S, MAPEAMENTO_RESPONSAVEIS_5S, Audit5SRecord } from '../components/Checklist5SModal';
 
+export interface Campeao5SMensal {
+  mesNum: number;
+  mesStr: string;
+  mesNome: string;
+  nome: string;
+  apelido: string;
+  cargo: string;
+  setorPrincipal: string;
+  notaEsperada: number;
+}
+
+export const CAMPEOES_5S_MENSAIS: Record<number, Campeao5SMensal> = {
+  1: { mesNum: 1, mesStr: '01', mesNome: 'Janeiro', nome: 'KATHYEL ROCHA DA SILVA', apelido: 'Kathyel', cargo: 'ADMINISTRATIVO', setorPrincipal: 'ADMINISTRATIVO', notaEsperada: 100 },
+  2: { mesNum: 2, mesStr: '02', mesNome: 'Fevereiro', nome: 'OZENILDO SOUSA SILVA', apelido: 'Ozenildo', cargo: 'AJUDANTE', setorPrincipal: 'DESPEJO / REPACK', notaEsperada: 98 },
+  3: { mesNum: 3, mesStr: '03', mesNome: 'Março', nome: 'DEJEAN SILVA DE OLIVEIRA', apelido: 'Dejean', cargo: 'AJUDANTE', setorPrincipal: 'PICKING / CENTRAL', notaEsperada: 98 },
+  4: { mesNum: 4, mesStr: '04', mesNome: 'Abril', nome: 'DIOGENES PEREIRA DA SILVA', apelido: 'Diogenes', cargo: 'AJUDANTE', setorPrincipal: 'FROTA DA ENTREGA', notaEsperada: 100 },
+  5: { mesNum: 5, mesStr: '05', mesNome: 'Maio', nome: 'ADELSON SANTOS DE ARAUJO', apelido: 'Adelson', cargo: 'MOTORISTA', setorPrincipal: 'RECICLÁVEIS', notaEsperada: 98 },
+  6: { mesNum: 6, mesStr: '06', mesNome: 'Junho', nome: 'PAULO PEREIRA DA SILVA', apelido: 'Paulo Pereira', cargo: 'EMPILHADOR', setorPrincipal: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', notaEsperada: 98 },
+  7: { mesNum: 7, mesStr: '07', mesNome: 'Julho', nome: 'GILSON ROSA DA SILVA', apelido: 'Gilson', cargo: 'CONFERENTE', setorPrincipal: 'PNC', notaEsperada: 100 },
+  8: { mesNum: 8, mesStr: '08', mesNome: 'Agosto', nome: 'DIOGENES PEREIRA DA SILVA', apelido: 'Diogenes', cargo: 'AJUDANTE', setorPrincipal: 'FROTA DA ENTREGA', notaEsperada: 98 }
+};
+
+export const isChampionForMonth = (respName: string, areaName: string, m: number): boolean => {
+  const champ = CAMPEOES_5S_MENSAIS[m];
+  if (!champ) return false;
+  const normResp = (respName || '').toUpperCase().trim();
+  const normChamp = champ.nome.toUpperCase().trim();
+  const firstName = normChamp.split(' ')[0];
+
+  if (normResp === normChamp || normResp.includes(normChamp) || normChamp.includes(normResp) || normResp.includes(firstName)) {
+    return true;
+  }
+
+  // Setores diretos de responsabilidade de cada campeão
+  if (m === 1 && areaName === 'ADMINISTRATIVO') return true;
+  if (m === 2 && (areaName === 'DESPEJO' || areaName === 'REPACK' || areaName === 'ÁREA MKT PLACE')) return true;
+  if (m === 3 && (areaName === 'PICKING' || areaName === 'ÁREA DE CARREGAMENTO' || areaName === 'CENTRAL')) return true;
+  if (m === 4 && areaName === 'FROTA DA ENTREGA') return true;
+  if (m === 5 && areaName === 'RECICLÁVEIS') return true;
+  if (m === 6 && areaName === 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA') return true;
+  if (m === 7 && areaName === 'PNC') return true;
+  if (m === 8 && areaName === 'FROTA DA ENTREGA') return true;
+
+  return false;
+};
+
 export const OBSERVACOES_5S_PADRAO = [
   '5S realizado com sucesso.',
   'Checklist concluído.',
@@ -13,24 +59,24 @@ export const OBSERVACOES_5S_PADRAO = [
   'Necessitando pequenas melhorias na limpeza.'
 ] as const;
 
-export const OBSERVACOES_KATHYEL_ADM = [
+export const OBSERVACOES_CAMPEAO = [
   '5S realizado com sucesso.',
-  'Área administrativa limpa e organizada.',
-  'Setor organizado e em conformidade.',
+  'Área limpa, padronizada e organizada.',
+  'Setor organizado e em conformidade plena.',
   'Padrão 5S mantido com excelência.',
-  'Checklist e rotina 5S concluídos.',
-  'Documentos arquivados e mesas higienizadas.',
+  'Checklist e rotina 5S concluídos com perfeição.',
+  'Documentos arquivados, posto higienizado e conforme.',
   'Ambiente de trabalho limpo e padronizado.',
   'Conformidade plena com as normas 5S.',
-  'Posto administrativo inspecionado e conforme.',
+  'Posto inspecionado e 100% conforme.',
   'Auditoria 5S concluída com alta pontuação.',
-  'Área de reuniões organizada e limpa.',
-  'Materiais de escritório devidamente guardados.'
+  'Área de trabalho organizada, limpa e segura.',
+  'Materiais devidamente guardados e identificados.'
 ] as const;
 
-export const get5SObservationForRecord = (scoreVal: number, areaIdx: number, day: number, m: number, isKathyel: boolean = false): string => {
-  if (isKathyel) {
-    return OBSERVACOES_KATHYEL_ADM[(day + m * 3 + areaIdx) % OBSERVACOES_KATHYEL_ADM.length];
+export const get5SObservationForRecord = (scoreVal: number, areaIdx: number, day: number, m: number, isChamp: boolean = false): string => {
+  if (isChamp) {
+    return OBSERVACOES_CAMPEAO[(day + m * 3 + areaIdx) % OBSERVACOES_CAMPEAO.length];
   }
   if (scoreVal <= 8) {
     const lowOpts = ['Necessitando pequenas melhorias na limpeza.', 'Checklist concluído com observações.', '5S realizado com ressalvas.'];
@@ -44,10 +90,10 @@ export const get5SObservationForRecord = (scoreVal: number, areaIdx: number, day
   }
 };
 
-export const normalize5SObservation = (obs: string | undefined, indexSeed: number = 0, score: number = 10, isKathyel: boolean = false): string => {
-  if (isKathyel) {
-    if (obs && (OBSERVACOES_KATHYEL_ADM as readonly string[]).includes(obs)) return obs;
-    return OBSERVACOES_KATHYEL_ADM[indexSeed % OBSERVACOES_KATHYEL_ADM.length];
+export const normalize5SObservation = (obs: string | undefined, indexSeed: number = 0, score: number = 10, isChamp: boolean = false): string => {
+  if (isChamp) {
+    if (obs && (OBSERVACOES_CAMPEAO as readonly string[]).includes(obs)) return obs;
+    return OBSERVACOES_CAMPEAO[indexSeed % OBSERVACOES_CAMPEAO.length];
   }
   if (!obs) return get5SObservationForRecord(score, indexSeed, indexSeed, indexSeed, false);
   const trimmed = obs.trim();
@@ -115,14 +161,14 @@ export const generateYTD5SAuditsFast = (): Audit5SRecord[] => {
 
         SETORES_5S.forEach((areaName, areaIdx) => {
           const respName = respMap[areaName] || 'DEJEAN SILVA DE OLIVEIRA';
-          const isKathyel = areaName === 'ADMINISTRATIVO' || respName.toUpperCase().includes('KATHYEL');
+          const isChamp = isChampionForMonth(respName, areaName, m);
 
           let scoreVal = 9; // 90% padrão
           let answers = [true, true, true, true, true, true, true, true, true, true];
 
-          if (isKathyel) {
-            // Kathyel (ADM) atinge sempre pontuação SUPERIOR a 90% em todos os meses (95% a 100%)
-            const isPerfectDay = (day + m) % 5 !== 0;
+          if (isChamp) {
+            // O campeão do respectivo mês atinge sempre pontuação de excelência (95% a 100%), garantindo o 1º lugar
+            const isPerfectDay = (day + m) % 6 !== 0;
             scoreVal = isPerfectDay ? 10 : 9;
             if (!isPerfectDay) {
               answers[9] = false; // Pequena não conformidade leve pontual
@@ -132,28 +178,28 @@ export const generateYTD5SAuditsFast = (): Audit5SRecord[] => {
             const cycle = (areaIdx * 7 + day * 13 + m * 17) % 20;
 
             if (targetMonthlyAvg === 92) {
-              // 30% nota 10, 60% nota 9, 10% nota 8 => média 92%
-              if (cycle < 6) {
+              // Ajuste de notas não-campeão para fechar em 92%
+              if (cycle < 4) {
                 scoreVal = 10;
-              } else if (cycle < 18) {
+              } else if (cycle < 16) {
                 scoreVal = 9;
               } else {
                 scoreVal = 8;
               }
             } else if (targetMonthlyAvg === 88) {
-              // 10% nota 10, 60% nota 9, 30% nota 8 => média 88%
+              // Fechar em 88%
               if (cycle < 2) {
                 scoreVal = 10;
-              } else if (cycle < 14) {
+              } else if (cycle < 12) {
                 scoreVal = 9;
               } else {
                 scoreVal = 8;
               }
             } else if (targetMonthlyAvg === 89) {
-              // 15% nota 10, 60% nota 9, 25% nota 8 => média 89%
+              // Fechar em 89%
               if (cycle < 3) {
                 scoreVal = 10;
-              } else if (cycle < 15) {
+              } else if (cycle < 14) {
                 scoreVal = 9;
               } else {
                 scoreVal = 8;
@@ -173,7 +219,7 @@ export const generateYTD5SAuditsFast = (): Audit5SRecord[] => {
 
           const notaPct = Math.round((scoreVal / 10) * 100);
           const auditor = auditoresDisponiveis[(areaIdx + day + m) % auditoresDisponiveis.length];
-          const obs = get5SObservationForRecord(scoreVal, areaIdx, day, m, isKathyel);
+          const obs = get5SObservationForRecord(scoreVal, areaIdx, day, m, isChamp);
 
           list.push({
             id: `audit_5s_${areaName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}_${dataISO}`,
@@ -208,6 +254,7 @@ export const generateYTD5SAuditsFast = (): Audit5SRecord[] => {
  * Função de balanceamento matemático exato para garantir que a média dos percentuais
  * de cada mês do Armazém atinja rigorosamente a meta histórica oficial
  * (Jan: 92%, Fev: 92%, Mar: 88%, Abr: 92%, Mai: 92%, Jun: 89%, Jul: 92%, Ago: 88%)
+ * e que os campeões oficiais de cada mês permaneçam no topo inabalável do ranking.
  */
 export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] => {
   const targetArmazemByMonth: Record<string, number> = {
@@ -226,6 +273,7 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
 
   for (const mStr of months) {
     const targetAvg = targetArmazemByMonth[mStr] || 92;
+    const mNum = parseInt(mStr, 10);
     const indices: number[] = [];
 
     for (let i = 0; i < balanced.length; i++) {
@@ -241,7 +289,7 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
     let currentSum = indices.reduce((acc, idx) => acc + (balanced[idx].notaPercentual || 0), 0);
     let diff = targetSum - currentSum; // em pontos percentuais (múltiplos de 10)
 
-    // Ajusta gradualmente registros não-Kathyel para alcançar o somatório exato
+    // Ajusta gradualmente registros de não-campeões para alcançar o somatório exato sem afetar os campeões
     let iteration = 0;
     while (diff !== 0 && iteration < 1000) {
       iteration++;
@@ -251,15 +299,15 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
         // Precisamos aumentar notas (de 80 para 90, ou de 90 para 100)
         for (const idx of indices) {
           const item = balanced[idx];
-          const isKathyel = item.setor === 'ADMINISTRATIVO' || (item.operador || '').toUpperCase().includes('KATHYEL');
-          if (!isKathyel && item.pontos < 10) {
+          const isChamp = isChampionForMonth(item.operador, item.setor, mNum);
+          if (!isChamp && item.pontos < 10) {
             const newPontos = item.pontos + 1;
             const newNotaPct = Math.round((newPontos / 10) * 100);
             balanced[idx] = {
               ...item,
               pontos: newPontos,
               notaPercentual: newNotaPct,
-              observacoesNaoConforme: normalize5SObservation(item.observacoesNaoConforme, idx, newPontos, isKathyel)
+              observacoesNaoConforme: normalize5SObservation(item.observacoesNaoConforme, idx, newPontos, isChamp)
             };
             diff -= 10;
             adjusted = true;
@@ -270,15 +318,15 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
         // Precisamos diminuir notas (de 100 para 90, ou de 90 para 80)
         for (const idx of indices) {
           const item = balanced[idx];
-          const isKathyel = item.setor === 'ADMINISTRATIVO' || (item.operador || '').toUpperCase().includes('KATHYEL');
-          if (!isKathyel && item.pontos > 8) {
+          const isChamp = isChampionForMonth(item.operador, item.setor, mNum);
+          if (!isChamp && item.pontos > 8) {
             const newPontos = item.pontos - 1;
             const newNotaPct = Math.round((newPontos / 10) * 100);
             balanced[idx] = {
               ...item,
               pontos: newPontos,
               notaPercentual: newNotaPct,
-              observacoesNaoConforme: normalize5SObservation(item.observacoesNaoConforme, idx, newPontos, isKathyel)
+              observacoesNaoConforme: normalize5SObservation(item.observacoesNaoConforme, idx, newPontos, isChamp)
             };
             diff += 10;
             adjusted = true;
@@ -294,61 +342,21 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
   return balanced;
 };
 
+const SEED_VERSION_TAG = 'af_5s_audits_v2026_08_champions_v1';
+
 export const getStored5SAudits = (): Audit5SRecord[] => {
   if (_inMemoryAuditsCache && _inMemoryAuditsCache.length > 0) {
     return _inMemoryAuditsCache;
   }
 
   try {
+    const versionCheck = localStorage.getItem('af_5s_audits_version');
     const saved = localStorage.getItem('af_5s_audits') || localStorage.getItem('5s_audits_history');
-    if (saved) {
+    if (saved && versionCheck === SEED_VERSION_TAG) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length >= 1000) {
-        const targetArmazemByMonth: Record<string, number> = {
-          '01': 92, '02': 92, '03': 88, '04': 92, '05': 92, '06': 89, '07': 92, '08': 88
-        };
-
-        const sanitized = parsed.map((item, idx) => {
-          const isKathyel = item.setor === 'ADMINISTRATIVO' || (item.operador || '').toUpperCase().includes('KATHYEL');
-          const monthStr = (item.dataISO || '').split('-')[1] || '01';
-          const targetMonthlyAvg = targetArmazemByMonth[monthStr] || 92;
-
-          let pontos = item.pontos;
-          let notaPercentual = item.notaPercentual;
-
-          if (isKathyel) {
-            if (pontos < 9 || notaPercentual <= 90) {
-              pontos = (idx % 5 === 0) ? 9 : 10;
-              notaPercentual = Math.round((pontos / 10) * 100);
-            }
-          } else {
-            const cycle = idx % 20;
-            if (targetMonthlyAvg === 92) {
-              pontos = cycle < 6 ? 10 : (cycle < 18 ? 9 : 8);
-            } else if (targetMonthlyAvg === 88) {
-              pontos = cycle < 2 ? 10 : (cycle < 14 ? 9 : 8);
-            } else if (targetMonthlyAvg === 89) {
-              pontos = cycle < 3 ? 10 : (cycle < 15 ? 9 : 8);
-            } else {
-              pontos = 9;
-            }
-            notaPercentual = Math.round((pontos / 10) * 100);
-          }
-
-          return {
-            ...item,
-            pontos,
-            notaPercentual,
-            observacoesNaoConforme: normalize5SObservation(item.observacoesNaoConforme, idx, pontos || 10, isKathyel)
-          };
-        });
-        const fullyBalanced = balanceMonthlyAudits(sanitized);
-        _inMemoryAuditsCache = fullyBalanced;
-        try {
-          localStorage.setItem('af_5s_audits', JSON.stringify(fullyBalanced));
-          localStorage.setItem('5s_audits_history', JSON.stringify(fullyBalanced));
-        } catch (e) {}
-        return fullyBalanced;
+        _inMemoryAuditsCache = parsed;
+        return parsed;
       }
     }
   } catch (e) {
@@ -361,6 +369,7 @@ export const getStored5SAudits = (): Audit5SRecord[] => {
   try {
     localStorage.setItem('af_5s_audits', JSON.stringify(seeded));
     localStorage.setItem('5s_audits_history', JSON.stringify(seeded));
+    localStorage.setItem('af_5s_audits_version', SEED_VERSION_TAG);
   } catch (e) {
     console.warn('LocalStorage save quota or error:', e);
   }

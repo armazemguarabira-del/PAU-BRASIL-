@@ -52,7 +52,8 @@ export const LISTA_COLABORADORES_OFICIAIS = [
   { matricula: 'G1073', nome: 'KATHYEL ROCHA DA SILVA', cargo: 'ADMINISTRATIVO', cpf: '715.236.124-01', turno: 'MANHÃ', funcaoGroup: 'Operador' as const },
   { matricula: 'G1009', nome: 'NIXON HENRIQUE PEREIRA DE ARRUDA', cargo: 'ADMINISTRATIVO', cpf: '121.247.484-83', turno: 'MANHÃ', funcaoGroup: 'Operador' as const },
 
-  // AJUDANTE
+  // AJUDANTE / MOTORISTA OPERACIONAL
+  { matricula: 'G1053', nome: 'ADELSON SANTOS DE ARAUJO', cargo: 'MOTORISTA', cpf: '101.598.524-63', turno: 'MANHÃ', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1160', nome: 'ADMILTON HERMINIO DOS SANTOS MARCELINO', cargo: 'AJUDANTE', cpf: '042.370.104-57', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1001', nome: 'DEJEAN SILVA DE OLIVEIRA', cargo: 'AJUDANTE', cpf: '106.036.454-96', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1161', nome: 'DIMAS EMANUEL MISSIAS DA SILVA', cargo: 'AJUDANTE', cpf: '014.305.954-85', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
