@@ -104,7 +104,13 @@ export interface AcaoCorretiva {
   inicio?: string; // Data Início (DD/MM/YYYY)
   final?: string; // Data Final (DD/MM/YYYY)
   obsResponsavel?: string; // Obs do Responsável
-  etapasVerificacao?: string[]; // Etapas de verificação e checklist
+  etapasVerificacao?: (string | { id: string; texto: string; concluida: boolean })[]; // Etapas de verificação e checklist
+}
+
+export interface EtapaVerificacaoAcao {
+  id: string;
+  texto: string;
+  concluida: boolean;
 }
 
 export type DatabaseMode = 'simulado' | 'operacional' | 'historico';
@@ -548,7 +554,34 @@ export function normalizeToActionCorretiva(item: any): AcaoCorretiva | null {
   };
 }
 
-// Get all actions unified from platform dashboards (without dummy 1639 mock records)
+export function isSystemGeneratedOrSimulatedAction(item: any): boolean {
+  if (!item) return true;
+  const idStr = String(item.id || '').toLowerCase();
+  if (
+    idStr.startsWith('auto-') ||
+    idStr.startsWith('acao-2026-') ||
+    idStr.startsWith('acao-auto-') ||
+    idStr.startsWith('melhoria-auto-') ||
+    idStr.startsWith('acao-montagem-') ||
+    idStr.startsWith('acao-picking-') ||
+    idStr.startsWith('acao-repack-') ||
+    idStr.startsWith('acao-quebras-') ||
+    idStr.startsWith('acao-fefo-') ||
+    idStr.startsWith('mock-') ||
+    idStr.startsWith('seed-')
+  ) {
+    return true;
+  }
+  if (item.simulado === true || item.isAutomatica === true) return true;
+  if (item.origem === 'automatica' || item.origem === 'auto' || item.origem === 'sistema' || item.origem === 'simulado' || item.origem === 'seed') {
+    return true;
+  }
+  if (item.causaRaizDetalhe && typeof item.causaRaizDetalhe === 'string' && item.causaRaizDetalhe.includes('Ação gerada automaticamente')) return true;
+  if (item.comentarioOperador && typeof item.comentarioOperador === 'string' && item.comentarioOperador.includes('Gatilho automático')) return true;
+  return false;
+}
+
+// Get all actions unified from platform dashboards (strictly user-created, without simulated/auto dummy actions)
 export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
   const mergedMap = new Map<string, AcaoCorretiva>();
 
@@ -559,9 +592,11 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
       const parsed = JSON.parse(rawUnified);
       if (Array.isArray(parsed)) {
         parsed.forEach(item => {
-          const norm = normalizeToActionCorretiva(item);
-          if (norm && norm.id) {
-            mergedMap.set(norm.id, norm);
+          if (!isSystemGeneratedOrSimulatedAction(item)) {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+              mergedMap.set(norm.id, norm);
+            }
           }
         });
       }
@@ -577,9 +612,11 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
       const parsed = JSON.parse(rawMont);
       if (Array.isArray(parsed)) {
         parsed.forEach(item => {
-          const norm = normalizeToActionCorretiva(item);
-          if (norm && norm.id) {
-            mergedMap.set(norm.id, norm);
+          if (!isSystemGeneratedOrSimulatedAction(item)) {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+              mergedMap.set(norm.id, norm);
+            }
           }
         });
       }
@@ -593,9 +630,11 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
       const parsed = JSON.parse(rawDesvios);
       if (Array.isArray(parsed)) {
         parsed.forEach(item => {
-          const norm = normalizeToActionCorretiva(item);
-          if (norm && norm.id) {
-            mergedMap.set(norm.id, norm);
+          if (!isSystemGeneratedOrSimulatedAction(item)) {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+              mergedMap.set(norm.id, norm);
+            }
           }
         });
       }
@@ -609,9 +648,11 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
       const parsed = JSON.parse(rawMelhorias);
       if (Array.isArray(parsed)) {
         parsed.forEach(item => {
-          const norm = normalizeToActionCorretiva(item);
-          if (norm && norm.id) {
-            mergedMap.set(norm.id, norm);
+          if (!isSystemGeneratedOrSimulatedAction(item)) {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+              mergedMap.set(norm.id, norm);
+            }
           }
         });
       }
@@ -627,9 +668,11 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           parsed.forEach((item: any) => {
-            const norm = normalizeToActionCorretiva(item);
-            if (norm && norm.id) {
-              mergedMap.set(norm.id, norm);
+            if (!isSystemGeneratedOrSimulatedAction(item)) {
+              const norm = normalizeToActionCorretiva(item);
+              if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+                mergedMap.set(norm.id, norm);
+              }
             }
           });
         }
@@ -1111,15 +1154,23 @@ export function cleanAllAutomaticActionsFromStorage(): { removedCount: number } 
     STORAGE_KEY_SIMULADO,
     STORAGE_KEY_OPERACIONAL,
     STORAGE_KEY_HISTORICO,
+    UNIFIED_ACOES_DPO_KEY,
+    MONTAGEM_ACOES_KEY,
+    DESVIOS_ACOES_KEY,
+    MELHORIAS_ACOES_KEY,
     'af_desvios_acoes_v2',
-    'af_melhorias_acoes'
+    'af_melhorias_acoes',
+    'af_unified_acoes_dpo',
+    'af_montagem_acoes'
   ];
 
   // Adicionar chaves de empresa
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && (key.startsWith('acoes_rows_') || key.startsWith('workstation_gatilhos_desvios_'))) {
-      if (!storageKeys.includes(key)) storageKeys.push(key);
+  if (typeof localStorage !== 'undefined') {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('acoes_rows_') || key.startsWith('workstation_gatilhos_desvios_') || key.startsWith('af_acoes_'))) {
+        if (!storageKeys.includes(key)) storageKeys.push(key);
+      }
     }
   }
 
@@ -1130,13 +1181,7 @@ export function cleanAllAutomaticActionsFromStorage(): { removedCount: number } 
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           const beforeLen = parsed.length;
-          const cleaned = parsed.filter((item: any) => {
-            if (!item) return false;
-            const idStr = String(item.id || '');
-            const isAutoId = idStr.startsWith('auto-') || idStr.startsWith('acao-2026-') || idStr.startsWith('acao-auto-') || idStr.startsWith('melhoria-auto-');
-            const isAutoFlag = item.isAutomatica === true || item.simulado === true || item.origem === 'automatica' || item.origem === 'auto' || item.tipo === 'automatica';
-            return !isAutoId && !isAutoFlag;
-          });
+          const cleaned = parsed.filter((item: any) => !isSystemGeneratedOrSimulatedAction(item));
           const removed = beforeLen - cleaned.length;
           totalRemoved += removed;
           localStorage.setItem(key, JSON.stringify(cleaned));
@@ -1147,6 +1192,7 @@ export function cleanAllAutomaticActionsFromStorage(): { removedCount: number } 
 
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('af_acoes_updated'));
+    window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
     window.dispatchEvent(new Event('af_acoes_cleaned'));
   }
 

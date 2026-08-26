@@ -40,6 +40,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
+import { 
+  isSystemGeneratedOrSimulatedAction, 
+  cleanAllAutomaticActionsFromStorage 
+} from '../utils/simulacaoAcoesUtils';
 
 export interface AcaoDpoItem {
   id: string;
@@ -276,24 +280,32 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
   const isDark = theme === 'dark';
   const empresaId = empresa?.id || 'demo';
 
-  // State: Ações list
+  // State: Ações list (Strictly user-created, no system seeds)
   const [acoes, setAcoes] = useState<AcaoDpoItem[]>(() => {
     try {
       const saved = localStorage.getItem(UNIFIED_ACOES_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(item => !isSystemGeneratedOrSimulatedAction(item));
+        }
       }
     } catch (e) {
       console.warn('Erro ao carregar ações do localStorage:', e);
     }
-    return SEED_ACOES_DPO;
+    return [];
   });
+
+  // Auto clean automatic/system seeds on mount
+  useEffect(() => {
+    cleanAllAutomaticActionsFromStorage();
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(UNIFIED_ACOES_STORAGE_KEY, JSON.stringify(acoes));
+      const userOnly = acoes.filter(item => !isSystemGeneratedOrSimulatedAction(item));
+      localStorage.setItem(UNIFIED_ACOES_STORAGE_KEY, JSON.stringify(userOnly));
       window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
       window.dispatchEvent(new CustomEvent('af_acoes_updated'));
     } catch (e) {
@@ -308,12 +320,18 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
         const saved = localStorage.getItem(UNIFIED_ACOES_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) setAcoes(parsed);
+          if (Array.isArray(parsed)) {
+            setAcoes(parsed.filter(item => !isSystemGeneratedOrSimulatedAction(item)));
+          }
         }
       } catch (e) {}
     };
     window.addEventListener('af_acoes_dpo_updated', handleUpdate);
-    return () => window.removeEventListener('af_acoes_dpo_updated', handleUpdate);
+    window.addEventListener('af_acoes_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('af_acoes_dpo_updated', handleUpdate);
+      window.removeEventListener('af_acoes_updated', handleUpdate);
+    };
   }, []);
 
   // Filter States
@@ -685,6 +703,21 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
               <ExternalLink className="w-4 h-4" />
             </a>
           )}
+
+          {/* Limpar Ações do Sistema Button */}
+          <button
+            onClick={() => {
+              const res = cleanAllAutomaticActionsFromStorage();
+              setAcoes(prev => prev.filter(item => !isSystemGeneratedOrSimulatedAction(item)));
+              alert(`✓ ${res.removedCount} ações automáticas/simuladas do sistema foram removidas com sucesso!`);
+            }}
+            id="btn-limpar-acoes-sistema"
+            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition-all cursor-pointer"
+            title="Remover ações geradas automaticamente pelo sistema e manter apenas ações registradas por usuários"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+            <span>Excluir Ações do Sistema</span>
+          </button>
 
           {/* Gerar Ações Button (RENAMED FROM GERAR AÇÕES SIMPLES) */}
           <button

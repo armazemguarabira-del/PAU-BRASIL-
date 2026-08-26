@@ -17,6 +17,7 @@ import {
   Database,
   Download,
   AlertTriangle,
+  AlertOctagon,
   Zap,
   CheckSquare,
   Square,
@@ -29,7 +30,13 @@ import {
   Paperclip,
   Check,
   FileSpreadsheet,
-  RotateCcw
+  RotateCcw,
+  Maximize2,
+  Minimize2,
+  Printer,
+  MapPin,
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import { ImportAcoesModal } from './ImportAcoesModal';
 import { 
@@ -48,7 +55,9 @@ import {
   deleteAcaoCorretiva,
   deleteAcoesBatch,
   restoreSimulatedDatabase,
-  exportAcoesCSV
+  exportAcoesCSV,
+  cleanAllAutomaticActionsFromStorage,
+  isSystemGeneratedOrSimulatedAction
 } from '../utils/simulacaoAcoesUtils';
 import { Usuario } from '../types';
 
@@ -84,6 +93,11 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreatingManual, setIsCreatingManual] = useState(false);
 
+  // Standardized Maximized View Modal State (Parity with Dashboards)
+  const [maximizedAction, setMaximizedAction] = useState<AcaoCorretiva | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [newStepText, setNewStepText] = useState('');
+
   // Manual Form State
   const [manualForm, setManualForm] = useState({
     dataCriacao: new Date().toISOString().split('T')[0],
@@ -110,6 +124,8 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   useEffect(() => {
+    // Purge any automatic or simulated actions on mount
+    cleanAllAutomaticActionsFromStorage();
     loadData();
 
     const handleUpdate = () => {
@@ -125,7 +141,65 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   }, [dbMode]);
 
   const loadData = () => {
-    setAcoes(getAcoesAll(dbMode));
+    const all = getAcoesAll(dbMode);
+    setAcoes(all.filter(item => !isSystemGeneratedOrSimulatedAction(item)));
+  };
+
+  // Helper to normalize steps to objects
+  const getNormalizedSteps = (steps?: (string | { id: string; texto: string; concluida: boolean })[]) => {
+    if (!steps || !Array.isArray(steps)) return [];
+    return steps.map((s, idx) => {
+      if (typeof s === 'string') {
+        return { id: `step-${idx}-${s.slice(0, 10)}`, texto: s, concluida: false };
+      }
+      return s;
+    });
+  };
+
+  // Step verification toggle in Maximized View
+  const handleToggleStepInMaximized = (stepId: string) => {
+    if (!maximizedAction) return;
+    const currentSteps = getNormalizedSteps(maximizedAction.etapasVerificacao);
+    const updatedSteps = currentSteps.map(s => s.id === stepId ? { ...s, concluida: !s.concluida } : s);
+    const updated = { ...maximizedAction, etapasVerificacao: updatedSteps };
+    setMaximizedAction(updated);
+    updateAcaoCorretiva(updated, user?.nome || 'Gestor Executivo');
+    loadData();
+  };
+
+  // Add Step in Maximized View
+  const handleAddStepInMaximized = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!maximizedAction || !newStepText.trim()) return;
+    const currentSteps = getNormalizedSteps(maximizedAction.etapasVerificacao);
+    const newStep = { id: `step-${Date.now()}`, texto: newStepText.trim(), concluida: false };
+    const updated = { ...maximizedAction, etapasVerificacao: [...currentSteps, newStep] };
+    setMaximizedAction(updated);
+    setNewStepText('');
+    updateAcaoCorretiva(updated, user?.nome || 'Gestor Executivo');
+    loadData();
+  };
+
+  // Save observation in Maximized View
+  const handleSaveObservationInMaximized = (obs: string) => {
+    if (!maximizedAction) return;
+    const updated = { ...maximizedAction, comentarioOperador: obs };
+    setMaximizedAction(updated);
+    updateAcaoCorretiva(updated, user?.nome || 'Gestor Executivo');
+    loadData();
+  };
+
+  // Quick Status change in Maximized View
+  const handleQuickStatusInMaximized = (newStatus: AcaoCorretiva['status']) => {
+    if (!maximizedAction) return;
+    const updated = {
+      ...maximizedAction,
+      status: newStatus,
+      situacaoMeta: newStatus === 'Concluído' ? 'Atingida' : maximizedAction.situacaoMeta
+    };
+    setMaximizedAction(updated);
+    updateAcaoCorretiva(updated, user?.nome || 'Gestor Executivo');
+    loadData();
   };
 
   const isDark = theme === 'dark';
@@ -384,6 +458,18 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
 
         {/* TOP CONTROLS */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              const res = cleanAllAutomaticActionsFromStorage();
+              loadData();
+              alert(`✓ ${res.removedCount} ações automáticas/simuladas do sistema foram excluídas. Apenas as ações criadas pelos usuários foram mantidas!`);
+            }}
+            className="px-3.5 py-2 bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
+            title="Excluir ações que foram geradas automaticamente pelo sistema e manter apenas as ações registradas pelos colaboradores"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-amber-400" /> Excluir Ações do Sistema
+          </button>
+
           <button
             onClick={() => setIsImportModalOpen(true)}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2 border border-indigo-400/30"
@@ -775,6 +861,13 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
 
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setMaximizedAction(item)}
+                          className="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1"
+                          title="Maximizar e visualizar ficha completa da ação"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5 text-amber-400" /> Detalhes
+                        </button>
                         <button
                           onClick={() => {
                             setActiveItem(item);
@@ -1207,6 +1300,351 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
         onClose={() => setIsImportModalOpen(false)}
         currentUser={user?.nome || 'Gestor Executivo'}
       />
+
+      {/* ── MODAL DETALHES MAXIMIZADOS (PADRÃO DPO & GOVERNANÇA INTEGRADA) ── */}
+      {maximizedAction && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div 
+            className={`rounded-2xl border shadow-2xl flex flex-col transition-all duration-200 overflow-hidden ${
+              isFullScreen ? 'fixed inset-2 z-50 w-auto h-auto max-w-none' : 'w-full max-w-4xl max-h-[92vh]'
+            } ${
+              isDark ? 'bg-[#0f172a] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            {/* HEADER */}
+            <div className="p-4 md:p-6 border-b border-slate-700/50 flex items-center justify-between gap-4 shrink-0 bg-slate-900/40">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/40">
+                      {maximizedAction.processo}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                      maximizedAction.tipoAcao === 'Melhoria' 
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' 
+                        : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                    }`}>
+                      {maximizedAction.tipoAcao || 'Corretiva'}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                      maximizedAction.prioridade === 'Alta' ? 'bg-rose-600 text-white' : maximizedAction.prioridade === 'Média' ? 'bg-amber-600 text-white' : 'bg-slate-600 text-white'
+                    }`}>
+                      {maximizedAction.prioridade}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                      maximizedAction.status === 'Concluído' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                      maximizedAction.status === 'Atrasado' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' :
+                      'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    }`}>
+                      {maximizedAction.status}
+                    </span>
+                  </div>
+                  <h2 className="text-lg md:text-xl font-black tracking-tight">
+                    {maximizedAction.indicador}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors hidden sm:inline-flex"
+                  title="Imprimir / Exportar Ficha"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  title={isFullScreen ? 'Restaurar Tamanho' : 'Tela Cheia'}
+                >
+                  {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setMaximizedAction(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Fechar Detalhes"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* SCROLLABLE CONTENT */}
+            <div className="p-4 md:p-6 overflow-y-auto space-y-6 flex-1">
+              {/* COMPARATIVO LADO A LADO: DIAGNÓSTICO VS RESOLUÇÃO/CONTRAMEDIDA */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-4 rounded-2xl border ${
+                  isDark ? 'bg-[#121824] border-rose-500/20' : 'bg-rose-50/50 border-rose-200'
+                }`}>
+                  <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-wider mb-2">
+                    <AlertOctagon className="w-4 h-4" />
+                    <span>Diagnóstico / O Que Fazer (Desvio)</span>
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed">
+                    {maximizedAction.desvioEncontrado}
+                  </p>
+                </div>
+
+                <div className={`p-4 rounded-2xl border ${
+                  isDark ? 'bg-[#121824] border-emerald-500/20' : 'bg-emerald-50/50 border-emerald-200'
+                }`}>
+                  <div className="flex items-center gap-2 text-emerald-500 font-black text-xs uppercase tracking-wider mb-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Resolução & Contramedida</span>
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed">
+                    {maximizedAction.contramedida || 'Contramedida em definição pela supervisão operacional.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* CRONOGRAMA DE EXECUÇÃO */}
+              <div className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#121824] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <h4 className="text-xs font-black uppercase text-amber-400 tracking-wider flex items-center gap-2 mb-3">
+                  <Calendar className="w-4 h-4" /> Cronograma de Execução & Localização
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-[#0b0f17] border-slate-800' : 'bg-white border-slate-200'}`}>
+                    <span className="text-[10px] font-sans font-bold text-slate-400 block uppercase">Data de Início</span>
+                    <strong className="text-sm text-slate-200 font-bold">
+                      {maximizedAction.dataISO ? maximizedAction.dataISO.split('-').reverse().join('/') : (maximizedAction.data || 'Registrado')}
+                    </strong>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-[#0b0f17] border-slate-800' : 'bg-white border-slate-200'}`}>
+                    <span className="text-[10px] font-sans font-bold text-slate-400 block uppercase">Prazo de Conclusão</span>
+                    <strong className="text-sm text-amber-400 font-bold">
+                      {maximizedAction.prazo ? (maximizedAction.prazo.includes('-') ? maximizedAction.prazo.split('-').reverse().join('/') : maximizedAction.prazo) : 'A Definir'}
+                    </strong>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-[#0b0f17] border-slate-800' : 'bg-white border-slate-200'}`}>
+                    <span className="text-[10px] font-sans font-bold text-slate-400 block uppercase">Responsável & Setor</span>
+                    <strong className="text-xs text-sky-400 font-bold block truncate">
+                      {maximizedAction.colaboradorResponsavel || 'Operação'}
+                    </strong>
+                    <span className="text-[10px] text-slate-400 font-sans truncate block">{maximizedAction.setor || 'Armazém'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CHECKLIST DE VERIFICAÇÃO OPERACIONAL */}
+              <div className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#121824] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-amber-400" /> Etapas de Verificação Operacional
+                  </h4>
+                </div>
+
+                <div className="space-y-2 mb-3">
+                  {getNormalizedSteps(maximizedAction.etapasVerificacao).length === 0 ? (
+                    <p className="text-xs text-slate-500 italic p-2">Nenhuma etapa cadastrada ainda. Adicione abaixo os passos operacionais de verificação.</p>
+                  ) : (
+                    getNormalizedSteps(maximizedAction.etapasVerificacao).map((step) => (
+                      <div
+                        key={step.id}
+                        onClick={() => handleToggleStepInMaximized(step.id)}
+                        className={`p-3 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
+                          step.concluida
+                            ? isDark ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                            : isDark ? 'bg-[#0b0f17] border-slate-800 text-slate-300 hover:border-slate-700' : 'bg-white border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+                          step.concluida 
+                            ? 'bg-emerald-500 border-emerald-500 text-white' 
+                            : isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-300 bg-white'
+                        }`}>
+                          {step.concluida && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </div>
+                        <span className={`text-xs ${step.concluida ? 'line-through opacity-80' : 'font-medium'}`}>
+                          {step.texto}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Adicionar nova etapa */}
+                <form onSubmit={handleAddStepInMaximized} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Adicionar nova etapa operacional de verificação..."
+                    value={newStepText}
+                    onChange={e => setNewStepText(e.target.value)}
+                    className={`flex-1 p-2 rounded-xl border text-xs outline-none ${
+                      isDark ? 'bg-[#0b0f17] border-slate-800 text-white focus:border-amber-500' : 'bg-white border-slate-300 text-slate-800 focus:border-amber-500'
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1 shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar
+                  </button>
+                </form>
+              </div>
+
+              {/* 5 PORQUÊS & CAUSA RAIZ */}
+              {maximizedAction.cincoPorques && (maximizedAction.cincoPorques.porque1 || maximizedAction.cincoPorques.porque2 || maximizedAction.cincoPorques.porque3 || maximizedAction.cincoPorques.porque4 || maximizedAction.cincoPorques.porque5) && (
+                <div className={`p-4 rounded-2xl border ${
+                  isDark ? 'bg-[#121824] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <h4 className="text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-2 mb-3">
+                    <HelpCircle className="w-4 h-4" /> Análise de Causa Raiz (5 Porquês)
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    {maximizedAction.cincoPorques.porque1 && (
+                      <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">1º Por quê?</span>
+                        <p className="text-slate-200">{maximizedAction.cincoPorques.porque1}</p>
+                      </div>
+                    )}
+                    {maximizedAction.cincoPorques.porque2 && (
+                      <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">2º Por quê?</span>
+                        <p className="text-slate-200">{maximizedAction.cincoPorques.porque2}</p>
+                      </div>
+                    )}
+                    {maximizedAction.cincoPorques.porque3 && (
+                      <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">3º Por quê?</span>
+                        <p className="text-slate-200">{maximizedAction.cincoPorques.porque3}</p>
+                      </div>
+                    )}
+                    {maximizedAction.cincoPorques.porque4 && (
+                      <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">4º Por quê?</span>
+                        <p className="text-slate-200">{maximizedAction.cincoPorques.porque4}</p>
+                      </div>
+                    )}
+                    {maximizedAction.cincoPorques.porque5 && (
+                      <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/30">
+                        <span className="text-[10px] font-bold text-rose-400 uppercase block">5º Por quê? (Causa Raiz Fundamental)</span>
+                        <p className="text-rose-200 font-bold">{maximizedAction.cincoPorques.porque5}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* GOVERNANÇA & VALIDAÇÃO */}
+              <div className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#121824] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2 mb-3">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Governança & Validação de Eficácia
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Aprovação Gestor</span>
+                    <span className={`font-black uppercase inline-block mt-1 ${
+                      maximizedAction.aprovacaoGestor === 'Aprovado' ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {maximizedAction.aprovacaoGestor || 'Pendente'}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Aceite do Colaborador</span>
+                    <span className={`font-black uppercase inline-block mt-1 ${
+                      maximizedAction.aceiteColaborador ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      {maximizedAction.aceiteColaborador ? '✓ Assinado e Acordado' : 'Pendente de Aceite'}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Evidência / Anexo</span>
+                    <span className="text-slate-300 block truncate mt-1">
+                      {maximizedAction.evidencias || 'Sem evidência anexada'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* PARECER DE CAMPO / OBSERVAÇÕES */}
+              <div className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#121824] border-slate-700/80' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 text-sky-400" /> Parecer de Campo / Observações de Execução
+                </h4>
+                <textarea
+                  rows={3}
+                  placeholder="Adicione observações de campo, validações com a equipe ou justificativas..."
+                  defaultValue={maximizedAction.comentarioOperador || ''}
+                  onBlur={(e) => handleSaveObservationInMaximized(e.target.value)}
+                  className={`w-full p-3 rounded-xl border text-xs leading-relaxed outline-none focus:border-amber-500 transition-colors ${
+                    isDark ? 'bg-[#0b0f17] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-800'
+                  }`}
+                />
+                <span className="text-[10px] text-slate-500 block mt-1">
+                  * O parecer é salvo automaticamente ao clicar fora da caixa de texto.
+                </span>
+              </div>
+            </div>
+
+            {/* FOOTER CONTROLS */}
+            <div className="p-4 border-t border-slate-700/50 flex flex-wrap items-center justify-between gap-3 shrink-0 bg-slate-900/60">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Alterar Status:</span>
+                <div className="flex items-center gap-1.5">
+                  {(['Pendente', 'Em Andamento', 'Concluído', 'Atrasado'] as AcaoCorretiva['status'][]).map(st => (
+                    <button
+                      key={st}
+                      onClick={() => handleQuickStatusInMaximized(st)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        maximizedAction.status === st
+                          ? st === 'Concluído' ? 'bg-emerald-600 text-white shadow-sm' : st === 'Em Andamento' ? 'bg-sky-600 text-white shadow-sm' : st === 'Atrasado' ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-700 text-white'
+                          : isDark ? 'bg-slate-900 text-slate-400 hover:text-white' : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const item = maximizedAction;
+                    setMaximizedAction(null);
+                    setActiveItem(item);
+                    setIsModalOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-indigo-300 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Edit2 className="w-3.5 h-3.5" /> Tratativa Completa & 5 Porquês
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (window.confirm('Deseja excluir esta ação?')) {
+                      deleteAcaoCorretiva(maximizedAction.id);
+                      setMaximizedAction(null);
+                      loadData();
+                    }
+                  }}
+                  className="p-2 text-rose-400 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 rounded-xl cursor-pointer transition-all"
+                  title="Excluir Ação"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
