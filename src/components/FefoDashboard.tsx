@@ -277,12 +277,16 @@ const BLOCKS_DATA: Record<string, BlockData> = {
   A4: { id: 'A4', avgValidity: 25, menorValidade: 12, skuCount: 28, pallets: 155, criticalPct: 61, riskIndex: 94, ranges: { critical: 95, alertMedium: 40, alertLow: 15, safe: 5 } },
   A5: { id: 'A5', avgValidity: 110, menorValidade: 100, skuCount: 12, pallets: 140, criticalPct: 2, riskIndex: 12, ranges: { critical: 2, alertMedium: 10, alertLow: 28, safe: 100 } },
   A6: { id: 'A6', avgValidity: 125, menorValidade: 115, skuCount: 10, pallets: 130, criticalPct: 0, riskIndex: 8, ranges: { critical: 0, alertMedium: 8, alertLow: 22, safe: 100 } },
+  A7: { id: 'A7', avgValidity: 118, menorValidade: 108, skuCount: 11, pallets: 135, criticalPct: 1, riskIndex: 10, ranges: { critical: 1, alertMedium: 9, alertLow: 25, safe: 100 } },
+  A8: { id: 'A8', avgValidity: 130, menorValidade: 120, skuCount: 9, pallets: 125, criticalPct: 0, riskIndex: 7, ranges: { critical: 0, alertMedium: 5, alertLow: 20, safe: 100 } },
   B1: { id: 'B1', avgValidity: 115, menorValidade: 104, skuCount: 12, pallets: 167, criticalPct: 1, riskIndex: 10, ranges: { critical: 2, alertMedium: 10, alertLow: 25, safe: 130 } },
   B2: { id: 'B2', avgValidity: 68, menorValidade: 62, skuCount: 24, pallets: 168, criticalPct: 12, riskIndex: 45, ranges: { critical: 20, alertMedium: 48, alertLow: 65, safe: 35 } },
   B3: { id: 'B3', avgValidity: 42, menorValidade: 38, skuCount: 26, pallets: 165, criticalPct: 27, riskIndex: 65, ranges: { critical: 45, alertMedium: 60, alertLow: 40, safe: 20 } },
+  B4: { id: 'B4', avgValidity: 85, menorValidade: 78, skuCount: 18, pallets: 160, criticalPct: 4, riskIndex: 20, ranges: { critical: 5, alertMedium: 20, alertLow: 45, safe: 90 } },
   C1: { id: 'C1', avgValidity: 120, menorValidade: 112, skuCount: 10, pallets: 166, criticalPct: 1, riskIndex: 8, ranges: { critical: 1, alertMedium: 5, alertLow: 15, safe: 145 } },
   C2: { id: 'C2', avgValidity: 92, menorValidade: 92, skuCount: 16, pallets: 190, criticalPct: 5, riskIndex: 28, ranges: { critical: 10, alertMedium: 25, alertLow: 70, safe: 85 } },
-  C3: { id: 'C3', avgValidity: 78, menorValidade: 64, skuCount: 20, pallets: 175, criticalPct: 17, riskIndex: 55, ranges: { critical: 30, alertMedium: 55, alertLow: 60, safe: 30 } }
+  C3: { id: 'C3', avgValidity: 78, menorValidade: 64, skuCount: 20, pallets: 175, criticalPct: 17, riskIndex: 55, ranges: { critical: 30, alertMedium: 55, alertLow: 60, safe: 30 } },
+  C4: { id: 'C4', avgValidity: 105, menorValidade: 95, skuCount: 14, pallets: 170, criticalPct: 3, riskIndex: 18, ranges: { critical: 5, alertMedium: 15, alertLow: 30, safe: 120 } }
 };
 
 const getDaysInMonth = (year: number, month: number) => {
@@ -796,8 +800,8 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
       return { ...BLOCKS_DATA };
     }
 
-    // Initialize all standard warehouse blocks (A1..A6, B1..B3, C1..C3) with 0 stats
-    const standardGrid = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3'];
+    // Initialize all standard warehouse blocks (A1..A8, B1..B4, C1..C4) with 0 stats
+    const standardGrid = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'B1', 'B2', 'B3', 'B4', 'C1', 'C2', 'C3', 'C4'];
     standardGrid.forEach(id => {
       result[id] = {
         id,
@@ -2986,7 +2990,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded font-black tracking-wider uppercase">
-                      Layout Físico (A1–A6, B1–B3, C1–C3)
+                      Layout Físico (A1–A8, B1–B4, C1–C4)
                     </span>
                     <span className="text-[10px] font-mono text-slate-500 font-bold">
                       Clique no bloco para auditar itens
@@ -3003,20 +3007,20 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                 {/* Interactive Warehouse Grid and details side-by-side */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-4">
                   
-                  {/* Grid Layout of the Warehouse (A1-A6, B1-B3, C1-C3) */}
+                  {/* Grid Layout of the Warehouse (A1-A8, B1-B4, C1-C4) */}
                   <div className="lg:col-span-6 bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3">
                     <div className="text-center font-black text-[9px] uppercase tracking-wider text-slate-500 font-mono py-1 bg-slate-200/70 rounded-md border border-slate-300 flex items-center justify-center gap-1.5">
                       <span>▲ CORREDOR OPERACIONAL / ENTRADA DO PICKING ▲</span>
                     </div>
                     
-                    {/* Bloco A: A1 - A6 */}
+                    {/* Bloco A: A1 - A8 */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-[9px] font-black text-emerald-800 uppercase px-0.5">
-                        <span>Bloco A (Ruas A1 a A6 — Curva A / Alta Rotatividade)</span>
-                        <span className="text-[8px] font-mono text-emerald-600 font-bold">6 Ruas</span>
+                        <span>Bloco A (Ruas A1 a A8 — Curva A / Alta Rotatividade)</span>
+                        <span className="text-[8px] font-mono text-emerald-600 font-bold">8 Ruas</span>
                       </div>
-                      <div className="grid grid-cols-6 gap-1.5">
-                        {['A1', 'A2', 'A3', 'A4', 'A5', 'A6'].map((id) => {
+                      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                        {['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'].map((id) => {
                           const b = dynamicBlocksData[id];
                           const isSelected = selectedBlock === id;
                           const hasItems = b && b.skuCount > 0;
@@ -3051,14 +3055,14 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                       </div>
                     </div>
 
-                    {/* Bloco B: B1 - B3 */}
+                    {/* Bloco B: B1 - B4 */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-[9px] font-black text-sky-800 uppercase px-0.5">
-                        <span>Bloco B (Ruas B1 a B3 — Curva B / Médio Giro)</span>
-                        <span className="text-[8px] font-mono text-sky-600 font-bold">3 Ruas</span>
+                        <span>Bloco B (Ruas B1 a B4 — Curva B / Médio Giro)</span>
+                        <span className="text-[8px] font-mono text-sky-600 font-bold">4 Ruas</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['B1', 'B2', 'B3'].map((id) => {
+                      <div className="grid grid-cols-4 gap-2">
+                        {['B1', 'B2', 'B3', 'B4'].map((id) => {
                           const b = dynamicBlocksData[id];
                           const isSelected = selectedBlock === id;
                           const hasItems = b && b.skuCount > 0;
@@ -3093,14 +3097,14 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                       </div>
                     </div>
 
-                    {/* Bloco C: C1 - C3 */}
+                    {/* Bloco C: C1 - C4 */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-[9px] font-black text-amber-800 uppercase px-0.5">
-                        <span>Bloco C (Ruas C1 a C3 — Curva C / Menor Giro / Fundo)</span>
-                        <span className="text-[8px] font-mono text-amber-600 font-bold">3 Ruas</span>
+                        <span>Bloco C (Ruas C1 a C4 — Curva C / Menor Giro / Fundo)</span>
+                        <span className="text-[8px] font-mono text-amber-600 font-bold">4 Ruas</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['C1', 'C2', 'C3'].map((id) => {
+                      <div className="grid grid-cols-4 gap-2">
+                        {['C1', 'C2', 'C3', 'C4'].map((id) => {
                           const b = dynamicBlocksData[id];
                           const isSelected = selectedBlock === id;
                           const hasItems = b && b.skuCount > 0;
@@ -3509,7 +3513,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                     </tr>
                     <tr className="hover:bg-slate-50/50">
                       <td className="p-3 font-bold text-slate-800">Heat Map dos Blocos</td>
-                      <td className="p-3 text-slate-600">Localizar visualmente os blocos críticos (A1–A6, B1–B3, C1–C3)</td>
+                      <td className="p-3 text-slate-600">Localizar visualmente os blocos críticos (A1–A8, B1–B4, C1–C4)</td>
                       <td className="p-3 text-slate-700 font-medium">Facilitar a tomada de decisão rápida e o acompanhamento operacional.</td>
                     </tr>
                   </tbody>
@@ -3537,7 +3541,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                 {/* BLOCO A */}
                 <div className="bg-emerald-50/40 p-4 rounded-xl border-l-4 border-emerald-500 border-t border-r border-b border-emerald-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-emerald-800">BLOCO A (Ruas A1–A6)</span>
+                    <span className="font-black text-sm text-emerald-800">BLOCO A (Ruas A1–A8)</span>
                     <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase border border-emerald-200">Curva A</span>
                   </div>
                   <p className="text-xs text-slate-700 font-medium mb-2">
@@ -3546,14 +3550,14 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                   <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-emerald-100/80 shadow-2xs">
                     <p>• <strong>Entrada do Picking:</strong> Quanto menor o número da rua, mais próxima do Picking.</p>
                     <p>• <strong className="text-emerald-700">Rua A1:</strong> Mais próxima da entrada do Picking.</p>
-                    <p>• <strong>Ruas A1 a A6:</strong> Extensão frontal do Bloco A para produtos de alto giro.</p>
+                    <p>• <strong>Ruas A1 a A8:</strong> Extensão frontal do Bloco A para produtos de alto giro.</p>
                   </div>
                 </div>
 
                 {/* BLOCO B */}
                 <div className="bg-sky-50/40 p-4 rounded-xl border-l-4 border-sky-500 border-t border-r border-b border-sky-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-sky-800">BLOCO B (Ruas B1–B3)</span>
+                    <span className="font-black text-sm text-sky-800">BLOCO B (Ruas B1–B4)</span>
                     <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded uppercase border border-sky-200">Curva B</span>
                   </div>
                   <p className="text-xs text-slate-700 font-medium mb-2">
@@ -3561,7 +3565,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                   </p>
                   <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-sky-100/80 shadow-2xs">
                     <p>• Destinado a produtos de <strong>médio giro</strong> (Curva B de vendas).</p>
-                    <p>• Ruas <strong>B1, B2 e B3</strong> localizadas na zona central.</p>
+                    <p>• Ruas <strong>B1 a B4</strong> localizadas na zona central.</p>
                     <p>• Oferece equilíbrio entre tempo de percurso e capacidade.</p>
                   </div>
                 </div>
@@ -3569,7 +3573,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                 {/* BLOCO C */}
                 <div className="bg-amber-50/40 p-4 rounded-xl border-l-4 border-amber-500 border-t border-r border-b border-amber-100 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-black text-sm text-amber-800">BLOCO C (Ruas C1–C3)</span>
+                    <span className="font-black text-sm text-amber-800">BLOCO C (Ruas C1–C4)</span>
                     <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase border border-amber-200">Menor Giro / Curva C</span>
                   </div>
                   <p className="text-xs text-slate-700 font-medium mb-2">
@@ -3577,7 +3581,7 @@ export default function FefoDashboard({ user, empresa, onBack, theme = 'light' }
                   </p>
                   <div className="bg-white p-3 rounded-lg text-[11px] text-slate-600 space-y-1.5 border border-amber-100/80 shadow-2xs">
                     <p>• Destinado a produtos de <strong>menor giro / baixo volume</strong> (Curva C).</p>
-                    <p>• Ruas <strong>C1, C2 e C3</strong> mais distantes do Picking.</p>
+                    <p>• Ruas <strong>C1 a C4</strong> mais distantes do Picking.</p>
                     <p>• Preserva áreas nobres (Blocos A e B) para produtos de maior giro.</p>
                   </div>
                 </div>

@@ -83,9 +83,9 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
     if (combined.includes('CONTINGÊNCIA') || combined.includes('CONTINGENCIA') || combined.includes('CONT')) return 'Contingência';
     if (combined.includes('PICKING') || combined.includes('PICK')) return 'Picking';
     if (combined.includes('CB') || combined.includes('BLOCO CB')) return 'Bloco CB';
-    if (combined.includes('A1') || combined.includes('A2') || combined.includes('A3') || combined.includes('A4') || combined.includes('BLOCO A') || combined.startsWith('A')) return 'Bloco A';
-    if (combined.includes('B1') || combined.includes('B2') || combined.includes('B3') || combined.includes('B4') || combined.includes('BLOCO B') || combined.startsWith('B')) return 'Bloco B';
-    if (combined.includes('C1') || combined.includes('C2') || combined.includes('C3') || combined.includes('C4') || combined.includes('BLOCO C') || combined.startsWith('C')) return 'Bloco C';
+    if (['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'].some(r => combined.includes(r)) || combined.includes('BLOCO A') || combined.startsWith('A')) return 'Bloco A';
+    if (['B1', 'B2', 'B3', 'B4'].some(r => combined.includes(r)) || combined.includes('BLOCO B') || combined.startsWith('B')) return 'Bloco B';
+    if (['C1', 'C2', 'C3', 'C4'].some(r => combined.includes(r)) || combined.includes('BLOCO C') || combined.startsWith('C')) return 'Bloco C';
     return 'Bloco A';
   };
 

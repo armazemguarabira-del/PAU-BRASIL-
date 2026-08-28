@@ -87,7 +87,7 @@ const ACOES_PADRAO_EXEMPLOS: Omit<AcaoMontagemItem, 'id'>[] = [
     dataTermino: '2026-08-28',
     status: 'Em Andamento',
     responsavel: 'Djeanderson Soares',
-    local: 'Picking / Rua 04 - Posições Críticas',
+    local: 'Picking / Rua A4 - Posições Críticas',
     observacaoCampo: 'Divergência tratada na onda matutina do Fast Picking.',
     etapasVerificacao: [
       { id: '1', texto: 'Auditar saldo físico na posição de picking', concluida: true },

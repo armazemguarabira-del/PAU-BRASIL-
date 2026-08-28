@@ -1185,16 +1185,20 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                       <option value="A4">A4</option>
                       <option value="A5">A5</option>
                       <option value="A6">A6</option>
+                      <option value="A7">A7</option>
+                      <option value="A8">A8</option>
                     </optgroup>
                     <optgroup label="Bloco B">
                       <option value="B1">B1</option>
                       <option value="B2">B2</option>
                       <option value="B3">B3</option>
+                      <option value="B4">B4</option>
                     </optgroup>
                     <optgroup label="Bloco C">
                       <option value="C1">C1</option>
                       <option value="C2">C2</option>
                       <option value="C3">C3</option>
+                      <option value="C4">C4</option>
                     </optgroup>
                     <optgroup label="Outras Áreas">
                       <option value="Área Picking">Área Picking</option>
@@ -1258,16 +1262,20 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                   <option value="A4">Bloco A4</option>
                   <option value="A5">Bloco A5</option>
                   <option value="A6">Bloco A6</option>
+                  <option value="A7">Bloco A7</option>
+                  <option value="A8">Bloco A8</option>
                 </optgroup>
                 <optgroup label="Bloco B">
                   <option value="B1">Bloco B1</option>
                   <option value="B2">Bloco B2</option>
                   <option value="B3">Bloco B3</option>
+                  <option value="B4">Bloco B4</option>
                 </optgroup>
                 <optgroup label="Bloco C">
                   <option value="C1">Bloco C1</option>
                   <option value="C2">Bloco C2</option>
                   <option value="C3">Bloco C3</option>
+                  <option value="C4">Bloco C4</option>
                 </optgroup>
                 <optgroup label="Outras Áreas">
                   <option value="Área Picking">Área Picking</option>

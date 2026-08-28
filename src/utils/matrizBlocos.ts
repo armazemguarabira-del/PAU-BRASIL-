@@ -3,33 +3,37 @@
  * ==============================================================================
  * Diretrizes de Layout do Armazém:
  * 
- * 1. BLOCO A (Ruas A1, A2, A3, A4):
+ * 1. BLOCO A (Ruas A1, A2, A3, A4, A5, A6, A7, A8):
  *    - Fica mais próximo da entrada do Picking.
  *    - Destinado prioritariamente a produtos de alta rotatividade (CURVA A).
  *    - Proximidade da entrada do Picking por Rua:
  *      * Rua A1: Mais próxima da entrada do Picking (Score = 1)
  *      * Rua A2: Segunda rua mais próxima (Score = 2)
  *      * Rua A3: Terceira rua mais próxima (Score = 3)
- *      * Rua A4: Mais distante dentro do Bloco A (Score = 4)
+ *      * Rua A4: Quarta rua mais próxima (Score = 4)
+ *      * Rua A5: Quinta rua (Score = 5)
+ *      * Rua A6: Sexta rua (Score = 6)
+ *      * Rua A7: Sétima rua (Score = 7)
+ *      * Rua A8: Oitava rua dentro do Bloco A (Score = 8)
  * 
  * 2. BLOCO B (Ruas B1, B2, B3, B4):
  *    - Localizado no CENTRO do armazém.
  *    - Destinado a produtos de médio giro (CURVA B de vendas).
- *    - Ruas B1 (Score = 5) a B4 (Score = 8).
+ *    - Ruas B1 (Score = 9) a B4 (Score = 12).
  * 
  * 3. BLOCO CB (Ruas CB1, CB2, CB3, CB4):
  *    - Bloco intermediário / transição entre B e C.
- *    - Ruas CB1 (Score = 9) a CB4 (Score = 12).
+ *    - Ruas CB1 (Score = 13) a CB4 (Score = 16).
  * 
  * 4. BLOCO C (Ruas C1, C2, C3, C4):
  *    - Localizado no FINAL do armazém (mais distante da expedição e do picking).
  *    - Destinado a produtos de menor giro (CURVA C de vendas / baixo volume).
- *    - Ruas C1 (Score = 13) a C4 (Score = 16).
+ *    - Ruas C1 (Score = 17) a C4 (Score = 20).
  * 
  * 5. OUTRAS ÁREAS:
  *    - Área Picking (Score = 0): Própria área de separação.
- *    - Marketplace (Score = 20): Área dedicada.
- *    - Contingência (Score = 25): Armazenamento temporário de excedentes.
+ *    - Marketplace (Score = 25): Área dedicada.
+ *    - Contingência (Score = 30): Armazenamento temporário de excedentes.
  *    - PNC (Score = 99): Produto Não Conforme / Bloqueado (Fora da Matriz de Blocos).
  */
 
@@ -44,24 +48,24 @@ export interface RegraBlocoLayout {
 export const MATRIZ_BLOCOS_CONFIG: Record<string, RegraBlocoLayout> = {
   'A': {
     bloco: 'Bloco A',
-    ruas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'],
+    ruas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'],
     curvaIdeal: 'A',
     descricaoGiro: 'Alta Rotatividade / Curva A',
-    posicaoArmazem: 'Mais próximo do Picking (Entrada A1 é a mais próxima, A6 no Bloco A)'
+    posicaoArmazem: 'Mais próximo do Picking (Entrada A1 é a mais próxima, A8 no Bloco A)'
   },
   'B': {
     bloco: 'Bloco B',
-    ruas: ['B1', 'B2', 'B3'],
+    ruas: ['B1', 'B2', 'B3', 'B4'],
     curvaIdeal: 'B',
     descricaoGiro: 'Médio Giro / Curva B',
-    posicaoArmazem: 'Centro do Armazém'
+    posicaoArmazem: 'Centro do Armazém (Ruas B1 a B4)'
   },
   'C': {
     bloco: 'Bloco C',
-    ruas: ['C1', 'C2', 'C3'],
+    ruas: ['C1', 'C2', 'C3', 'C4'],
     curvaIdeal: 'C',
     descricaoGiro: 'Menor Giro / Curva C',
-    posicaoArmazem: 'Final do Armazém (Mais distante do Picking)'
+    posicaoArmazem: 'Final do Armazém (Ruas C1 a C4 - Mais distante do Picking)'
   }
 };
 
@@ -75,41 +79,43 @@ export function getDistanciaPickingScore(blocoRua: string): number {
 
   if (clean.includes('PICKING')) return 0;
 
-  // Ruas Bloco A (mais próximo: A1 a A6)
+  // Ruas Bloco A (mais próximo: A1 a A8)
   if (clean === 'A1') return 1; // Mais próxima da entrada do Picking
   if (clean === 'A2') return 2;
   if (clean === 'A3') return 3;
   if (clean === 'A4') return 4;
   if (clean === 'A5') return 5;
   if (clean === 'A6') return 6;
-  if (clean === 'A') return 3.5;
+  if (clean === 'A7') return 7;
+  if (clean === 'A8') return 8;
+  if (clean === 'A') return 4.5;
 
-  // Ruas Bloco B (centro: B1 a B3)
-  if (clean === 'B1') return 7;
-  if (clean === 'B2') return 8;
-  if (clean === 'B3') return 9;
-  if (clean === 'B4') return 10;
-  if (clean === 'B') return 8;
+  // Ruas Bloco B (centro: B1 a B4)
+  if (clean === 'B1') return 9;
+  if (clean === 'B2') return 10;
+  if (clean === 'B3') return 11;
+  if (clean === 'B4') return 12;
+  if (clean === 'B') return 10.5;
 
   // Ruas Bloco CB (compatibilidade histórica)
-  if (clean === 'CB1') return 11;
-  if (clean === 'CB2') return 12;
-  if (clean === 'CB3') return 13;
-  if (clean === 'CB4') return 14;
-  if (clean === 'CB') return 12.5;
+  if (clean === 'CB1') return 13;
+  if (clean === 'CB2') return 14;
+  if (clean === 'CB3') return 15;
+  if (clean === 'CB4') return 16;
+  if (clean === 'CB') return 14.5;
 
-  // Ruas Bloco C (final do armazém: C1 a C3)
-  if (clean === 'C1') return 15;
-  if (clean === 'C2') return 16;
-  if (clean === 'C3') return 17;
-  if (clean === 'C4') return 18;
-  if (clean === 'C') return 16;
+  // Ruas Bloco C (final do armazém: C1 a C4)
+  if (clean === 'C1') return 17;
+  if (clean === 'C2') return 18;
+  if (clean === 'C3') return 19;
+  if (clean === 'C4') return 20;
+  if (clean === 'C') return 18.5;
 
-  if (clean.includes('MARKETPLACE')) return 20;
-  if (clean.includes('CONTINGÊNCIA') || clean.includes('CONTINGENCIA')) return 25;
+  if (clean.includes('MARKETPLACE')) return 25;
+  if (clean.includes('CONTINGÊNCIA') || clean.includes('CONTINGENCIA')) return 30;
   if (clean.includes('PNC')) return 99; // Bloqueado
 
-  return 30;
+  return 35;
 }
 
 /**
@@ -126,23 +132,23 @@ export function getBlocoIdealParaCurva(curva: string): {
   if (c === 'A') {
     return {
       blocoIdeal: 'Bloco A',
-      ruasRecomendadas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'],
+      ruasRecomendadas: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'],
       descricao: 'Produtos de Curva A (Alta Rotatividade) devem ficar no Bloco A, preferencialmente na Rua A1 (mais próxima do Picking).',
-      distanciaIdealDesc: 'Próximo do Picking (A1 a A6)'
+      distanciaIdealDesc: 'Próximo do Picking (A1 a A8)'
     };
   } else if (c === 'B') {
     return {
       blocoIdeal: 'Bloco B',
-      ruasRecomendadas: ['B1', 'B2', 'B3'],
+      ruasRecomendadas: ['B1', 'B2', 'B3', 'B4'],
       descricao: 'Produtos de Curva B (Médio Giro) devem ser posicionados no Bloco B, no centro do armazém.',
-      distanciaIdealDesc: 'Centro do Armazém (B1 a B3)'
+      distanciaIdealDesc: 'Centro do Armazém (B1 a B4)'
     };
   } else {
     return {
       blocoIdeal: 'Bloco C',
-      ruasRecomendadas: ['C1', 'C2', 'C3'],
+      ruasRecomendadas: ['C1', 'C2', 'C3', 'C4'],
       descricao: 'Produtos de Curva C (Menor Giro) devem ser estocados no Bloco C, no final do armazém.',
-      distanciaIdealDesc: 'Final do Armazém (C1 a C3)'
+      distanciaIdealDesc: 'Final do Armazém (C1 a C4)'
     };
   }
 }

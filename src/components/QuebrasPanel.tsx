@@ -102,6 +102,29 @@ const QB_TIPOS: Record<string, Array<{ cod: number; motivo: string }>> = {
   ],
 };
 
+export const LISTA_RUAS_ARMAZEM = [
+  { value: 'A1', label: 'Rua A1 (Bloco A - Frente / Doca)' },
+  { value: 'A2', label: 'Rua A2 (Bloco A)' },
+  { value: 'A3', label: 'Rua A3 (Bloco A)' },
+  { value: 'A4', label: 'Rua A4 (Bloco A)' },
+  { value: 'A5', label: 'Rua A5 (Bloco A)' },
+  { value: 'A6', label: 'Rua A6 (Bloco A)' },
+  { value: 'A7', label: 'Rua A7 (Bloco A)' },
+  { value: 'A8', label: 'Rua A8 (Bloco A)' },
+  { value: 'B1', label: 'Rua B1 (Bloco B - Central)' },
+  { value: 'B2', label: 'Rua B2 (Bloco B - Central)' },
+  { value: 'B3', label: 'Rua B3 (Bloco B - Central)' },
+  { value: 'B4', label: 'Rua B4 (Bloco B - Central)' },
+  { value: 'C1', label: 'Rua C1 (Bloco C - Fundo)' },
+  { value: 'C2', label: 'Rua C2 (Bloco C - Fundo)' },
+  { value: 'C3', label: 'Rua C3 (Bloco C - Fundo)' },
+  { value: 'C4', label: 'Rua C4 (Bloco C - Fundo)' },
+  { value: 'PICKING', label: 'Área de Picking' },
+  { value: 'MARKETPLACE', label: 'Marketplace' },
+  { value: 'CONTINGENCIA', label: 'Contingência' },
+  { value: 'DOCAS', label: 'Docas / Expedição' },
+];
+
 export const COLABORADORES_QUEBRA = LISTA_COLABORADORES_OFICIAIS.map(c => c.nome);
 
 export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShiftStart }: QuebrasPanelProps) {
@@ -130,6 +153,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   const [showDropdown, setShowProdDropdown] = useState(false);
   const [quantidade, setQuantidade] = useState<number | ''>(() => getDraftValue('quantidade', ''));
   const [area, setArea] = useState<string>(() => getDraftValue('area', 'ARMAZEM'));
+  const [rua, setRua] = useState<string>(() => getDraftValue('rua', 'A1'));
   const [turno, setTurno] = useState<string>(() => getDraftValue('turno', 'MANHÃ'));
   const [motivoCod, setMotivoCod] = useState<number>(() => getDraftValue('motivoCod', 0));
   const [colaboradorQuebrou, setColaboradorQuebrou] = useState<string>(() => getDraftValue('colaboradorQuebrou', ''));
@@ -348,6 +372,21 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       const rowsData = rows.map(raw => parseQuebraRow(raw));
       await QuebrasRepository.batchUpsert(rowsData, empresa?.id || 'demo');
       importedCount = rowsData.length;
+
+      const companyId = empresa?.id || 'demo';
+      const nextQuebras = [...rowsData, ...quebras];
+      setQuebras(nextQuebras);
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(nextQuebras));
+
+      // Dispara eventos para atualização reativa em tempo real do Dashboard e de outros módulos
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: { count: nextQuebras.length } }));
+        window.dispatchEvent(new CustomEvent('retroactive-data-updated', { detail: { modulo: 'quebras' } }));
+        window.dispatchEvent(new CustomEvent('app_data_updated'));
+        window.dispatchEvent(new CustomEvent('local_data_changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
 
       setImportStatusMsg(`✅ Sucesso! ${importedCount} registros de quebras foram importados com êxito!`);
       alert(`🎉 Importação Concluída!\nForam cadastrados ${importedCount} registros de quebras no banco de dados.`);
@@ -571,6 +610,8 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       descricao: selectedProd.descricao,
       quantidade: Number(quantidade),
       area,
+      rua: area === 'ARMAZEM' ? rua : undefined,
+      localizacao: area === 'ARMAZEM' ? `Rua ${rua}` : area,
       turno,
       codQuebra: String(motivoCod),
       motivo: chosenMotive,
@@ -578,7 +619,24 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     };
 
     try {
-      await QuebrasRepository.create(newRow, empresa?.id || 'demo');
+      const created = await QuebrasRepository.create(newRow, empresa?.id || 'demo');
+      const savedDocId = created?.id || `qb-local-${Date.now()}`;
+      const savedItem: QuebraRow = { ...newRow, id: savedDocId, _docId: savedDocId };
+
+      const companyId = empresa?.id || 'demo';
+      const nextQuebras = [savedItem, ...quebras];
+      setQuebras(nextQuebras);
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(nextQuebras));
+
+      // Dispara eventos para sincronização reativa e imediata no QuebrasDashboard e Banner de Produtividade
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: { count: nextQuebras.length, item: savedItem } }));
+        window.dispatchEvent(new CustomEvent('retroactive-data-updated', { detail: { modulo: 'quebras' } }));
+        window.dispatchEvent(new CustomEvent('app_data_updated'));
+        window.dispatchEvent(new CustomEvent('local_data_changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
 
       setProdutoBusca('');
       setSelectedProd(null);
@@ -599,6 +657,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   const [editingRow, setEditingRow] = useState<QuebraRow | null>(null);
   const [editQuantidade, setEditQuantidade] = useState<string>('');
   const [editArea, setEditArea] = useState<string>('ARMAZEM');
+  const [editRua, setEditRua] = useState<string>('A1');
   const [editTurno, setEditTurno] = useState<string>('MANHÃ');
   const [editMotivoCod, setEditMotivoCod] = useState<number | ''>('');
   const [editColaborador, setEditColaborador] = useState<string>('');
@@ -611,14 +670,24 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
+    const companyId = empresa?.id || 'demo';
     try {
-      await QuebrasRepository.delete(docId, empresa?.id || 'demo');
+      await QuebrasRepository.delete(docId, companyId);
     } catch (e) {
       console.error(e);
     } finally {
       const remaining = quebras.filter(r => r._docId !== docId && (r as any).id !== docId);
       setQuebras(remaining);
-      safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(remaining));
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: { count: remaining.length } }));
+        window.dispatchEvent(new CustomEvent('retroactive-data-updated', { detail: { modulo: 'quebras' } }));
+        window.dispatchEvent(new CustomEvent('app_data_updated'));
+        window.dispatchEvent(new CustomEvent('local_data_changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
     }
   };
 
@@ -626,6 +695,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     setEditingRow(q);
     setEditQuantidade(String(q.quantidade || ''));
     setEditArea(q.area || 'ARMAZEM');
+    setEditRua(q.rua || 'A1');
     setEditTurno(q.turno || 'MANHÃ');
     setEditMotivoCod(q.codQuebra ? Number(q.codQuebra) : '');
     const colabVal = q.colaboradorQuebrou || '';
@@ -670,6 +740,8 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       descricao: editSelectedProd.descricao,
       quantidade: Number(editQuantidade),
       area: editArea,
+      rua: editArea === 'ARMAZEM' ? editRua : undefined,
+      localizacao: editArea === 'ARMAZEM' ? `Rua ${editRua}` : editArea,
       turno: editTurno,
       codQuebra: String(editMotivoCod),
       motivo: chosenMotive,
@@ -678,15 +750,25 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       colaboradorQuebrou: isQuebraMovimentacao || editColaborador ? editColaborador.trim() : ''
     };
 
+    const companyId = empresa?.id || 'demo';
     try {
       const idToUpdate = editingRow._docId || editingRow.id;
       if (idToUpdate) {
-        await QuebrasRepository.update(idToUpdate, updatedFields, empresa?.id || 'demo');
+        await QuebrasRepository.update(idToUpdate, updatedFields, companyId);
       }
 
       const nextQuebras = quebras.map(r => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
       setQuebras(nextQuebras);
-      safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(nextQuebras));
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: { count: nextQuebras.length } }));
+        window.dispatchEvent(new CustomEvent('retroactive-data-updated', { detail: { modulo: 'quebras' } }));
+        window.dispatchEvent(new CustomEvent('app_data_updated'));
+        window.dispatchEvent(new CustomEvent('local_data_changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
 
       setEditingRow(null);
     } catch (e) {
@@ -696,14 +778,56 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
   };
 
+  const handleExportQuebrasExcel = (dataToExport?: QuebraRow[]) => {
+    const list = dataToExport || filteredQuebras;
+    if (!list || list.length === 0) {
+      alert('Nenhum registro para exportar.');
+      return;
+    }
+    const exportRows = list.map(q => ({
+      'DATA': q.data || q.dataISO,
+      'CÓDIGO SKU': q.codProduto,
+      'DESCRIÇÃO DO PRODUTO': q.descricao,
+      'QUANTIDADE (UN)': q.quantidade,
+      'SETOR / ÁREA': q.area,
+      'TURNO': q.turno,
+      'CÓDIGO QUEBRA': q.codQuebra,
+      'MOTIVO DA AVARIA': q.motivo,
+      'COLABORADOR': q.colaboradorQuebrou || q.responsavel || '—',
+      'FISCAL / LANÇADOR': q.fiscal || '—',
+      'VALOR UNITÁRIO (R$)': q.valorUnitario || 0,
+      'VALOR TOTAL (R$)': q.valorTotal || 0,
+      'HL PERDIDO': q.hlPerdido || 0
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Relatório de Quebras');
+    const filename = `relatorio_quebras_${(empresa?.razaoSocial || 'empresa').toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   const filteredQuebras = useMemo(() => {
     return filterHistoryForUser<QuebraRow>(quebras, user);
   }, [quebras, user]);
 
   const todayQuebras = useMemo(() => {
-    const today = new Date().toLocaleDateString('pt-BR');
-    return quebras.filter(r => r.data === today && (r.fiscal === user.nome || r.responsavel === user.nome || (r as any).fiscal === user.nome));
-  }, [quebras, user.nome]);
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('pt-BR');
+    const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const userNorm = (user.nome || '').trim().toLowerCase();
+    const isSupervisorOrAdmin = user.papel === 'admin' || user.papel === 'gerente' || user.papel === 'supervisor' || user.papel === 'gestor';
+
+    return quebras.filter(r => {
+      const matchDate = r.data === todayStr || r.dataISO === todayISO || (r.data && r.data.includes(todayStr));
+      if (!matchDate) return false;
+      if (isSupervisorOrAdmin) return true;
+      const fiscalNorm = (r.fiscal || '').trim().toLowerCase();
+      const respNorm = (r.responsavel || '').trim().toLowerCase();
+      const colabNorm = (r.colaboradorQuebrou || '').trim().toLowerCase();
+      return fiscalNorm === userNorm || respNorm === userNorm || colabNorm === userNorm || !userNorm;
+    });
+  }, [quebras, user]);
 
   const todayQuebrasStats = useMemo(() => {
     const registros = todayQuebras.length;
@@ -733,37 +857,49 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   return (
     <div className="flex flex-col gap-6">
       
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs flex-wrap gap-2">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] rounded-xl w-full shadow-xs flex-wrap gap-3">
         <span className="font-sans font-black text-sm tracking-widest text-rose-600 dark:text-[#ef4444] uppercase">💥 CONTROLE DE QUEBRAS E AVARIAS</span>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleExportQuebrasExcel()}
+            className="px-3.5 py-1.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-xs"
+            title="Descarregar relatório consolidado em Excel (.xlsx)"
+          >
+            <Download className="w-4 h-4" /> Descarregar Informações (Excel)
+          </button>
+        </div>
       </div>
 
       <SopBannerViewer operation="quebras" operationName="Quebras e Avarias" theme="dark" />
 
-      <div className="ptabs border-b border-[#222d3a] flex gap-2 flex-wrap">
-        <button 
-          onClick={() => setActiveTab('form')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📝 Cadastrar Quebra
-        </button>
-        <button 
-          onClick={() => setActiveTab('import')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'import' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📥 Importar Banco / Planilha
-        </button>
-        <button 
-          onClick={() => setActiveTab('stats')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📊 Produtividade do Dia
-        </button>
-        <button 
-          onClick={() => setActiveTab('hist')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredQuebras.length}</span>
-        </button>
+      <div className="ptabs border-b border-[#222d3a] flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📝 Cadastrar Quebra
+          </button>
+          <button 
+            onClick={() => setActiveTab('import')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'import' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📥 Importar Banco / Planilha
+          </button>
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📊 Produtividade do Dia
+          </button>
+          <button 
+            onClick={() => setActiveTab('hist')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredQuebras.length}</span>
+          </button>
+        </div>
       </div>
 
       {activeTab === 'import' && (
@@ -982,7 +1118,13 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                             {r.motivo}
                           </td>
                           <td className="py-3 px-3 font-mono text-[#6a7d92]">
-                            {r.area} ({r.turno})
+                            <span>{r.area}</span>
+                            {r.rua && (
+                              <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/20">
+                                Rua {r.rua}
+                              </span>
+                            )}
+                            <span className="block text-[10px] text-gray-500">{r.turno}</span>
                           </td>
                         </tr>
                       ))}
@@ -1094,7 +1236,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 ${area === 'ARMAZEM' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4`}>
             
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Área de Origem *</label>
@@ -1105,6 +1247,17 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                 <option value="PUXADA">Puxada / Transferência</option>
               </select>
             </div>
+
+            {area === 'ARMAZEM' && (
+              <div className="flex flex-col gap-1.5 animate-fadeIn">
+                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#38bdf8]">Rua / Setor Armazém *</label>
+                <select value={rua} onChange={e => setRua(e.target.value)} className="g-input bg-[#151b23] border-[#38bdf8]/40 text-[#38bdf8] font-bold">
+                  {LISTA_RUAS_ARMAZEM.map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Turno Ocorrido *</label>
@@ -1246,7 +1399,14 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                                   <td className="p-3 font-mono font-bold text-snow">{q.codProduto}</td>
                                   <td className="p-3">{q.descricao}</td>
                                   <td className="p-3 text-center text-red font-black text-sm">{q.quantidade}</td>
-                                  <td className="p-3 font-bold text-snow">{q.area}</td>
+                                  <td className="p-3 font-bold text-snow">
+                                    <span>{q.area}</span>
+                                    {q.rua && (
+                                      <span className="block text-[10px] text-[#38bdf8] font-mono mt-0.5">
+                                        Rua {q.rua}
+                                      </span>
+                                    )}
+                                  </td>
                                   <td className="p-3 uppercase text-[10px] font-bold text-[#6a7d92]">{q.turno}</td>
                                   <td className="p-3 font-mono font-bold text-[#f5a623]">{q.codQuebra}</td>
                                   <td className="p-3 text-[#6a7d92]">
@@ -1407,6 +1567,22 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
                   <option value="PUXADA">PUXADA</option>
                 </select>
               </div>
+
+              {/* Rua no Armazém (quando Área for ARMAZEM) */}
+              {editArea === 'ARMAZEM' && (
+                <div className="animate-fadeIn">
+                  <label className="block text-[11px] font-bold text-[#38bdf8] uppercase mb-1">Rua / Setor Armazém</label>
+                  <select 
+                    value={editRua}
+                    onChange={(e) => setEditRua(e.target.value)}
+                    className="w-full bg-[#151b23] border border-[#38bdf8]/40 rounded p-2.5 text-[#38bdf8] font-bold focus:border-[#38bdf8] outline-none"
+                  >
+                    {LISTA_RUAS_ARMAZEM.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Turno */}
               <div>

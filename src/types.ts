@@ -138,6 +138,8 @@ export interface QuebraRow {
   tipoMarca?: string;
   embalagem?: string;
   area: string;
+  rua?: string;
+  localizacao?: string;
   turno: string;
   codQuebra: string;
   motivo: string;

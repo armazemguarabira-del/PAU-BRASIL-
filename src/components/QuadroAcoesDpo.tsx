@@ -176,7 +176,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-28',
     status: 'Em Andamento',
     responsavel: 'Djeanderson Soares',
-    local: 'Picking / Rua 04 - Posições Críticas',
+    local: 'Picking / Rua A4 - Posições Críticas',
     observacaoCampo: 'Divergência tratada na onda matutina do Fast Picking.',
     etapasVerificacao: [
       { id: '1', texto: 'Auditar saldo físico na posição de picking', concluida: true },
@@ -197,7 +197,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-29',
     status: 'Em Andamento',
     responsavel: 'Matheus Barbosa',
-    local: 'Ressuprimento / Ruas 01 a 05',
+    local: 'Ressuprimento / Ruas A1 a A8',
     observacaoCampo: 'Operador de empilhadeira dedicado nos horários de pico (14h-18h).',
     etapasVerificacao: [
       { id: '1', texto: 'Mapear curvas de consumo do turno da tarde', concluida: true },
@@ -237,7 +237,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-30',
     status: 'Em Andamento',
     responsavel: 'Paulo Pereira',
-    local: 'Corredor Central / Rua 02',
+    local: 'Corredor Central / Rua B2',
     observacaoCampo: 'Redução imediata de tombamentos no turno da noite.',
     etapasVerificacao: [
       { id: '1', texto: 'Auditar velocidade dos operadores de empilhadeira', concluida: true },
@@ -1256,7 +1256,7 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
                       type="text"
                       value={formLocal}
                       onChange={(e) => setFormLocal(e.target.value)}
-                      placeholder="Ex: Picking Rua 04 / Bancada 01"
+                      placeholder="Ex: Picking Rua A4 / Bancada 01"
                       className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
                         isDark ? 'bg-[#0b0f17] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
                       }`}

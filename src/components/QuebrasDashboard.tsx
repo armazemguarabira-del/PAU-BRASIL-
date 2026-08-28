@@ -33,10 +33,17 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Download,
+  RefreshCw,
+  FileSpreadsheet,
+  Check
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
+import { QuebrasRepository } from '../db';
+import { getJsonTable } from '../utils/hybridJsonDatabase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 import A3BoardComponent from './A3BoardComponent';
@@ -231,48 +238,79 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return getItemValorReal(q);
   };
   
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['quebras', 'produtos', 'colaboradores', 'acoes']);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
-  // Sync Quebras with memory cache and lightweight custom sync
-  useEffect(() => {
+  // Sync Quebras with memory cache, custom storage, Firestore repository and JSON database
+  const refreshQuebras = React.useCallback(async (extraItems?: QuebraRow[]) => {
     const companyId = empresa?.id || 'demo';
-    
-    const refreshQuebras = () => {
-      const officialRows = buildOfficialQuebrasRows(companyId);
-      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+    const officialRows = buildOfficialQuebrasRows(companyId);
+    const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-      const customRows: QuebraRow[] = [];
-      const seenCustomKeys = new Set<string>();
+    const customRows: QuebraRow[] = [];
+    const seenItemKeys = new Set<string>();
 
-      const addCustomIfNew = (item: QuebraRow) => {
-        if (!item) return;
-        const idStr = String(item.id || item._docId || '');
-        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
-        const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.area || ''}_${item.quantidade || 0}`;
-        if (seenCustomKeys.has(bizKey)) return;
-        seenCustomKeys.add(bizKey);
-        customRows.push(item);
-      };
+    const addCustomIfNew = (item: QuebraRow) => {
+      if (!item) return;
+      const idStr = String(item.id || item._docId || '');
+      if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
 
-      if (empresaData.quebras && empresaData.quebras.length > 0) {
-        empresaData.quebras.forEach(addCustomIfNew);
-      }
+      // Unique key combines id when present, otherwise payload details
+      const uniqueKey = idStr 
+        ? `id_${idStr}`
+        : `biz_${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.area || ''}_${item.quantidade || 0}_${item.turno || ''}_${item.codQuebra || ''}_${item._criadoEm || item.colaboradorQuebrou || ''}`;
+      
+      if (seenItemKeys.has(uniqueKey)) return;
+      seenItemKeys.add(uniqueKey);
+      customRows.push(item);
+    };
 
-      const savedCustom = localStorage.getItem(`custom_quebras_${companyId}`) || localStorage.getItem(`local_quebras_${companyId}`);
-      if (savedCustom) {
+    // 1. Check Extra items passed directly
+    if (extraItems && Array.isArray(extraItems)) {
+      extraItems.forEach(addCustomIfNew);
+    }
+
+    // 2. Check Context empresaData.quebras
+    if (empresaData.quebras && empresaData.quebras.length > 0) {
+      empresaData.quebras.forEach(addCustomIfNew);
+    }
+
+    // 3. Check Local storage layers
+    const storagesToCheck = [
+      `custom_quebras_${companyId}`,
+      `quebras_${companyId}`,
+      `local_quebras_${companyId}`,
+      `custom_quebras_demo`,
+      `quebras_demo`
+    ];
+
+    for (const key of storagesToCheck) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
         try {
-          const parsed = JSON.parse(savedCustom);
+          const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
             parsed.forEach(addCustomIfNew);
           }
         } catch (_) {}
       }
+    }
 
-      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-      setActualQuebras(rows);
-    };
+    // 4. Try async repository and json table if needed
+    try {
+      const dbRows = await getJsonTable<QuebraRow>(companyId, 'quebras');
+      if (Array.isArray(dbRows)) {
+        dbRows.forEach(addCustomIfNew);
+      }
+    } catch (_) {}
 
+    const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+    rows.sort((a, b) => (b.dataISO || b.data || '').localeCompare(a.dataISO || a.data || ''));
+    setActualQuebras(rows);
+  }, [empresa?.id, empresaData.quebras]);
+
+  useEffect(() => {
     refreshQuebras();
 
     const handleUpdated = () => {
@@ -280,10 +318,68 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     };
 
     window.addEventListener('quebras-db-updated', handleUpdated);
+    window.addEventListener('retroactive-data-updated', handleUpdated);
+    window.addEventListener('app_data_updated', handleUpdated);
+    window.addEventListener('local_data_changed', handleUpdated);
+    window.addEventListener('storage', handleUpdated);
+
     return () => {
       window.removeEventListener('quebras-db-updated', handleUpdated);
+      window.removeEventListener('retroactive-data-updated', handleUpdated);
+      window.removeEventListener('app_data_updated', handleUpdated);
+      window.removeEventListener('local_data_changed', handleUpdated);
+      window.removeEventListener('storage', handleUpdated);
     };
-  }, [empresaData.quebras, empresa?.id]);
+  }, [refreshQuebras]);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    setSyncFeedback(null);
+    try {
+      const companyId = empresa?.id || 'demo';
+      const repoRows = await QuebrasRepository.getAll(companyId);
+      const jsonRows = await getJsonTable<QuebraRow>(companyId, 'quebras');
+      await refreshQuebras([...repoRows, ...jsonRows]);
+
+      setSyncFeedback(`Sincronizado! ${quebras.length} registros atualizados.`);
+      setTimeout(() => setSyncFeedback(null), 4000);
+    } catch (e: any) {
+      console.error(e);
+      setSyncFeedback('Erro ao sincronizar informações.');
+      setTimeout(() => setSyncFeedback(null), 4000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    const list = crossFilteredData && crossFilteredData.length > 0 ? crossFilteredData : quebras;
+    if (!list || list.length === 0) {
+      alert('Nenhum dado disponível para descarregar.');
+      return;
+    }
+
+    const exportRows = list.map(q => ({
+      'DATA': q.data || q.dataISO,
+      'CÓDIGO SKU': q.codProduto,
+      'DESCRIÇÃO DO PRODUTO': q.descricao,
+      'QUANTIDADE (UN)': q.quantidade,
+      'SETOR / ÁREA': q.area,
+      'TURNO': q.turno,
+      'CÓDIGO MOTIVO': q.codQuebra,
+      'MOTIVO DA QUEBRA': q.motivo,
+      'COLABORADOR RESPONSÁVEL': q.colaboradorQuebrou || q.responsavel || '—',
+      'FISCAL / LANÇADOR': q.fiscal || '—',
+      'VALOR TOTAL (R$)': getItemValorReal(q),
+      'VOLUME HL': convertCxToHE(q.quantidade, q.descricao, q.codProduto)
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Quebras');
+    const filename = `relatorio_dashboard_quebras_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
 
   const availableMotivos = useMemo(() => {
     const map = new Map<string, string>();
@@ -725,6 +821,33 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" /> Gerar Ações
           </button>
+
+          {/* SINCRONIZAR E DESCARREGAR INFORMAÇÕES */}
+          <button
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className="px-3.5 py-1.5 bg-sky-600/10 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/30 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider disabled:opacity-50"
+            title="Sincronizar lançamentos recentes e atualizar dashboard"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-white' : 'text-sky-300'}`} />
+            <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+          </button>
+
+          <button
+            onClick={handleExportExcel}
+            className="px-3.5 py-1.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider"
+            title="Descarregar dados e relatório consolidado em Excel (.xlsx)"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Descarregar Excel</span>
+          </button>
+
+          {syncFeedback && (
+            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-600/40 px-2.5 py-1 rounded-lg animate-fadeIn">
+              <Check className="w-3.5 h-3.5" />
+              <span>{syncFeedback}</span>
+            </div>
+          )}
 
           {/* REQUISITO 23: 3 SELETORES LADO A LADO: R$, HL, SKU */}
           <div className={`flex items-center p-1 rounded-xl border ${

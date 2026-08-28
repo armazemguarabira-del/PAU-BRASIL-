@@ -17,7 +17,7 @@ export const WLP_METAS_OFICIAIS_2026: WlpMetasMes[] = [
   { mes: 'Maio', mesNum: 5, metaWlp: 6.23, realWlp: 6.74, metaPnp: 6.23, realPnp: 6.60 },
   { mes: 'Junho', mesNum: 6, metaWlp: 6.23, realWlp: 7.39, metaPnp: 6.23, realPnp: 7.25 },
   { mes: 'Julho', mesNum: 7, metaWlp: 6.23, realWlp: 6.50, metaPnp: 6.23, realPnp: 6.38 },
-  { mes: 'Agosto', mesNum: 8, metaWlp: 6.23, realWlp: 7.20, metaPnp: 6.23, realPnp: 7.08 },
+  { mes: 'Agosto', mesNum: 8, metaWlp: 6.23, realWlp: 5.15, metaPnp: 6.23, realPnp: 5.08 },
   { mes: 'Setembro', mesNum: 9, metaWlp: 6.23, realWlp: 0.00, metaPnp: 6.23, realPnp: 0.00 },
   { mes: 'Outubro', mesNum: 10, metaWlp: 6.23, realWlp: 0.00, metaPnp: 6.23, realPnp: 0.00 },
   { mes: 'Novembro', mesNum: 11, metaWlp: 6.23, realWlp: 0.00, metaPnp: 6.23, realPnp: 0.00 },

@@ -747,9 +747,9 @@ export default function CurvaAbcVendaMediaPanel({ user, onDataUpdated }: CurvaAb
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/20 px-2.5 py-0.5 rounded-full">
                 REGRAS CLASSE A — ALTO GIRO
               </span>
-              <h4 className="text-sm font-black text-white">Doca Frontal & Ruas Principais (Rua A)</h4>
+              <h4 className="text-sm font-black text-white">Doca Frontal & Ruas Principais (Ruas A1 a A8)</h4>
               <p className="text-xs text-slate-300">
-                Posicione nos primeiros níveis (solo) mais próximos das docas para otimizar o fluxo dos empilhadores. Capacidade: <strong>4 a 8 paletes por baia</strong>. Prioridade de ressuprimento: <strong>Imediata (Pré-Picking)</strong>.
+                Posicione nos primeiros níveis (solo) mais próximos das docas e picking (A1 mais próximo até A8) para otimizar o fluxo dos empilhadores. Capacidade: <strong>4 a 8 paletes por baia</strong>. Prioridade de ressuprimento: <strong>Imediata (Pré-Picking)</strong>.
               </p>
             </div>
 
@@ -757,9 +757,9 @@ export default function CurvaAbcVendaMediaPanel({ user, onDataUpdated }: CurvaAb
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/20 px-2.5 py-0.5 rounded-full">
                 REGRAS CLASSE B — MÉDIO GIRO
               </span>
-              <h4 className="text-sm font-black text-white">Ruas Intermediárias (Rua C e D)</h4>
+              <h4 className="text-sm font-black text-white">Ruas Centrais (Ruas B1 a B4)</h4>
               <p className="text-xs text-slate-300">
-                Posicione em baias intermediárias (Nível 1 e 2). Capacidade sugerida: <strong>2 a 4 paletes por baia</strong>. Prioridade de ressuprimento: <strong>Média (Ponto de Reposição)</strong>.
+                Posicione em baias intermediárias no centro do armazém (Ruas B1 a B4). Capacidade sugerida: <strong>2 a 4 paletes por baia</strong>. Prioridade de ressuprimento: <strong>Média (Ponto de Reposição)</strong>.
               </p>
             </div>
 
@@ -767,9 +767,9 @@ export default function CurvaAbcVendaMediaPanel({ user, onDataUpdated }: CurvaAb
               <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/20 px-2.5 py-0.5 rounded-full">
                 REGRAS CLASSE C — BAIXO GIRO
               </span>
-              <h4 className="text-sm font-black text-white">Ruas de Fundo & Pulmão Aéreo (Rua E/F)</h4>
+              <h4 className="text-sm font-black text-white">Ruas de Fundo (Ruas C1 a C4)</h4>
               <p className="text-xs text-slate-300">
-                Posicione nos níveis superiores ou ruas de fundo para preservar espaço nobre do picking. Capacidade sugerida: <strong>1 palete por baia</strong>. Prioridade de ressuprimento: <strong>Sob Demanda</strong>.
+                Posicione nas ruas de fundo e final do armazém (Ruas C1 a C4) para preservar espaço nobre do picking. Capacidade sugerida: <strong>1 palete por baia</strong>. Prioridade de ressuprimento: <strong>Sob Demanda</strong>.
               </p>
             </div>
           </div>
