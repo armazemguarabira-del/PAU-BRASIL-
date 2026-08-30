@@ -537,6 +537,17 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
         empresaData.repack.forEach(addCustomIfNew);
       }
 
+      // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
+      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+      if (savedManual) {
+        try {
+          const parsed = JSON.parse(savedManual);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
+          }
+        } catch (_) {}
+      }
+
       const saved = localStorage.getItem(`repack_rows_${companyId}`);
       if (saved) {
         try {
@@ -561,9 +572,16 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
       refreshRepackRows();
     };
 
+    window.addEventListener('repack-updated', handleUpdated);
     window.addEventListener('repack-db-updated', handleUpdated);
+    window.addEventListener('empresa-data-reload', handleUpdated);
+    window.addEventListener('storage', handleUpdated);
+
     return () => {
+      window.removeEventListener('repack-updated', handleUpdated);
       window.removeEventListener('repack-db-updated', handleUpdated);
+      window.removeEventListener('empresa-data-reload', handleUpdated);
+      window.removeEventListener('storage', handleUpdated);
     };
   }, [empresaData.repack, repackCollection, empresa?.id]);
 
@@ -1456,8 +1474,35 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
       _criadoEm: today.toISOString()
     };
 
+    const companyId = empresa?.id || 'demo';
+    const newDocId = `repack_manual_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const newEntryWithId: RepackRow = {
+      ...withTimestamps(newEntry),
+      _docId: newDocId,
+      id: newDocId
+    };
+
     try {
-      await RepackRepository.create(withTimestamps(newEntry), empresa?.id || 'demo');
+      await RepackRepository.create(newEntryWithId, companyId);
+
+      // 1. Atualiza estado local imediatamente
+      const updatedRows = [newEntryWithId, ...actualRepackRows];
+      setActualRepackRows(updatedRows);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(updatedRows));
+
+      // 2. Persiste em repack_manual_entries_
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        const manualList = savedManual ? JSON.parse(savedManual) : [];
+        manualList.unshift(newEntryWithId);
+        localStorage.setItem(`repack_manual_entries_${companyId}`, JSON.stringify(manualList));
+      } catch (_) {}
+
+      // 3. Dispara eventos para atualização instantânea
+      window.dispatchEvent(new CustomEvent('repack-updated', { detail: { record: newEntryWithId, companyId } }));
+      window.dispatchEvent(new CustomEvent('repack-db-updated', { detail: { record: newEntryWithId, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+
       setIsModalOpen(false);
       setFormInicio('');
       setFormFim('');
@@ -1485,14 +1530,28 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
 
   const handleDeleteRow = async (id: string) => {
     if (!id) return;
+    const companyId = empresa?.id || 'demo';
     try {
-      await RepackRepository.delete(id, empresa?.id || 'demo');
+      await RepackRepository.delete(id, companyId);
     } catch (e) {
       console.error(e);
     } finally {
       const remaining = actualRepackRows.filter(r => r._docId !== id && (r as any).id !== id);
       setActualRepackRows(remaining);
-      localStorage.setItem(`repack_rows_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(remaining));
+
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        if (savedManual) {
+          const manualList = JSON.parse(savedManual);
+          const filteredManual = manualList.filter((r: any) => r._docId !== id && r.id !== id);
+          localStorage.setItem(`repack_manual_entries_${companyId}`, JSON.stringify(filteredManual));
+        }
+      } catch (_) {}
+
+      window.dispatchEvent(new CustomEvent('repack-updated', { detail: { deletedId: id, companyId } }));
+      window.dispatchEvent(new CustomEvent('repack-db-updated', { detail: { deletedId: id, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
     }
   };
 
@@ -2634,6 +2693,46 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
                         className="bg-white border border-gray-200 text-slate-800 text-xs rounded-lg pl-9 pr-3 py-1.5 focus:border-[#032b5e] outline-none transition-colors w-[180px]"
                       />
                     </div>
+                    <button
+                      onClick={() => {
+                        const companyId = empresa?.id || 'demo';
+                        const officialRows = buildOfficialRepackRows(companyId);
+                        const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+                        const customRows: RepackRow[] = [];
+                        const seenCustomKeys = new Set<string>();
+
+                        const addCustomIfNew = (item: RepackRow) => {
+                          if (!item) return;
+                          const idStr = String(item.id || item._docId || '');
+                          if (idStr && officialIds.has(idStr)) return;
+                          const bizKey = `${item.dataISO || item.data || ''}_${item.inicio || ''}_${item.operador || ''}_${item.embalagem || ''}_${item.quantidade || 0}`;
+                          if (seenCustomKeys.has(bizKey)) return;
+                          seenCustomKeys.add(bizKey);
+                          customRows.push(item);
+                        };
+
+                        if (empresaData.repack && empresaData.repack.length > 0) {
+                          empresaData.repack.forEach(addCustomIfNew);
+                        }
+                        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+                        if (savedManual) {
+                          try {
+                            const parsed = JSON.parse(savedManual);
+                            if (Array.isArray(parsed)) parsed.forEach(addCustomIfNew);
+                          } catch (_) {}
+                        }
+                        const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+                        rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+                        setActualRepackRows(rows);
+                        localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(rows));
+                        window.dispatchEvent(new CustomEvent('repack-updated', { detail: { companyId } }));
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#032b5e] font-sans font-bold rounded-lg text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border border-blue-200"
+                      title="Sincronizar dados com a Base Oficial e cache em tempo real"
+                    >
+                      <RefreshCw className="w-3 h-3 text-[#1e56f0]" />
+                      Base Oficial ({actualRepackRows.length})
+                    </button>
                     <button
                       onClick={handleExportXLSX}
                       className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-sans font-bold rounded-lg text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer border-none"

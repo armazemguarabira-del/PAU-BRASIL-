@@ -11,6 +11,8 @@ import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
 import { calculateStockAgeIndex } from '../utils/calculateStockAgeIndex';
 import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
+import { savePncItem, saveDespejoTask } from '../utils/pncManager';
+import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
 import { 
   TrendingDown, 
   CheckCircle2, 
@@ -103,7 +105,35 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     }
   };
 
+  const loadDailyLogs = () => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setDailyLogs(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar logs:', err);
+    }
+  };
+
   const empresaData = useEmpresaData();
+
+  // Listen to background updates (e.g. Despejo sent, PNC updated, Validades updated)
+  useEffect(() => {
+    const handleReload = () => {
+      loadDailyLogs();
+    };
+    window.addEventListener('despejo_tasks_updated', handleReload);
+    window.addEventListener('pnc_updated', handleReload);
+    window.addEventListener('validades_updated', handleReload);
+    window.addEventListener('local_data_changed', handleReload);
+    return () => {
+      window.removeEventListener('despejo_tasks_updated', handleReload);
+      window.removeEventListener('pnc_updated', handleReload);
+      window.removeEventListener('validades_updated', handleReload);
+      window.removeEventListener('local_data_changed', handleReload);
+    };
+  }, []);
 
   // Build product lookup map by SKU code
   const produtosMap = useMemo(() => {
@@ -128,6 +158,17 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
 
     const sourceList = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
 
+    // Set of despejados to exclude from Escoamento active tracking
+    const despejadosKey = `armazem_escoamento_despejados_${empresa?.id || 'demo'}`;
+    let despejadosSet = new Set<string>();
+    try {
+      const saved = localStorage.getItem(despejadosKey);
+      if (saved) {
+        const list = JSON.parse(saved);
+        despejadosSet = new Set(Array.isArray(list) ? list : []);
+      }
+    } catch (e) {}
+
     const map = new Map<string, EscoamentoItem>();
 
     sourceList.forEach((item, idx) => {
@@ -142,6 +183,11 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
       
       // Unified key: same codigo and validadeStr
       const key = `${codigo}_${validadeStr}`;
+
+      // Exclude items that are already in despejo
+      if (item.localizacao === 'despejo' || despejadosSet.has(key) || despejadosSet.has(codigo)) {
+        return;
+      }
 
       // Calculate Stock Age Index using official calculateStockAgeIndex
       const calcResult = calculateStockAgeIndex({
@@ -231,6 +277,11 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
   // 2. Filter & Sort
   const filteredItems = useMemo(() => {
     return escoamentoItems.filter(item => {
+      // Itens encaminhados para PNC saem da tela ativa de escoamento e vão para a guia de PNC
+      if (item.localizacao === 'pnc' || (item as any).dataTransferenciaPnc) {
+        return false;
+      }
+
       // Search
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
@@ -405,12 +456,44 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
 
   // ── ACTION: MANDAR PARA PNC ──
   const handleTransferToPnc = async (item: EscoamentoItem) => {
-    if (!confirm(`Deseja transferir o produto "${item.descricao}" para a área de PNC (Produtos Não Conformes)?`)) {
+    if (!confirm(`Deseja transferir o produto "${item.descricao}" para a área de PNC (Produtos Não Conformes)?\n\nO item sairá desta tela imediatamente e será direcionado para a Guia de PNC para tratativa.`)) {
       return;
     }
 
     const companyId = empresa?.id || 'demo';
     const nowIso = new Date().toISOString();
+    const todayStr = nowIso.substring(0, 10);
+
+    // Save directly in central PNC Platform & Records
+    encaminharItemParaPnc({
+      codigo: item.codigo,
+      descricao: item.descricao,
+      validade: item.dataVencimento,
+      lote: item.lote,
+      quantidade: item.qtdAtual,
+      qtde_bloq_cx: item.qtdAtual,
+      localizacaoAnterior: item.localizacao || 'Armazém Central',
+      blocoAnterior: item.bloco || 'Bloco A',
+      data_entrada: todayStr,
+      motivo: `Transferido do Escoamento (Stock Age: ${item.stockAgeIndex}%)`,
+      responsavel: user?.nome || 'Conferente FEFO',
+      empresaId: companyId
+    }, companyId);
+
+    // Save directly in central PNC Manager legacy store
+    savePncItem({
+      codigo: item.codigo,
+      descricao: item.descricao,
+      validade: item.dataVencimento,
+      lote: item.lote,
+      quantidade: item.qtdAtual,
+      localizacaoAnterior: item.localizacao || 'Armazém Central',
+      blocoAnterior: item.bloco || 'Bloco A',
+      dataEntradaPnc: todayStr,
+      motivo: `Transferido do Escoamento (Stock Age: ${item.stockAgeIndex}%)`,
+      registradoPor: user?.nome || 'Conferente FEFO',
+      status: 'Em Quarentena / PNC'
+    }, companyId);
 
     const pncKey = `armazem_pnc_dates_${companyId}`;
     let pncMap: Record<string, string> = {};
@@ -458,18 +541,35 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     } catch (e) {}
 
     window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('pnc_updated'));
     window.dispatchEvent(new Event('storage'));
     if (onRefresh) onRefresh();
+
+    alert(`✅ Produto "${item.descricao}" (${item.qtdAtual} cx) foi direcionado com sucesso para a Guia de PNC para tratativa e removido do escoamento ativo.`);
   };
 
   // ── ACTION: TRATATIVA PNC - ENVIAR PARA DESPEJO ──
   const handleEnviarParaDespejo = async (item: EscoamentoItem) => {
-    if (!confirm(`TRATATIVA PNC: Confirma enviar o produto "${item.descricao}" (${item.qtdAtual} cx) para DESPEJO?`)) {
+    if (!confirm(`TRATATIVA PNC: Confirma enviar o produto "${item.descricao}" (${item.qtdAtual} cx) para DESPEJO?\n\nSerá criada uma tarefa operacional para os ajudantes de armazém.`)) {
       return;
     }
 
     const companyId = empresa?.id || 'demo';
     const nowIso = new Date().toISOString();
+
+    // 1. Create official task for Ajudante de Armazém
+    saveDespejoTask({
+      origem: 'FEFO',
+      codigo: item.codigo,
+      descricao: item.descricao,
+      lote: item.lote,
+      validade: item.dataVencimento,
+      quantidade: item.qtdAtual,
+      motivo: `Tratativa PNC (${item.diasEmPnc || 29} dias em quarentena) - Escoamento`,
+      solicitadoPor: user?.nome || 'Conferente FEFO',
+      prioridade: (item.diasEmPnc || 0) >= 25 ? 'Urgente' : 'Alta',
+      status: 'Pendente'
+    }, companyId);
 
     const despejoKey = `despejo_rows_${companyId}`;
     let despejoList: any[] = [];
@@ -532,8 +632,9 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     } catch (e) {}
 
     window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('despejo_tasks_updated'));
     window.dispatchEvent(new Event('storage'));
-    alert(`✅ Produto ${item.codigo} enviado para Despejo com sucesso!`);
+    alert(`✅ Produto ${item.codigo} enviado para Despejo! Tarefa gerada para o Ajudante de Armazém.`);
     if (onRefresh) onRefresh();
   };
 

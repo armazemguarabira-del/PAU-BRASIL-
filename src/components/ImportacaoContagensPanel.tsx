@@ -243,7 +243,7 @@ export default function ImportacaoContagensPanel({ user, onDataUpdated }: Import
   };
 
   const downloadSampleTemplate = (areaName: string) => {
-    const sampleCsv = `codigo;quantidade;produto\n347;150;SUKITA PET 1L CAIXA C/12\n982;240;SKOL 600ML\n988;320;BRAHMA CHOPP 600ML\n504;180;PEPSI COLA PET 2L CAIXA C/6\n838;50;CHOPP BRAHMA CLARO BARRIL KEG 50L`;
+    const sampleCsv = `codigo;quantidade;produto\n347;150;SUKITA PET 1L CAIXA C/12\n982;240;SKOL 600ML\n988;320;BRAHMA CHOPP 600ML\n504;180;PEPSI COLA PET 2L CAIXA C/6\n21787;50;DREHER GARRAFA VIDRO 900ML`;
     const blob = new Blob([sampleCsv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

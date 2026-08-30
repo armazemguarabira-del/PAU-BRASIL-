@@ -607,7 +607,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "20329",
-    "description": "BRAHMA DUPLO MALTE 600ML",
+    "description": "BRAHMA CHOPP 600ML",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,
@@ -618,7 +618,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "20498",
-    "description": "BRAHMA DUPLO MALTE LT SLEEK 350ML SH C 12",
+    "description": "BRAHMA CHOPP LT SLEEK 350ML SH C 12",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,
@@ -651,7 +651,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "20549",
-    "description": "BRAHMA DUPLO MALTE GFA VD 300ML CX C/23",
+    "description": "BRAHMA CHOPP GFA VD 300ML CX C/23",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,
@@ -893,7 +893,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "22326",
-    "description": "BRAHMA DUPLO MALTE LT 473ML SH C/12 NPAL",
+    "description": "BRAHMA CHOPP LT 473ML SH C/12 NPAL",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,
@@ -1663,7 +1663,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "22815",
-    "description": "BRAHMA DUPLO MALTE LATA 310ML CX C/6 MULTPACK",
+    "description": "BRAHMA CHOPP LATA 310ML CX C/6 MULTPACK",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,
@@ -2378,7 +2378,7 @@ export const DEFAULT_PRODUCTS: Product[] = [
   },
   {
     "code": "20533",
-    "description": "BRAHMA DUPLO MALTE GFA VD 1L",
+    "description": "BRAHMA CHOPP GFA VD 1L",
     "group": "CERVEJA",
     "unit": "un",
     "palletFactor": 84,

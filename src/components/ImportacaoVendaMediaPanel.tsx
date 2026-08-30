@@ -23,6 +23,7 @@ import {
   getVendaMediaLogs, 
   saveVendaMediaLogs 
 } from '../utils/estoqueStorage';
+import { parseSapNumber } from '../utils/vendaMedia030519';
 import { PRODUCTS } from '../planosData';
 import { Usuario } from '../types';
 
@@ -79,7 +80,7 @@ export default function ImportacaoVendaMediaPanel({ user, onDataUpdated }: Impor
     getVendaMediaItens().forEach(item => currentVmMap.set(item.codigo, item));
 
     // Map to aggregate total sold per product code (Pivot table logic)
-    const totalVendidoMap = new Map<number, number>();
+    const totalVendidoMap = new Map<number, { total: number; desc: string; unit: string }>();
     const rawLinesCount = lines.length;
 
     let aceitosCount = 0;
@@ -89,23 +90,33 @@ export default function ImportacaoVendaMediaPanel({ user, onDataUpdated }: Impor
     // Parse each line
     lines.forEach((line, idx) => {
       // Split by semicolon ';' or tab
-      const parts = line.split(';').map(p => p.trim());
+      let parts = line.split(';').map(p => p.trim());
+      if (parts.length < 2) parts = line.split('\t').map(p => p.trim());
 
       let codeRaw = '';
-      let qtyRaw = '';
+      let descRaw = '';
+      let unitRaw = 'cx';
+      let qty = 0;
 
       // Check if line conforms to official operation format (Column G = index 6, Column AC = index 28)
       if (parts.length >= 29) {
         codeRaw = parts[6];  // Coluna G = Código do Produto
-        qtyRaw = parts[28]; // Coluna AC = Quantidade Vendida
+        descRaw = parts[7];  // Coluna H = Nome do Produto
+        unitRaw = parts[8] || 'cx';
+        qty = parseSapNumber(parts[28]); // Coluna AC = Quantidade Vendida
+        if (qty === 0 && parts[9] !== undefined) {
+          const vQty = parseSapNumber(parts[9]);
+          if (vQty > 0) qty = vQty;
+        }
       } else if (parts.length >= 7) {
-        // Fallback for smaller export files where Col G is present
-        codeRaw = parts[6];
-        qtyRaw = parts[parts.length - 1];
+        codeRaw = parts[6] || parts[0];
+        descRaw = parts[7] || parts[1] || '';
+        unitRaw = parts[8] || 'cx';
+        qty = parseSapNumber(parts[parts.length - 1]);
       } else {
-        // Simple 2 or 3 column fallback CSV (Codigo; Venda/Qtd)
         codeRaw = parts[0];
-        qtyRaw = parts[1] || '0';
+        descRaw = parts.length >= 3 ? parts[1] : '';
+        qty = parseSapNumber(parts[parts.length - 1]);
       }
 
       // Ignore header line if code is non-numeric string
@@ -125,37 +136,23 @@ export default function ImportacaoVendaMediaPanel({ user, onDataUpdated }: Impor
         return;
       }
 
-      // Requirement 25 Rule 2 & 3: Check if product is registered in the platform catalog
-      const catalogItem = currentCatalogMap.get(codeNum);
-      const existingVm = currentVmMap.get(codeNum);
-
-      if (!catalogItem && !existingVm) {
-        // Ignore automatically items that are not finished products or not registered
-        rejeitadosCount++;
-        if (errorDetails.length < 10) {
-          errorDetails.push(`Linha ${idx + 1}: SKU ${codeNum} ignorado (Não cadastrado na plataforma).`);
-        }
-        return;
-      }
-
-      // Clean quantity sold (convert "11340,00" or "2892;05" to numeric float)
-      let cleanQtyStr = qtyRaw.replace(/\s+/g, '').replace(',', '.');
-      // If contains additional semicolons like "2892;05", take the integer/first part
-      if (cleanQtyStr.includes(';')) {
-        cleanQtyStr = cleanQtyStr.split(';')[0];
-      }
-      
-      let qtyNum = parseFloat(cleanQtyStr);
-      if (isNaN(qtyNum)) qtyNum = 0;
+      const cleanDesc = descRaw || `Produto ${codeNum}`;
 
       // Accumulate total sold (Pivot Table aggregation)
-      const prevTotal = totalVendidoMap.get(codeNum) || 0;
-      totalVendidoMap.set(codeNum, prevTotal + qtyNum);
+      const existing = totalVendidoMap.get(codeNum);
+      if (existing) {
+        existing.total += qty;
+        if (cleanDesc && cleanDesc.length > existing.desc.length) {
+          existing.desc = cleanDesc;
+        }
+      } else {
+        totalVendidoMap.set(codeNum, { total: qty, desc: cleanDesc, unit: unitRaw });
+      }
       aceitosCount++;
     });
 
     if (totalVendidoMap.size === 0) {
-      alert(`Nenhum produto cadastrado foi encontrado no arquivo. Total de linhas rejeitadas: ${rejeitadosCount}`);
+      alert(`Nenhum produto válido foi encontrado no arquivo. Total de linhas rejeitadas: ${rejeitadosCount}`);
       return;
     }
 
@@ -163,15 +160,15 @@ export default function ImportacaoVendaMediaPanel({ user, onDataUpdated }: Impor
     const updatedVmList: VendaMediaItem[] = [];
 
     // Calculate Daily Average Sales for each aggregated product
-    totalVendidoMap.forEach((totalVendido, codeNum) => {
+    totalVendidoMap.forEach((agg, codeNum) => {
       const catalogItem = currentCatalogMap.get(codeNum);
       const existingItem = currentVmMap.get(codeNum);
 
       // Formula: Venda Média Diária = Total Vendido ÷ Quantidade de Dias Úteis do Mês
-      const vendaMediaDiaria = Math.max(0, Math.round((totalVendido / diasUteisMes) * 10) / 10);
+      const vendaMediaDiaria = Math.max(0.1, Math.round((agg.total / diasUteisMes) * 100) / 100);
 
-      const prodName = catalogItem?.descricao || existingItem?.produto || `Produto ${codeNum}`;
-      const familia = existingItem?.familia || 'Bebidas';
+      const prodName = agg.desc || catalogItem?.descricao || existingItem?.produto || `Produto ${codeNum}`;
+      const familia = existingItem?.familia || 'Cervejas';
       const marca = existingItem?.marca || 'AMBEV';
       const setor = existingItem?.setor || 'Armazém Central';
       const unitPrice = existingItem?.precoUnitario || 50.0;

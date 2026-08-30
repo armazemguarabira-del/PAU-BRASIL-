@@ -1,9 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ValidadeRow, Usuario, Empresa } from '../types';
-import { isCustomFirebaseConnected } from '../firebase';
-import { ValidadesRepository } from '../db';
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
 import { 
   AlertTriangle, 
   Clock, 
@@ -14,946 +11,1149 @@ import {
   ShieldAlert, 
   ShieldCheck, 
   Building2, 
-  Boxes
+  Boxes,
+  Calendar,
+  Layers,
+  MapPin,
+  RefreshCw,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  TrendingUp,
+  BarChart3,
+  Flame,
+  ArrowRight,
+  Sparkles,
+  DollarSign,
+  Droplets,
+  Filter,
+  X,
+  FileCode
 } from 'lucide-react';
-import { useEmpresaData } from '../context/EmpresaDataContext';
-import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
-import { calcularTotalCaixas } from '../data/coletaPackagingData';
+import ImportStockAgeJsonModal from './ImportStockAgeJsonModal';
+import Import030519Modal from './Import030519Modal';
 import { 
-  calculateStockAgeIndex, 
-  calculateStockAgeSummary, 
-  StockAgeStatus 
-} from '../utils/calculateStockAgeIndex';
-import { useVendaMedia030519 } from '../utils/vendaMedia030519';
+  getStoredMonthlyColetas, 
+  saveMonthlyColetas, 
+  processColetaItems, 
+  MONTH_KEYS,
+  ColetaItemRaw,
+  StockAgeProcessedItem,
+  RuaShelfRiskSummary,
+  CurvaAbcSummary,
+  syncValidadesListToMonthlyColetas,
+  normalizeColetaRawList,
+  formatAnyDateToBr
+} from '../utils/stockAgeMonthlyManager';
+import { useVendaMedia030519, Item030519Data, sync030519WithEstoqueStorage } from '../utils/vendaMedia030519';
+import { saveVendaMediaItens, getVendaMediaItens } from '../utils/estoqueStorage';
+import { calcularQuebrasFefoEstoqueXEstoque, calcularQuebrasFefoEstoqueXPicking } from '../utils/matrizBlocos';
+import { requestAllFefoDemands, getStoredFefoDemands, requestFefoDemand } from '../utils/fefoDemandManager';
 
 interface StockAgeIndexTabProps {
-  validadesList: ValidadeRow[];
+  validadesList?: ValidadeRow[];
+  validades?: ValidadeRow[];
   user: Usuario;
   empresa: Empresa | null;
   onRefresh?: () => void;
 }
 
-export interface CalculatedStockAgeRow {
-  _docId?: string;
-  id: number;
-  codigo: string;
-  descricao: string;
-  lote: string;
-  quantidade: number;
-  dataVencimento: string; // YYYY-MM-DD
-  vidaUtilTotal: number | null;  // dias (idade cadastrada do produto)
-  diasRestantes: number;  // dias
-  stockAgeIndex: number;  // % (0 - 100)
-  status: StockAgeStatus;
-  idadeMissing: boolean;
-  statusLabel: string;
-  valorTotal: number;
-  localizacao: string;
-  bloco?: string;
-  setor: 'Bloco A' | 'Bloco B' | 'Bloco CB' | 'Bloco C' | 'Picking' | 'Marketplace' | 'Contingência';
-  vendaMediaDiaria: number;
-  is030519: boolean;
-  curvaAbc: 'A' | 'B' | 'C';
-  diasCobertura: number;
-  riscoSobra: boolean;
-  sobraEstimadaCx: number;
-}
+export default function StockAgeIndexTab({ validadesList = [], validades = [], user, empresa, onRefresh }: StockAgeIndexTabProps) {
+  const activeValidades = validades.length > 0 ? validades : validadesList;
+  const { allQuarters, activeQuarterInfo, refresh: refresh030519 } = useVendaMedia030519();
+  
+  // State for Month Selection (padrão: Agosto - Mês da Operação Ativa CCO)
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>('08'); // '08' = Agosto, '01' = Janeiro, 'all' = Todos
+  const [monthlyData, setMonthlyData] = useState<Record<string, ColetaItemRaw[]>>({});
+  
+  // Filtro de Semana do Mês (Semana 1 a 4)
+  const [selectedSemanaFilter, setSelectedSemanaFilter] = useState<'todas' | 1 | 2 | 3 | 4>('todas');
 
-export default function StockAgeIndexTab({ validadesList, user, empresa, onRefresh }: StockAgeIndexTabProps) {
-  const empresaData = useEmpresaData();
-  const { getItem: get030519Item, activeQuarterInfo } = useVendaMedia030519();
+  // Paginação para evitar travamentos de renderização
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(25);
+
+  // Filtro de Datas Personalizado
+  const [useCustomDateRange, setUseCustomDateRange] = useState<boolean>(false);
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [dateFilterField, setDateFilterField] = useState<'coleta' | 'vencimento'>('coleta');
+
+  // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'todos' | 'Crítico' | 'Atenção' | 'OK' | 'sem_idade' | 'risco_sobra'>('todos');
-  const [curvaFilter, setCurvaFilter] = useState<'todos' | 'Curva A' | 'Curva B' | 'Curva C'>('todos');
-  const [faixaVencFilter, setFaixaVencFilter] = useState<string>('todos');
-  const [loteFilter, setLoteFilter] = useState<string>('todos');
-  const [setorFilter, setSetorFilter] = useState<string>('todos');
-  const [isImporting, setIsImporting] = useState(false);
-  const [customRows, setCustomRows] = useState<CalculatedStockAgeRow[]>([]);
-  const [sortAsc, setSortAsc] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'todos' | 'Crítico' | 'Atenção' | 'OK' | 'risco_sobra'>('todos');
+  const [ruaFilter, setRuaFilter] = useState<string>('todos');
+  const [curvaFilter, setCurvaFilter] = useState<'todos' | 'A' | 'B' | 'C'>('todos');
+  
+  // Modals & Panels
+  const [showImportStockAgeJsonModal, setShowImportStockAgeJsonModal] = useState(false);
+  const [showImport030519Modal, setShowImport030519Modal] = useState(false);
+  const [showImportColetaModal, setShowImportColetaModal] = useState(false);
+  const [selectedRuaDetail, setSelectedRuaDetail] = useState<string | null>(null);
+  
+  // 03.05.19 Import form state
+  const [importText030519, setImportText030519] = useState('');
+  const [diasUteisTrimestre, setDiasUteisTrimestre] = useState<number>(30);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
 
-  const todayObj = new Date();
-  todayObj.setHours(0, 0, 0, 0);
-  const todayISO = todayObj.toISOString().substring(0, 10);
+  // Auto-sync validades with monthly coletas on mount or when activeValidades change
+  useEffect(() => {
+    if (activeValidades && activeValidades.length > 0) {
+      syncValidadesListToMonthlyColetas(activeValidades, empresa?.id || 'demo');
+    }
+  }, [activeValidades, empresa?.id]);
 
-  // Helper to determine sector from street/bloco/location
-  const getSetor = (blocoStr?: string, locStr?: string): 'Bloco A' | 'Bloco B' | 'Bloco CB' | 'Bloco C' | 'Picking' | 'Marketplace' | 'Contingência' => {
-    const combined = `${blocoStr || ''} ${locStr || ''}`.toUpperCase().trim();
-    if (combined.includes('MARKETPLACE') || combined.includes('MKT')) return 'Marketplace';
-    if (combined.includes('CONTINGÊNCIA') || combined.includes('CONTINGENCIA') || combined.includes('CONT')) return 'Contingência';
-    if (combined.includes('PICKING') || combined.includes('PICK')) return 'Picking';
-    if (combined.includes('CB') || combined.includes('BLOCO CB')) return 'Bloco CB';
-    if (['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'].some(r => combined.includes(r)) || combined.includes('BLOCO A') || combined.startsWith('A')) return 'Bloco A';
-    if (['B1', 'B2', 'B3', 'B4'].some(r => combined.includes(r)) || combined.includes('BLOCO B') || combined.startsWith('B')) return 'Bloco B';
-    if (['C1', 'C2', 'C3', 'C4'].some(r => combined.includes(r)) || combined.includes('BLOCO C') || combined.startsWith('C')) return 'Bloco C';
-    return 'Bloco A';
+  // Load monthly stored data
+  useEffect(() => {
+    loadMonthlyData();
+    const handleUpdate = () => loadMonthlyData();
+    window.addEventListener('stock_age_monthly_updated', handleUpdate);
+    window.addEventListener('vendaMedia030519Updated', handleUpdate);
+    return () => {
+      window.removeEventListener('stock_age_monthly_updated', handleUpdate);
+      window.removeEventListener('vendaMedia030519Updated', handleUpdate);
+    };
+  }, []);
+
+  const loadMonthlyData = () => {
+    const stored = getStoredMonthlyColetas();
+    setMonthlyData(stored);
   };
 
-  // 1. Unifica itens de mesmo código e validade e calcula Stock Age Index oficial + Venda Média 03.05.19
-  const processedRows = useMemo(() => {
-    const map = new Map<string, CalculatedStockAgeRow>();
-
-    validadesList.forEach((item, idx) => {
-      const codigo = String(item.codigo || '0000').trim();
-      const validadeStr = item.validade || todayISO;
-      const key = `${codigo}_${validadeStr}`;
-
-      const p = Number(item.palhete) || 0;
-      const l = Number(item.lastro) || 0;
-      const c = Number(item.caixa) || 0;
-      const q = Number((item as any).quantidade) || 0;
-      const quantidade = q > 0 ? q : (p > 0 || l > 0 || c > 0) ? calcularTotalCaixas(codigo, p, l, c) : (c > 0 ? c : 1);
-      const descricao = String(item.descricao || 'Produto sem descrição').trim();
-
-      // Product price
-      const pMaster = PRODUCT_MASTER_DATA.find(pm => String(pm.cod) === codigo);
-      const pCtx = empresaData?.produtos?.find(p => String(p.codigo).trim() === codigo);
-      const unitPrice = Number(pCtx?.valor) || Number(pMaster?.valor) || 50.0;
-      const valorTotal = quantidade * unitPrice;
-
-      // Single source of truth calculation
-      const calcResult = calculateStockAgeIndex({
-        codigo,
-        descricao,
-        validade: validadeStr
-      }, empresaData?.produtos);
-
-      const setor = getSetor(item.bloco, item.localizacao);
-
-      // Venda Média 03.05.19 integration
-      const item030519 = get030519Item(codigo);
-      const vendaMediaDiaria = item030519.vendaMediaDiaria;
-      const is030519 = item030519.source === '030519';
-      const curvaAbc = item030519.curvaAbc || 'B';
-
-      const diasCobertura = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
-      const riscoSobra = calcResult.diasRestantes > 0 && diasCobertura > calcResult.diasRestantes;
-      const sobraEstimadaCx = riscoSobra ? Math.max(0, Math.round(quantidade - (vendaMediaDiaria * calcResult.diasRestantes))) : 0;
-
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.quantidade += quantidade;
-        existing.valorTotal += valorTotal;
-        existing.lote = '-';
-        existing.diasCobertura = Math.max(1, Math.ceil(existing.quantidade / Math.max(0.1, existing.vendaMediaDiaria)));
-        existing.riscoSobra = existing.diasRestantes > 0 && existing.diasCobertura > existing.diasRestantes;
-        existing.sobraEstimadaCx = existing.riscoSobra ? Math.max(0, Math.round(existing.quantidade - (existing.vendaMediaDiaria * existing.diasRestantes))) : 0;
-      } else {
-        let cleanedLote = (item as any).lote || '';
-        if (!cleanedLote || cleanedLote.startsWith('L-') || cleanedLote.startsWith(`L-${codigo}`)) {
-          cleanedLote = '-';
-        }
-
-        map.set(key, {
-          _docId: item._docId || `${codigo}_${validadeStr}_${idx}`,
-          id: item.id || (idx + 1),
-          codigo,
-          descricao,
-          lote: cleanedLote,
-          quantidade,
-          dataVencimento: validadeStr,
-          vidaUtilTotal: calcResult.idadeCadastrada,
-          diasRestantes: calcResult.diasRestantes,
-          stockAgeIndex: calcResult.stockAgeIndex,
-          status: calcResult.status,
-          idadeMissing: calcResult.idadeMissing,
-          statusLabel: calcResult.statusLabel,
-          valorTotal,
-          localizacao: item.localizacao || 'central',
-          bloco: item.bloco,
-          setor,
-          vendaMediaDiaria,
-          is030519,
-          curvaAbc,
-          diasCobertura,
-          riscoSobra,
-          sobraEstimadaCx
-        } as CalculatedStockAgeRow);
-      }
-    });
-
-    return Array.from(map.values());
-  }, [validadesList, todayISO, empresaData?.produtos, get030519Item]);
-
-  const allRows = useMemo(() => {
-    if (customRows.length === 0) return processedRows;
-    const existingKeys = new Set(
-      processedRows.map(r => `${String(r.codigo).trim()}_${String(r.lote || '').trim()}_${String(r.dataVencimento || '').trim()}_${String(r.localizacao || '').trim()}`)
-    );
-    const nonDuplicatedCustom = customRows.filter(
-      r => !existingKeys.has(`${String(r.codigo).trim()}_${String(r.lote || '').trim()}_${String(r.dataVencimento || '').trim()}_${String(r.localizacao || '').trim()}`)
-    );
-    return [...processedRows, ...nonDuplicatedCustom];
-  }, [processedRows, customRows]);
-
-  const uniqueLotes = useMemo(() => {
-    const lotes = new Set<string>();
-    allRows.forEach(r => { if (r.lote && r.lote !== '-') lotes.add(r.lote); });
-    return Array.from(lotes).sort();
-  }, [allRows]);
-
-  // Overall Stats Summary using calculateStockAgeSummary
-  const stats = useMemo(() => {
-    const summary = calculateStockAgeSummary(allRows);
-    const total = summary.totalItens;
-    const criticoPct = total > 0 ? Math.round((summary.criticoCount / total) * 100) : 0;
-    const atencaoPct = total > 0 ? Math.round((summary.atencaoCount / total) * 100) : 0;
-    const okPct = total > 0 ? Math.round((summary.okCount / total) * 100) : 0;
-
-    return {
-      total,
-      avgIndex: summary.avgIndex,
-      criticoCount: summary.criticoCount,
-      criticoPct,
-      atencaoCount: summary.atencaoCount,
-      atencaoPct,
-      okCount: summary.okCount,
-      okPct,
-      missingIdadeCount: summary.missingIdadeCount,
-      totalValor: summary.totalValor
-    };
-  }, [allRows]);
-
-  // 2. Visão Agregada por Setor
-  const sectorAggrStats = useMemo(() => {
-    const sectorKeys: Array<'Bloco A' | 'Bloco B' | 'Bloco CB' | 'Bloco C' | 'Picking' | 'Marketplace' | 'Contingência'> = [
-      'Bloco A', 'Bloco B', 'Bloco CB', 'Bloco C', 'Picking', 'Marketplace', 'Contingência'
-    ];
-
-    const map: Record<string, { count: number; totalQty: number; totalValor: number; sumIndex: number; validCount: number; criticoCount: number }> = {};
-    sectorKeys.forEach(k => {
-      map[k] = { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 };
-    });
-
-    allRows.forEach(r => {
-      const sKey = r.setor || 'Bloco A';
-      if (!map[sKey]) {
-        map[sKey] = { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 };
-      }
-      map[sKey].count++;
-      map[sKey].totalQty += r.quantidade;
-      map[sKey].totalValor += r.valorTotal || 0;
-      if (!r.idadeMissing) {
-        map[sKey].sumIndex += r.stockAgeIndex;
-        map[sKey].validCount++;
-        if (r.status === 'Crítico') map[sKey].criticoCount++;
-      } else {
-        map[sKey].criticoCount++;
-      }
-    });
-
-    return sectorKeys.map(key => {
-      const item = map[key];
-      const avgIndex = item.validCount > 0 ? Math.round((item.sumIndex / item.validCount) * 10) / 10 : 0;
-      let status: StockAgeStatus = 'OK';
-      if (avgIndex < 60) status = 'Crítico';
-      else if (avgIndex <= 75) status = 'Atenção';
-
-      return {
-        setor: key,
-        lotesCount: item.count,
-        totalCaixas: item.totalQty,
-        totalValor: item.totalValor,
-        avgStockAgeIndex: avgIndex,
-        criticoCount: item.criticoCount,
-        status
-      };
-    });
-  }, [allRows]);
-
-  // Product Meta Mapping (Grupo & Curva ABC)
-  const productMetaMap = useMemo(() => {
-    const map = new Map<string, { grupo: string; curva: string }>();
-    if (empresaData?.produtos) {
-      empresaData.produtos.forEach(p => {
-        if (p.codigo) {
-          map.set(String(p.codigo).trim(), {
-            grupo: p.grupo || 'Outros',
-            curva: (p as any).curva || 'B'
-          });
-        }
+  // Compile active raw items based on selected month or all months
+  const activeRawList = useMemo(() => {
+    if (selectedMonthKey === 'all') {
+      const all: ColetaItemRaw[] = [];
+      Object.values(monthlyData).forEach(list => {
+        if (Array.isArray(list)) all.push(...list);
       });
+      return all;
     }
-    PRODUCT_MASTER_DATA.forEach(p => {
-      const codeStr = String(p.cod).trim();
-      if (!map.has(codeStr)) {
-        map.set(codeStr, {
-          grupo: (p as any).grupo || 'Outros',
-          curva: (p as any).curva || 'B'
-        });
-      }
-    });
-    return map;
-  }, [empresaData?.produtos]);
+    return monthlyData[selectedMonthKey] || [];
+  }, [monthlyData, selectedMonthKey]);
 
-  // 3. Card Agregado por Grupo
-  const grupoAggrStats = useMemo(() => {
-    const map: Record<string, { count: number; totalQty: number; totalValor: number; sumIndex: number; validCount: number; criticoCount: number }> = {};
-    allRows.forEach(r => {
-      const meta = productMetaMap.get(r.codigo);
-      const grupo = meta?.grupo || 'Outros';
-      if (!map[grupo]) {
-        map[grupo] = { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 };
-      }
-      map[grupo].count++;
-      map[grupo].totalQty += r.quantidade;
-      map[grupo].totalValor += r.valorTotal || 0;
-      if (!r.idadeMissing) {
-        map[grupo].sumIndex += r.stockAgeIndex;
-        map[grupo].validCount++;
-        if (r.status === 'Crítico') map[grupo].criticoCount++;
-      } else {
-        map[grupo].criticoCount++;
-      }
-    });
+  // Process data with calculations
+  const { 
+    items: allProcessedItems, 
+    ruasSummary: allRuasSummary, 
+    curvaSummary: allCurvaSummary, 
+    semanasSummary: allSemanasSummary, 
+    kpiGeral: allKpiGeral,
+    avgStockAgeMediaSemanas: allAvgStockAgeMediaSemanas 
+  } = useMemo(() => {
+    return processColetaItems(activeRawList);
+  }, [activeRawList]);
 
-    return Object.entries(map).map(([grupo, data]) => {
-      const avgIndex = data.validCount > 0 ? Math.round((data.sumIndex / data.validCount) * 10) / 10 : 0;
-      let status: StockAgeStatus = 'OK';
-      if (avgIndex < 60) status = 'Crítico';
-      else if (avgIndex <= 75) status = 'Atenção';
-      return {
-        grupo,
-        count: data.count,
-        totalQty: data.totalQty,
-        totalValor: data.totalValor,
-        avgStockAgeIndex: avgIndex,
-        criticoCount: data.criticoCount,
-        status
-      };
-    }).sort((a, b) => b.totalValor - a.totalValor);
-  }, [allRows, productMetaMap]);
-
-  // 4. Card Agregado por Curva ABC (Alimentado pela 03.05.19)
-  const curvaAggrStats = useMemo(() => {
-    const map: Record<string, { count: number; totalQty: number; totalValor: number; sumIndex: number; validCount: number; criticoCount: number }> = {
-      'Curva A': { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 },
-      'Curva B': { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 },
-      'Curva C': { count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 },
-    };
-
-    allRows.forEach(r => {
-      const cKey = r.curvaAbc === 'A' ? 'Curva A' : r.curvaAbc === 'C' ? 'Curva C' : 'Curva B';
-      map[cKey].count++;
-      map[cKey].totalQty += r.quantidade;
-      map[cKey].totalValor += r.valorTotal || 0;
-      if (!r.idadeMissing) {
-        map[cKey].sumIndex += r.stockAgeIndex;
-        map[cKey].validCount++;
-        if (r.status === 'Crítico') map[cKey].criticoCount++;
-      } else {
-        map[cKey].criticoCount++;
-      }
-    });
-
-    return Object.entries(map).map(([curva, data]) => {
-      const avgIndex = data.validCount > 0 ? Math.round((data.sumIndex / data.validCount) * 10) / 10 : 0;
-      let status: StockAgeStatus = 'OK';
-      if (avgIndex < 60) status = 'Crítico';
-      else if (avgIndex <= 75) status = 'Atenção';
-      return {
-        curva,
-        count: data.count,
-        totalQty: data.totalQty,
-        totalValor: data.totalValor,
-        avgStockAgeIndex: avgIndex,
-        criticoCount: data.criticoCount,
-        status
-      };
-    });
-  }, [allRows]);
-
-  // 5. Card Agregado por Meses (Histórico dos últimos 12 meses)
-  const mesesAggrStats = useMemo(() => {
-    const monthLabels: Record<string, { label: string; count: number; totalQty: number; totalValor: number; sumIndex: number; validCount: number; criticoCount: number }> = {};
-    
-    // Generate last 12 months
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const monthName = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase();
-      monthLabels[key] = { label: monthName, count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 };
+  // Apply custom date range filter if enabled
+  const itemsAfterDateFilter = useMemo(() => {
+    if (!useCustomDateRange || (!customStartDate && !customEndDate)) {
+      return allProcessedItems;
     }
 
-    allRows.forEach(r => {
-      if (!r.dataVencimento) return;
-      const key = r.dataVencimento.substring(0, 7);
-      if (!monthLabels[key]) {
-        const d = new Date(r.dataVencimento + 'T00:00:00');
-        const monthName = isNaN(d.getTime()) ? key : d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase();
-        monthLabels[key] = { label: monthName, count: 0, totalQty: 0, totalValor: 0, sumIndex: 0, validCount: 0, criticoCount: 0 };
-      }
+    return allProcessedItems.filter(item => {
+      const targetDate = dateFilterField === 'coleta' 
+        ? item.dataColeta.includes('/') ? item.dataColeta.split('/').reverse().join('-') : item.dataColeta
+        : item.dataVencimento;
 
-      monthLabels[key].count++;
-      monthLabels[key].totalQty += r.quantidade;
-      monthLabels[key].totalValor += r.valorTotal || 0;
-      if (!r.idadeMissing) {
-        monthLabels[key].sumIndex += r.stockAgeIndex;
-        monthLabels[key].validCount++;
-        if (r.status === 'Crítico') monthLabels[key].criticoCount++;
-      } else {
-        monthLabels[key].criticoCount++;
-      }
-    });
-
-    return Object.entries(monthLabels)
-      .map(([key, data]) => {
-        const avgIndex = data.validCount > 0 ? Math.round((data.sumIndex / data.validCount) * 10) / 10 : 0;
-        let status: StockAgeStatus = 'OK';
-        if (avgIndex < 60) status = 'Crítico';
-        else if (avgIndex <= 75) status = 'Atenção';
-        return {
-          key,
-          label: data.label,
-          count: data.count,
-          totalQty: data.totalQty,
-          totalValor: data.totalValor,
-          avgStockAgeIndex: avgIndex,
-          criticoCount: data.criticoCount,
-          status
-        };
-      })
-      .filter(m => m.count > 0)
-      .sort((a, b) => a.key.localeCompare(b.key));
-  }, [allRows]);
-
-  // Filter & Sort for Table View
-  const filteredAndSortedRows = useMemo(() => {
-    let result = allRows.filter(r => {
-      if (searchTerm) {
-        const q = searchTerm.toLowerCase();
-        const matchCode = r.codigo.toLowerCase().includes(q);
-        const matchDesc = r.descricao.toLowerCase().includes(q);
-        const matchLote = r.lote.toLowerCase().includes(q);
-        if (!matchCode && !matchDesc && !matchLote) return false;
-      }
-
-      if (statusFilter === 'sem_idade') {
-        if (!r.idadeMissing) return false;
-      } else if (statusFilter === 'risco_sobra') {
-        if (!r.riscoSobra) return false;
-      } else if (statusFilter !== 'todos' && r.status !== statusFilter) {
-        return false;
-      }
-
-      if (curvaFilter !== 'todos') {
-        const expected = curvaFilter === 'Curva A' ? 'A' : curvaFilter === 'Curva B' ? 'B' : 'C';
-        if (r.curvaAbc !== expected) return false;
-      }
-
-      if (setorFilter !== 'todos' && r.setor !== setorFilter) {
-        return false;
-      }
-
-      if (loteFilter !== 'todos' && r.lote !== loteFilter) {
-        return false;
-      }
-
-      if (faixaVencFilter === 'vencidos' && r.diasRestantes >= 0) return false;
-      if (faixaVencFilter === '30d' && (r.diasRestantes < 0 || r.diasRestantes > 30)) return false;
-      if (faixaVencFilter === '31-60d' && (r.diasRestantes <= 30 || r.diasRestantes > 60)) return false;
-      if (faixaVencFilter === '61-90d' && (r.diasRestantes <= 60 || r.diasRestantes > 90)) return false;
-      if (faixaVencFilter === '90d+' && r.diasRestantes <= 90) return false;
-
+      if (customStartDate && targetDate < customStartDate) return false;
+      if (customEndDate && targetDate > customEndDate) return false;
       return true;
     });
+  }, [allProcessedItems, useCustomDateRange, customStartDate, customEndDate, dateFilterField]);
 
-    result.sort((a, b) => {
-      if (a.idadeMissing && !b.idadeMissing) return -1;
-      if (!a.idadeMissing && b.idadeMissing) return 1;
-      if (sortAsc) return a.stockAgeIndex - b.stockAgeIndex;
-      return b.stockAgeIndex - a.stockAgeIndex;
+  // Recompute KPIs, Ruas and Curvas based on date-filtered items if date filter is active
+  const { processedItems, ruasSummary, curvaSummary, semanasSummary, kpiGeral, avgStockAgeMediaSemanas } = useMemo(() => {
+    if (!useCustomDateRange || (!customStartDate && !customEndDate)) {
+      return {
+        processedItems: allProcessedItems,
+        ruasSummary: allRuasSummary,
+        curvaSummary: allCurvaSummary,
+        semanasSummary: allSemanasSummary,
+        kpiGeral: allKpiGeral,
+        avgStockAgeMediaSemanas: allAvgStockAgeMediaSemanas
+      };
+    }
+
+    // Convert processed items back to raw format to recalculate aggregated metrics cleanly
+    const rawFiltered: ColetaItemRaw[] = itemsAfterDateFilter.map(item => ({
+      dataColeta: item.dataColeta,
+      codigo: item.codigo,
+      descricao: item.descricao,
+      qtdeCaixas: item.quantidade,
+      dataVencimento: item.dataVencimento,
+      validadeDias: item.vidaUtilTotal,
+      fabricacao: item.fabricacao,
+      curva: item.curvaAbc,
+      blocoPrincipal: item.blocoPrincipal,
+      subBloco: item.rua,
+      destino: item.destino,
+      pallettesFechados: item.pallettesFechados,
+      sobraCaixas: item.sobraCaixas,
+      caixasNoBloco: item.caixasNoBloco,
+      vaiParaPicking: item.vaiParaPicking,
+      caixasNoPicking: item.caixasNoPicking
+    }));
+
+    const result = processColetaItems(rawFiltered);
+    return {
+      processedItems: result.items,
+      ruasSummary: result.ruasSummary,
+      curvaSummary: result.curvaSummary,
+      semanasSummary: result.semanasSummary,
+      kpiGeral: result.kpiGeral,
+      avgStockAgeMediaSemanas: result.avgStockAgeMediaSemanas
+    };
+  }, [allProcessedItems, allRuasSummary, allCurvaSummary, allSemanasSummary, allKpiGeral, allAvgStockAgeMediaSemanas, itemsAfterDateFilter, useCustomDateRange, customStartDate, customEndDate]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSemanaFilter, searchTerm, statusFilter, ruaFilter, curvaFilter, selectedMonthKey, useCustomDateRange, customStartDate, customEndDate]);
+
+  // Calculate month-by-month evolution for Jan..Dez
+  const monthlyEvolution = useMemo(() => {
+    return MONTH_KEYS.map(m => {
+      const rawList = monthlyData[m.key] || [];
+      const proc = processColetaItems(rawList);
+      return {
+        key: m.key,
+        short: m.short,
+        name: m.name,
+        hasData: rawList.length > 0,
+        totalCaixas: proc.kpiGeral.totalCaixas,
+        totalHecto: proc.kpiGeral.totalHecto,
+        totalValor: proc.kpiGeral.totalValor,
+        totalLotes: proc.kpiGeral.totalLotes,
+        avgStockAge: proc.kpiGeral.avgStockAge,
+        criticosPct: proc.kpiGeral.criticosPct,
+        criticosCaixas: proc.kpiGeral.criticosCaixas,
+        ruasCriticas: proc.kpiGeral.ruasCriticasCount,
+        semanas: proc.semanasSummary
+      };
     });
+  }, [monthlyData]);
 
-    return result;
-  }, [allRows, searchTerm, statusFilter, setorFilter, loteFilter, faixaVencFilter, sortAsc]);
+  // Filter items for table
+  const filteredItems = useMemo(() => {
+    return processedItems.filter(item => {
+      // Filtro de Semana Selecionada
+      if (selectedSemanaFilter !== 'todas') {
+        if (item.semanaNumero !== selectedSemanaFilter) return false;
+      }
+      if (searchTerm) {
+        const q = searchTerm.toLowerCase();
+        const mCod = item.codigo.toLowerCase().includes(q);
+        const mDesc = item.descricao.toLowerCase().includes(q);
+        const mRua = item.rua.toLowerCase().includes(q);
+        if (!mCod && !mDesc && !mRua) return false;
+      }
+      if (statusFilter === 'risco_sobra') {
+        if (!item.riscoSobra) return false;
+      } else if (statusFilter !== 'todos' && item.status !== statusFilter) {
+        return false;
+      }
+      if (ruaFilter !== 'todos' && item.rua !== ruaFilter) {
+        return false;
+      }
+      if (curvaFilter !== 'todos' && item.curvaAbc !== curvaFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [processedItems, selectedSemanaFilter, searchTerm, statusFilter, ruaFilter, curvaFilter]);
 
-  // File Importer
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Paginated items for performance
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  // List of unique streets/sub-blocks for filter
+  const uniqueRuas = useMemo(() => {
+    const set = new Set<string>();
+    processedItems.forEach(i => { if (i.rua) set.add(i.rua); });
+    return Array.from(set).sort();
+  }, [processedItems]);
+
+  // Quick Date Range Helpers
+  const applyQuickDateRange = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+    setCustomStartDate(start.toISOString().split('T')[0]);
+    setCustomEndDate(end.toISOString().split('T')[0]);
+    setUseCustomDateRange(true);
+  };
+
+  const clearDateRange = () => {
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setUseCustomDateRange(false);
+  };
+
+  // Import handler for 03.05.19
+  const handleProcess030519 = (fileContent: string) => {
+    try {
+      const lines = fileContent.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length === 0) {
+        alert('O arquivo ou texto fornecido está vazio.');
+        return;
+      }
+
+      const currentVM = getVendaMediaItens();
+      const vmMap = new Map<number, any>();
+      currentVM.forEach(item => vmMap.set(item.codigo, item));
+
+      let importedCount = 0;
+      lines.forEach((line) => {
+        const parts = line.split(/[;\t,]/).map(p => p.trim());
+        let code = 0;
+        let qty = 0;
+        let desc = '';
+
+        if (parts.length >= 29) {
+          code = parseInt(parts[6].replace(/\D/g, ''), 10);
+          qty = parseFloat(parts[28].replace(/\./g, '').replace(',', '.')) || 0;
+          desc = parts[7] || '';
+        } else if (parts.length >= 2) {
+          code = parseInt(parts[0].replace(/\D/g, ''), 10);
+          qty = parseFloat(parts[1].replace(/\./g, '').replace(',', '.')) || 0;
+          if (parts[2]) desc = parts[2];
+        }
+
+        if (code > 0 && qty > 0) {
+          const vendaMediaDiaria = Math.round((qty / Math.max(1, diasUteisTrimestre)) * 100) / 100;
+          vmMap.set(code, {
+            codigo: code,
+            descricao: desc || `PRODUTO ${code}`,
+            vendaTotalTrimestre: qty,
+            vendaMediaDiaria,
+            diasUteisTrimestre,
+            dataAtualizacao: new Date().toISOString()
+          });
+          importedCount++;
+        }
+      });
+
+      if (importedCount > 0) {
+        const itemsObj: Record<number, any> = {};
+        vmMap.forEach((v, k) => {
+          itemsObj[k] = v;
+        });
+        sync030519WithEstoqueStorage(itemsObj);
+        setImportNotice(`Sucesso! ${importedCount} produtos atualizados com a Venda Média da 03.05.19.`);
+        setShowImport030519Modal(false);
+        refresh030519();
+        setTimeout(() => setImportNotice(null), 5000);
+      } else {
+        alert('Não foi possível identificar registros válidos. Verifique as colunas (Código e Quantidade).');
+      }
+    } catch (err: any) {
+      alert(`Erro no processamento: ${err.message}`);
+    }
+  };
+
+  // Import handler for monthly coletas file (JSON or Excel/CSV)
+  const handleImportColetaFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsImporting(true);
+    const fallbackMonth = selectedMonthKey === 'all' ? '05' : selectedMonthKey;
     const reader = new FileReader();
 
-    reader.onload = async (evt) => {
-      try {
-        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-        if (!jsonData || jsonData.length === 0) {
-          alert('Arquivo vazio ou em formato inválido!');
-          setIsImporting(false);
-          return;
-        }
-
-        const newImportedRows: CalculatedStockAgeRow[] = [];
-
-        for (let i = 0; i < jsonData.length; i++) {
-          const row = jsonData[i];
-          const cleanKeys: Record<string, any> = {};
-          Object.keys(row).forEach(k => {
-            cleanKeys[k.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')] = row[k];
-          });
-
-          const codigo = String(cleanKeys.codigo || cleanKeys.cod || cleanKeys.sku || cleanKeys.material || (1000 + i)).trim();
-          const descricao = String(cleanKeys.produto || cleanKeys.descricao || cleanKeys.desc || cleanKeys.nome || 'Produto Importado').trim();
-          const lote = String(cleanKeys.lote || cleanKeys.batch || `LOT-${codigo}-${i}`).trim();
-          const quantidade = Number(cleanKeys.quantidade || cleanKeys.caixas || cleanKeys.qtd || cleanKeys.unidades || 1);
-          const localizacaoStr = String(cleanKeys.localizacao || cleanKeys.local || cleanKeys.rua || cleanKeys.bloco || 'central');
-
-          let validadeVal = cleanKeys.validade || cleanKeys.vencimento || cleanKeys.data_vencimento || cleanKeys.dt_venc || todayISO;
-          if (typeof validadeVal === 'number') {
-            validadeVal = new Date((validadeVal - (25567 + 2)) * 86400 * 1000).toISOString().substring(0, 10);
-          } else if (String(validadeVal).includes('/')) {
-            const parts = String(validadeVal).split('/');
-            if (parts.length === 3) {
-              validadeVal = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    if (file.name.endsWith('.json')) {
+      reader.onload = (event) => {
+        try {
+          let json = JSON.parse(event.target?.result as string);
+          
+          // Se o JSON vier envelopado
+          if (json && typeof json === 'object' && !Array.isArray(json)) {
+            const wrapperKeys = ['data', 'items', 'lotes', 'coleta', 'coletas', 'stockAge', 'validades', 'rows', 'payload'];
+            for (const wk of wrapperKeys) {
+              if (Array.isArray(json[wk])) {
+                json = json[wk];
+                break;
+              }
             }
           }
-          const validadeStr = String(validadeVal).substring(0, 10);
 
-          const calcResult = calculateStockAgeIndex({
-            codigo,
-            descricao,
-            validade: validadeStr
-          }, empresaData?.produtos);
+          // Se for objeto mapeado por mês { "05": [...], "06": [...] }
+          if (json && typeof json === 'object' && !Array.isArray(json)) {
+            const currentStored = getStoredMonthlyColetas();
+            const mergedAll = { ...currentStored };
+            let count = 0;
+            let lastMonth = fallbackMonth;
 
-          const unitPrice = 50.0;
-          const valorTotal = quantidade * unitPrice;
-          const setor = getSetor(cleanKeys.bloco, localizacaoStr);
+            Object.entries(json).forEach(([k, list]) => {
+              if (!Array.isArray(list)) return;
+              let mKey = k.padStart(2, '0');
+              const monthObj = MONTH_KEYS.find(m => 
+                m.key === mKey || 
+                m.short.toLowerCase() === k.toLowerCase() || 
+                m.name.toLowerCase() === k.toLowerCase() ||
+                (k.toLowerCase().startsWith('mai') && m.key === '05')
+              );
+              if (monthObj) mKey = monthObj.key;
+              const norm = normalizeColetaRawList(list, mKey);
+              mergedAll[mKey] = norm;
+              count += norm.length;
+              lastMonth = mKey;
+            });
 
-          // Venda Média 03.05.19 integration
-          const item030519 = get030519Item(codigo);
-          const vendaMediaDiaria = item030519.vendaMediaDiaria;
-          const is030519 = item030519.source === '030519';
-          const curvaAbc: 'A' | 'B' | 'C' = (item030519.curvaAbc || item030519.classeABC || 'B') as 'A' | 'B' | 'C';
-          const diasCobertura = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
-          const riscoSobra = calcResult.diasRestantes > 0 && diasCobertura > calcResult.diasRestantes;
-          const sobraEstimadaCx = riscoSobra ? Math.max(0, Math.round(quantidade - (vendaMediaDiaria * calcResult.diasRestantes))) : 0;
+            saveMonthlyColetas(mergedAll);
+            loadMonthlyData();
+            setSelectedMonthKey(lastMonth);
+            setShowImportColetaModal(false);
+            setImportNotice(`Importados ${count} lotes com sucesso no Stock Age Index!`);
+            setTimeout(() => setImportNotice(null), 5000);
+            return;
+          }
 
-          const newRowObj: CalculatedStockAgeRow = {
-            id: Date.now() + i,
-            codigo,
-            descricao,
-            lote,
-            quantidade,
-            dataVencimento: validadeStr,
-            vidaUtilTotal: calcResult.idadeCadastrada,
-            diasRestantes: calcResult.diasRestantes,
-            stockAgeIndex: calcResult.stockAgeIndex,
-            status: calcResult.status,
-            idadeMissing: calcResult.idadeMissing,
-            statusLabel: calcResult.statusLabel,
-            valorTotal,
-            localizacao: localizacaoStr,
-            setor,
-            vendaMediaDiaria,
-            is030519,
-            curvaAbc,
-            diasCobertura,
-            riscoSobra,
-            sobraEstimadaCx
-          };
+          if (Array.isArray(json)) {
+            // Detectar se há datas no array
+            let detectedMonth = fallbackMonth;
+            for (const it of json) {
+              const d = it.dataColeta || it.data || it.Data || it['Data Coleta'] || it.data_coleta;
+              if (d) {
+                const brD = formatAnyDateToBr(d, fallbackMonth);
+                const parts = brD.split('/');
+                if (parts.length === 3) {
+                  const m = parts[1].padStart(2, '0');
+                  if (parseInt(m, 10) >= 1 && parseInt(m, 10) <= 12) {
+                    detectedMonth = m;
+                    break;
+                  }
+                }
+              }
+            }
 
-          newImportedRows.push(newRowObj);
+            const formatted = normalizeColetaRawList(json, detectedMonth);
+            if (formatted.length > 0) {
+              saveMonthlyColetas(detectedMonth, formatted);
+              loadMonthlyData();
+              setSelectedMonthKey(detectedMonth);
+              setShowImportColetaModal(false);
+              setImportNotice(`Importados ${formatted.length} lotes para o mês ${MONTH_KEYS.find(m => m.key === detectedMonth)?.name || detectedMonth}!`);
+              setTimeout(() => setImportNotice(null), 5000);
+            } else {
+              alert('Nenhum registro válido com código e quantidade foi identificado no JSON.');
+            }
+          } else {
+            alert('O JSON deve ser uma lista de objetos ou dicionário mapeado por meses.');
+          }
+        } catch (err: any) {
+          alert(`Erro ao ler JSON: ${err.message}`);
         }
-
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = (event) => {
         try {
-          const empId = empresa?.id || 'demo';
-          const itemsToSave = newImportedRows.map(r => ({
-            empresaId: empId,
-            codigo: r.codigo,
-            descricao: r.descricao,
-            palhete: 1,
-            lastro: 1,
-            caixa: r.quantidade,
-            validade: r.dataVencimento,
-            lote: r.lote,
-            quantidade: r.quantidade,
-            localizacao: r.localizacao,
-            _criadoEm: new Date().toISOString()
-          }));
-          await ValidadesRepository.batchUpsert(itemsToSave as any, empId);
-        } catch (err) {
-          console.error('Erro ao salvar no repositório de validades:', err);
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+          let detectedMonth = fallbackMonth;
+          for (const row of rawJson) {
+            const rawD = row['dataColeta'] || row['Data Coleta'] || row['Data'] || row['data'] || row['Data da Coleta'] || row['Data_Coleta'];
+            if (rawD) {
+              const brD = formatAnyDateToBr(rawD, fallbackMonth);
+              const parts = brD.split('/');
+              if (parts.length === 3) {
+                const m = parts[1].padStart(2, '0');
+                if (parseInt(m, 10) >= 1 && parseInt(m, 10) <= 12) {
+                  detectedMonth = m;
+                  break;
+                }
+              }
+            }
+          }
+
+          const formatted = normalizeColetaRawList(rawJson, detectedMonth);
+
+          if (formatted.length > 0) {
+            saveMonthlyColetas(detectedMonth, formatted);
+            loadMonthlyData();
+            setSelectedMonthKey(detectedMonth);
+            setShowImportColetaModal(false);
+            setImportNotice(`Importados ${formatted.length} lotes da planilha para ${MONTH_KEYS.find(m => m.key === detectedMonth)?.name || detectedMonth} com sucesso!`);
+            setTimeout(() => setImportNotice(null), 5000);
+          } else {
+            alert('Nenhum registro válido encontrado na planilha.');
+          }
+        } catch (err: any) {
+          alert(`Erro ao processar planilha: ${err.message}`);
         }
-
-        setCustomRows(prev => [...prev, ...newImportedRows]);
-        setIsImporting(false);
-        alert(`Sucesso! ${newImportedRows.length} registros importados e calculados no Stock Age Index.`);
-        if (onRefresh) onRefresh();
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao processar a planilha. Verifique a estrutura das colunas.');
-        setIsImporting(false);
-      }
-    };
-
-    reader.readAsArrayBuffer(file);
-    e.target.value = '';
-  };
-
-  const formatDateBR = (dateStr: string) => {
-    if (!dateStr) return '-';
-    if (dateStr.includes('/')) return dateStr;
-    const parts = dateStr.split('-');
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return dateStr;
-  };
-
-  const handleExportExcel = () => {
-    if (filteredAndSortedRows.length === 0) {
-      alert('Nenhum dado disponível para exportar.');
-      return;
+      };
+      reader.readAsArrayBuffer(file);
     }
+  };
 
-    const excelData = filteredAndSortedRows.map(r => ({
-      'Código': r.codigo,
-      'Produto': r.descricao,
-      'Lote': r.lote,
-      'Setor': r.setor,
-      'Quantidade (Cx)': r.quantidade,
-      'Valoração (R$)': r.valorTotal,
-      'Data Vencimento': formatDateBR(r.dataVencimento),
-      'Idade Cadastrada (Dias)': r.idadeMissing ? 'NÃO CADASTRADA' : r.vidaUtilTotal,
-      'Dias Restantes': r.diasRestantes,
-      'Stock Age Index (%)': r.idadeMissing ? 'N/A' : `${r.stockAgeIndex}%`,
-      'Status': r.statusLabel,
-      'Localização': r.localizacao
+  // Export to Excel with HL and Reais
+  const handleExportExcel = () => {
+    const exportData = filteredItems.map(item => ({
+      'Data Coleta': item.dataColeta,
+      'Código': item.codigo,
+      'Descrição': item.descricao,
+      'Quantidade (Cx)': item.quantidade,
+      'Volume (HL)': item.volumeHecto,
+      'Valor Estimado (R$)': item.valorEstimado,
+      'Vencimento': item.dataVencimento,
+      'Vida Útil (Dias)': item.vidaUtilTotal,
+      'Dias Restantes': item.diasRestantes,
+      'Stock Age Index (%)': `${item.stockAgeIndex}%`,
+      'Status': item.status,
+      'Rua / Sub-bloco': item.rua,
+      'Bloco': item.blocoPrincipal,
+      'Curva ABC': item.curvaAbc,
+      'Venda Média Diária (03.05.19)': item.vendaMediaDiaria,
+      'Dias em Estoque (Cobertura)': item.diasEmEstoque === 999 ? 'Sem Giro' : item.diasEmEstoque,
+      'Risco de Sobra': item.riscoSobra ? 'SIM' : 'NÃO',
+      'Sobra Estimada (Cx)': item.sobraEstimadaCx,
+      'Valor em Risco (R$)': item.valorEmRisco
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Stock Age Index');
-    XLSX.writeFile(workbook, `Guia_Geral_Stock_Age_Index_${empresa?.id || 'Armazem'}_${todayISO}.xlsx`);
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `StockAge_${selectedMonthKey}`);
+    XLSX.writeFile(wb, `Stock_Age_Index_${selectedMonthKey}_2026.xlsx`);
   };
 
-  const handleExportPDF = () => {
-    if (filteredAndSortedRows.length === 0) {
-      alert('Nenhum dado para exportar.');
-      return;
-    }
-
-    const doc = new jsPDF('landscape');
-    doc.setFontSize(14);
-    doc.text(`Relatório Oficial Stock Age Index - ${empresa?.nome || 'Armazém Fácil'}`, 16, 20);
-    doc.setFontSize(9);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Empresa ID: ${empresa?.id || 'Demo'}`, 16, 28);
-    doc.text(`Total Analisado: ${stats.total} itens | Crítico: ${stats.criticoCount} | Atenção: ${stats.atencaoCount} | OK: ${stats.okCount} | Stock Age Médio: ${stats.avgIndex}%`, 16, 36);
-
-    let startY = 46;
-    doc.setFillColor(30, 41, 59);
-    doc.rect(14, startY, 268, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CÓDIGO', 16, startY + 5);
-    doc.text('PRODUTO', 45, startY + 5);
-    doc.text('SETOR', 120, startY + 5);
-    doc.text('QTD (CX)', 155, startY + 5);
-    doc.text('VENCIMENTO', 185, startY + 5);
-    doc.text('IDADE', 220, startY + 5);
-    doc.text('AGE INDEX %', 245, startY + 5);
-
-    startY += 9;
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-
-    filteredAndSortedRows.slice(0, 30).forEach((r, idx) => {
-      if (idx % 2 === 0) {
-        doc.setFillColor(248, 250, 252);
-        doc.rect(14, startY, 268, 6, 'F');
-      }
-
-      doc.text(String(r.codigo), 16, startY + 4.5);
-      doc.text(String(r.descricao).substring(0, 32), 45, startY + 4.5);
-      doc.text(String(r.setor), 120, startY + 4.5);
-      doc.text(String(r.quantidade), 155, startY + 4.5);
-      doc.text(formatDateBR(r.dataVencimento), 185, startY + 4.5);
-      doc.text(r.idadeMissing ? 'N/C' : `${r.vidaUtilTotal}d`, 220, startY + 4.5);
-      doc.text(r.idadeMissing ? 'N/A' : `${r.stockAgeIndex}%`, 245, startY + 4.5);
-
-      startY += 7.5;
-    });
-
-    doc.save(`Stock_Age_Index_${todayISO}.pdf`);
-  };
+  const selectedMonthName = selectedMonthKey === 'all' 
+    ? 'Consolidado Anual (Jan - Dez / 2026)' 
+    : `${MONTH_KEYS.find(m => m.key === selectedMonthKey)?.name} / 2026`;
 
   return (
-    <div className="space-y-6">
-      {/* HEADER PRINCIPAL DA GUIA STOCK AGE INDEX */}
-      <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-xl font-black text-white tracking-wide uppercase flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">📊</span>
-              <span>Stock Age Index (Fórmula Oficial)</span>
-            </h2>
-            <span className="bg-purple-950/60 text-purple-300 border border-purple-500/40 px-3.5 py-1 rounded-full text-xs font-mono font-extrabold shadow-sm">
-              {allRows.length} SKUs Únicos
-            </span>
+    <div className="flex flex-col gap-6 w-full text-slate-800">
+      
+      {/* Toast Notification */}
+      {importNotice && (
+        <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2 font-bold text-sm">
+            <CheckCircle2 className="w-5 h-5 text-emerald-200" />
+            <span>{importNotice}</span>
           </div>
-          <p className="text-xs text-slate-300">
-            Maturidade de estoque calculada por: <strong className="text-purple-300 font-bold bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/20">Dias Restantes ÷ Idade Cadastrada no Produto × 100</strong>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <label className="bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700/80 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-95">
-            <Upload className="w-4 h-4 text-purple-400" />
-            <span>{isImporting ? 'Importando...' : 'Importar Planilha'}</span>
-            <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="hidden" disabled={isImporting} />
-          </label>
-
-          <button
-            onClick={handleExportExcel}
-            className="bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            <span>Exportar Excel</span>
-          </button>
-
-          <button
-            onClick={handleExportPDF}
-            className="bg-purple-950/40 hover:bg-purple-900/60 text-purple-300 border border-purple-500/40 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            <span>Exportar Relatório</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ALERT SE HOUVER ITENS SEM IDADE CADASTRADA */}
-      {stats.missingIdadeCount > 0 && (
-        <div className="bg-amber-950/40 border border-amber-500/50 p-4.5 rounded-2xl flex items-center justify-between text-amber-200 text-xs font-bold gap-3 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/30">
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-            </div>
-            <div>
-              <span className="font-extrabold uppercase block text-amber-300 text-sm">
-                ⚠ {stats.missingIdadeCount} produto(s) na base de validades sem &quot;Idade&quot; cadastrada!
-              </span>
-              <span className="text-xs text-amber-200/90 font-normal">
-                Estes itens foram excluídos do cálculo médio geral de Stock Age Index. Cadastre a vida útil em dias no Cadastro de Produtos para incluir na média.
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => setStatusFilter('sem_idade')}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs uppercase tracking-wider font-black shrink-0 cursor-pointer shadow-md transition-all active:scale-95"
-          >
-            Ver {stats.missingIdadeCount} Itens
-          </button>
+          <button onClick={() => setImportNotice(null)} className="text-white hover:text-emerald-100 font-black text-xs px-2 py-1">✕</button>
         </div>
       )}
 
-      {/* BANNER INTEGRAÇÃO 03.05.19 & ALERTA DE RISCO DE SOBRA */}
-      <div className="bg-gradient-to-r from-blue-950/40 via-slate-900 to-indigo-950/40 border border-blue-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-            <TrendingDown className="w-5 h-5 text-blue-400" />
-          </div>
+      {/* ─────────────────────────────────────────────────────────────
+          CABEÇALHO & BARRA DE MESES (JAN A DEZ)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/15 px-2.5 py-0.5 rounded-full border border-blue-500/30">
-                Integração 03.05.19 Ativa
+            <div className="flex items-center gap-2">
+              <span className="bg-blue-100 text-[#032b5e] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-blue-200">
+                STOCK AGE INDEX &amp; RISCO POR RUA
               </span>
-              <span className="text-xs font-bold text-slate-200">
-                Venda Média Diária alimentada pelo Quarter <strong className="text-blue-300">{activeQuarterInfo.quarter}</strong> ({activeQuarterInfo.skusCount} SKUs na base)
+              <span className="bg-amber-100 text-amber-900 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-200">
+                Venda Média 03.05.19 Integrada
+              </span>
+              <span className="bg-purple-100 text-purple-900 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-purple-200">
+                Valoração em Hecto (HL) &amp; Reais (R$)
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              A Curva ABC e a projeção de cobertura de estoque são sincronizadas com a 03.05.19 para detectar riscos de sobra antes do vencimento.
+            <h2 className="text-xl font-black text-[#032b5e] uppercase tracking-tight mt-1 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+              Gestão Stock Age Index &amp; Risco de Shelf
+            </h2>
+            <p className="text-xs text-slate-500 font-bold mt-0.5">
+              Monitoramento da idade dos estoques, cálculo de dias em estoque com base na 03.05.19, valoração em HL/R$ e análise de risco por rua e curva ABC.
             </p>
           </div>
-        </div>
 
-        {allRows.filter(r => r.riscoSobra).length > 0 && (
-          <button
-            onClick={() => setStatusFilter(statusFilter === 'risco_sobra' ? 'todos' : 'risco_sobra')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${
-              statusFilter === 'risco_sobra'
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg font-black'
-                : 'bg-amber-950/50 text-amber-300 border-amber-500/40 hover:bg-amber-900/60'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>{allRows.filter(r => r.riscoSobra).length} com Risco de Sobra</span>
-          </button>
-        )}
-      </div>
-
-      {/* CARDS RESUMO DE CLASSIFICAÇÃO */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Card Crítico */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between text-red-400 text-xs font-bold">
-            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-red-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-              Crítico (≤30d ou &lt;60%)
-            </span>
-            <ShieldAlert className="w-5 h-5 text-red-400" />
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-red-400 font-mono tracking-tight">{stats.criticoCount}</span>
-              <span className="text-xs text-red-300 font-bold uppercase">SKUs</span>
-            </div>
-            <span className="text-base font-black text-red-300 bg-red-950/60 px-2.5 py-0.5 rounded-lg border border-red-500/30 font-mono">{stats.criticoPct}%</span>
-          </div>
-          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
-            <div className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-full transition-all" style={{ width: `${stats.criticoPct}%` }} />
-          </div>
-        </div>
-
-        {/* Card Atenção */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between text-amber-400 text-xs font-bold">
-            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-amber-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              Atenção (60% - 75%)
-            </span>
-            <Clock className="w-5 h-5 text-amber-400" />
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-amber-400 font-mono tracking-tight">{stats.atencaoCount}</span>
-              <span className="text-xs text-amber-300 font-bold uppercase">SKUs</span>
-            </div>
-            <span className="text-base font-black text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-mono">{stats.atencaoPct}%</span>
-          </div>
-          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
-            <div className="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all" style={{ width: `${stats.atencaoPct}%` }} />
-          </div>
-        </div>
-
-        {/* Card OK */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between text-emerald-400 text-xs font-bold">
-            <span className="flex items-center gap-1.5 uppercase tracking-wider font-extrabold text-emerald-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              OK (&gt; 75%)
-            </span>
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-emerald-400 font-mono tracking-tight">{stats.okCount}</span>
-              <span className="text-xs text-emerald-300 font-bold uppercase">SKUs</span>
-            </div>
-            <span className="text-base font-black text-emerald-300 bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-500/30 font-mono">{stats.okPct}%</span>
-          </div>
-          <div className="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden p-0.5 border border-slate-700/50">
-            <div className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full transition-all" style={{ width: `${stats.okPct}%` }} />
-          </div>
-        </div>
-
-        {/* Card Médio Geral */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-purple-500/30 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between text-purple-400 text-xs font-bold">
-            <span className="uppercase tracking-wider font-extrabold text-purple-200">Stock Age Médio Geral</span>
-            <span className="text-[11px] text-purple-200 font-mono font-bold bg-purple-950/60 px-2 py-0.5 rounded border border-purple-500/30">
-              R$ {stats.totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-purple-300 font-mono tracking-tight">{stats.avgIndex}%</span>
-            <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-lg border ${
-              stats.avgIndex < 60 ? 'bg-red-950/60 text-red-300 border-red-500/40' : stats.avgIndex <= 75 ? 'bg-amber-950/60 text-amber-300 border-amber-500/40' : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
-            }`}>
-              {stats.avgIndex < 60 ? 'Crítico' : stats.avgIndex <= 75 ? 'Atenção' : 'Excelente'}
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-medium">Validade média ponderada do estoque ativo</p>
-        </div>
-      </div>
-
-      {/* VISÃO AGREGADA POR SETOR */}
-      <div className="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 flex flex-col gap-5 shadow-2xl">
-        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <Building2 className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <h3 className="text-base font-black text-white uppercase tracking-wider">
-                Visão Agregada por Setor (Média Stock Age Index)
-              </h3>
-              <p className="text-xs text-slate-300">
-                Resumo da saúde de validades consolidado por setor do armazém.
-              </p>
-            </div>
-          </div>
-          {setorFilter !== 'todos' && (
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setSetorFilter('todos')}
-              className="text-xs text-amber-400 hover:text-amber-300 underline font-bold cursor-pointer bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-xl transition-colors"
+              onClick={() => setShowImportStockAgeJsonModal(true)}
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer border-none"
+              title="Importar arquivo JSON de coletas para análise mês a mês"
             >
-              Limpar Filtro ({setorFilter})
+              <FileCode className="w-4 h-4 text-indigo-200" />
+              Importar JSON (Mês a Mês)
             </button>
-          )}
+            <button
+              onClick={() => setShowImport030519Modal(true)}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer border-none"
+              title="Importar relatório 03.05.19 de 30 dias para cálculo da Venda Média Diária"
+            >
+              <TrendingUp className="w-4 h-4" />
+              Importar 03.05.19 (30 Dias)
+            </button>
+            <button
+              onClick={() => setShowImportColetaModal(true)}
+              className="px-3.5 py-2 rounded-xl bg-[#032b5e] hover:bg-blue-900 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer border-none"
+              title="Importar coleta via planilha Excel (.xlsx) ou CSV"
+            >
+              <Upload className="w-4 h-4" />
+              Importar Excel / CSV
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs flex items-center gap-1.5 border border-slate-300 transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              Exportar Excel
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3.5">
-          {sectorAggrStats.map((st) => {
-            const isSelected = setorFilter === st.setor;
-            const isCrit = st.status === 'Crítico';
-            const isAten = st.status === 'Atenção';
+        {/* Seletor de Meses Janeiro a Dezembro */}
+        <div className="border-t border-slate-100 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" /> SELECIONE O MÊS DO EXERCÍCIO (2026)
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-[#032b5e]">
+                Visualizando: {selectedMonthName}
+              </span>
+              <button
+                onClick={() => setShowImportStockAgeJsonModal(true)}
+                className="text-[10px] font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 flex items-center gap-1 cursor-pointer transition-all"
+                title={`Importar JSON para ${selectedMonthKey === 'all' ? 'o ano' : MONTH_KEYS.find(m => m.key === selectedMonthKey)?.name}`}
+              >
+                <FileCode className="w-3 h-3" />
+                Importar JSON ({selectedMonthKey === 'all' ? 'Consolidado' : MONTH_KEYS.find(m => m.key === selectedMonthKey)?.short})
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-6 sm:grid-cols-7 md:grid-cols-13 gap-1.5">
+            {MONTH_KEYS.map(m => {
+              const evo = monthlyEvolution.find(e => e.key === m.key);
+              const isSelected = selectedMonthKey === m.key;
+              const hasData = evo?.hasData;
+
+              return (
+                <button
+                  key={m.key}
+                  onClick={() => {
+                    setSelectedMonthKey(m.key);
+                    clearDateRange();
+                  }}
+                  className={`p-2 rounded-xl text-center flex flex-col items-center justify-center transition-all cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#032b5e] text-white border-[#032b5e] shadow-md scale-102'
+                      : hasData
+                      ? 'bg-blue-50/70 hover:bg-blue-100/80 text-blue-900 border-blue-200'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-400 border-slate-200'
+                  }`}
+                >
+                  <span className="text-[11px] font-black tracking-wider uppercase">{m.short}</span>
+                  <span className={`text-[9px] font-extrabold mt-0.5 ${
+                    isSelected 
+                      ? 'text-blue-200' 
+                      : hasData 
+                      ? 'text-emerald-700 font-black' 
+                      : 'text-slate-400'
+                  }`}>
+                    {hasData ? `${evo?.avgStockAge}%` : 'Vazio'}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => {
+                setSelectedMonthKey('all');
+                clearDateRange();
+              }}
+              className={`p-2 rounded-xl text-center flex flex-col items-center justify-center transition-all cursor-pointer border ${
+                selectedMonthKey === 'all'
+                  ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white border-blue-900 shadow-md scale-102'
+                  : 'bg-indigo-50/70 hover:bg-indigo-100 text-indigo-900 border-indigo-200'
+              }`}
+            >
+              <span className="text-[11px] font-black tracking-wider uppercase">TODOS</span>
+              <span className="text-[9px] font-extrabold mt-0.5 text-indigo-700">Anual</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ─────────────────────────────────────────────────────────────
+            FILTRO DE DATAS PERSONALIZADO NO DASHBOARD
+            ───────────────────────────────────────────────────────────── */}
+        <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs font-black text-[#032b5e] uppercase">
+              <Filter className="w-4 h-4 text-blue-600" />
+              <span>Filtro de Datas Personalizado:</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={dateFilterField}
+                onChange={(e) => setDateFilterField(e.target.value as any)}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+              >
+                <option value="coleta">Por Data de Coleta</option>
+                <option value="vencimento">Por Data de Vencimento</option>
+              </select>
+
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                <span>De:</span>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => {
+                    setCustomStartDate(e.target.value);
+                    setUseCustomDateRange(true);
+                  }}
+                  className="px-2 py-1 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                <span>Até:</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => {
+                    setCustomEndDate(e.target.value);
+                    setUseCustomDateRange(true);
+                  }}
+                  className="px-2 py-1 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Range Presets */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => applyQuickDateRange(7)}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-extrabold cursor-pointer"
+            >
+              Últimos 7d
+            </button>
+            <button
+              onClick={() => applyQuickDateRange(15)}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-extrabold cursor-pointer"
+            >
+              Últimos 15d
+            </button>
+            <button
+              onClick={() => applyQuickDateRange(30)}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-extrabold cursor-pointer"
+            >
+              Últimos 30d
+            </button>
+            {(customStartDate || customEndDate) && (
+              <button
+                onClick={clearDateRange}
+                className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-[11px] font-black flex items-center gap-1 cursor-pointer"
+              >
+                <X className="w-3 h-3" /> Limpar Range
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          PAINEL DE SEMANAS DO MÊS (SEPARAÇÃO SEMANAL & STOCK AGE INDEPENDENTE)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-slate-900 via-[#032b5e] to-slate-950 p-5 rounded-2xl border border-blue-900/60 shadow-lg text-white flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-blue-800/60 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                {selectedMonthKey === 'all' ? 'Exercício 2026 (Consolidado)' : `Mês de ${MONTH_KEYS.find(m => m.key === selectedMonthKey)?.name} / 2026`}
+              </span>
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Stock Age do Mês = Média das Semanas
+              </span>
+            </div>
+            <h3 className="text-base font-black uppercase tracking-wider mt-1.5 flex items-center gap-2 text-white">
+              <Calendar className="w-5 h-5 text-blue-400" />
+              Contagem Semanal e Stock Age Index por Semana
+            </h3>
+            <p className="text-xs text-blue-200/80 font-bold">
+              Coletas segmentadas nas 4 semanas com base nas datas do arquivo JSON importado. Clique em uma semana para filtrar o detalhamento de itens.
+            </p>
+          </div>
+
+          {/* Resumo do Mês: Stock Age Calculado como Média das Semanas */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2.5 flex items-center gap-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-blue-200 block">Stock Age do Mês</span>
+              <span className={`text-2xl font-black ${
+                kpiGeral.avgStockAge >= 75 ? 'text-emerald-300' : kpiGeral.avgStockAge >= 60 ? 'text-amber-300' : 'text-rose-300'
+              }`}>
+                {kpiGeral.avgStockAge}%
+              </span>
+            </div>
+            <div className="text-right border-l border-white/20 pl-3">
+              <span className="text-[9px] uppercase font-bold text-blue-200 block">Fórmula Oficial</span>
+              <span className="text-[11px] font-black text-emerald-300">
+                Média das {semanasSummary.filter(s => s.hasData).length || 4} Semanas
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Os 4 Cards de Semana */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {semanasSummary.map((sem) => {
+            const isSelected = selectedSemanaFilter === sem.semanaNumero;
+            const isCrit = sem.avgStockAge < 60;
+            const isAtencao = sem.avgStockAge >= 60 && sem.avgStockAge < 75;
+            const isOk = sem.avgStockAge >= 75;
 
             return (
               <div
-                key={st.setor}
-                onClick={() => setSetorFilter(isSelected ? 'todos' : st.setor)}
-                className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'border-purple-400 bg-purple-950/60 shadow-xl ring-2 ring-purple-500/40 scale-[1.03]' 
-                    : isCrit
-                    ? 'border-red-500/40 bg-slate-800/90 hover:border-red-500/80 hover:bg-red-950/20 shadow-md'
-                    : isAten
-                    ? 'border-amber-500/40 bg-slate-800/90 hover:border-amber-500/80 hover:bg-amber-950/20 shadow-md'
-                    : 'border-slate-700 bg-slate-800/90 hover:border-slate-500 hover:bg-slate-700/60 shadow-md'
+                key={sem.semanaNumero}
+                onClick={() => {
+                  setSelectedSemanaFilter(isSelected ? 'todas' : (sem.semanaNumero as 1 | 2 | 3 | 4));
+                }}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden ${
+                  isSelected
+                    ? 'bg-blue-600/40 border-blue-400 ring-2 ring-blue-400 shadow-xl scale-[1.02]'
+                    : sem.hasData
+                    ? 'bg-slate-800/80 hover:bg-slate-800 border-slate-700/80 hover:border-blue-400/60'
+                    : 'bg-slate-800/30 border-slate-800/50 opacity-60 hover:opacity-80'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1 mb-3">
-                  <span className="text-sm font-extrabold text-white truncate" title={st.setor}>
-                    {st.setor}
+                {isSelected && (
+                  <div className="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-bl-lg uppercase tracking-wider shadow-sm">
+                    Filtro Ativo
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center border shadow-xs ${
+                        isSelected 
+                          ? 'bg-blue-500 text-white border-blue-300' 
+                          : 'bg-blue-500/20 text-blue-300 border-blue-400/30'
+                      }`}>
+                        S{sem.semanaNumero}
+                      </span>
+                      <div>
+                        <h4 className="font-black text-xs text-white uppercase">{sem.nome}</h4>
+                        <span className="text-[10px] text-blue-300 font-bold block">{sem.periodoDias}</span>
+                      </div>
+                    </div>
+
+                    {sem.hasData && (
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                        isOk 
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' 
+                          : isAtencao 
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' 
+                          : 'bg-rose-500/20 text-rose-300 border-rose-400/30'
+                      }`}>
+                        {isOk ? 'OK' : isAtencao ? 'Atenção' : 'Crítico'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Stock Age Index da Semana */}
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Stock Age Index:</span>
+                    <span className={`text-2xl font-black ${
+                      !sem.hasData 
+                        ? 'text-slate-500 text-sm' 
+                        : isOk 
+                        ? 'text-emerald-400' 
+                        : isAtencao 
+                        ? 'text-amber-400' 
+                        : 'text-rose-400'
+                    }`}>
+                      {sem.hasData ? `${sem.avgStockAge}%` : 'Sem coletas'}
+                    </span>
+                  </div>
+
+                  {/* Termômetro Visual */}
+                  {sem.hasData && (
+                    <div className="w-full bg-slate-700/80 h-1.5 rounded-full overflow-hidden mt-1.5">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isOk ? 'bg-emerald-400' : isAtencao ? 'bg-amber-400' : 'bg-rose-400'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(0, sem.avgStockAge))}%` }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Estatísticas de Coletas da Semana */}
+                  <div className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] bg-slate-950/60 p-2.5 rounded-lg border border-slate-700/60">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Contagem</span>
+                      <span className="font-black text-white">{sem.totalLotes} lotes</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Estoque</span>
+                      <span className="font-black text-blue-200">{sem.totalCaixas.toLocaleString('pt-BR')} cx</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Volume HL</span>
+                      <span className="font-black text-purple-300">{sem.totalHecto.toLocaleString('pt-BR')} HL</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Críticos (&lt;60%)</span>
+                      <span className={`font-black ${sem.criticosPct > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {sem.criticosPct}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Datas das coletas identificadas no JSON */}
+                  {sem.datasDistintas.length > 0 && (
+                    <div className="mt-2 text-[10px] text-slate-300 flex items-center gap-1.5 truncate">
+                      <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span className="truncate">
+                        Coletas: <strong className="text-white">{sem.datasDistintas.slice(0, 2).join(', ')}{sem.datasDistintas.length > 2 ? ` (+${sem.datasDistintas.length - 2})` : ''}</strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px]">
+                  <span className={`font-extrabold flex items-center gap-1 ${isSelected ? 'text-emerald-300' : 'text-blue-300'}`}>
+                    {isSelected ? '✓ Detalhes exibidos abaixo' : 'Clique para ver itens →'}
                   </span>
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg font-mono ${
-                    isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
-                    isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
-                    'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Banner Informativo de Filtro Ativo */}
+        {selectedSemanaFilter !== 'todas' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-blue-900/40 p-3 rounded-xl border border-blue-700/50 text-xs">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-blue-100 font-bold">
+                Exibindo detalhamento exclusivo da <strong className="text-white">Semana {selectedSemanaFilter}</strong> ({filteredItems.length} lotes recolhidos) • Stock Age Index da Semana: <strong className="text-emerald-300">{semanasSummary.find(s => s.semanaNumero === selectedSemanaFilter)?.avgStockAge}%</strong>.
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedSemanaFilter('todas')}
+              className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-black text-xs border border-white/20 cursor-pointer transition-all self-start sm:self-auto"
+            >
+              Exibir Todas as 4 Semanas
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          CARDS DE KPIS PRINCIPAIS (COM HL E REAIS)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        
+        {/* KPI 1: Stock Age Index Médio do Mês (Média das Semanas) */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-black tracking-widest text-[#032b5e]">
+              STOCK AGE INDEX (MÊS)
+            </span>
+            <span className="text-[9px] font-bold text-slate-400 mt-0.5">
+              Média das 4 Semanas Independentes
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className={`text-3xl font-black ${
+              kpiGeral.avgStockAge >= 75 ? 'text-emerald-600' : kpiGeral.avgStockAge >= 60 ? 'text-amber-600' : 'text-rose-600'
+            }`}>
+              {kpiGeral.avgStockAge}%
+            </span>
+            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+              kpiGeral.avgStockAge >= 75 ? 'bg-emerald-100 text-emerald-800' : kpiGeral.avgStockAge >= 60 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+            }`}>
+              {kpiGeral.avgStockAge >= 75 ? 'OK (≥75%)' : kpiGeral.avgStockAge >= 60 ? 'ATENÇÃO' : 'CRÍTICO (<60%)'}
+            </span>
+          </div>
+          <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-100 pt-1.5 flex justify-between">
+            <span>Meta DPO: ≥ 75%</span>
+            <span className="text-slate-600 font-extrabold">{kpiGeral.totalLotes} Lotes no Mês</span>
+          </div>
+        </div>
+
+        {/* KPI 2: Itens Críticos (<60%) */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 flex items-center justify-between">
+            <span>ITENS CRÍTICOS (&lt;60%)</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+          </span>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-3xl font-black text-rose-600">
+              {kpiGeral.criticosPct}%
+            </span>
+            <span className="text-xs font-extrabold text-slate-600">
+              ({kpiGeral.criticosCaixas.toLocaleString('pt-BR')} Cx)
+            </span>
+          </div>
+          <div className="text-[9px] text-rose-600 font-bold mt-2 border-t border-slate-100 pt-1.5 flex justify-between">
+            <span>Volume em Risco:</span>
+            <span className="font-extrabold">{kpiGeral.criticosHecto.toLocaleString('pt-BR')} HL</span>
+          </div>
+        </div>
+
+        {/* KPI 3: Valoração Total & em Risco (R$) */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 flex items-center justify-between">
+            <span>VALORAÇÃO EM REAIS (R$)</span>
+            <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+          </span>
+          <div className="flex items-baseline gap-1 mt-2">
+            <span className="text-2xl font-black text-emerald-700">
+              R$ {kpiGeral.totalValor.toLocaleString('pt-BR')}
+            </span>
+          </div>
+          <div className="text-[9px] text-rose-600 font-bold mt-2 border-t border-slate-100 pt-1.5 flex justify-between">
+            <span>Valor em Risco Crítico:</span>
+            <span className="font-extrabold">R$ {kpiGeral.criticosValor.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>
+
+        {/* KPI 4: Volume Total & em Risco (HL) */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 flex items-center justify-between">
+            <span>VOLUME HECTOLITROS (HL)</span>
+            <Droplets className="w-3.5 h-3.5 text-blue-600" />
+          </span>
+          <div className="flex items-baseline gap-1.5 mt-2">
+            <span className="text-2xl font-black text-[#032b5e]">
+              {kpiGeral.totalHecto.toLocaleString('pt-BR')}
+            </span>
+            <span className="text-xs font-black text-slate-500">HL</span>
+          </div>
+          <div className="text-[9px] text-slate-500 font-bold mt-2 border-t border-slate-100 pt-1.5 flex justify-between">
+            <span>Total Caixas:</span>
+            <span className="font-extrabold text-slate-800">{kpiGeral.totalCaixas.toLocaleString('pt-BR')} Cx</span>
+          </div>
+        </div>
+
+        {/* KPI 5: Ruas em Risco de Shelf */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
+          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 flex items-center justify-between">
+            <span>RUAS EM RISCO DE SHELF</span>
+            <Flame className="w-3.5 h-3.5 text-amber-500" />
+          </span>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className={`text-3xl font-black ${kpiGeral.ruasCriticasCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+              {kpiGeral.ruasCriticasCount}
+            </span>
+            <span className="text-xs font-extrabold text-slate-500">
+              de {ruasSummary.length} Ruas
+            </span>
+          </div>
+          <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-100 pt-1.5">
+            Prioridade de escoamento imediato
+          </div>
+        </div>
+
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          ANÁLISE DE PRODUTOS POR CURVA ABC (VALORAÇÃO HL E REAIS)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-100 text-amber-900 text-[10px] font-black uppercase px-2 py-0.5 rounded border border-amber-200">
+                DISTRIBUIÇÃO DE RISCO E VALORAÇÃO
+              </span>
+            </div>
+            <h3 className="text-base font-black text-[#032b5e] uppercase tracking-wider mt-1 flex items-center gap-2">
+              <Layers className="w-5 h-5 text-amber-600" />
+              Análise de Produtos por Curva ABC
+            </h3>
+            <p className="text-xs text-slate-500 font-bold">
+              Desdobramento da volumetria em Hectolitros (HL), valoração em Reais (R$) e nível de Stock Age Index por curva de giro.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
+              Clique em uma curva para filtrar a tabela
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(['A', 'B', 'C'] as const).map(cKey => {
+            const cSummary = curvaSummary[cKey];
+            const isSelected = curvaFilter === cKey;
+
+            return (
+              <div
+                key={cKey}
+                onClick={() => setCurvaFilter(curvaFilter === cKey ? 'todos' : cKey)}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  isSelected
+                    ? 'border-blue-600 ring-2 ring-blue-300 bg-blue-50/50'
+                    : cKey === 'A'
+                    ? 'bg-blue-50/30 border-blue-200 hover:border-blue-400'
+                    : cKey === 'B'
+                    ? 'bg-amber-50/30 border-amber-200 hover:border-amber-400'
+                    : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-8 h-8 rounded-lg text-white font-black text-sm flex items-center justify-center shadow-xs ${
+                      cKey === 'A' ? 'bg-blue-600' : cKey === 'B' ? 'bg-amber-600' : 'bg-slate-600'
+                    }`}>
+                      {cKey}
+                    </span>
+                    <div>
+                      <h4 className="font-black text-xs text-slate-800 uppercase">
+                        {cKey === 'C' ? 'Curva C / Gatilho' : `Curva ${cKey}`}
+                      </h4>
+                      <span className="text-[10px] text-slate-500 font-bold">
+                        {cSummary.totalSkus} SKUs • {cSummary.totalLotes} Lotes
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    cSummary.stockAgeIndexMedio >= 75 ? 'bg-emerald-100 text-emerald-800' : cSummary.stockAgeIndexMedio >= 60 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                   }`}>
-                    {st.avgStockAgeIndex}%
+                    Stock Age: {cSummary.stockAgeIndexMedio}%
                   </span>
                 </div>
 
-                <div className="space-y-1.5 my-1.5 bg-slate-900/60 p-2.5 rounded-lg border border-slate-750">
-                  <div className="flex justify-between text-xs text-slate-300">
-                    <span className="text-slate-400">SKUs:</span>
-                    <strong className="text-white font-mono">{st.lotesCount}</strong>
+                <div className="grid grid-cols-2 gap-2 mt-3.5 pt-3 border-t border-slate-200/60 text-xs">
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Volume (HL)</span>
+                    <span className="font-black text-sm text-[#032b5e]">
+                      {cSummary.totalHecto.toLocaleString('pt-BR')} HL
+                    </span>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-300">
-                    <span className="text-slate-400">Volume:</span>
-                    <strong className="text-white font-mono">{st.totalCaixas} cx</strong>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Valoração (R$)</span>
+                    <span className="font-black text-sm text-emerald-700">
+                      R$ {cSummary.totalValor.toLocaleString('pt-BR')}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-xs text-purple-300 font-bold">
-                    <span className="text-slate-400 font-normal">Valoração:</span>
-                    <strong className="font-mono text-purple-200">R$ {Math.round(st.totalValor).toLocaleString('pt-BR')}</strong>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Total Caixas</span>
+                    <span className="font-extrabold text-xs text-slate-700">
+                      {cSummary.totalCaixas.toLocaleString('pt-BR')} Cx
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Críticos (&lt;60%)</span>
+                    <span className="font-extrabold text-xs text-rose-600">
+                      {cSummary.criticosCaixas.toLocaleString('pt-BR')} Cx ({cSummary.criticosPct}%)
+                    </span>
                   </div>
                 </div>
 
-                <div className="w-full bg-slate-950 rounded-full h-1.5 mt-3 overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full ${
-                      isCrit ? 'bg-red-500' : isAten ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${Math.max(0, Math.min(100, st.avgStockAgeIndex))}%` }}
-                  />
+                <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                  <span>Valor em Risco: <strong className="text-rose-600">R$ {cSummary.criticosValor.toLocaleString('pt-BR')}</strong></span>
+                  <span className="text-blue-700 font-black">
+                    {curvaFilter === cKey ? 'Filtrado ✓' : 'Filtrar →'}
+                  </span>
                 </div>
               </div>
             );
@@ -961,453 +1161,334 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
         </div>
       </div>
 
-      {/* ESTRATIFICAÇÕES: POR GRUPO, POR CURVA ABC E POR MÊS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* CARD POR GRUPO DE PRODUTO */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
+      {/* ─────────────────────────────────────────────────────────────
+          INDICADOR DE RISCO DE SHELF POR RUAS (SUB-BLOCOS)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm" />
-              <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
-                Estratificação por Grupo de Produto
-              </h3>
+            <div className="flex items-center gap-2">
+              <span className="bg-purple-100 text-purple-900 text-[10px] font-black uppercase px-2 py-0.5 rounded border border-purple-200">
+                INDICADOR POR LOCALIZAÇÃO FÍSICA
+              </span>
             </div>
-            <p className="text-xs text-slate-300 font-medium">
-              Índice médio, volume, valoração R$ e SKUs críticos por família.
+            <h3 className="text-base font-black text-[#032b5e] uppercase tracking-wider mt-1 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-purple-600" />
+              Indicador de Risco de Shelf por Ruas / Sub-blocos
+            </h3>
+            <p className="text-xs text-slate-500 font-bold">
+              Avaliação de envelhecimento, concentração de itens críticos, volumetria em Hectolitros e valor financeiro por rua do armazém.
             </p>
           </div>
-
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-            {grupoAggrStats.map((grp) => {
-              const isCrit = grp.status === 'Crítico';
-              const isAten = grp.status === 'Atenção';
-              return (
-                <div key={grp.grupo} className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-slate-700/80 flex flex-col gap-1.5 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-slate-100">{grp.grupo}</span>
-                    <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded ${
-                      isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
-                      isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
-                      'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
-                    }`}>
-                      {grp.avgStockAgeIndex}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-300 font-mono">
-                    <span className="text-slate-400">Vol: <strong className="text-white">{grp.totalQty.toLocaleString('pt-BR')} cx</strong></span>
-                    <span className="text-purple-300 font-bold">R$ {Math.round(grp.totalValor).toLocaleString('pt-BR')}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px] text-slate-400 font-mono">
-                    <span>{grp.count} SKUs</span>
-                    {grp.criticoCount > 0 && <strong className="text-red-400">({grp.criticoCount} críticos)</strong>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* CARD POR CURVA ABC */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm" />
-              <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
-                Estratificação por Curva (A / B / C)
-              </h3>
-            </div>
-            <p className="text-xs text-slate-300 font-medium">
-              Acompanhamento do indicador para produtos de alto, médio e baixo giro.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {curvaAggrStats.map((crv) => {
-              const isCrit = crv.status === 'Crítico';
-              const isAten = crv.status === 'Atenção';
-              const colorBadge = crv.curva === 'Curva A' ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40' :
-                                 crv.curva === 'Curva B' ? 'bg-sky-950/80 text-sky-300 border-sky-500/40' :
-                                 'bg-amber-950/80 text-amber-300 border-amber-500/40';
-
-              return (
-                <div key={crv.curva} className="bg-slate-800/80 hover:bg-slate-800 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-lg border ${colorBadge}`}>
-                      {crv.curva}
-                    </span>
-                    <span className={`text-xs font-mono font-black px-2.5 py-0.5 rounded-lg ${
-                      isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
-                      isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
-                      'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
-                    }`}>
-                      {crv.avgStockAgeIndex}%
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-xs text-slate-300 font-mono">
-                    <span>Estoque: <strong className="text-white">{crv.totalQty.toLocaleString('pt-BR')} cx</strong></span>
-                    <span className="text-purple-300 font-bold">R$ {Math.round(crv.totalValor).toLocaleString('pt-BR')}</span>
-                  </div>
-
-                  <div className="flex justify-between text-[11px] text-slate-400 font-mono">
-                    <span>SKUs: <strong className="text-white">{crv.count}</strong></span>
-                    {crv.criticoCount > 0 && <span className="text-red-400 font-bold">({crv.criticoCount} críticos)</span>}
-                  </div>
-
-                  <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        isCrit ? 'bg-red-500' : isAten ? 'bg-amber-500' : 'bg-emerald-500'
-                      }`}
-                      style={{ width: `${Math.max(0, Math.min(100, crv.avgStockAgeIndex))}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* CARD POR MÊS DE VENCIMENTO */}
-        <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" />
-              <h3 className="font-sans font-black text-xs uppercase text-white tracking-wider">
-                Estratificação por Mês de Vencimento
-              </h3>
-            </div>
-            <p className="text-xs text-slate-300 font-medium">
-              Tendência e evolução do Stock Age Index ao longo dos meses de validade.
-            </p>
-          </div>
-
-          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-            {mesesAggrStats.map((ms) => {
-              const isCrit = ms.status === 'Crítico';
-              const isAten = ms.status === 'Atenção';
-              return (
-                <div key={ms.key} className="bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/80 flex items-center justify-between gap-2 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-100">{ms.label}</span>
-                    <span className="text-[11px] text-slate-300 font-mono">
-                      {ms.totalQty.toLocaleString('pt-BR')} cx | R$ {Math.round(ms.totalValor).toLocaleString('pt-BR')}
-                    </span>
-                  </div>
-
-                  <span className={`text-xs font-mono font-black px-2.5 py-1 rounded-lg ${
-                    isCrit ? 'bg-red-950/80 text-red-300 border border-red-500/40' :
-                    isAten ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40' :
-                    'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
-                  }`}>
-                    {ms.avgStockAgeIndex}%
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* FILTROS E PESQUISA */}
-      <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3.5 shadow-2xl">
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Buscar por produto, código ou lote..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors shadow-inner"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
-          <select
-            value={setorFilter}
-            onChange={e => setSetorFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
-          >
-            <option value="todos">🏬 Todos os Setores</option>
-            <option value="Bloco A">Bloco A</option>
-            <option value="Bloco B">Bloco B</option>
-            <option value="Bloco CB">Bloco CB</option>
-            <option value="Bloco C">Bloco C</option>
-            <option value="Picking">Picking</option>
-            <option value="Marketplace">Marketplace</option>
-            <option value="Contingência">Contingência</option>
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
-          >
-            <option value="todos">🎯 Todos os Status</option>
-            <option value="Crítico">🔴 Crítico (≤30d / &lt;60%)</option>
-            <option value="Atenção">🟡 Atenção (60% - 75%)</option>
-            <option value="OK">🟢 OK (&gt; 75%)</option>
-            <option value="sem_idade">⚠ Sem Idade Cadastrada</option>
-            <option value="risco_sobra">⚠️ Risco de Sobra (Cobertura &gt; Validade)</option>
-          </select>
-
-          <select
-            value={curvaFilter}
-            onChange={e => setCurvaFilter(e.target.value as any)}
-            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
-          >
-            <option value="todos">📊 Curva ABC (03.05.19)</option>
-            <option value="Curva A">Curva A (80% Faturamento)</option>
-            <option value="Curva B">Curva B (15% Faturamento)</option>
-            <option value="Curva C">Curva C (5% Faturamento)</option>
-          </select>
-
-          <select
-            value={faixaVencFilter}
-            onChange={e => setFaixaVencFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 cursor-pointer"
-          >
-            <option value="todos">📅 Todas as Faixas</option>
-            <option value="vencidos">⚠️ Já Vencidos</option>
-            <option value="30d">⏳ 0 a 30 Dias Restantes</option>
-            <option value="31-60d">⏳ 31 a 60 Dias Restantes</option>
-            <option value="61-90d">⏳ 61 a 90 Dias Restantes</option>
-            <option value="90d+">⏳ Mais de 90 Dias</option>
-          </select>
-
-          {uniqueLotes.length > 0 && (
-            <select
-              value={loteFilter}
-              onChange={e => setLoteFilter(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-xs text-slate-100 font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 max-w-[150px] truncate cursor-pointer"
-            >
-              <option value="todos">📦 Todos os Lotes</option>
-              {uniqueLotes.map(l => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
-          )}
-
-          <button
-            onClick={() => setSortAsc(!sortAsc)}
-            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 font-bold rounded-xl px-3.5 py-2.5 flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95"
-            title="Alterar ordenação do Stock Age Index"
-          >
-            <TrendingDown className={`w-3.5 h-3.5 text-purple-400 transition-transform ${sortAsc ? '' : 'rotate-180'}`} />
-            <span>{sortAsc ? 'Menor Age Index' : 'Maior Age Index'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* TABELA DE PRODUTOS / LOTES */}
-      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
-        <div className="px-6 py-4 bg-slate-850 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-              <Boxes className="w-4 h-4 text-purple-400" />
-            </div>
-            <h4 className="text-xs font-black text-white uppercase tracking-wider">
-              Tabela Stock Age Index por Lote / Validade ({filteredAndSortedRows.length} registros únicos)
-            </h4>
-          </div>
-          <span className="text-[11px] text-slate-400 font-mono">
-            Unificado por Código + Validade | Derivado do Cadastro de Produtos
+          <span className="text-xs font-extrabold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 self-start sm:self-auto">
+            {ruasSummary.length} Ruas Mapeadas
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-center border-collapse min-w-[980px]">
-            <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-black text-slate-300 uppercase tracking-wider">
-                <th className="py-4 px-4 text-center">Produto / Descrição</th>
-                <th className="py-4 px-3 text-center">Código</th>
-                <th className="py-4 px-2 text-center">Curva (03.05.19)</th>
-                <th className="py-4 px-3 text-center">Lote</th>
-                <th className="py-4 px-3 text-center">Setor / Local</th>
-                <th className="py-4 px-3 text-center">Quantidade</th>
-                <th className="py-4 px-3 text-center">V. Média / Dia</th>
-                <th className="py-4 px-3 text-center">Cobertura</th>
-                <th className="py-4 px-3 text-center">Valoração</th>
-                <th className="py-4 px-3 text-center">Data Vencimento</th>
-                <th className="py-4 px-3 text-center">Idade Cadastrada</th>
-                <th className="py-4 px-3 text-center">Dias Restantes</th>
-                <th className="py-4 px-3 text-center">Stock Age Index (%)</th>
-                <th className="py-4 px-4 text-center">Classificação</th>
+        {/* Cards de Ruas com Indicador Visual de Risco */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {ruasSummary.map(r => {
+            const isCritical = r.nivelRisco === 'CRÍTICO';
+            const isHigh = r.nivelRisco === 'ALTO';
+            const isMedium = r.nivelRisco === 'MÉDIO';
+
+            return (
+              <div 
+                key={r.rua}
+                onClick={() => {
+                  setRuaFilter(ruaFilter === r.rua ? 'todos' : r.rua);
+                  setSelectedRuaDetail(r.rua);
+                }}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  ruaFilter === r.rua
+                    ? 'border-purple-600 ring-2 ring-purple-300 bg-purple-50/50'
+                    : isCritical
+                    ? 'bg-rose-50/60 border-rose-200 hover:border-rose-400'
+                    : isHigh
+                    ? 'bg-amber-50/60 border-amber-200 hover:border-amber-400'
+                    : isMedium
+                    ? 'bg-blue-50/40 border-blue-200 hover:border-blue-300'
+                    : 'bg-emerald-50/40 border-emerald-200 hover:border-emerald-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-[#032b5e] text-white flex items-center justify-center font-black text-xs shadow-xs">
+                      {r.rua}
+                    </span>
+                    <div>
+                      <h4 className="font-black text-xs text-slate-800 uppercase">Rua {r.rua}</h4>
+                      <span className="text-[10px] text-slate-500 font-bold">Bloco {r.bloco}</span>
+                    </div>
+                  </div>
+
+                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                    isCritical
+                      ? 'bg-rose-100 text-rose-800 border-rose-300'
+                      : isHigh
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : isMedium
+                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  }`}>
+                    {r.nivelRisco}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-slate-200/60 text-xs">
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Stock Age</span>
+                    <span className={`font-black text-sm ${
+                      r.stockAgeIndexMedio >= 75 ? 'text-emerald-600' : r.stockAgeIndexMedio >= 60 ? 'text-amber-600' : 'text-rose-600'
+                    }`}>
+                      {r.stockAgeIndexMedio}%
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Volume (HL)</span>
+                    <span className="font-black text-sm text-slate-800">
+                      {r.totalHecto.toLocaleString('pt-BR')} HL
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Itens Críticos</span>
+                    <span className="font-extrabold text-xs text-rose-600">
+                      {r.criticosCount} ({r.criticosPct}%)
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase block">Valoração</span>
+                    <span className="font-extrabold text-xs text-emerald-700">
+                      R$ {r.totalValor.toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                  <span>Score Risco: <strong className="text-slate-800">{r.shelfRiskScore}/100</strong></span>
+                  <span className="text-purple-700 font-black flex items-center gap-0.5 hover:underline">
+                    {ruaFilter === r.rua ? 'Filtrado ✓' : 'Filtrar →'}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          TABELA DETALHADA DE PRODUTOS & DIAS EM ESTOQUE (03.05.19)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        
+        {/* Barra de Filtros */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Buscar por código, descrição de produto ou rua..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            
+            {/* Filtro de Semana do Mês */}
+            <select
+              value={selectedSemanaFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedSemanaFilter(val === 'todas' ? 'todas' : (parseInt(val) as 1 | 2 | 3 | 4));
+              }}
+              className="px-3 py-2 rounded-xl border border-blue-300 text-xs font-black bg-blue-50/80 text-blue-900 focus:outline-none"
+            >
+              <option value="todas">📅 Todas as 4 Semanas</option>
+              <option value="1">S1: Semana 1 (01 a 07)</option>
+              <option value="2">S2: Semana 2 (08 a 14)</option>
+              <option value="3">S3: Semana 3 (15 a 21)</option>
+              <option value="4">S4: Semana 4 (22 a 31)</option>
+            </select>
+
+            {/* Filtro de Status */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+            >
+              <option value="todos">Todos os Status</option>
+              <option value="Crítico">🚨 Crítico (&lt;60%)</option>
+              <option value="Atenção">⚠️ Atenção (60-75%)</option>
+              <option value="OK">✅ OK (&gt;75%)</option>
+              <option value="risco_sobra">⚡ Risco de Sobra (Sem Giro)</option>
+            </select>
+
+            {/* Filtro de Rua */}
+            <select
+              value={ruaFilter}
+              onChange={(e) => setRuaFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+            >
+              <option value="todos">Todas as Ruas</option>
+              {uniqueRuas.map(r => (
+                <option key={r} value={r}>Rua {r}</option>
+              ))}
+            </select>
+
+            {/* Filtro de Curva ABC */}
+            <select
+              value={curvaFilter}
+              onChange={(e) => setCurvaFilter(e.target.value as any)}
+              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none"
+            >
+              <option value="todos">Todas as Curvas</option>
+              <option value="A">Curva A</option>
+              <option value="B">Curva B</option>
+              <option value="C">Curva C</option>
+            </select>
+
+            {(searchTerm || selectedSemanaFilter !== 'todas' || statusFilter !== 'todos' || ruaFilter !== 'todos' || curvaFilter !== 'todos' || useCustomDateRange) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedSemanaFilter('todas');
+                  setStatusFilter('todos');
+                  setRuaFilter('todos');
+                  setCurvaFilter('todos');
+                  clearDateRange();
+                }}
+                className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-extrabold text-xs cursor-pointer border border-rose-200"
+              >
+                Limpar Filtros
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tabela de Produtos */}
+        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200">
+              <tr>
+                <th className="py-3 px-3">Código &amp; Produto</th>
+                <th className="py-3 px-2 text-center">Semana</th>
+                <th className="py-3 px-2 text-center">Rua / Bloco</th>
+                <th className="py-3 px-2 text-center">Curva</th>
+                <th className="py-3 px-2 text-right">Estoque (Cx)</th>
+                <th className="py-3 px-2 text-right">Volume (HL)</th>
+                <th className="py-3 px-2 text-right">Valor Est. (R$)</th>
+                <th className="py-3 px-2 text-center">Data Coleta</th>
+                <th className="py-3 px-2 text-center">Vencimento</th>
+                <th className="py-3 px-2 text-center">Dias Rest.</th>
+                <th className="py-3 px-2 text-center">Stock Age Index</th>
+                <th className="py-3 px-2 text-center">Venda Média (03.05.19)</th>
+                <th className="py-3 px-2 text-center">Dias em Estoque</th>
+                <th className="py-3 px-2 text-center">Status / Risco</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs text-center">
-              {filteredAndSortedRows.length === 0 ? (
+            <tbody className="divide-y divide-slate-100 font-bold">
+              {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="py-14 text-center text-slate-400 font-semibold text-sm">
-                    Nenhum lote encontrado com os filtros selecionados.
+                  <td colSpan={14} className="py-8 text-center text-slate-400 font-bold">
+                    Nenhum item encontrado para os filtros selecionados.
                   </td>
                 </tr>
               ) : (
-                filteredAndSortedRows.map((row, idx) => {
-                  const isCritico = row.status === 'Crítico' || row.idadeMissing;
-                  const isAtencao = row.status === 'Atenção' && !row.idadeMissing;
-
-                  let rowStyle = 'hover:bg-slate-800/60 transition-colors';
-                  if (row.idadeMissing) {
-                    rowStyle = 'bg-amber-950/20 hover:bg-amber-950/40 border-l-4 border-l-amber-500';
-                  } else if (isCritico) {
-                    rowStyle = 'bg-red-950/20 hover:bg-red-950/40 border-l-4 border-l-red-500';
-                  } else if (isAtencao) {
-                    rowStyle = 'bg-amber-950/15 hover:bg-amber-950/30 border-l-4 border-l-amber-400';
-                  } else {
-                    rowStyle = 'hover:bg-slate-800/60 border-l-4 border-l-emerald-500/40';
-                  }
+                paginatedItems.map((item) => {
+                  const isCrit = item.status === 'Crítico';
+                  const isAtencao = item.status === 'Atenção';
 
                   return (
-                    <tr key={row._docId || row.id || idx} className={rowStyle}>
-                      
-                      {/* PRODUTO */}
-                      <td className="py-3 px-4 text-center font-bold text-white">
-                        <div className="flex flex-col items-center justify-center">
-                          <span className="truncate max-w-[220px]" title={row.descricao}>
-                            {row.descricao}
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-2.5 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-[#032b5e]">{item.codigo}</span>
+                          <span className="text-slate-700 truncate max-w-[200px]" title={item.descricao}>
+                            {item.descricao}
                           </span>
                         </div>
                       </td>
-
-                      {/* CÓDIGO */}
-                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-200">
-                        {row.codigo}
+                      <td className="py-2.5 px-2 text-center">
+                        <span className="bg-blue-100 text-blue-900 font-black text-[10px] px-2 py-0.5 rounded-full border border-blue-200" title={`Semana ${item.semanaNumero} (${item.dataColeta})`}>
+                          S{item.semanaNumero}
+                        </span>
                       </td>
-
-                      {/* CURVA ABC (03.05.19) */}
-                      <td className="py-3 px-2 text-center">
-                        <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-black font-mono border ${
-                          row.curvaAbc === 'A'
-                            ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
-                            : row.curvaAbc === 'C'
-                            ? 'bg-purple-950/80 text-purple-300 border-purple-500/40'
-                            : 'bg-blue-950/80 text-blue-300 border-blue-500/40'
+                      <td className="py-2.5 px-2 text-center">
+                        <span className="bg-slate-100 text-slate-800 font-black text-[11px] px-2 py-0.5 rounded border border-slate-200">
+                          {item.rua}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-2 text-center">
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          item.curvaAbc === 'A' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : item.curvaAbc === 'B' 
+                            ? 'bg-amber-100 text-amber-800' 
+                            : 'bg-slate-100 text-slate-700'
                         }`}>
-                          Curva {row.curvaAbc}
+                          {item.curvaAbc}
                         </span>
                       </td>
-
-                      {/* LOTE */}
-                      <td className="py-3 px-3 text-center font-mono text-purple-300 font-bold">
-                        {row.lote}
+                      <td className="py-2.5 px-2 text-right font-black text-slate-800">
+                        {item.quantidade.toLocaleString('pt-BR')}
                       </td>
-
-                      {/* SETOR / LOCAL */}
-                      <td className="py-3 px-3 text-center">
-                        <span className="bg-slate-800 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-md text-[10px] font-bold inline-block shadow-sm">
-                          {row.setor} ({row.localizacao})
+                      <td className="py-2.5 px-2 text-right font-black text-[#032b5e]">
+                        {item.volumeHecto.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="py-2.5 px-2 text-right font-black text-emerald-700">
+                        R$ {item.valorEstimado.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="py-2.5 px-2 text-center text-slate-500 text-[11px]">
+                        {item.dataColeta}
+                      </td>
+                      <td className="py-2.5 px-2 text-center text-slate-600">
+                        {item.dataVencimento.split('-').reverse().join('/')}
+                      </td>
+                      <td className="py-2.5 px-2 text-center font-black">
+                        <span className={item.diasRestantes <= 30 ? 'text-rose-600' : item.diasRestantes <= 60 ? 'text-amber-600' : 'text-slate-700'}>
+                          {item.diasRestantes}d
                         </span>
                       </td>
-
-                      {/* QUANTIDADE */}
-                      <td className="py-3 px-3 text-center font-bold text-slate-100">
-                        {row.quantidade} <span className="text-[10px] text-slate-400 font-normal">cx</span>
+                      <td className="py-2.5 px-2 text-center">
+                        <span className={`px-2 py-0.5 rounded-md font-black text-xs ${
+                          isCrit 
+                            ? 'bg-rose-100 text-rose-800 border border-rose-300' 
+                            : isAtencao 
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        }`}>
+                          {item.stockAgeIndex}%
+                        </span>
                       </td>
-
-                      {/* VENDA MÉDIA / DIA (03.05.19) */}
-                      <td className="py-3 px-3 text-center font-mono text-xs font-bold text-blue-300">
-                        {row.vendaMediaDiaria.toFixed(1)} <span className="text-[10px] text-slate-400 font-normal">cx/d</span>
-                        {row.is030519 && (
-                          <span className="block text-[9px] text-blue-400/80 font-mono">03.05.19</span>
-                        )}
+                      <td className="py-2.5 px-2 text-center font-black text-slate-700">
+                        {item.vendaMediaDiaria > 0 ? `${item.vendaMediaDiaria} cx/dia` : <span className="text-slate-400 text-[10px]">Sem 03.05.19</span>}
                       </td>
-
-                      {/* COBERTURA / GIRO */}
-                      <td className="py-3 px-3 text-center">
-                        {row.riscoSobra ? (
-                          <div className="flex flex-col items-center">
-                            <span className="text-[11px] font-black text-amber-400 font-mono bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 inline-flex items-center gap-1">
-                              <AlertTriangle className="w-3 h-3 text-amber-400" />
-                              {row.diasCobertura}d
-                            </span>
-                            <span className="text-[9px] text-amber-300/80 font-mono mt-0.5">
-                              sobra ~{row.sobraEstimadaCx} cx
-                            </span>
-                          </div>
+                      <td className="py-2.5 px-2 text-center">
+                        {item.diasEmEstoque === 999 ? (
+                          <span className="text-[10px] text-slate-400 font-bold">-</span>
                         ) : (
-                          <span className="text-slate-300 font-mono text-xs font-semibold">
-                            {row.diasCobertura}d
-                          </span>
-                        )}
-                      </td>
-
-                      {/* VALORAÇÃO */}
-                      <td className="py-3 px-3 text-center font-mono text-purple-300 font-bold">
-                        R$ {Math.round(row.valorTotal).toLocaleString('pt-BR')}
-                      </td>
-
-                      {/* DATA VENCIMENTO */}
-                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-100">
-                        {formatDateBR(row.dataVencimento)}
-                      </td>
-
-                      {/* IDADE CADASTRADA */}
-                      <td className="py-3 px-3 text-center font-mono font-bold">
-                        {row.idadeMissing ? (
-                          <span className="text-amber-300 text-[10px] bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/40">
-                            ⚠ Não Cadastrada
-                          </span>
-                        ) : (
-                          <span className="text-amber-300">
-                            {row.vidaUtilTotal} <span className="text-[10px] text-slate-400 font-normal">dias</span>
-                          </span>
-                        )}
-                      </td>
-
-                      {/* DIAS RESTANTES */}
-                      <td className={`py-3 px-3 text-center font-bold font-mono ${
-                        row.diasRestantes < 0 ? 'text-red-400' : row.diasRestantes <= 30 ? 'text-amber-400' : 'text-slate-100'
-                      }`}>
-                        {row.diasRestantes < 0 ? `${row.diasRestantes}d (Vencido)` : `${row.diasRestantes}d`}
-                      </td>
-
-                      {/* STOCK AGE INDEX (%) */}
-                      <td className="py-3 px-3 text-center">
-                        {row.idadeMissing ? (
-                          <span className="text-slate-500 font-mono text-xs">N/A</span>
-                        ) : (
-                          <div className="flex flex-col items-center">
-                            <span className={`font-mono font-black text-sm ${
-                              isCritico ? 'text-red-400' : isAtencao ? 'text-amber-400' : 'text-emerald-400'
-                            }`}>
-                              {row.stockAgeIndex}%
-                            </span>
-                            <div className="w-16 bg-slate-950 rounded-full h-1.5 mt-1 overflow-hidden p-0.5 border border-slate-800">
-                              <div 
-                                className={`h-full rounded-full ${
-                                  isCritico ? 'bg-red-500' : isAtencao ? 'bg-amber-500' : 'bg-emerald-500'
-                                }`} 
-                                style={{ width: `${Math.max(0, Math.min(100, row.stockAgeIndex))}%` }} 
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* STATUS BADGE */}
-                      <td className="py-3 px-4 text-center">
-                        {row.idadeMissing ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-950/80 text-amber-300 border border-amber-500/40">
-                            <AlertTriangle className="w-3 h-3 text-amber-400" />
-                            ⚠ Idade não cadastrada
-                          </span>
-                        ) : (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase border ${
-                            isCritico 
-                              ? 'bg-red-950/80 text-red-300 border-red-500/40' 
-                              : isAtencao 
-                              ? 'bg-amber-950/80 text-amber-300 border-amber-500/40' 
-                              : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                          <span className={`font-black ${
+                            item.riscoSobra ? 'text-rose-600 font-black' : 'text-slate-700'
                           }`}>
-                            {isCritico && <ShieldAlert className="w-3 h-3" />}
-                            {isAtencao && <Clock className="w-3 h-3" />}
-                            {!isCritico && !isAtencao && <ShieldCheck className="w-3 h-3" />}
-                            {row.status}
+                            {item.diasEmEstoque}d
                           </span>
                         )}
                       </td>
-
+                      <td className="py-2.5 px-2 text-center">
+                        {item.riscoSobra ? (
+                          <span className="bg-rose-100 text-rose-800 text-[10px] font-black px-2 py-0.5 rounded border border-rose-300 flex items-center justify-center gap-1">
+                            <AlertTriangle className="w-3 h-3" /> Sobra {item.sobraEstimadaCx} cx
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                            isCrit ? 'text-rose-700 bg-rose-50' : isAtencao ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
+                          }`}>
+                            {item.statusLabel}
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -1416,17 +1497,203 @@ export default function StockAgeIndexTab({ validadesList, user, empresa, onRefre
           </table>
         </div>
 
-        <div className="bg-slate-950/80 p-4 px-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 gap-2">
-          <div>
-            Exibindo <strong className="text-white">{filteredAndSortedRows.length}</strong> de <strong className="text-white">{allRows.length}</strong> lotes cadastrados
+        {/* Paginação de Alta Performance */}
+        {filteredItems.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div className="flex items-center gap-3 text-slate-500 font-bold">
+              <span>
+                Mostrando <strong>{Math.min(filteredItems.length, (currentPage - 1) * itemsPerPage + 1)}</strong> a <strong>{Math.min(filteredItems.length, currentPage * itemsPerPage)}</strong> de <strong>{filteredItems.length}</strong> lotes
+              </span>
+              <div className="flex items-center gap-1">
+                <span>Por página:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(parseInt(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 border border-slate-200 rounded-lg font-bold bg-white text-slate-700"
+                >
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="200">200</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 self-center sm:self-auto">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
+                « Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <span className="px-3 py-1 bg-blue-50 text-blue-900 font-black rounded-lg border border-blue-200">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Próxima
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Última »
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-4 text-[11px] font-semibold">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span> Crítico (≤30d / &lt;60%)</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Atenção (60-75%)</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> OK (&gt;75%)</span>
+        )}
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL DE IMPORTAÇÃO DA 03.05.19
+          ───────────────────────────────────────────────────────────── */}
+      {showImport030519Modal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-black text-base text-[#032b5e] uppercase">
+                  Importar Relatório 03.05.19
+                </h3>
+              </div>
+              <button 
+                onClick={() => setShowImport030519Modal(false)}
+                className="text-slate-400 hover:text-slate-600 font-black text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 font-bold">
+              Cole o conteúdo copiado do SAP/Excel da rotina <strong>03.05.19</strong> (ou arquivo CSV/TXT). 
+              O sistema calcula automaticamente a <strong>venda média diária</strong> e atualiza os <strong>dias de cobertura em estoque</strong>.
+            </p>
+
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-bold text-slate-700">Dias Úteis no Período:</label>
+              <input
+                type="number"
+                value={diasUteisTrimestre}
+                onChange={(e) => setDiasUteisTrimestre(Math.max(1, parseInt(e.target.value) || 66))}
+                className="w-20 px-2 py-1 border border-slate-300 rounded-lg text-xs font-bold text-center"
+              />
+              <span className="text-[10px] text-slate-400 font-bold">(Ex: 66 dias no trimestre)</span>
+            </div>
+
+            <div>
+              <label className="text-xs font-black text-slate-700 uppercase block mb-1">
+                Conteúdo do Arquivo / Tabela:
+              </label>
+              <textarea
+                rows={6}
+                value={importText030519}
+                onChange={(e) => setImportText030519(e.target.value)}
+                placeholder="Cole aqui as linhas copiadas da 03.05.19..."
+                className="w-full p-3 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setShowImport030519Modal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs cursor-pointer border-none"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleProcess030519(importText030519)}
+                disabled={!importText030519.trim()}
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer border-none shadow-sm disabled:opacity-50"
+              >
+                Calcular &amp; Atualizar Venda Média
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL DE IMPORTAÇÃO DE ARQUIVO DE COLETA (MODELO JSON/EXCEL)
+          ───────────────────────────────────────────────────────────── */}
+      {showImportColetaModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-blue-600" />
+                <h3 className="font-black text-base text-[#032b5e] uppercase">
+                  Importar Coleta para {MONTH_KEYS.find(m => m.key === selectedMonthKey)?.name}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setShowImportColetaModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-black text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 font-bold">
+              Selecione o arquivo de coleta no formato padrão (JSON, Excel .xlsx ou CSV) contendo os campos de 
+              <strong> dataColeta, codigo, descricao, qtdeCaixas, dataVencimento, subBloco (rua), etc.</strong>
+            </p>
+
+            <div className="border-2 border-dashed border-blue-200 bg-blue-50/50 p-6 rounded-2xl flex flex-col items-center justify-center gap-2 text-center">
+              <FileSpreadsheet className="w-10 h-10 text-blue-500" />
+              <span className="text-xs font-black text-blue-900">Selecione o arquivo do mês</span>
+              <span className="text-[10px] text-slate-500">Formatos aceitos: .json, .xlsx, .csv</span>
+              <input
+                type="file"
+                accept=".json,.xlsx,.xls,.csv"
+                onChange={handleImportColetaFile}
+                className="mt-2 text-xs font-bold text-slate-600"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setShowImportColetaModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs cursor-pointer border-none"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL DE IMPORTAÇÃO DE ARQUIVO JSON (MÊS A MÊS)
+          ───────────────────────────────────────────────────────────── */}
+      <ImportStockAgeJsonModal
+        isOpen={showImportStockAgeJsonModal}
+        onClose={() => setShowImportStockAgeJsonModal(false)}
+        initialMonthKey={selectedMonthKey}
+        onImportSuccess={(monthKey, count) => {
+          loadMonthlyData();
+          if (monthKey !== 'all') {
+            setSelectedMonthKey(monthKey);
+          }
+          setImportNotice(`Sucesso! ${count} registros importados e gravados com sucesso no Stock Age Index.`);
+          setTimeout(() => setImportNotice(null), 5000);
+        }}
+      />
 
     </div>
   );

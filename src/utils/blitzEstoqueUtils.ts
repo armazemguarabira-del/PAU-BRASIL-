@@ -88,7 +88,7 @@ export function getBlitzEstoqueRecords(empresaId: string = 'demo', metaSaude: nu
           motivo: 'Inversão de SKU / Código no Picking',
           quantidade: 1,
           colaborador: m.resp,
-          sku: 'SKU-001 (Brahma Duplo Malte)',
+          sku: 'SKU-001 (Brahma Chopp 350ml)',
           observacao: 'Troca de lote físico na separação'
         },
         ...(m.divNaoJust > 1 ? [{

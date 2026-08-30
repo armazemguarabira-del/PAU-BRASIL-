@@ -25,9 +25,37 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
   }
   cleaned = uniqueTokens.join(' ').toUpperCase();
 
-  // Explicit Alias Mappings (e.g. Romildo / Ronildo -> JOSE RONILDO DA SILVA)
+  // Explicit Alias Mappings
   if (cleaned === 'ROMILDO' || cleaned === 'RONILDO' || cleaned === 'JOSE RONILDO' || cleaned === 'JOSÉ RONILDO' || cleaned.includes('ROMILDO') || cleaned.includes('RONILDO')) {
     cleaned = 'JOSE RONILDO DA SILVA';
+  } else if (cleaned === 'GLADSOON' || cleaned === 'GLADSON' || cleaned === 'GLADSON LISBOA' || cleaned.includes('GLADSOON') || cleaned.includes('GLADSON')) {
+    cleaned = 'GLADSON LISBOA DOS SANTOS';
+  } else if (cleaned === 'OZENILDO' || cleaned === 'OZENILDO SOUSA' || cleaned.includes('OZENILDO')) {
+    cleaned = 'OZENILDO SOUSA SILVA';
+  } else if (cleaned === 'DEJEAN' || cleaned === 'DEJEAN SILVA' || cleaned.includes('DEJEAN')) {
+    cleaned = 'DEJEAN SILVA DE OLIVEIRA';
+  } else if (cleaned === 'GILSON' || cleaned === 'GILSON ROSA' || cleaned.includes('GILSON ROSA')) {
+    cleaned = 'GILSON ROSA DA SILVA';
+  } else if (cleaned === 'CICERO' || cleaned === 'CÍCERO' || cleaned === 'CICERO MATHEU' || cleaned === 'CÍCERO MATEU' || cleaned.includes('CICERO') || cleaned.includes('CÍCERO')) {
+    cleaned = 'CICERO MATHEU DE OLIVEIRA SILVA';
+  } else if (cleaned === 'ELDENKLEBER' || cleaned === 'ELDENKLEBER MAURICIO' || cleaned.includes('ELDENKLEBER')) {
+    cleaned = 'ELDENKLEBER MAURICIO DA SILVA';
+  } else if (cleaned === 'ADMILTON' || cleaned === 'ADMILTON HERMINIO' || cleaned.includes('ADMILTON')) {
+    cleaned = 'ADMILTON HERMINIO DOS SANTOS MARCELINO';
+  } else if (cleaned === 'DIMAS' || cleaned === 'DIMAS EMANUEL' || cleaned.includes('DIMAS')) {
+    cleaned = 'DIMAS EMANUEL MISSIAS DA SILVA';
+  } else if (cleaned === 'EDILSON' || cleaned === 'EDILSON VIEIRA' || cleaned.includes('EDILSON')) {
+    cleaned = 'EDILSON VIEIRA DA SILVA';
+  } else if (cleaned === 'NATANAEL' || cleaned === 'NATANAEL LUIZ' || cleaned.includes('NATANAEL')) {
+    cleaned = 'NATANAEL LUIZ DA SILVA';
+  } else if (cleaned === 'DIOGENES' || cleaned === 'DIÓGENES' || cleaned === 'DIOGENES PEREIRA' || cleaned.includes('DIOGENES') || cleaned.includes('DIÓGENES')) {
+    cleaned = 'DIOGENES PEREIRA DA SILVA';
+  } else if (cleaned === 'PAULO PEREIRA' || (cleaned.includes('PAULO') && cleaned.includes('PEREIRA'))) {
+    cleaned = 'PAULO PEREIRA DA SILVA';
+  } else if (cleaned === 'LUIS' || cleaned === 'LUIZ' || cleaned === 'LUIS ANTONIO' || cleaned.includes('LUIS ANTONIO')) {
+    cleaned = 'LUIS ANTONIO FREIRE MOREIRA';
+  } else if (cleaned === 'MARIVALDO' || cleaned === 'MARIVALDO ARTUR' || cleaned.includes('MARIVALDO')) {
+    cleaned = 'MARIVALDO ARTUR ALVES';
   }
 
   // Combine official list with custom registered list
@@ -173,38 +201,41 @@ export function normalizeCollaboratorNamesInRecords<T extends Record<string, any
 }
 
 /**
- * Checks if a collaborator exists in the official list or stored custom list, returning official cargo and name
+ * Checks if a collaborator exists in the official list or stored custom list, returning official cargo, name, and turno
  */
-export function getCollaboratorOfficialInfo(rawOrNormName: string, empresaId: string = 'demo'): { isRegistered: boolean; cargo: string; nomeOficial: string } {
+export function getCollaboratorOfficialInfo(rawOrNormName: string, empresaId: string = 'demo'): { isRegistered: boolean; cargo: string; nomeOficial: string; turno: string } {
   const norm = normalizeCollaboratorName(rawOrNormName);
-  if (!norm) return { isRegistered: false, cargo: '', nomeOficial: rawOrNormName };
+  if (!norm) return { isRegistered: false, cargo: '', nomeOficial: rawOrNormName, turno: 'MANHÃ' };
 
-  // 1. Check custom colaboradores saved in localStorage (contains updated cargos from imports/edits)
+  // 1. Check official static list (Master source of truth for shifts and official positions)
+  const official = LISTA_COLABORADORES_OFICIAIS.find(c => c.nome.toUpperCase().trim() === norm.toUpperCase().trim());
+
+  // 2. Check custom colaboradores saved in localStorage
   try {
     const saved = localStorage.getItem(`colaboradores_${empresaId}`);
     if (saved) {
       const list = JSON.parse(saved);
       if (Array.isArray(list)) {
         const match = list.find((c: any) => c.nome && String(c.nome).toUpperCase().trim() === norm.toUpperCase().trim());
-        if (match && match.cargo) {
-          let cUpper = String(match.cargo).toUpperCase();
-          let cForm = match.cargo;
+        if (match) {
+          let cUpper = String(match.cargo || '').toUpperCase();
+          let cForm = match.cargo || (official?.cargo || 'Ajudante');
           if (cUpper.includes('EMPILHA')) cForm = 'Empilhador';
           else if (cUpper.includes('CONFEREN')) cForm = 'Conferente';
           else if (cUpper.includes('AJUDAN') || cUpper.includes('AUXILIAR')) cForm = 'Ajudante';
-          return { isRegistered: true, cargo: cForm, nomeOficial: match.nome };
+          
+          const effTurno = match.turno || official?.turno || 'MANHÃ';
+          return { isRegistered: true, cargo: cForm, nomeOficial: match.nome || norm, turno: effTurno };
         }
       }
     }
   } catch (e) {}
 
-  // 2. Check official static list
-  const official = LISTA_COLABORADORES_OFICIAIS.find(c => c.nome.toUpperCase().trim() === norm.toUpperCase().trim());
   if (official) {
-    return { isRegistered: true, cargo: official.cargo, nomeOficial: official.nome };
+    return { isRegistered: true, cargo: official.cargo, nomeOficial: official.nome, turno: official.turno };
   }
 
-  return { isRegistered: false, cargo: '', nomeOficial: norm };
+  return { isRegistered: false, cargo: '', nomeOficial: norm, turno: 'MANHÃ' };
 }
 
 /**

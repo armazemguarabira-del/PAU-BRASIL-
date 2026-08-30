@@ -39,6 +39,7 @@ import {
   Award,
   Target,
   Edit3,
+  RotateCcw,
   Sliders,
   Eye,
   Settings,
@@ -73,6 +74,7 @@ import {
 } from 'lucide-react';
 import { QuadroDesviosEAcoes } from './QuadroDesviosEAcoes';
 import AuditoriaDpoPanel from './AuditoriaDpoPanel';
+import PadraoOperacionalPanel from './PadraoOperacionalPanel';
 import { MaterializedDashboardBanner } from './MaterializedDashboardBanner';
 import { PadraoOperacionalModal, OperationalModuleKey } from './PadraoOperacionalModal';
 import { getSopForOperation, openPdfInNewTab, downloadPdfFile } from '../utils/sopUtils';
@@ -244,7 +246,7 @@ interface DashboardOverviewProps {
     docsHoje: number;
     alertasFefo: number;
   };
-  initialTab?: 'operacao' | '5s' | 'matriz' | 'desvios' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp';
+  initialTab?: 'operacao' | '5s' | 'matriz' | 'desvios' | 'gatilhos' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp';
 }
 
 export default function DashboardOverview({
@@ -268,7 +270,7 @@ export default function DashboardOverview({
   });
 
   // Workstation Subtab Navigation
-  const [workstationTab, setWorkstationTab] = useState<'operacao' | '5s' | 'matriz' | 'desvios' | 'gatilhos' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp'>(() => {
+  const [workstationTab, setWorkstationTab] = useState<'operacao' | 'padroes' | '5s' | 'matriz' | 'desvios' | 'gatilhos' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp'>(() => {
     if (initialTab) {
       return initialTab;
     }
@@ -482,12 +484,22 @@ export default function DashboardOverview({
   const [newIcInput, setNewIcInput] = useState('');
   const [newIvInput, setNewIvInput] = useState('');
 
+  // Inline item editing state (non-blocking, iframe-friendly)
+  const [editingItem, setEditingItem] = useState<{
+    type: 'objetivo' | 'ic' | 'iv';
+    index: number;
+    value: string;
+  } | null>(null);
+
   const handleRemoveObjetivo = (index: number) => {
     const currentList = catObjetivos[govCategory] || [];
     const updatedList = currentList.filter((_, i) => i !== index);
     const updatedMap = { ...catObjetivos, [govCategory]: updatedList };
     setCatObjetivos(updatedMap);
     localStorage.setItem('gov_cat_objetivos', JSON.stringify(updatedMap));
+    if (editingItem?.type === 'objetivo' && editingItem.index === index) {
+      setEditingItem(null);
+    }
   };
 
   const handleAddObjetivo = () => {
@@ -500,18 +512,11 @@ export default function DashboardOverview({
     setNewObjInput('');
   };
 
-  const handleEditObjetivo = (index: number) => {
+  const startEditObjetivo = (index: number) => {
     const currentList = catObjetivos[govCategory] || [];
-    const val = currentList[index];
-    const newVal = prompt('Editar Objetivo:', val);
-    if (newVal !== null && newVal.trim() !== '') {
-      const updatedList = [...currentList];
-      updatedList[index] = newVal.trim();
-      const updatedMap = { ...catObjetivos, [govCategory]: updatedList };
-      setCatObjetivos(updatedMap);
-      localStorage.setItem('gov_cat_objetivos', JSON.stringify(updatedMap));
-    }
+    setEditingItem({ type: 'objetivo', index, value: currentList[index] || '' });
   };
+  const handleEditObjetivo = startEditObjetivo;
 
   const handleRemoveIC = (index: number) => {
     const currentList = catIC[govCategory] || [];
@@ -519,6 +524,9 @@ export default function DashboardOverview({
     const updatedMap = { ...catIC, [govCategory]: updatedList };
     setCatIC(updatedMap);
     localStorage.setItem('gov_cat_ic', JSON.stringify(updatedMap));
+    if (editingItem?.type === 'ic' && editingItem.index === index) {
+      setEditingItem(null);
+    }
   };
 
   const handleAddIC = () => {
@@ -531,18 +539,11 @@ export default function DashboardOverview({
     setNewIcInput('');
   };
 
-  const handleEditIC = (index: number) => {
+  const startEditIC = (index: number) => {
     const currentList = catIC[govCategory] || [];
-    const val = currentList[index];
-    const newVal = prompt('Editar Item Crítico (IC):', val);
-    if (newVal !== null && newVal.trim() !== '') {
-      const updatedList = [...currentList];
-      updatedList[index] = newVal.trim();
-      const updatedMap = { ...catIC, [govCategory]: updatedList };
-      setCatIC(updatedMap);
-      localStorage.setItem('gov_cat_ic', JSON.stringify(updatedMap));
-    }
+    setEditingItem({ type: 'ic', index, value: currentList[index] || '' });
   };
+  const handleEditIC = startEditIC;
 
   const handleRemoveIV = (index: number) => {
     const currentList = catIV[govCategory] || [];
@@ -550,6 +551,9 @@ export default function DashboardOverview({
     const updatedMap = { ...catIV, [govCategory]: updatedList };
     setCatIV(updatedMap);
     localStorage.setItem('gov_cat_iv', JSON.stringify(updatedMap));
+    if (editingItem?.type === 'iv' && editingItem.index === index) {
+      setEditingItem(null);
+    }
   };
 
   const handleAddIV = () => {
@@ -562,17 +566,63 @@ export default function DashboardOverview({
     setNewIvInput('');
   };
 
-  const handleEditIV = (index: number) => {
+  const startEditIV = (index: number) => {
     const currentList = catIV[govCategory] || [];
-    const val = currentList[index];
-    const newVal = prompt('Editar Item de Verificação (IV):', val);
-    if (newVal !== null && newVal.trim() !== '') {
+    setEditingItem({ type: 'iv', index, value: currentList[index] || '' });
+  };
+  const handleEditIV = startEditIV;
+
+  const handleResetGovDefaults = () => {
+    if (window.confirm(`Deseja restaurar os Objetivos, ICs e IVs padrão do código para a categoria "${GOV_CATEGORIES[govCategory].label}"?`)) {
+      const defaultObjs = GOV_CATEGORIES[govCategory].defaultObjetivos;
+      const defaultIcs = GOV_CATEGORIES[govCategory].defaultIC;
+      const defaultIvs = GOV_CATEGORIES[govCategory].defaultIV;
+
+      const newObjs = { ...catObjetivos, [govCategory]: defaultObjs };
+      const newIcs = { ...catIC, [govCategory]: defaultIcs };
+      const newIvs = { ...catIV, [govCategory]: defaultIvs };
+
+      setCatObjetivos(newObjs);
+      setCatIC(newIcs);
+      setCatIV(newIvs);
+
+      localStorage.setItem('gov_cat_objetivos', JSON.stringify(newObjs));
+      localStorage.setItem('gov_cat_ic', JSON.stringify(newIcs));
+      localStorage.setItem('gov_cat_iv', JSON.stringify(newIvs));
+      setEditingItem(null);
+    }
+  };
+
+  const saveEditingItem = () => {
+    if (!editingItem) return;
+    const trimmed = editingItem.value.trim();
+    if (!trimmed) {
+      setEditingItem(null);
+      return;
+    }
+    if (editingItem.type === 'objetivo') {
+      const currentList = catObjetivos[govCategory] || [];
       const updatedList = [...currentList];
-      updatedList[index] = newVal.trim();
+      updatedList[editingItem.index] = trimmed;
+      const updatedMap = { ...catObjetivos, [govCategory]: updatedList };
+      setCatObjetivos(updatedMap);
+      localStorage.setItem('gov_cat_objetivos', JSON.stringify(updatedMap));
+    } else if (editingItem.type === 'ic') {
+      const currentList = catIC[govCategory] || [];
+      const updatedList = [...currentList];
+      updatedList[editingItem.index] = trimmed;
+      const updatedMap = { ...catIC, [govCategory]: updatedList };
+      setCatIC(updatedMap);
+      localStorage.setItem('gov_cat_ic', JSON.stringify(updatedMap));
+    } else if (editingItem.type === 'iv') {
+      const currentList = catIV[govCategory] || [];
+      const updatedList = [...currentList];
+      updatedList[editingItem.index] = trimmed;
       const updatedMap = { ...catIV, [govCategory]: updatedList };
       setCatIV(updatedMap);
       localStorage.setItem('gov_cat_iv', JSON.stringify(updatedMap));
     }
+    setEditingItem(null);
   };
 
   // Action plan modal for low performers
@@ -979,6 +1029,19 @@ export default function DashboardOverview({
 
         <button
           type="button"
+          onClick={() => setWorkstationTab('padroes')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
+            workstationTab === 'padroes'
+              ? 'bg-[#1e56f0] text-white shadow-md shadow-blue-500/25 border border-blue-500'
+              : 'bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-400 hover:text-[#1e56f0] border border-slate-200 dark:border-slate-800 hover:border-blue-400 shadow-sm'
+          }`}
+        >
+          <BookOpen className={`w-4 h-4 shrink-0 ${workstationTab === 'padroes' ? 'text-white' : 'text-blue-500'}`} />
+          <span>Padrões Operacionais</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setWorkstationTab('5s')}
           className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 whitespace-nowrap ${
             workstationTab === '5s'
@@ -1149,7 +1212,7 @@ export default function DashboardOverview({
       )}
 
       {/* TELA DA GUIA DESVIOS E AÇÕES */}
-      {workstationTab === 'desvios' && isSupervisorOrAdmin && viewMode !== 'operacional' && (
+      {workstationTab === 'desvios' && (
         <QuadroDesviosEAcoes empresaId={empresa?.id} user={user} onNavigateToAcoes={() => onNavigate && onNavigate('acoes')} />
       )}
 
@@ -1185,7 +1248,7 @@ export default function DashboardOverview({
       {/* ==================================================================== */}
       {/* 2. VISÃO OPERACIONAL (OPERADORES E AJUDANTES) */}
       {/* ==================================================================== */}
-      {(workstationTab === 'operacao' || ['desvios', 'matriz', 'agenda', 'diario_bordo'].includes(workstationTab)) && viewMode === 'operacional' && (
+      {workstationTab === 'operacao' && viewMode === 'operacional' && (
         <div className="space-y-6">
           <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl text-sky-200 text-xs font-medium flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -1867,25 +1930,37 @@ export default function DashboardOverview({
                 </div>
               </div>
 
-              {/* SELETOR DE ABAS DA MATRIZ */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0b1222] rounded-xl border border-slate-200/80 dark:border-slate-800">
-                {(Object.keys(GOV_CATEGORIES) as GovCategory[]).map(catKey => {
-                  const cat = GOV_CATEGORIES[catKey];
-                  const isActive = govCategory === catKey;
-                  return (
-                    <button
-                      key={catKey}
-                      onClick={() => setGovCategory(catKey)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isActive 
-                          ? 'bg-[#1e56f0] text-white shadow-xs font-black' 
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60'
-                      }`}
-                    >
-                      <span>{cat.label}</span>
-                    </button>
-                  );
-                })}
+              {/* SELETOR DE ABAS DA MATRIZ & AÇÕES */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0b1222] rounded-xl border border-slate-200/80 dark:border-slate-800">
+                  {(Object.keys(GOV_CATEGORIES) as GovCategory[]).map(catKey => {
+                    const cat = GOV_CATEGORIES[catKey];
+                    const isActive = govCategory === catKey;
+                    return (
+                      <button
+                        key={catKey}
+                        onClick={() => setGovCategory(catKey)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          isActive 
+                            ? 'bg-[#1e56f0] text-white shadow-xs font-black' 
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60'
+                        }`}
+                      >
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {isSupervisorOrAdmin && (
+                  <button
+                    onClick={handleResetGovDefaults}
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    title="Restaurar valores padrão do código para esta categoria"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Restaurar Padrão</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -2396,6 +2471,55 @@ export default function DashboardOverview({
                 className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase cursor-pointer transition-all"
               >
                 Entendido / Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDIÇÃO DE ITEM DE GOVERNANÇA (OBJETIVOS / IC / IV) */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-[#1e56f0]" /> 
+                Editar {editingItem.type === 'objetivo' ? 'Objetivo' : editingItem.type === 'ic' ? 'Item Crítico (IC)' : 'Item de Verificação (IV)'}
+              </h3>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">
+                Categoria: {GOV_CATEGORIES[govCategory].label} ({GOV_CATEGORIES[govCategory].badge})
+              </label>
+              <textarea
+                rows={3}
+                value={editingItem.value}
+                onChange={e => setEditingItem({ ...editingItem, value: e.target.value })}
+                className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white outline-none focus:border-[#1e56f0]"
+                placeholder="Texto do item..."
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={() => setEditingItem(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveEditingItem}
+                className="px-4 py-2 bg-[#1e56f0] hover:bg-blue-600 text-white rounded-xl text-xs font-black uppercase cursor-pointer transition-all flex items-center gap-1.5 shadow-xs"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" /> Salvar Alteração
               </button>
             </div>
           </div>

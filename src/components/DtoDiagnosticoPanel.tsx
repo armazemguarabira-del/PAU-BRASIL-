@@ -113,7 +113,7 @@ export default function DtoDiagnosticoPanel({
   const [avaliadorCargo, setAvaliadorCargo] = useState<string>(user?.cargo || 'Supervisor DPO Armazém');
   const [colaboradorNome, setColaboradorNome] = useState<string>('Gladson Barbosa (G1145)');
   const [turno, setTurno] = useState<DtoRegistro['turno']>('1º Turno');
-  const [linhaOuBox, setLinhaOuBox] = useState<string>('Rua A4 - Armazém / Bloco Pulmão');
+  const [linhaOuBox, setLinhaOuBox] = useState<string>('Rua 04 - Armazém / Bloco Pulmão');
   const [observacaoGeral, setObservacaoGeral] = useState<string>('DTO realizado dentro das normas DPO de movimentação interna no armazém.');
   
   // Respostas do formulário
@@ -1141,7 +1141,7 @@ export default function DtoDiagnosticoPanel({
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Rua A4 - Armazém / Bloco Pulmão"
+                    placeholder="Ex: Rua 04 - Armazém / Bloco Pulmão"
                     value={linhaOuBox}
                     onChange={e => setLinhaOuBox(e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl border text-xs font-bold outline-none ${

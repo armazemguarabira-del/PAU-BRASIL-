@@ -28,7 +28,8 @@ import {
   UserPlus,
   Clock,
   BellRing,
-  FileCode
+  FileCode,
+  RotateCcw
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { 
@@ -49,6 +50,9 @@ import PadraoOperacionalPanel from './PadraoOperacionalPanel';
 import { CadastrosLembretesManager } from './CadastrosLembretesManager';
 import { autoAssignRoleFromCargo, getDefaultModulesForCargo } from '../utils/permissions';
 import { PaginationControls } from './common/PaginationControls';
+import { validateProductRegistration, validateProductCatalogList } from '../utils/productValidation';
+import { PRODUCT_CATALOG_DETAILS, recalculatePosicaoPalletItem, resolvePalletAndLastro, saveCustomSkuOverride, getProductMeta } from '../utils/productCatalogData';
+import { getPosicaoPallet021101Itens, savePosicaoPallet021101Itens } from '../utils/estoqueStorage';
 
 interface CadastrosPanelProps {
   user: Usuario;
@@ -163,10 +167,21 @@ export default function CadastrosPanel({
     }
   }, [initialSubTab]);
 
+  // Subscribe collections for real-time synchronization
+  useEffect(() => {
+    const unsubProd = empresaData.subscribeCollection('produtos', 'produtos');
+    const unsubColab = empresaData.subscribeCollection('colaboradores', 'colaboradores');
+    return () => {
+      if (typeof unsubProd === 'function') unsubProd();
+      if (typeof unsubColab === 'function') unsubColab();
+    };
+  }, [empresaData.subscribeCollection]);
+
   // ── PRODUTOS STATE ──
   const [produtoSearch, setProdutoSearch] = useState('');
   const [filterGrupo, setFilterGrupo] = useState('TODOS');
   const [filterCurva, setFilterCurva] = useState('TODAS');
+  const [filterIncompletos, setFilterIncompletos] = useState<'todos' | 'completos' | 'incompletos' | 'sem_idade'>('todos');
   const [editingProduto, setEditingProduto] = useState<ProdutoMaster | null>(null);
   const [showProdutoModal, setShowProdutoModal] = useState(false);
   const [savingProduto, setSavingProduto] = useState(false);
@@ -178,6 +193,8 @@ export default function CadastrosPanel({
     descricao: '',
     fator: 12,
     fatorPallet: 60,
+    lastro: 12,
+    camadas: 5,
     valor: 0.0,
     fatorHecto: 0.07,
     grupo: 'Cervejas',
@@ -565,35 +582,34 @@ export default function CadastrosPanel({
   const handleSeedDefaultProducts = async () => {
     setSeedingProdutos(true);
     try {
-      const initialSeed: Omit<ProdutoMaster, '_docId'>[] = PRODUCT_MASTER_DATA.slice(0, 80).map((p) => {
-        let grupo = 'Cervejas';
-        const d = p.descricao.toUpperCase();
-        if (d.includes('GUARANA') || d.includes('PEPSI') || d.includes('SUKITA') || d.includes('SODA') || d.includes('H2OH') || d.includes('TONICA')) {
-          grupo = 'Refrigerantes';
-        } else if (d.includes('AGUA') || d.includes('GATORADE') || d.includes('SUCO') || d.includes('INDAIA')) {
-          grupo = 'Águas & NABS';
-        } else if (d.includes('BEATS') || d.includes('STELLA') || d.includes('CORONA') || d.includes('BUDWEISER') || d.includes('COLORADO') || d.includes('BECKS')) {
-          grupo = 'Puro Malte / Premium';
-        }
-
-        let curva: 'A' | 'B' | 'C' = 'B';
-        if (p.valor > 50 || d.includes('600ML') || d.includes('1L') || d.includes('LATA')) curva = 'A';
-        if (p.valor < 20) curva = 'C';
-
+      const initialSeed: Omit<ProdutoMaster, '_docId'>[] = PRODUCT_MASTER_DATA.map((p) => {
         return {
           empresaId,
           codigo: String(p.cod),
           descricao: p.descricao,
           fator: p.fator,
+          fatorPallet: p.fatorPallet || 60,
           valor: p.valor,
           fatorHecto: p.fatorHecto,
-          grupo,
-          curva,
+          grupo: p.grupo || 'CERVEJA',
+          embalagem: p.embalagem || '',
+          curva: (p.curva as any) || 'B',
+          idade: typeof p.idade === 'number' ? p.idade : 0,
           _criadoEm: new Date().toISOString()
         };
       });
 
       await ProdutosRepository.batchUpsert(initialSeed, empresaId);
+
+      const key = `produtos_${empresaId}`;
+      localStorage.setItem(key, JSON.stringify(initialSeed));
+      localStorage.removeItem(`produtos_cleared_${empresaId}`);
+      window.dispatchEvent(new Event('local_data_changed'));
+      window.dispatchEvent(new Event('storage'));
+      if ((empresaData as any).refetchProdutos) {
+        (empresaData as any).refetchProdutos();
+      }
+      setLocalVersion(v => v + 1);
     } catch (e) {
       console.error('Erro ao popular produtos:', e);
     } finally {
@@ -609,9 +625,11 @@ export default function CadastrosPanel({
       descricao: '',
       fator: 12,
       fatorPallet: 60,
+      lastro: 12,
+      camadas: 5,
       valor: 0.0,
       fatorHecto: 0.07,
-      grupo: 'Cervejas',
+      grupo: 'CERVEJA',
       embalagem: '',
       curva: 'A',
       idade: 180
@@ -621,17 +639,23 @@ export default function CadastrosPanel({
 
   const openEditProdutoModal = (p: ProdutoMaster) => {
     setEditingProduto(p);
+    const fatorPallet = p.fatorPallet || (p as any).caixasPallet || 60;
+    const lastro = p.lastro || Math.max(1, Math.round(fatorPallet / (p.camadas || 5)));
+    const camadas = p.camadas || Math.max(1, Math.round(fatorPallet / (lastro || 1)));
+
     setProdForm({
       codigo: p.codigo,
       descricao: p.descricao,
       fator: p.fator,
-      fatorPallet: p.fatorPallet || 60,
+      fatorPallet,
+      lastro,
+      camadas,
       valor: p.valor,
       fatorHecto: p.fatorHecto,
-      grupo: p.grupo,
+      grupo: p.grupo || 'CERVEJA',
       embalagem: p.embalagem || '',
       curva: p.curva,
-      idade: p.idade || 180
+      idade: typeof p.idade === 'number' ? p.idade : 0
     });
     setShowProdutoModal(true);
   };
@@ -644,27 +668,118 @@ export default function CadastrosPanel({
 
     setSavingProduto(true);
     try {
-      const payload = {
+      const codeNum = Number(prodForm.codigo.trim());
+      const fatorPallet = Number(prodForm.fatorPallet) || 60;
+      const lastro = Number(prodForm.lastro) || Math.max(1, Math.round(fatorPallet / (Number(prodForm.camadas) || 5)));
+      const camadas = Number(prodForm.camadas) || Math.max(1, Math.round(fatorPallet / (lastro || 1)));
+
+      const payload: ProdutoMaster = {
         empresaId,
         codigo: prodForm.codigo.trim(),
         descricao: prodForm.descricao.trim().toUpperCase(),
         fator: Number(prodForm.fator) || 1,
-        fatorPallet: Number(prodForm.fatorPallet) || 60,
+        fatorPallet: fatorPallet,
+        caixasPallet: fatorPallet,
+        lastro: lastro,
+        camadas: camadas,
         valor: Number(prodForm.valor) || 0,
         fatorHecto: Number(prodForm.fatorHecto) || 0,
         grupo: prodForm.grupo,
         embalagem: prodForm.embalagem.trim().toUpperCase(),
         curva: prodForm.curva,
-        idade: Number(prodForm.idade) || 180,
+        idade: Number(prodForm.idade) || 0,
         _criadoEm: new Date().toISOString()
       };
 
-      if (editingProduto && editingProduto._docId) {
+      if (editingProduto && editingProduto._docId && !editingProduto._docId.startsWith('master_') && !editingProduto._docId.startsWith('local_')) {
         await ProdutosRepository.update(editingProduto._docId, payload, empresaId);
       } else {
-        await ProdutosRepository.create(payload, empresaId);
+        const created = await ProdutosRepository.create(payload, empresaId);
+        payload._docId = created._docId || (created as any).id;
       }
+
+      // 1. Update in-memory catalog
+      if (PRODUCT_CATALOG_DETAILS[codeNum]) {
+        PRODUCT_CATALOG_DETAILS[codeNum].fator = payload.fator;
+        PRODUCT_CATALOG_DETAILS[codeNum].fatorPallet = payload.fatorPallet;
+        PRODUCT_CATALOG_DETAILS[codeNum].caixasPallet = payload.fatorPallet;
+        PRODUCT_CATALOG_DETAILS[codeNum].lastro = payload.lastro;
+        PRODUCT_CATALOG_DETAILS[codeNum].camadas = payload.camadas;
+        PRODUCT_CATALOG_DETAILS[codeNum].fatorHecto = payload.fatorHecto;
+        PRODUCT_CATALOG_DETAILS[codeNum].preco = payload.valor;
+        PRODUCT_CATALOG_DETAILS[codeNum].grupo = payload.grupo;
+      } else {
+        PRODUCT_CATALOG_DETAILS[codeNum] = {
+          preco: payload.valor,
+          fator: payload.fator,
+          fatorPallet: payload.fatorPallet,
+          caixasPallet: payload.fatorPallet,
+          fatorHecto: payload.fatorHecto,
+          lastro: payload.lastro,
+          camadas: payload.camadas,
+          grupo: payload.grupo,
+          curva: payload.curva as any
+        };
+      }
+
+      // Save custom permanent override
+      saveCustomSkuOverride({
+        codigo: codeNum,
+        produto: payload.descricao,
+        fatorCx: payload.fator,
+        fatorPallet: payload.fatorPallet,
+        caixasPallet: payload.fatorPallet,
+        lastro: payload.lastro,
+        camadas: payload.camadas,
+        fatorHecto: payload.fatorHecto,
+        grupo: payload.grupo,
+        valorUnitario: payload.valor,
+        preco: payload.valor,
+        curva: payload.curva as any,
+        updatedAt: new Date().toISOString()
+      });
+
+      // 2. Update local storage and notify context immediately so all tabs update
+      const key = `produtos_${empresaId}`;
+      let existing: ProdutoMaster[] = [];
+      try {
+        existing = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch (e) {}
+
+      const baseList = existing.length > 0 ? existing : allProdutos;
+      const index = baseList.findIndex(p => p.codigo === payload.codigo || (editingProduto && p.codigo === editingProduto.codigo));
+      let updated: ProdutoMaster[];
+      if (index >= 0) {
+        updated = [...baseList];
+        updated[index] = { ...updated[index], ...payload };
+      } else {
+        updated = [payload, ...baseList];
+      }
+      localStorage.setItem(key, JSON.stringify(updated));
+      localStorage.removeItem(`produtos_cleared_${empresaId}`);
+
+      // 3. Immediately recalculate 02.11.01 Posicao Pallet items so Gestao de Capacidade is fully synchronized!
+      try {
+        const currentPosItems = getPosicaoPallet021101Itens();
+        if (currentPosItems && currentPosItems.length > 0) {
+          const recalculated = currentPosItems.map(item => recalculatePosicaoPalletItem(item, empresaId));
+          savePosicaoPallet021101Itens(recalculated);
+        }
+      } catch (e) {
+        console.warn('Erro ao recalcular 02.11.01 no salvamento de produto:', e);
+      }
+
+      window.dispatchEvent(new CustomEvent('produtos_updated', { detail: { codigo: codeNum } }));
+      window.dispatchEvent(new CustomEvent('produtos_cadastro_changed', { detail: { codigo: codeNum } }));
+      window.dispatchEvent(new Event('local_data_changed'));
+      window.dispatchEvent(new Event('storage'));
+      if ((empresaData as any).refetchProdutos) {
+        (empresaData as any).refetchProdutos();
+      }
+      setLocalVersion(v => v + 1);
+
       setShowProdutoModal(false);
+      alert(editingProduto ? `✅ Produto ${payload.codigo} atualizado com sucesso! (Fator Pallet: ${fatorPallet} cx, Lastro: ${lastro} cx, Camadas: ${camadas})` : `✅ Produto ${payload.codigo} cadastrado com sucesso!`);
     } catch (e) {
       alert('Erro ao salvar produto: ' + e);
     } finally {
@@ -677,7 +792,7 @@ export default function CadastrosPanel({
 
     const targetId = p._docId || (p as any).id;
     try {
-      if (targetId && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
+      if (targetId && !targetId.startsWith('master_') && !targetId.startsWith('local_') && !targetId.startsWith('import_')) {
         try {
           await ProdutosRepository.delete(targetId, empresaId);
         } catch (e) {
@@ -686,9 +801,14 @@ export default function CadastrosPanel({
       }
 
       const key = `produtos_${empresaId}`;
-      const existing: ProdutoMaster[] = JSON.parse(localStorage.getItem(key) || '[]');
-      const filtered = existing.filter((item: any) => 
-        item._docId !== targetId && item.id !== targetId && item.codigo !== p.codigo
+      let existing: ProdutoMaster[] = [];
+      try {
+        existing = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch (e) {}
+
+      const baseList = existing.length > 0 ? existing : allProdutos;
+      const filtered = baseList.filter((item: any) => 
+        item.codigo !== p.codigo && item._docId !== targetId && item.id !== targetId
       );
       localStorage.setItem(key, JSON.stringify(filtered));
 
@@ -696,14 +816,17 @@ export default function CadastrosPanel({
         localStorage.setItem(`produtos_cleared_${empresaId}`, 'true');
       }
 
+      setSelectedProdCodes(prev => prev.filter(c => c !== p.codigo));
       window.dispatchEvent(new Event('local_data_changed'));
       window.dispatchEvent(new Event('storage'));
       if ((empresaData as any).refetchProdutos) {
         (empresaData as any).refetchProdutos();
       }
       setLocalVersion(v => v + 1);
+      alert('Produto excluído com sucesso.');
     } catch (e: any) {
       console.error('Error deleting product:', e);
+      alert('Erro ao excluir produto: ' + e.message);
     }
   };
 
@@ -729,8 +852,8 @@ export default function CadastrosPanel({
     if (!confirm(`⚠️ Confirma a exclusão de ${selectedProdCodes.length} produtos selecionados? esta ação é irreversível.`)) return;
 
     try {
-      for (const p of empresaData.produtos) {
-        if (selectedProdCodes.includes(p.codigo) && p._docId && !p._docId.startsWith('local_')) {
+      for (const p of allProdutos) {
+        if (selectedProdCodes.includes(p.codigo) && p._docId && !p._docId.startsWith('master_') && !p._docId.startsWith('local_')) {
           try {
             await ProdutosRepository.delete(p._docId, empresaId);
           } catch (e) {}
@@ -738,8 +861,13 @@ export default function CadastrosPanel({
       }
 
       const key = `produtos_${empresaId}`;
-      const existing: ProdutoMaster[] = JSON.parse(localStorage.getItem(key) || '[]');
-      const filtered = existing.filter((item: any) => !selectedProdCodes.includes(item.codigo));
+      let existing: ProdutoMaster[] = [];
+      try {
+        existing = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch (e) {}
+
+      const baseList = existing.length > 0 ? existing : allProdutos;
+      const filtered = baseList.filter((item: any) => !selectedProdCodes.includes(item.codigo));
       localStorage.setItem(key, JSON.stringify(filtered));
 
       if (filtered.length === 0) {
@@ -810,7 +938,18 @@ export default function CadastrosPanel({
           const curvaStr = String(row['CURVA'] || row['Curva'] || row['curva'] || 'B').trim().toUpperCase();
           const curvaVal: 'A' | 'B' | 'C' = (curvaStr === 'A' || curvaStr === 'C') ? curvaStr : 'B';
           const idadeNum = parseVal(row['IDADE (DIAS)'] || row['IDADE'] || row['Idade (Dias)'] || row['Idade'] || row['idade'] || 180);
-          const palletNum = parseVal(row['FATOR PALLET'] || row['Fator Pallet'] || row['Fator Palete'] || row['PALLET'] || row['pallet'] || 60);
+          const rawPallet = parseVal(row['FATOR PALLET'] || row['Fator Pallet'] || row['Fator Palete'] || row['PALLET'] || row['pallet'] || row['CAIXAS PALLET'] || row['Caixas Pallet']);
+          const rawLastro = parseVal(row['LASTRO'] || row['Lastro'] || row['lastro'] || row['CX/LASTRO'] || row['Cx/Lastro']);
+          const rawCamadas = parseVal(row['CAMADAS'] || row['Camadas'] || row['camadas'] || row['ALTURA'] || row['Altura']);
+
+          const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+            rawPallet,
+            rawLastro,
+            rawCamadas,
+            embalagemStr,
+            desc || '',
+            Number(cod)
+          );
 
           parsedList.push({
             _docId: `import_${Date.now()}_${idx}`,
@@ -824,7 +963,10 @@ export default function CadastrosPanel({
             embalagem: embalagemStr,
             curva: curvaVal,
             idade: idadeNum <= 0 ? 180 : idadeNum,
-            fatorPallet: palletNum <= 0 ? 60 : palletNum,
+            fatorPallet,
+            caixasPallet: fatorPallet,
+            lastro,
+            camadas,
             _criadoEm: new Date().toISOString()
           });
         });
@@ -863,13 +1005,46 @@ export default function CadastrosPanel({
       });
       await ProdutosRepository.batchUpsert(cleanItems as any, empresaId);
 
+      // Save custom SKU overrides for all imported products
+      prodImportPreview.forEach(p => {
+        const codeNum = Number(p.codigo);
+        if (codeNum && !isNaN(codeNum)) {
+          saveCustomSkuOverride({
+            codigo: codeNum,
+            produto: p.descricao,
+            fatorCx: p.fator,
+            fatorPallet: p.fatorPallet,
+            caixasPallet: p.fatorPallet,
+            lastro: p.lastro,
+            camadas: p.camadas,
+            fatorHecto: p.fatorHecto,
+            grupo: p.grupo,
+            valorUnitario: p.valor,
+            preco: p.valor,
+            curva: (p.curva === 'A' || p.curva === 'B' || p.curva === 'C') ? p.curva : undefined,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      });
+
       const key = `produtos_${empresaId}`;
       localStorage.setItem(key, JSON.stringify(prodImportPreview));
       localStorage.removeItem(`produtos_cleared_${empresaId}`);
+
+      // Recalculate 02.11.01 items immediately
+      try {
+        const currentPosItems = getPosicaoPallet021101Itens();
+        if (currentPosItems && currentPosItems.length > 0) {
+          const recalculated = currentPosItems.map(item => recalculatePosicaoPalletItem(item, empresaId));
+          savePosicaoPallet021101Itens(recalculated);
+        }
+      } catch (e) {}
+
+      window.dispatchEvent(new CustomEvent('produtos_cadastro_changed', { detail: { count: prodImportPreview.length } }));
       window.dispatchEvent(new Event('local_data_changed'));
       window.dispatchEvent(new Event('storage'));
 
-      alert(`✅ Base de produtos SOBRESCRITA com sucesso! ${prodImportPreview.length} produtos cadastrados.`);
+      alert(`✅ Base de produtos SOBRESCRITA com sucesso! ${prodImportPreview.length} produtos cadastrados com Pallet e Lastro calculados.`);
       setShowProdImportModal(false);
       setProdImportPreview([]);
       if ((empresaData as any).refetchProdutos) {
@@ -885,13 +1060,13 @@ export default function CadastrosPanel({
 
   const handleDownloadProductModelExcel = () => {
     const sampleData = [
-      { 'Código': '347', 'Descrição': 'SUKITA PET 1L CAIXA C/12', 'Fator SKU': 12, 'FATOR PALLET': 84, 'VALOR': 30.48, 'Fator Hecto (HL)': 0.12, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 1L', 'IDADE': 180 },
-      { 'Código': '503', 'Descrição': 'SUKITA PET 2L CAIXA C/6', 'Fator SKU': 6, 'FATOR PALLET': 60, 'VALOR': 19.45, 'Fator Hecto (HL)': 0.12, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 2L', 'IDADE': 120 },
-      { 'Código': '982', 'Descrição': 'SKOL 600ML GARRAFA C/12', 'Fator SKU': 12, 'FATOR PALLET': 60, 'VALOR': 53.35, 'Fator Hecto (HL)': 0.072, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'VIDRO 600ML', 'IDADE': 180 },
-      { 'Código': '9068', 'Descrição': 'SKOL LATA 350ML SH C/12 NPAL', 'Fator SKU': 12, 'FATOR PALLET': 286, 'VALOR': 28.52, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
-      { 'Código': '33820', 'Descrição': 'BRAHMA CHOPP LT 350ML SH C/12 NP MULTIPK', 'Fator SKU': 12, 'FATOR PALLET': 286, 'VALOR': 34.90, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
-      { 'Código': '34608', 'Descrição': 'SKOL LATA 350ML SH C/12 NPAL MULTIPACK', 'Fator SKU': 12, 'FATOR PALLET': 286, 'VALOR': 39.00, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
-      { 'Código': '34475', 'Descrição': 'ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12', 'Fator SKU': 12, 'FATOR PALLET': 175, 'VALOR': 10.04, 'Fator Hecto (HL)': 0.0612, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 510ML', 'IDADE': 360 }
+      { 'Código': '347', 'Descrição': 'SUKITA PET 1L CAIXA C/12', 'Fator SKU': 12, 'FATOR PALLET': 84, 'LASTRO': 14, 'CAMADAS': 6, 'VALOR': 30.48, 'Fator Hecto (HL)': 0.12, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 1L', 'IDADE': 180 },
+      { 'Código': '503', 'Descrição': 'SUKITA PET 2L CAIXA C/6', 'Fator SKU': 6, 'FATOR PALLET': 100, 'LASTRO': 20, 'CAMADAS': 5, 'VALOR': 19.45, 'Fator Hecto (HL)': 0.12, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 2L', 'IDADE': 120 },
+      { 'Código': '982', 'Descrição': 'SKOL 600ML GARRAFA C/12', 'Fator SKU': 12, 'FATOR PALLET': 50, 'LASTRO': 10, 'CAMADAS': 5, 'VALOR': 53.35, 'Fator Hecto (HL)': 0.072, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'VIDRO 600ML', 'IDADE': 180 },
+      { 'Código': '9068', 'Descrição': 'SKOL LATA 350ML SH C/12 NPAL', 'Fator SKU': 12, 'FATOR PALLET': 286, 'LASTRO': 26, 'CAMADAS': 11, 'VALOR': 28.52, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
+      { 'Código': '33820', 'Descrição': 'BRAHMA CHOPP LT 350ML SH C/12 NP MULTIPK', 'Fator SKU': 12, 'FATOR PALLET': 286, 'LASTRO': 26, 'CAMADAS': 11, 'VALOR': 34.90, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
+      { 'Código': '34608', 'Descrição': 'SKOL LATA 350ML SH C/12 NPAL MULTIPACK', 'Fator SKU': 12, 'FATOR PALLET': 286, 'LASTRO': 26, 'CAMADAS': 11, 'VALOR': 39.00, 'Fator Hecto (HL)': 0.042, 'GRUPO': 'CERVEJA', 'EMBALAGEM': 'LATA 350ML', 'IDADE': 180 },
+      { 'Código': '34475', 'Descrição': 'ELEVE AGUA MIN S GAS GFA PET 510ML FD C/12', 'Fator SKU': 12, 'FATOR PALLET': 175, 'LASTRO': 25, 'CAMADAS': 7, 'VALOR': 10.04, 'Fator Hecto (HL)': 0.0612, 'GRUPO': 'NAB', 'EMBALAGEM': 'PET 510ML', 'IDADE': 360 }
     ];
     const ws = XLSX.utils.json_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -899,17 +1074,137 @@ export default function CadastrosPanel({
     XLSX.writeFile(wb, 'modelo_cadastro_produtos_sobrescrever.xlsx');
   };
 
+  // Base consolidada de produtos (PRODUCT_MASTER_DATA Oficial + LocalStorage + Firestore)
+  const allProdutos = useMemo(() => {
+    const firestoreList = empresaData.produtos || [];
+    let localList: ProdutoMaster[] = [];
+    try {
+      const saved = localStorage.getItem(`produtos_${empresaId}`);
+      if (saved) localList = JSON.parse(saved);
+    } catch (e) {
+      console.warn('Error reading local produtos:', e);
+    }
+
+    const isCleared = localStorage.getItem(`produtos_cleared_${empresaId}`) === 'true';
+
+    if (isCleared && localList.length === 0 && firestoreList.length === 0) {
+      return [];
+    }
+
+    const map = new Map<string, ProdutoMaster>();
+
+    // 1. Base Master Oficial pré-cadastrada da planilha (377 SKUs)
+    if (!isCleared) {
+      PRODUCT_MASTER_DATA.forEach(p => {
+        const cod = String(p.cod).trim();
+        if (cod) {
+          const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+            p.fatorPallet || 60,
+            (p as any).lastro,
+            (p as any).camadas,
+            p.embalagem || '',
+            p.descricao || '',
+            Number(cod)
+          );
+
+          map.set(cod, {
+            _docId: `master_${cod}`,
+            empresaId,
+            codigo: cod,
+            descricao: p.descricao,
+            fator: p.fator,
+            fatorPallet,
+            caixasPallet: fatorPallet,
+            lastro,
+            camadas,
+            valor: p.valor,
+            fatorHecto: p.fatorHecto,
+            grupo: p.grupo || 'CERVEJA',
+            embalagem: p.embalagem || '',
+            curva: (p.curva as any) || 'B',
+            idade: typeof p.idade === 'number' ? p.idade : 0,
+            _criadoEm: new Date().toISOString()
+          });
+        }
+      });
+    }
+
+    // 2. Sobrepõe com os registros gravados no LocalStorage
+    localList.forEach(p => {
+      const cod = String(p.codigo || '').trim();
+      if (cod) {
+        const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+          p.fatorPallet || (p as any).caixasPallet,
+          (p as any).lastro,
+          (p as any).camadas,
+          p.embalagem || '',
+          p.descricao || '',
+          Number(cod)
+        );
+        map.set(cod, {
+          ...p,
+          fatorPallet,
+          caixasPallet: fatorPallet,
+          lastro,
+          camadas
+        });
+      }
+    });
+
+    // 3. Sobrepõe com os registros do Firestore
+    firestoreList.forEach(p => {
+      const cod = String(p.codigo || '').trim();
+      if (cod) {
+        const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+          p.fatorPallet || (p as any).caixasPallet,
+          (p as any).lastro,
+          (p as any).camadas,
+          p.embalagem || '',
+          p.descricao || '',
+          Number(cod)
+        );
+        map.set(cod, {
+          ...p,
+          fatorPallet,
+          caixasPallet: fatorPallet,
+          lastro,
+          camadas
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [empresaData.produtos, empresaId, localVersion]);
+
+  // Validation summary for all products
+  const catalogValidationSummary = useMemo(() => {
+    return validateProductCatalogList(allProdutos);
+  }, [allProdutos]);
+
   // Filtered Products List
   const filteredProdutos = useMemo(() => {
-    return empresaData.produtos.filter(p => {
+    return allProdutos.filter(p => {
       const matchesSearch = !produtoSearch || 
         p.codigo.toLowerCase().includes(produtoSearch.toLowerCase()) || 
         p.descricao.toLowerCase().includes(produtoSearch.toLowerCase());
       const matchesGrupo = filterGrupo === 'TODOS' || p.grupo === filterGrupo;
       const matchesCurva = filterCurva === 'TODAS' || p.curva === filterCurva;
-      return matchesSearch && matchesGrupo && matchesCurva;
+
+      let matchesIncompletos = true;
+      if (filterIncompletos !== 'todos') {
+        const val = validateProductRegistration(p);
+        if (filterIncompletos === 'incompletos') {
+          matchesIncompletos = !val.isValid;
+        } else if (filterIncompletos === 'completos') {
+          matchesIncompletos = val.isValid;
+        } else if (filterIncompletos === 'sem_idade') {
+          matchesIncompletos = val.hasZeroIdade;
+        }
+      }
+
+      return matchesSearch && matchesGrupo && matchesCurva && matchesIncompletos;
     });
-  }, [empresaData.produtos, produtoSearch, filterGrupo, filterCurva]);
+  }, [allProdutos, produtoSearch, filterGrupo, filterCurva, filterIncompletos]);
 
   // Paginação de Produtos
   const pagedProdutos = useMemo(() => {
@@ -918,9 +1213,9 @@ export default function CadastrosPanel({
   }, [filteredProdutos, prodPage, prodPageSize]);
 
   const gruposList = useMemo(() => {
-    const list = Array.from(new Set(empresaData.produtos.map(p => p.grupo).filter(Boolean)));
+    const list = Array.from(new Set(allProdutos.map(p => p.grupo).filter(Boolean)));
     return ['TODOS', ...list];
-  }, [empresaData.produtos]);
+  }, [allProdutos]);
 
   // ── COLABORADOR HANDLERS ──
   const openNewColabModal = () => {
@@ -929,8 +1224,8 @@ export default function CadastrosPanel({
       matricula: '',
       nome: '',
       cpf: '',
-      cargo: 'Operador de Empilhadeira',
-      turno: 'Turno 1'
+      cargo: 'Ajudante',
+      turno: 'MANHÃ'
     });
     setShowColabModal(true);
   };
@@ -1796,6 +2091,88 @@ export default function CadastrosPanel({
             </div>
           </div>
 
+          {/* KPI ALERT CARDS - INTEGRITY OF REGISTRATION */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <button
+              onClick={() => setFilterIncompletos('todos')}
+              className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                filterIncompletos === 'todos' 
+                  ? 'bg-slate-800/90 border-slate-600 shadow-md ring-1 ring-slate-500' 
+                  : 'bg-[#111a30] border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total de SKUs</span>
+                <Package className="w-4 h-4 text-sky-400" />
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-xl font-black text-white font-mono">{catalogValidationSummary.total}</span>
+                <span className="text-[10px] text-slate-400">cadastrados</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setFilterIncompletos('completos')}
+              className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                filterIncompletos === 'completos' 
+                  ? 'bg-emerald-950/40 border-emerald-500/60 shadow-md ring-1 ring-emerald-500' 
+                  : 'bg-[#111a30] border-slate-800 hover:border-emerald-500/30'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Cadastros Completos</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-xl font-black text-emerald-300 font-mono">{catalogValidationSummary.completeCount}</span>
+                <span className="text-[10px] text-emerald-500/80">
+                  {catalogValidationSummary.total > 0 ? Math.round((catalogValidationSummary.completeCount / catalogValidationSummary.total) * 100) : 0}% conformidade
+                </span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setFilterIncompletos('incompletos')}
+              className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                filterIncompletos === 'incompletos' 
+                  ? 'bg-amber-950/50 border-amber-500 shadow-md ring-1 ring-amber-500' 
+                  : 'bg-[#111a30] border-slate-800 hover:border-amber-500/40'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> Incompletos / Zerados
+                </span>
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-xl font-black text-amber-400 font-mono">{catalogValidationSummary.incompleteCount}</span>
+                <span className="text-[10px] text-amber-300/80">necessitam correção</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setFilterIncompletos('sem_idade')}
+              className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                filterIncompletos === 'sem_idade' 
+                  ? 'bg-rose-950/50 border-rose-500 shadow-md ring-1 ring-rose-500' 
+                  : 'bg-[#111a30] border-slate-800 hover:border-rose-500/40'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-rose-400" /> Sem Idade (Stock Age)
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold">Crítico</span>
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-xl font-black text-rose-400 font-mono">{catalogValidationSummary.totalZeroIdade}</span>
+                <span className="text-[10px] text-rose-300/80">zeram Stock Age</span>
+              </div>
+            </button>
+          </div>
+
+          {/* SEARCH & FILTERS BAR */}
           <div className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <div className="relative flex-1 min-w-[240px]">
@@ -1829,9 +2206,35 @@ export default function CadastrosPanel({
                 <option value="B">Curva B (Média Rotação)</option>
                 <option value="C">Curva C (Baixa Rotação)</option>
               </select>
+
+              {filterIncompletos !== 'todos' && (
+                <button
+                  onClick={() => setFilterIncompletos('todos')}
+                  className="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Limpar Filtro Incompletos ({filterIncompletos})
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (confirm('Deseja recarregar a base oficial completa contendo os 377 produtos da planilha cadastrada?')) {
+                    await handleSeedDefaultProducts();
+                    alert('✅ Base oficial com 377 produtos recarregada com sucesso!');
+                  }
+                }}
+                disabled={seedingProdutos}
+                className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-sky-500/30 font-black rounded-xl text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-md"
+                title="Recarrega todos os 377 SKUs da planilha oficial da Ambev"
+              >
+                {seedingProdutos ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                Restaurar 377 SKUs Oficiais
+              </button>
+
               <button
                 onClick={openNewProdutoModal}
                 className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shadow-md"
@@ -1873,15 +2276,22 @@ export default function CadastrosPanel({
                 <tbody className="divide-y divide-slate-800/60 font-mono text-slate-200">
                   {filteredProdutos.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="p-8 text-center text-slate-500 text-xs font-sans">
+                      <td colSpan={12} className="p-8 text-center text-slate-500 text-xs font-sans">
                         Nenhum produto cadastrado com os filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     pagedProdutos.map((p) => {
                       const isSelected = selectedProdCodes.includes(p.codigo);
+                      const validation = validateProductRegistration(p);
+
                       return (
-                        <tr key={p._docId || p.codigo} className={`hover:bg-slate-800/30 transition-colors ${isSelected ? 'bg-emerald-500/10' : ''}`}>
+                        <tr 
+                          key={p._docId || p.codigo} 
+                          className={`hover:bg-slate-800/30 transition-colors ${
+                            isSelected ? 'bg-emerald-500/10' : !validation.isValid ? 'bg-amber-950/10' : ''
+                          }`}
+                        >
                           <td className="p-3.5 text-center">
                             <input
                               type="checkbox"
@@ -1890,21 +2300,123 @@ export default function CadastrosPanel({
                               className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
                             />
                           </td>
-                          <td className="p-3.5 font-bold text-amber-400">{p.codigo}</td>
-                          <td className="p-3.5 font-sans font-bold text-white">{p.descricao}</td>
-                          <td className="p-3.5 text-slate-300">{p.fator} un</td>
-                          <td className="p-3.5 text-center font-bold text-emerald-400 font-mono">
-                            {p.fatorPallet || 60} cx/PL
+                          <td className="p-3.5 font-bold text-amber-400">
+                            <div className="flex items-center gap-1.5">
+                              {p.codigo}
+                              {!validation.isValid && (
+                                <span 
+                                  title={`Cadastro Incompleto: ${validation.issues.join(', ')}`}
+                                  className="cursor-help"
+                                >
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 inline" />
+                                </span>
+                              )}
+                            </div>
                           </td>
-                          <td className="p-3.5 font-bold text-emerald-400">R$ {Number(p.valor || 0).toFixed(2)}</td>
-                          <td className="p-3.5 text-cyan-400 font-bold">{p.fatorHecto} HL</td>
+                          <td className="p-3.5 font-sans font-bold text-white">
+                            <div className="flex items-center justify-between gap-2">
+                              <span>{p.descricao}</span>
+                              {!validation.isValid && (
+                                <button
+                                  onClick={() => openEditProdutoModal(p)}
+                                  className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-sans font-semibold cursor-pointer shrink-0 transition-colors"
+                                  title="Clique para preencher campos incompletos"
+                                >
+                                  Corrigir
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            {validation.hasZeroFator ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40 font-bold cursor-pointer hover:bg-amber-900/60"
+                                title="Fator zerado ou não preenchido. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                {p.fator || 0} un
+                              </span>
+                            ) : (
+                              <span className="text-slate-300">{p.fator} un</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 text-center font-bold font-mono">
+                            {validation.hasZeroFatorPallet ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40 font-bold cursor-pointer hover:bg-amber-900/60"
+                                title="Fator Pallet zerado. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                {p.fatorPallet || 0} cx/PL
+                              </span>
+                            ) : (
+                              <div>
+                                <span className="text-emerald-400">{p.fatorPallet || 60} cx/PL</span>
+                                <div className="text-[9px] text-slate-400 font-normal font-sans">
+                                  Lastro: {p.lastro || Math.max(1, Math.round((p.fatorPallet || 60) / (p.camadas || 5)))} cx
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-3.5 font-bold font-mono">
+                            {validation.hasZeroValor ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40 font-bold cursor-pointer hover:bg-amber-900/60"
+                                title="Valor unitário zerado. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                R$ 0,00
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400">R$ {Number(p.valor || 0).toFixed(2)}</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 font-bold font-mono">
+                            {validation.hasZeroFatorHecto ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40 font-bold cursor-pointer hover:bg-amber-900/60"
+                                title="Fator hectolitro zerado. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                {p.fatorHecto || 0} HL
+                              </span>
+                            ) : (
+                              <span className="text-cyan-400">{p.fatorHecto} HL</span>
+                            )}
+                          </td>
                           <td className="p-3.5 font-sans">
-                            <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase">
-                              {p.grupo || 'Geral'}
-                            </span>
+                            {validation.hasMissingGrupo ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 bg-amber-950/60 text-amber-300 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border border-amber-500/40 cursor-pointer hover:bg-amber-900/60"
+                                title="Grupo não informado. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                Pendente
+                              </span>
+                            ) : (
+                              <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase">
+                                {p.grupo || 'Geral'}
+                              </span>
+                            )}
                           </td>
-                          <td className="p-3.5 font-sans text-slate-300">
-                            {p.embalagem || '-'}
+                          <td className="p-3.5 font-sans">
+                            {validation.hasMissingEmbalagem ? (
+                              <span 
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 bg-amber-950/60 text-amber-300 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border border-amber-500/40 cursor-pointer hover:bg-amber-900/60"
+                                title="Embalagem não cadastrada. Clique para corrigir."
+                              >
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                {p.embalagem || 'Não Informada'}
+                              </span>
+                            ) : (
+                              <span className="text-slate-300">{p.embalagem}</span>
+                            )}
                           </td>
                           <td className="p-3.5 text-center">
                             <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
@@ -1915,8 +2427,21 @@ export default function CadastrosPanel({
                               Curva {p.curva || 'B'}
                             </span>
                           </td>
-                          <td className="p-3.5 text-center font-bold text-amber-300 font-mono">
-                            {p.idade || 180} d
+                          <td className="p-3.5 text-center font-mono">
+                            {validation.hasZeroIdade ? (
+                              <button
+                                onClick={() => openEditProdutoModal(p)}
+                                className="inline-flex items-center gap-1 bg-rose-950/80 text-rose-300 hover:bg-rose-900 px-2.5 py-1 rounded-full text-[11px] font-bold border border-rose-500/50 cursor-pointer transition-colors"
+                                title="Idade zerada ou não cadastrada! Isto zera o Stock Age Index. Clique para preencher os dias de validade."
+                              >
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                                0d (Sem Idade)
+                              </button>
+                            ) : (
+                              <span className="font-bold text-amber-300">
+                                {p.idade} d
+                              </span>
+                            )}
                           </td>
                           <td className="p-3.5 text-right">
                             <div className="flex items-center justify-end gap-2">
@@ -1951,7 +2476,7 @@ export default function CadastrosPanel({
                   pageSize={prodPageSize}
                   hasMore={prodPage * prodPageSize < filteredProdutos.length}
                   hasPrev={prodPage > 1}
-                  totalCount={empresaData.produtos.length}
+                  totalCount={allProdutos.length}
                   totalFiltered={filteredProdutos.length}
                   onPrevPage={() => setProdPage((p) => Math.max(1, p - 1))}
                   onNextPage={() => setProdPage((p) => p + 1)}
@@ -2307,7 +2832,17 @@ export default function CadastrosPanel({
                               {(c as any).senha || 'Ambev10'}
                             </span>
                           </td>
-                          <td className="p-3.5 font-sans text-sky-400 font-bold">{c.turno}</td>
+                          <td className="p-3.5 font-sans">
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                              String(c.turno || '').toUpperCase().includes('NOITE') || String(c.turno || '').toUpperCase().includes('NOTURNO')
+                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                : String(c.turno || '').toUpperCase().includes('TARDE')
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            }`}>
+                              {c.turno}
+                            </span>
+                          </td>
                           <td className="p-3.5 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button
@@ -2914,11 +3449,13 @@ export default function CadastrosPanel({
                     onChange={(e) => setProdForm({ ...prodForm, grupo: e.target.value })}
                     className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-bold"
                   >
-                    <option value="Cervejas">Cervejas</option>
-                    <option value="Refrigerantes">Refrigerantes</option>
-                    <option value="Águas & NABS">Águas & NABS</option>
+                    <option value="CERVEJA">CERVEJA</option>
+                    <option value="NAB">NAB (Refrigerantes / Águas / NABS)</option>
+                    <option value="MATCH">MATCH</option>
+                    <option value="MARKETPLACE">MARKETPLACE</option>
                     <option value="Puro Malte / Premium">Puro Malte / Premium</option>
                     <option value="Destilados & Beats">Destilados & Beats</option>
+                    <option value="Outros">Outros</option>
                   </select>
                 </div>
 
@@ -2936,6 +3473,54 @@ export default function CadastrosPanel({
                 </div>
               </div>
 
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Fator Pallet (cx/PL)</label>
+                  <input
+                    type="number"
+                    value={prodForm.fatorPallet}
+                    onChange={(e) => {
+                      const fp = Number(e.target.value) || 0;
+                      const cam = prodForm.camadas || 5;
+                      const newLastro = fp > 0 ? Math.max(1, Math.round(fp / cam)) : prodForm.lastro;
+                      setProdForm({ ...prodForm, fatorPallet: fp, lastro: newLastro });
+                    }}
+                    placeholder="Ex: 60"
+                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Lastro (cx/Camada)</label>
+                  <input
+                    type="number"
+                    value={prodForm.lastro}
+                    onChange={(e) => {
+                      const lst = Number(e.target.value) || 0;
+                      const cam = prodForm.camadas || 5;
+                      setProdForm({ ...prodForm, lastro: lst, fatorPallet: lst > 0 ? lst * cam : prodForm.fatorPallet });
+                    }}
+                    placeholder="Ex: 12"
+                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Camadas (Altura)</label>
+                  <input
+                    type="number"
+                    value={prodForm.camadas}
+                    onChange={(e) => {
+                      const cam = Number(e.target.value) || 0;
+                      const lst = prodForm.lastro || 12;
+                      setProdForm({ ...prodForm, camadas: cam, fatorPallet: cam > 0 ? lst * cam : prodForm.fatorPallet });
+                    }}
+                    placeholder="Ex: 5"
+                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Idade / Validade (Dias)</label>
@@ -2949,26 +3534,15 @@ export default function CadastrosPanel({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Fator Pallet (cx/Pallet)</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Embalagem (Tipo/Tamanho)</label>
                   <input
-                    type="number"
-                    value={prodForm.fatorPallet}
-                    onChange={(e) => setProdForm({ ...prodForm, fatorPallet: Number(e.target.value) })}
-                    placeholder="Ex: 60"
-                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    type="text"
+                    value={prodForm.embalagem}
+                    onChange={(e) => setProdForm({ ...prodForm, embalagem: e.target.value })}
+                    placeholder="Ex: PET 1L, LATA 350ML, VIDRO 600ML"
+                    className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-sans"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Embalagem (Tipo/Tamanho)</label>
-                <input
-                  type="text"
-                  value={prodForm.embalagem}
-                  onChange={(e) => setProdForm({ ...prodForm, embalagem: e.target.value })}
-                  placeholder="Ex: PET 1L, LATA 350ML, VIDRO 600ML"
-                  className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-sans"
-                />
               </div>
             </div>
 
@@ -3061,9 +3635,9 @@ export default function CadastrosPanel({
                     onChange={(e) => setColabForm({ ...colabForm, turno: e.target.value })}
                     className="w-full bg-[#0b1222] border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-bold"
                   >
-                    <option value="Turno 1">Turno 1 (Manhã)</option>
-                    <option value="Turno 2">Turno 2 (Tarde)</option>
-                    <option value="Turno 3">Turno 3 (Noite)</option>
+                    <option value="MANHÃ">Manhã (Diurno)</option>
+                    <option value="TARDE">Tarde (Vespertino)</option>
+                    <option value="NOITE">Noite (Noturno)</option>
                   </select>
                 </div>
               </div>

@@ -32,7 +32,6 @@ export function addTmrDemand(
                        (payload.palletsLitrao || 0) + 
                        (payload.pallets600Verde || 0) + 
                        (payload.pallets600Ambar || 0) + 
-                       (payload.palletsBarrilChopp || 0) + 
                        (payload.palletsPbr1 || 0) + 
                        (payload.palletsPbr2 || 0) + 
                        (payload.palletsPbr || 0);
@@ -126,7 +125,6 @@ export function updateTmrDemand(
                            (merged.palletsLitrao || 0) + 
                            (merged.pallets600Verde || 0) + 
                            (merged.pallets600Ambar || 0) + 
-                           (merged.palletsBarrilChopp || 0) + 
                            (merged.palletsPbr1 || 0) + 
                            (merged.palletsPbr2 || 0) + 
                            (merged.palletsPbr || 0);

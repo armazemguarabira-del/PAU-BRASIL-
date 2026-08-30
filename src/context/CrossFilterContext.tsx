@@ -360,6 +360,16 @@ export const CrossFilterProvider: React.FC<{ children: React.ReactNode }> = ({ c
             return false;
           }
 
+          if (field === 'colaborador' || field === 'colaboradorQuebrou' || field === 'operador') {
+            const cName = String(obj.colaborador || obj.colaboradorQuebrou || obj.responsavel || obj.operador || obj.colaboradorAjudante || '').trim().toLowerCase();
+            const tgt = String(targetVal).trim().toLowerCase();
+            if (!tgt) return true;
+            if (tgt === 'não identificado' || tgt === 'nao identificado') {
+              return !cName || cName.includes('não identificado') || cName.includes('nao identificado');
+            }
+            return cName === tgt || cName.includes(tgt) || tgt.includes(cName);
+          }
+
           // Fallback property access
           if (field in obj) {
             actualVal = obj[field];

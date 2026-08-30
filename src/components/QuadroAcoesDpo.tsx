@@ -42,7 +42,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { 
   isSystemGeneratedOrSimulatedAction, 
-  cleanAllAutomaticActionsFromStorage 
+  cleanAllAutomaticActionsFromStorage,
+  getAcoesAll,
+  normalizeToActionCorretiva,
+  toAcaoDpoItem
 } from '../utils/simulacaoAcoesUtils';
 
 export interface AcaoDpoItem {
@@ -123,6 +126,13 @@ export const INDICADORES_POR_PROCESSO: Record<string, string[]> = {
     'Paletes Tombados / Movimentação',
     'Quebras no Picking / Separação'
   ],
+  Qualidade: [
+    'Warehouse Quality Index (WQI %)',
+    'Índice de Quebras & Avarias Internas',
+    'Conformidade 5S e Auditorias DPO',
+    'Estabilidade Térmica no Armazém',
+    'Bloqueio Preventivo de Lotes'
+  ],
   TMR: [
     'TMR Carretas Fábrica (> 70 min)',
     'TMR Recargas / Puxada (> 40 min)',
@@ -130,6 +140,18 @@ export const INDICADORES_POR_PROCESSO: Record<string, string[]> = {
     'Permanência em Pátio de Carretas',
     'Tempo de Liberação de Portaria',
     'Gargalo de Doca / Descarregamento'
+  ],
+  Recebimento: [
+    'Eficiência de Descarga (EFD %)',
+    'TMR de Carretas e Descarregamento',
+    'Divergência de Nota Fiscal x Físico',
+    'Acuracidade de Lotes no Recebimento'
+  ],
+  Carregamento: [
+    'Eficiência de Carregamento (EFC %)',
+    'Acuracidade de Carga em Rota',
+    'Tempo de Permanência em Doca',
+    'Conferência Cega de Expedição'
   ],
   WLP: [
     'Produtividade Real WLP (HL / Hora Homem)',
@@ -139,6 +161,12 @@ export const INDICADORES_POR_PROCESSO: Record<string, string[]> = {
     'Tempo Produtivo vs. Tempo Ocioso',
     'Aderência ao Quadro Padrão DPO'
   ],
+  Produtividade: [
+    'Produtividade Real WLP (HL / H.H)',
+    'Produtividade Separação (CX/H)',
+    'Produtividade Empilhadeira (Mov/H)',
+    'Horas Extras e Absenteísmo'
+  ],
   FEFO: [
     'Alerta Crítico FEFO (Semáforo Vermelho < 30 dias)',
     'Giro de Lotes por Antiguidade',
@@ -146,12 +174,34 @@ export const INDICADORES_POR_PROCESSO: Record<string, string[]> = {
     'Auditoria Semanal de Validades',
     'Risco de Vencimento em Estoque'
   ],
+  Validade: [
+    'Alerta Crítico FEFO (< 30 dias)',
+    'RLP / Plano Comercial de Escoamento',
+    'Giro por Antiguidade de Lote',
+    'Auditoria de Validade e Shelf Life'
+  ],
   Capacidade: [
     'Taxa de Ocupação de Posições Palete',
     'Slotting e Balanceamento de Ruas',
     'Ruptura de Estoque Aéreo x Picking',
     'Capacidade Estática x Dinâmica',
-    'Área de Contingência e Blocado'
+    'Área de Contingência e Blocado',
+    'Política de Cobertura de 6 Dias',
+    'Gargalo de Layout e Vias de Trânsito'
+  ],
+  Armazenagem: [
+    'Taxa de Ocupação de Posições Palete',
+    'Balanceamento de Layout e Ruas',
+    'Acuracidade de Endereçamento',
+    'Capacidade Estática x Dinâmica',
+    'Ocupação da Área de Contingência',
+    'Política de Estoque de 6 Dias'
+  ],
+  Layout: [
+    'Reconfiguração de Ruas e Pulmão',
+    'Balanceamento de Velocidade de Giro',
+    'Dimensionamento de Posições de Picking',
+    'Fluxo de Empilhadeiras e Segurança'
   ],
   Geral: [
     'Eficiência Operacional DPO',
@@ -160,6 +210,21 @@ export const INDICADORES_POR_PROCESSO: Record<string, string[]> = {
     'Gestão de Não Conformidades',
     'Treinamento e Capacitação de Turno'
   ]
+};
+
+export const matchesProcessFilter = (itemProcesso: string = '', filter: string): boolean => {
+  if (filter === 'all' || !filter) return true;
+  const p = (itemProcesso || '').toLowerCase().trim();
+  const f = filter.toLowerCase().trim();
+  if (p === f || p.includes(f) || f.includes(p)) return true;
+  if ((f === 'capacidade' || f === 'armazenagem' || f === 'layout' || f === 'estoque') && (p.includes('capacidade') || p.includes('armazen') || p.includes('layout') || p.includes('estoque') || p.includes('política'))) return true;
+  if ((f === 'fefo' || f === 'validade') && (p.includes('fefo') || p.includes('validade') || p.includes('shelf life'))) return true;
+  if ((f === 'quebras' || f === 'qualidade') && (p.includes('quebra') || p.includes('qualidade') || p.includes('avaria') || p.includes('wqi'))) return true;
+  if ((f === 'wlp' || f === 'produtividade') && (p.includes('wlp') || p.includes('produtividade') || p.includes('pnp') || p.includes('jornada'))) return true;
+  if ((f === 'tmr' || f === 'recebimento') && (p.includes('tmr') || p.includes('recebimento') || p.includes('descarga') || p.includes('carreta'))) return true;
+  if ((f === 'carregamento' || f === 'efc') && (p.includes('carregamento') || p.includes('efc') || p.includes('expedição'))) return true;
+  if ((f === 'picking' || f === 'montagem') && (p.includes('picking') || p.includes('montagem'))) return true;
+  return false;
 };
 
 // Seed dataset representativo
@@ -176,7 +241,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-28',
     status: 'Em Andamento',
     responsavel: 'Djeanderson Soares',
-    local: 'Picking / Rua A4 - Posições Críticas',
+    local: 'Picking / Rua 04 - Posições Críticas',
     observacaoCampo: 'Divergência tratada na onda matutina do Fast Picking.',
     etapasVerificacao: [
       { id: '1', texto: 'Auditar saldo físico na posição de picking', concluida: true },
@@ -197,7 +262,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-29',
     status: 'Em Andamento',
     responsavel: 'Matheus Barbosa',
-    local: 'Ressuprimento / Ruas A1 a A8',
+    local: 'Ressuprimento / Ruas 01 a 05',
     observacaoCampo: 'Operador de empilhadeira dedicado nos horários de pico (14h-18h).',
     etapasVerificacao: [
       { id: '1', texto: 'Mapear curvas de consumo do turno da tarde', concluida: true },
@@ -237,7 +302,7 @@ const SEED_ACOES_DPO: AcaoDpoItem[] = [
     dataTermino: '2026-08-30',
     status: 'Em Andamento',
     responsavel: 'Paulo Pereira',
-    local: 'Corredor Central / Rua B2',
+    local: 'Corredor Central / Rua 02',
     observacaoCampo: 'Redução imediata de tombamentos no turno da noite.',
     etapasVerificacao: [
       { id: '1', texto: 'Auditar velocidade dos operadores de empilhadeira', concluida: true },
@@ -280,34 +345,59 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
   const isDark = theme === 'dark';
   const empresaId = empresa?.id || 'demo';
 
-  // State: Ações list (Strictly user-created, no system seeds)
+  // State: Ações list (Strictly user-created and dashboard-generated actions)
   const [acoes, setAcoes] = useState<AcaoDpoItem[]>(() => {
     try {
       const saved = localStorage.getItem(UNIFIED_ACOES_STORAGE_KEY);
+      const unifiedFromUtils = getAcoesAll().map(toAcaoDpoItem);
+      const map = new Map<string, AcaoDpoItem>();
+
+      if (Array.isArray(unifiedFromUtils)) {
+        unifiedFromUtils.forEach(item => {
+          if (item && item.id && !isSystemGeneratedOrSimulatedAction(item)) {
+            map.set(item.id, item);
+          }
+        });
+      }
+
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.filter(item => !isSystemGeneratedOrSimulatedAction(item));
+          parsed.forEach(item => {
+            if (item && item.id && !isSystemGeneratedOrSimulatedAction(item)) {
+              map.set(item.id, item);
+            }
+          });
         }
       }
+      return Array.from(map.values());
     } catch (e) {
       console.warn('Erro ao carregar ações do localStorage:', e);
     }
     return [];
   });
 
-  // Auto clean automatic/system seeds on mount
-  useEffect(() => {
-    cleanAllAutomaticActionsFromStorage();
-  }, []);
-
-  // Sync to localStorage
+  // Sync to localStorage and all actions storage keys
   useEffect(() => {
     try {
       const userOnly = acoes.filter(item => !isSystemGeneratedOrSimulatedAction(item));
       localStorage.setItem(UNIFIED_ACOES_STORAGE_KEY, JSON.stringify(userOnly));
+      localStorage.setItem('af_unified_acoes_dpo', JSON.stringify(userOnly));
+
+      // Also persist to global actions repository and storage keys
+      const normalizedList = userOnly.map(a => normalizeToActionCorretiva(a));
+      const allCurrent = getAcoesAll();
+      const map = new Map<string, any>();
+      allCurrent.forEach(a => map.set(a.id, a));
+      normalizedList.forEach(a => map.set(a.id, a));
+      const fullList = Array.from(map.values());
+
+      localStorage.setItem('af_banco_operacional_acoes', JSON.stringify(fullList));
+      localStorage.setItem('af_banco_simulado_acoes_2026', JSON.stringify(fullList));
+
       window.dispatchEvent(new CustomEvent('af_acoes_dpo_updated'));
       window.dispatchEvent(new CustomEvent('af_acoes_updated'));
+      window.dispatchEvent(new Event('local_data_changed'));
     } catch (e) {
       console.error('Erro ao salvar ações:', e);
     }
@@ -318,12 +408,28 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
     const handleUpdate = () => {
       try {
         const saved = localStorage.getItem(UNIFIED_ACOES_STORAGE_KEY);
+        const unifiedFromUtils = getAcoesAll().map(toAcaoDpoItem);
+        const map = new Map<string, AcaoDpoItem>();
+
+        if (Array.isArray(unifiedFromUtils)) {
+          unifiedFromUtils.forEach(item => {
+            if (item && item.id && !isSystemGeneratedOrSimulatedAction(item)) {
+              map.set(item.id, item);
+            }
+          });
+        }
+
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
-            setAcoes(parsed.filter(item => !isSystemGeneratedOrSimulatedAction(item)));
+            parsed.forEach(item => {
+              if (item && item.id && !isSystemGeneratedOrSimulatedAction(item)) {
+                map.set(item.id, item);
+              }
+            });
           }
         }
+        setAcoes(Array.from(map.values()));
       } catch (e) {}
     };
     window.addEventListener('af_acoes_dpo_updated', handleUpdate);
@@ -538,7 +644,7 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
   const filteredAcoes = useMemo(() => {
     return acoes.filter(item => {
       // Process filter
-      if (filterProcessoInterno !== 'all' && item.processo?.toLowerCase() !== filterProcessoInterno.toLowerCase()) {
+      if (filterProcessoInterno !== 'all' && !matchesProcessFilter(item.processo, filterProcessoInterno)) {
         return false;
       }
       // Criticidade filter
@@ -572,7 +678,7 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
 
   // Statistics
   const stats = useMemo(() => {
-    const list = processoFilter !== 'all' ? acoes.filter(a => a.processo?.toLowerCase() === processoFilter.toLowerCase()) : acoes;
+    const list = processoFilter !== 'all' ? acoes.filter(a => matchesProcessFilter(a.processo, processoFilter)) : acoes;
     const total = list.length;
     const alta = list.filter(a => a.criticidade === 'Alta').length;
     const andamento = list.filter(a => a.status === 'Em Andamento').length;
@@ -1256,7 +1362,7 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
                       type="text"
                       value={formLocal}
                       onChange={(e) => setFormLocal(e.target.value)}
-                      placeholder="Ex: Picking Rua A4 / Bancada 01"
+                      placeholder="Ex: Picking Rua 04 / Bancada 01"
                       className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
                         isDark ? 'bg-[#0b0f17] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
                       }`}

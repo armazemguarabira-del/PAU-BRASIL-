@@ -8,6 +8,9 @@ export interface StockAgeCalculationInput {
   descricao?: string;
   validade: string; // ISO (YYYY-MM-DD) or DD/MM/YYYY or DD-MM-YYYY
   idadeCadastrada?: number | null; // explicit shelf life in days if available
+  diasVidaUtil?: number | null; // alias for explicit shelf life
+  validadeDias?: number | null; // alias for explicit shelf life
+  dataFabricacao?: string;
   [key: string]: any;
 }
 
@@ -138,8 +141,8 @@ export function calculateStockAgeIndex(
 ): StockAgeCalculationResult {
   const diasRestantes = getDiasRestantes(input.validade, referenceDate);
   
-  // Resolve registered shelf life
-  let idade = input.idadeCadastrada;
+  // Resolve registered shelf life (check aliases idadeCadastrada, diasVidaUtil, validadeDias)
+  let idade = input.idadeCadastrada || input.diasVidaUtil || input.validadeDias;
   if (idade === undefined || idade === null || idade <= 0) {
     idade = resolveProductEdad(input.codigo, input.descricao, produtosList);
   }
@@ -157,6 +160,7 @@ export function calculateStockAgeIndex(
   }
 
   // Calculate percentage: (diasRestantes / idade) * 100
+  // Permitir cálculo real para consideração na média dos lotes
   const rawPercentage = (diasRestantes / idade) * 100;
   const stockAgeIndex = Math.round(rawPercentage * 10) / 10;
 
@@ -223,12 +227,14 @@ export function calculateStockAgeSummary<T extends {
       else if (item.status === 'Atenção') atencaoCount++;
       else okCount++;
 
-      sumIndexForAvg += item.stockAgeIndex;
+      // Considerar os itens acima de 100% para o cálculo da média
+      sumIndexForAvg += (item.stockAgeIndex || 0);
       countForAvg++;
     }
   });
 
-  const avgIndex = countForAvg > 0 ? Math.round((sumIndexForAvg / countForAvg) * 10) / 10 : 0;
+  const rawAvg = countForAvg > 0 ? Math.round((sumIndexForAvg / countForAvg) * 10) / 10 : 0;
+  const avgIndex = Math.min(100, Math.max(0, rawAvg));
 
   return {
     totalItens: items.length,

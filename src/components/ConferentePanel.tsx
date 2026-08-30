@@ -123,7 +123,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
   const [tmrLitrao, setTmrLitrao] = useState<number | ''>('');
   const [tmr600Verde, setTmr600Verde] = useState<number | ''>('');
   const [tmr600Ambar, setTmr600Ambar] = useState<number | ''>('');
-  const [tmrBarrilChopp, setTmrBarrilChopp] = useState<number | ''>('');
   const [tmrPbr1, setTmrPbr1] = useState<number | ''>('');
   const [tmrPbr2, setTmrPbr2] = useState<number | ''>('');
 
@@ -249,15 +248,14 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     const nLitrao = Number(tmrLitrao || 0);
     const n600Verde = Number(tmr600Verde || 0);
     const n600Ambar = Number(tmr600Ambar || 0);
-    const nBarrilChopp = Number(tmrBarrilChopp || 0);
     const nPbr1 = Number(tmrPbr1 || 0);
     const nPbr2 = Number(tmrPbr2 || 0);
 
-    const totalP = nLitrinho + nLitrao + n600Verde + n600Ambar + nBarrilChopp + nPbr1 + nPbr2;
+    const totalP = nLitrinho + nLitrao + n600Verde + n600Ambar + nPbr1 + nPbr2;
     
     // For House Trailers: active asset assignment is mandatory
     if (tmrTipoPlaca === 'casa' && totalP <= 0) {
-      alert(`Para Carretas da Casa (${finalPlaca}), é obrigatório atribuir a quantidade de ativos de giro (Litrinho, Litrão, 600 Verde, 600 Âmbar, Chopp, PBR1 ou PBR2).`);
+      alert(`Para Carretas da Casa (${finalPlaca}), é obrigatório atribuir a quantidade de ativos de giro (Litrinho, Litrão, 600 Verde, 600 Âmbar, PBR1 ou PBR2).`);
       return;
     }
 
@@ -276,7 +274,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
       palletsLitrao: nLitrao,
       pallets600Verde: n600Verde,
       pallets600Ambar: n600Ambar,
-      palletsBarrilChopp: nBarrilChopp,
       palletsPbr1: nPbr1,
       palletsPbr2: nPbr2,
       palletsPbr: nPbr1 + nPbr2,
@@ -293,7 +290,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     setTmrLitrao('');
     setTmr600Verde('');
     setTmr600Ambar('');
-    setTmrBarrilChopp('');
     setTmrPbr1('');
     setTmrPbr2('');
     setSelectedTmrOperators([]);
@@ -1023,6 +1019,37 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     }
   }, [empresaData.tarefas, empresaId]);
 
+  // Real-time synchronization listeners for local and cross-tab events
+  useEffect(() => {
+    const reloadLocalTasks = () => {
+      try {
+        const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
+            const sorted = [...activeTasks].sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+            setTasks(sorted);
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('app_data_updated', reloadLocalTasks);
+    window.addEventListener('local_data_changed', reloadLocalTasks);
+    window.addEventListener('tasks_updated', reloadLocalTasks);
+    window.addEventListener('tarefas_updated', reloadLocalTasks);
+    window.addEventListener('storage', reloadLocalTasks);
+
+    return () => {
+      window.removeEventListener('app_data_updated', reloadLocalTasks);
+      window.removeEventListener('local_data_changed', reloadLocalTasks);
+      window.removeEventListener('tasks_updated', reloadLocalTasks);
+      window.removeEventListener('tarefas_updated', reloadLocalTasks);
+      window.removeEventListener('storage', reloadLocalTasks);
+    };
+  }, [empresaId]);
+
   // Periodic check to auto-purge tasks that reach 5 hours
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1460,11 +1487,11 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
             {/* Produto List grid */}
             <div className="p-3 bg-[#07090d] border border-[#222d3a] rounded-xl flex flex-col gap-1 max-h-36 overflow-y-auto">
-              {filteredProducts.map(p => {
+              {filteredProducts.map((p, pIdx) => {
                 const isSel = selectedProd?.codigo === p.codigo;
                 return (
                   <div 
-                    key={p.codigo}
+                    key={`conf-prod-${p.codigo}-${pIdx}`}
                     onClick={() => setSelectedProd(p)}
                     className={`p-2.5 rounded-lg border cursor-pointer text-xs flex justify-between tracking-wide transition-all ${isSel ? 'bg-[#f5a623]/10 border-[#f5a623]/40' : 'bg-[#151b23]/50 border-[#1c2530] hover:bg-[#1a2030]'}`}
                   >
@@ -1886,18 +1913,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-bold uppercase text-slate-400">Barril Chopp</label>
-                    <input 
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      value={tmrBarrilChopp}
-                      onChange={e => setTmrBarrilChopp(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0))}
-                      className="g-input text-center font-mono font-bold text-yellow-400"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-bold uppercase text-slate-400">PBR1</label>
                     <input 
                       type="number"
@@ -2027,7 +2042,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                         <div><span className="text-[8px] text-slate-500 block uppercase">Litrão</span><span className="font-mono font-bold text-amber-300">{t.palletsLitrao || 0}</span></div>
                         <div><span className="text-[8px] text-slate-500 block uppercase">600 Verde</span><span className="font-mono font-bold text-emerald-400">{t.pallets600Verde || 0}</span></div>
                         <div><span className="text-[8px] text-slate-500 block uppercase">600 Âmbar</span><span className="font-mono font-bold text-amber-500">{t.pallets600Ambar || 0}</span></div>
-                        <div><span className="text-[8px] text-slate-500 block uppercase">Chopp</span><span className="font-mono font-bold text-yellow-400">{t.palletsBarrilChopp || 0}</span></div>
                         <div><span className="text-[8px] text-slate-500 block uppercase">PBR1</span><span className="font-mono font-bold text-blue-400">{t.palletsPbr1 || t.palletsPbr || 0}</span></div>
                         <div><span className="text-[8px] text-slate-500 block uppercase">PBR2</span><span className="font-mono font-bold text-indigo-400">{t.palletsPbr2 || 0}</span></div>
                       </div>
@@ -2165,7 +2179,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                                 <div><span className="text-[7px] text-slate-500 uppercase block">Litr</span><span className="text-amber-300 font-bold">{t.palletsLitrao || 0}</span></div>
                                 <div><span className="text-[7px] text-slate-500 uppercase block">600V</span><span className="text-emerald-400 font-bold">{t.pallets600Verde || 0}</span></div>
                                 <div><span className="text-[7px] text-slate-500 uppercase block">600A</span><span className="text-amber-500 font-bold">{t.pallets600Ambar || 0}</span></div>
-                                <div><span className="text-[7px] text-slate-500 uppercase block">Chp</span><span className="text-yellow-400 font-bold">{t.palletsBarrilChopp || 0}</span></div>
                                 <div><span className="text-[7px] text-slate-500 uppercase block">PBR1</span><span className="text-blue-400 font-bold">{t.palletsPbr1 || t.palletsPbr || 0}</span></div>
                                 <div><span className="text-[7px] text-slate-500 uppercase block">PBR2</span><span className="text-indigo-400 font-bold">{t.palletsPbr2 || 0}</span></div>
                                 <div className="bg-amber-500/10 rounded"><span className="text-[7px] text-amber-400 uppercase block">Tot</span><span className="text-amber-300 font-bold">{t.totalPallets || 0}</span></div>
@@ -3445,13 +3458,13 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-300 bg-[#0d1117] px-3.5 py-2 rounded-xl border border-[#222d3a] w-fit">
                   <span className="text-emerald-400 font-bold">URL:</span>
-                  <span className="text-emerald-300 underline">https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/</span>
+                  <span className="text-emerald-300 underline">https://nhpa-cyber.github.io/rota/</span>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/"
+              href="https://nhpa-cyber.github.io/rota/"
               target="_blank"
               rel="noopener noreferrer"
               className="z-10 py-4 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-xl shadow-emerald-950/50 flex items-center gap-3 shrink-0 border border-emerald-300 hover:scale-105"

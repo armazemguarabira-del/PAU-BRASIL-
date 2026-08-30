@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { QuebraRow } from '../types';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
+import { getItemValorReal } from './WqiTab';
 
 interface LossHierarchyTreeProps {
   quebras?: QuebraRow[];
@@ -436,7 +437,7 @@ export default function LossHierarchyTree({
 
     effectiveQuebras.forEach(row => {
       const q = Math.abs(row.quantidade || 0);
-      const val = row.valorTotal ?? (row.valor ?? (row.valorUnitario ? row.valorUnitario * q : q * 35));
+      const val = getItemValorReal(row);
       grandTotalValor += val;
       grandTotalQtd += q;
 
@@ -445,7 +446,7 @@ export default function LossHierarchyTree({
       const pkgMeta = getPackagingType(row);
       const cod = row.codProduto || '0000';
       const desc = row.descricao || 'Produto Indefinido';
-      const unitVal = row.valorUnitario || (q > 0 ? val / q : 35);
+      const unitVal = row.valorUnitario || (q > 0 ? val / q : (val > 0 ? val : 0));
 
       // Level 2: Month
       if (!monthsMap.has(mMeta.key)) {

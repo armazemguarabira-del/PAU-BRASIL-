@@ -22,7 +22,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
-import { useVendaMedia030519 } from '../utils/vendaMedia030519';
+import { useVendaMedia030519, get030519DataForSku } from '../utils/vendaMedia030519';
 
 interface FuturoShelfTabProps {
   validadesList: ValidadeRow[];
@@ -101,10 +101,12 @@ export default function FuturoShelfTab({ validadesList, user, empresa, onRefresh
       const lote = (item as any).lote || `LOT-${codigo}-${validadeStr.replace(/-/g, '')}`;
 
       // Venda Média 03.05.19 & Previsão de Escoamento
-      const item030519 = get030519Item(codigo);
-      const vendaMediaDiaria = item030519.vendaMediaDiaria;
-      const is030519 = item030519.source === '030519';
-      const curvaAbc = item030519.curvaAbc || 'B';
+      const item030519 = get030519Item(codigo) || get030519DataForSku(codigo);
+      const is030519 = !!(item030519 && item030519.vendaMediaDiaria > 0 && item030519.source === '030519');
+      const vendaMediaDiaria = (item030519 && Number(item030519.vendaMediaDiaria) > 0)
+        ? Number(item030519.vendaMediaDiaria)
+        : Math.max(1, Math.round(quantidade / 30));
+      const curvaAbc = (item030519 && item030519.curvaAbc) || 'B';
 
       const diasEstoque = Math.max(1, Math.ceil(quantidade / Math.max(0.1, vendaMediaDiaria)));
 

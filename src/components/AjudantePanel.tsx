@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
@@ -48,6 +48,7 @@ import {
 } from 'lucide-react';
 import { add5PorquesDemand } from '../utils/fiveWhysManager';
 import { AcaoCorretiva, getAcoesAll, saveAcoes } from '../utils/simulacaoAcoesUtils';
+import { getStoredDespejoTasks, DespejoTask } from '../utils/pncManager';
 
 interface AjudantePanelProps {
   user: Usuario;
@@ -79,6 +80,23 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
   const [activeTab, setActiveTab] = useState<'repack' | 'despejo' | 'quebras' | 'retorno_rota' | '5s' | 'historico' | 'acoes' | 'montagem'>('repack');
 
   // Shift State
+  const [despejoTasks, setDespejoTasks] = useState<DespejoTask[]>(() => getStoredDespejoTasks(empresaId));
+
+  useEffect(() => {
+    const refreshTasks = () => setDespejoTasks(getStoredDespejoTasks(empresaId));
+    refreshTasks();
+    window.addEventListener('despejo_tasks_updated', refreshTasks);
+    window.addEventListener('pnc_updated', refreshTasks);
+    return () => {
+      window.removeEventListener('despejo_tasks_updated', refreshTasks);
+      window.removeEventListener('pnc_updated', refreshTasks);
+    };
+  }, [empresaId]);
+
+  const pendingDespejoTasksCount = useMemo(() => {
+    return despejoTasks.filter(t => t.status === 'Pendente').length;
+  }, [despejoTasks]);
+
   const [shiftStarted, setShiftStarted] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(shiftStorageKey);
@@ -249,23 +267,118 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     triggerToast('✓ Correção de ponto de jornada atualizada com sucesso no histórico!');
   };
 
+  // Live listener for real-time Despejo and Repack synchronization
+  const [syncVersion, setSyncVersion] = useState(0);
+  useEffect(() => {
+    const handleSync = () => {
+      setSyncVersion(v => v + 1);
+    };
+
+    window.addEventListener('despejo-updated', handleSync);
+    window.addEventListener('despejo-db-updated', handleSync);
+    window.addEventListener('repack-updated', handleSync);
+    window.addEventListener('repack-db-updated', handleSync);
+    window.addEventListener('empresa-data-reload', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      window.removeEventListener('despejo-updated', handleSync);
+      window.removeEventListener('despejo-db-updated', handleSync);
+      window.removeEventListener('repack-updated', handleSync);
+      window.removeEventListener('repack-db-updated', handleSync);
+      window.removeEventListener('empresa-data-reload', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
   // Calculate today's productivity meta compliance for Repack & Despejo
   const todayISO = React.useMemo(() => new Date().toISOString().split('T')[0], []);
   const todayStr = React.useMemo(() => new Date().toLocaleDateString('pt-BR'), []);
 
   const todayRepackEntries = React.useMemo(() => {
-    return (empresaData.repack || []).filter(r => 
-      (r.dataISO === todayISO || r.data === todayStr) && 
-      (r.operador === user.nome || !r.operador)
-    );
-  }, [empresaData.repack, todayISO, todayStr, user.nome]);
+    const companyId = empresa?.id || 'demo';
+    const allRepack: any[] = [...(empresaData.repack || [])];
+
+    // 1. Carrega de repack_manual_entries_
+    try {
+      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+      if (savedManual) {
+        const parsed = JSON.parse(savedManual);
+        if (Array.isArray(parsed)) {
+          allRepack.push(...parsed);
+        }
+      }
+    } catch (e) {}
+
+    // 2. Carrega de repack_rows_
+    try {
+      const savedRows = localStorage.getItem(`repack_rows_${companyId}`);
+      if (savedRows) {
+        const parsed = JSON.parse(savedRows);
+        if (Array.isArray(parsed)) {
+          allRepack.push(...parsed);
+        }
+      }
+    } catch (e) {}
+
+    const seenIds = new Set<string>();
+    const deduplicated: any[] = [];
+    allRepack.forEach(r => {
+      if (!r) return;
+      const key = String(r._docId || r.id || `${r.dataISO || r.data}_${r.inicio}_${r.embalagem}_${r.quantidade}`);
+      if (!seenIds.has(key)) {
+        seenIds.add(key);
+        deduplicated.push(r);
+      }
+    });
+
+    return deduplicated.filter(r => {
+      const isDateMatch = r.dataISO === todayISO || r.data === todayStr || (r.data && r.data.includes(todayStr));
+      const isOperatorMatch = !r.operador || r.operador === user.nome || r.operador.includes(user.nome) || user.nome.includes(r.operador) || r.operador.includes('GLADSON') || r.operador.includes('OZENILDO') || r.operador.includes('AJUDANTE');
+      return isDateMatch && isOperatorMatch;
+    });
+  }, [empresaData.repack, todayISO, todayStr, user.nome, empresa?.id, syncVersion]);
 
   const todayDespejoEntries = React.useMemo(() => {
-    return (empresaData.despejo || []).filter(d => 
+    const companyId = empresa?.id || 'demo';
+    const allDespejo: any[] = [...(empresaData.despejo || [])];
+
+    // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
+    try {
+      const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+      if (savedManual) {
+        const parsed = JSON.parse(savedManual);
+        if (Array.isArray(parsed)) {
+          allDespejo.push(...parsed);
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const savedRows = localStorage.getItem(`despejo_rows_${companyId}`);
+      if (savedRows) {
+        const parsed = JSON.parse(savedRows);
+        if (Array.isArray(parsed)) {
+          allDespejo.push(...parsed);
+        }
+      }
+    } catch (e) {}
+
+    const seenIds = new Set<string>();
+    const deduplicated: any[] = [];
+    allDespejo.forEach(d => {
+      const key = String(d._docId || d.id || `${d.dataISO}_${d.inicio}_${d.embalagem}_${d.quantidade}`);
+      if (!seenIds.has(key)) {
+        seenIds.add(key);
+        deduplicated.push(d);
+      }
+    });
+
+    return deduplicated.filter(d => 
       (d.dataISO === todayISO || d.data === todayStr) && 
-      (d.operador === user.nome || !d.operador)
+      (d.operador === user.nome || !d.operador || d.operador === 'AJUDANTE DESPEJO')
     );
-  }, [empresaData.despejo, todayISO, todayStr, user.nome]);
+  }, [empresaData.despejo, todayISO, todayStr, user.nome, empresa?.id, syncVersion]);
 
   // Helper to parse duration or time string into minutes
   const parseTimeToMinutes = (timeStr?: string): number => {
@@ -781,7 +894,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
 
         <button
           onClick={() => setActiveTab('despejo')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap relative ${
             activeTab === 'despejo'
               ? 'bg-blue-600 text-white shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#18202d]'
@@ -789,6 +902,11 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
         >
           <Trash2 className="w-3.5 h-3.5 shrink-0" />
           <span>2. DESPEJO</span>
+          {pendingDespejoTasksCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse shadow-xs">
+              {pendingDespejoTasksCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -961,13 +1079,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-[#0d1117] px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#222d3a] w-fit shadow-xs">
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold">URL:</span>
-                  <span className="text-emerald-700 dark:text-emerald-300 underline font-medium">https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 underline font-medium">https://nhpa-cyber.github.io/rota/</span>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://nixonhenriquegit.github.io/RETORNO-DE-ROTA/"
+              href="https://nhpa-cyber.github.io/rota/"
               target="_blank"
               rel="noopener noreferrer"
               className="z-10 py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-md flex items-center gap-3 shrink-0 hover:scale-105"

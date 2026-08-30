@@ -95,7 +95,7 @@ export function convertEfcVehiclesToArmazemRows(vehicles: EfcEfdVehicle[], empre
       inicio: dInicio,
       fim: dFim,
       status: isEfdDentro ? 'DENTRO DA JANELA' : 'FORA DA JANELA',
-      empilhador: v.colaboradorDescarregamento || v.operadorExecutorDescarregamento || v.colaboradorCarregamento || 'José Ronildo',
+      empilhador: v.colaboradorDescarregamento || v.operadorExecutorDescarregamento || v.colaboradorCarregamento || 'Operador Empilhadeira',
       turno: dTurno,
       placa: v.placa || rawAny.veiculo || 'SLB3J76',
       tipo: v.tipoVeiculo || 'Frota Dedicada',

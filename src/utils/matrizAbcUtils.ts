@@ -1,6 +1,9 @@
 import { calcularPoliticaEstoque } from './estoqueStorage';
 import { PRODUCTS } from '../planosData';
-import { getProductMeta } from './productCatalogData';
+import { getProductMeta, getProductOfficialDescription, isProdutoCadastrado } from './productCatalogData';
+import { buildOfficialQuebrasRows } from './retroactiveQuebrasParser';
+import { parseValidadeDate, getDiasRestantes } from './calculateStockAgeIndex';
+import { calcularTotalCaixas as calcCaixasPackaging } from '../data/coletaPackagingData';
 
 export interface MatrizAbcItem {
   // Identificação
@@ -39,11 +42,14 @@ export interface MatrizAbcItem {
   giroEstoque: number; // Rotatividade
   coberturaDias: number;
 
-  // Operação
+  // Operação & Pallets Movimentados
   qtdPickingCx: number;
   freqPicking: number;
   qtdReabastecimentos: number;
   freqReabastecimento: number;
+  palletsRessuprimento: number; // Pallets recebidos/alocados no pulmão
+  palletsReabastecimento: number; // Pallets transferidos do pulmão para o picking
+  totalPalletsMovimentados: number; // Ressuprimento + Reabastecimento
   scoreImpactoOperacional: number;
   percentOperacional: number;
   percentAcumuladoOperacional: number;
@@ -75,73 +81,342 @@ export interface MatrizAbcKPIs {
   coberturaMediaDias: number;
   totalMovimentacoesOperacionais: number;
   totalReabastecimentos: number;
+  totalPalletsMovimentados: number;
+  palletsRessuprimentoTotal: number;
+  palletsReabastecimentoTotal: number;
   valorTotalQuebras: number;
+  volumeTotalQuebrasCx: number;
   skusRiscoVencimento: number;
+}
+
+/**
+ * Robust date parser to calculate remaining shelf-life days from validade records
+ */
+function parseValidadeDiasParaVencer(v: any, hojeMs: number): number | null {
+  if (v.diasParaVencer !== undefined && v.diasParaVencer !== null && !isNaN(Number(v.diasParaVencer))) {
+    return Number(v.diasParaVencer);
+  }
+  if (v.diasRestantes !== undefined && v.diasRestantes !== null && !isNaN(Number(v.diasRestantes))) {
+    return Number(v.diasRestantes);
+  }
+  if (v.dias !== undefined && v.dias !== null && !isNaN(Number(v.dias))) {
+    return Number(v.dias);
+  }
+  
+  const rawDateStr = v.validade || v.dataValidade || v.vencimento || v.dataVencimento;
+  if (!rawDateStr) return null;
+
+  const targetDate = parseValidadeDate(String(rawDateStr));
+  if (targetDate && !isNaN(targetDate.getTime())) {
+    const hoje = new Date(hojeMs);
+    hoje.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    return Math.round((targetDate.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  return null;
+}
+
+export interface ShelfLifeRiscoItem {
+  codigo: number;
+  descricao: string;
+  diasParaVencer: number;
+  quantidadeCx: number;
+  valorTotalRS: number;
+  validade: string;
+  lote: string;
+  status: 'Vencido' | 'Critico' | 'Atencao';
+}
+
+/**
+ * Puxa do Dashboard de Shelf-Life / Validades todos os itens com 45 dias ou menos para vencer e calcula sua valoração financeira (R$).
+ */
+export function getShelfLifeRisco45Dias(empresaId: string = 'demo'): ShelfLifeRiscoItem[] {
+  let validadesData: any[] = [];
+  const validadesKeys = [
+    `validades_${empresaId}`,
+    `armazem_validades_${empresaId}`,
+    `custom_validades_${empresaId}`,
+    'validades_demo',
+    'armazem_validades_demo',
+    'validades',
+    'armazem_validades',
+    `repack_validades_${empresaId}`,
+    'repack_validades_demo',
+    'repack_validades'
+  ];
+
+  // Also dynamically search all keys in localStorage for validades
+  try {
+    if (typeof localStorage !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('validades') || k.startsWith('armazem_validades') || k.startsWith('custom_validades') || k.startsWith('repack_validades'))) {
+          if (!validadesKeys.includes(k)) {
+            validadesKeys.push(k);
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  const seenValidadeIds = new Set<string>();
+  validadesKeys.forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((item: any) => {
+            const uId = item._docId || item.id || `${item.codigo}_${item.validade}_${item.lote}_${item.localizacao}`;
+            if (!seenValidadeIds.has(String(uId))) {
+              seenValidadeIds.add(String(uId));
+              validadesData.push(item);
+            }
+          });
+        }
+      }
+    } catch (_) {}
+  });
+
+  const hojeDate = new Date();
+  hojeDate.setHours(0, 0, 0, 0);
+  const hojeMs = hojeDate.getTime();
+
+  const groupedMap = new Map<number, ShelfLifeRiscoItem>();
+
+  validadesData.forEach(v => {
+    const cod = Number(v.codigo || v.codProduto || v.cod || v.codSku || v.sku || 0);
+    if (cod <= 0 || !isProdutoCadastrado(cod, empresaId)) return;
+
+    const diasRemaining = parseValidadeDiasParaVencer(v, hojeMs);
+    // REGRA: Apenas itens com 45 dias ou menos para vencer (diasRemaining <= 45)
+    if (diasRemaining !== null && diasRemaining <= 45) {
+      const meta = getProductMeta(cod);
+      const catalogItem = PRODUCTS.find(prod => Number(prod.codigo) === cod);
+      const preco = meta.preco || catalogItem?.preco || 45;
+      
+      const p = Number(v.palhete || v.pallets || 0);
+      const l = Number(v.lastro || 0);
+      const c = Number(v.caixa || 0);
+      const q = Number(v.quantidade || 0);
+      
+      const fatorPallet = meta.fatorPallet || 60;
+      const lastro = meta.lastro || 12;
+      let qtdCx = q > 0 ? q : 0;
+      if (qtdCx === 0 && (p > 0 || l > 0 || c > 0)) {
+        qtdCx = calcCaixasPackaging(cod, p, l, c) || (p * fatorPallet + l * lastro + c);
+      }
+      if (qtdCx === 0 && c > 0) qtdCx = c;
+      if (qtdCx === 0) qtdCx = 1;
+
+      const valorRS = qtdCx * preco;
+
+      let statusStr: 'Vencido' | 'Critico' | 'Atencao' = 'Atencao';
+      if (diasRemaining <= 0) statusStr = 'Vencido';
+      else if (diasRemaining <= 15) statusStr = 'Critico';
+      else if (diasRemaining <= 45) statusStr = 'Atencao';
+
+      const desc = getProductOfficialDescription(cod, v.descricao || '', empresaId);
+
+      const existing = groupedMap.get(cod);
+      if (existing) {
+        existing.quantidadeCx += qtdCx;
+        existing.valorTotalRS += valorRS;
+        if (diasRemaining < existing.diasParaVencer) {
+          existing.diasParaVencer = diasRemaining;
+          existing.validade = v.validade || existing.validade;
+          existing.lote = v.lote || existing.lote;
+          existing.status = statusStr;
+        }
+      } else {
+        groupedMap.set(cod, {
+          codigo: cod,
+          descricao: desc,
+          diasParaVencer: diasRemaining,
+          quantidadeCx: qtdCx,
+          valorTotalRS: valorRS,
+          validade: v.validade || '',
+          lote: v.lote || '',
+          status: statusStr
+        });
+      }
+    }
+  });
+
+  return Array.from(groupedMap.values()).sort((a, b) => b.valorTotalRS - a.valorTotalRS);
 }
 
 export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAbcItem[] {
   const politicaEstoque = calcularPoliticaEstoque();
 
-  // Carregar dados de quebras
+  // 1. Carregar vendas acumuladas de TODOS OS TRIMESTRES importados na 03.05.19
+  const mapVendas030519Acumuladas = new Map<number, {
+    volumeTotalTrimestres: number;
+    diasUteisTotais: number;
+    precoUnitario: number;
+    fatorHecto: number;
+    trimestresImportados: number;
+  }>();
+
+  try {
+    const rawTrimestres = localStorage.getItem('af_curva_abc_trimestres_030519_v1');
+    if (rawTrimestres) {
+      const parsedTrimestres = JSON.parse(rawTrimestres);
+      if (parsedTrimestres && typeof parsedTrimestres === 'object') {
+        (['Q1', 'Q2', 'Q3', 'Q4'] as const).forEach(qKey => {
+          const qStore = parsedTrimestres[qKey];
+          if (qStore && qStore.itemsMap && Object.keys(qStore.itemsMap).length > 0) {
+            const diasQ = Number(qStore.diasUteis) || 66;
+            Object.values(qStore.itemsMap).forEach((item: any) => {
+              const cod = Number(item.codigo);
+              const vol = Number(item.volumeTotalTrimestre) || 0;
+              const preco = Number(item.precoUnitario) || 0;
+              const fh = Number(item.fatorHecto) || 0;
+
+              const existing = mapVendas030519Acumuladas.get(cod);
+              if (existing) {
+                existing.volumeTotalTrimestres += vol;
+                existing.diasUteisTotais += diasQ;
+                existing.trimestresImportados += 1;
+                if (preco > 0) existing.precoUnitario = preco;
+                if (fh > 0) existing.fatorHecto = fh;
+              } else {
+                mapVendas030519Acumuladas.set(cod, {
+                  volumeTotalTrimestres: vol,
+                  diasUteisTotais: diasQ,
+                  precoUnitario: preco,
+                  fatorHecto: fh,
+                  trimestresImportados: 1
+                });
+              }
+            });
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Erro ao ler trimestres da 03.05.19:', e);
+  }
+
+  // 2. Carregar dados de quebras de todas as fontes disponíveis
   let quebrasData: any[] = [];
   try {
-    const rawQuebras = localStorage.getItem(`quebras_${empresaId}`);
-    if (rawQuebras) quebrasData = JSON.parse(rawQuebras);
+    const rawQuebras = 
+      localStorage.getItem(`quebras_${empresaId}`) || 
+      localStorage.getItem(`custom_quebras_${empresaId}`) || 
+      localStorage.getItem(`local_quebras_${empresaId}`) || 
+      localStorage.getItem(`quebras_records_${empresaId}`) || 
+      localStorage.getItem(`quebras_demo`);
+    
+    if (rawQuebras) {
+      const parsed = JSON.parse(rawQuebras);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        quebrasData = parsed;
+      }
+    }
   } catch (e) {
     console.error('Erro ao ler dados de quebras:', e);
   }
 
-  // Carregar dados de validades
-  let validadesData: any[] = [];
-  try {
-    const rawValidades = localStorage.getItem(`validades_${empresaId}`);
-    if (rawValidades) validadesData = JSON.parse(rawValidades);
-  } catch (e) {
-    console.error('Erro ao ler dados de validades:', e);
+  // Se não houver quebras registradas no localStorage, carregar a base oficial do armazém
+  if (quebrasData.length === 0) {
+    try {
+      quebrasData = buildOfficialQuebrasRows(empresaId);
+    } catch (e) {
+      console.warn('Fallback para quebras padrão falhou:', e);
+    }
   }
+
+  // 3. Carregar dados de validades de todas as fontes disponíveis
+  let validadesData: any[] = [];
+  const validadesKeys = [
+    `validades_${empresaId}`,
+    `armazem_validades_${empresaId}`,
+    `custom_validades_${empresaId}`,
+    'validades_demo',
+    'armazem_validades_demo',
+    'validades',
+    'armazem_validades',
+    `repack_validades_${empresaId}`,
+    'repack_validades_demo',
+    'repack_validades'
+  ];
+
+  // Dynamically scan any other validades keys in localStorage
+  try {
+    if (typeof localStorage !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('validades') || k.startsWith('armazem_validades') || k.startsWith('custom_validades') || k.startsWith('repack_validades'))) {
+          if (!validadesKeys.includes(k)) {
+            validadesKeys.push(k);
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  const seenValidadeIds = new Set<string>();
+  validadesKeys.forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((item: any) => {
+            const uId = item._docId || item.id || `${item.codigo}_${item.validade}_${item.lote}_${item.localizacao}`;
+            if (!seenValidadeIds.has(String(uId))) {
+              seenValidadeIds.add(String(uId));
+              validadesData.push(item);
+            }
+          });
+        }
+      }
+    } catch (_) {}
+  });
 
   // Mapas auxiliares para quebras
   const mapQuebras = new Map<number, { qtd: number; valor: number }>();
   quebrasData.forEach(q => {
-    const cod = Number(q.codProduto || q.codSku || q.codigo || 0);
+    const cod = Number(q.codProduto || q.codSku || q.codigo || q.sku || q.produtoId || 0);
     if (cod > 0) {
       const current = mapQuebras.get(cod) || { qtd: 0, valor: 0 };
-      const qtdAdd = Number(q.quantidade || q.qtd || 1);
-      const valorAdd = Number(q.valorTotal || q.valor || 0);
+      const qtdAdd = Number(q.quantidade || q.qtd || q.volumeQuebra || q.qtdQuebrada || 1);
+      const valorAdd = Number(q.valorTotal || q.valor || q.custoTotal || (qtdAdd * 45));
       mapQuebras.set(cod, {
         qtd: current.qtd + qtdAdd,
-        valor: current.valor + (valorAdd > 0 ? valorAdd : qtdAdd * 25)
+        valor: current.valor + (valorAdd > 0 ? valorAdd : qtdAdd * 45)
       });
     }
   });
 
-  // Mapas auxiliares para validades
-  const mapValidades = new Map<number, { diasMin: number; status: string; totalQtd: number }>();
-  const hojeMs = new Date().getTime();
+  // Mapas auxiliares para validades (identifica dias para vencer com precisão cirúrgica)
+  const mapValidades = new Map<number, { diasMin: number; status: string; totalQtd: number; hasRealRecord: boolean }>();
+  const hojeDate = new Date();
+  hojeDate.setHours(0, 0, 0, 0);
+  const hojeMs = hojeDate.getTime();
+
   validadesData.forEach(v => {
-    const cod = Number(v.codigo || v.codProduto || 0);
+    const cod = Number(v.codigo || v.codProduto || v.cod || 0);
     if (cod > 0) {
-      let diasRemaining = 180;
-      if (v.validade) {
-        const valDate = new Date(v.validade).getTime();
-        if (!isNaN(valDate)) {
-          diasRemaining = Math.max(0, Math.floor((valDate - hojeMs) / (1000 * 60 * 60 * 24)));
-        }
+      const diasRemaining = parseValidadeDiasParaVencer(v, hojeMs);
+      if (diasRemaining !== null) {
+        const existing = mapValidades.get(cod);
+        const currentMin = existing ? Math.min(existing.diasMin, diasRemaining) : diasRemaining;
+        const totalQtd = (existing ? existing.totalQtd : 0) + Number(v.quantidade || v.caixa || 0);
+
+        let statusStr = 'Ok';
+        if (currentMin <= 0) statusStr = 'Vencido';
+        else if (currentMin <= 15) statusStr = 'Critico';
+        else if (currentMin <= 45) statusStr = 'Atencao';
+
+        mapValidades.set(cod, { diasMin: currentMin, status: statusStr, totalQtd, hasRealRecord: true });
       }
-      const existing = mapValidades.get(cod);
-      const currentMin = existing ? Math.min(existing.diasMin, diasRemaining) : diasRemaining;
-      const totalQtd = (existing ? existing.totalQtd : 0) + Number(v.quantidade || 0);
-
-      let statusStr = 'Ok';
-      if (currentMin <= 0) statusStr = 'Vencido';
-      else if (currentMin <= 15) statusStr = 'Critico';
-      else if (currentMin <= 45) statusStr = 'Atencao';
-
-      mapValidades.set(cod, { diasMin: currentMin, status: statusStr, totalQtd });
     }
   });
 
-  // 1. Iniciar mapeamento preliminar de cada SKU
+  // 4. Mapear cada SKU consolidando vendas acumuladas da 03.05.19, estoque, quebras e esforço de movimentação
   const rawList: Omit<
     MatrizAbcItem,
     | 'percentVendaValor'
@@ -158,20 +433,40 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
     | 'curvaAbcOperacional'
     | 'criticidade'
     | 'diagnosticoFinal'
-  >[] = politicaEstoque.map(p => {
+  >[] = politicaEstoque
+    .filter(p => isProdutoCadastrado(p.codigo, empresaId))
+    .map(p => {
     const cod = Number(p.codigo);
     const catalogItem = PRODUCTS.find(prod => Number(prod.codigo) === cod);
     const meta = getProductMeta(cod);
 
     const fator = catalogItem?.fator || meta.fator || 12;
     const fatorHecto = meta.fatorHecto || catalogItem?.fatorHecto || 0.04;
-    const precoUnitario = catalogItem?.preco || meta.preco || p.precoUnitario || 25;
+    const fatorPallet = meta.fatorPallet && meta.fatorPallet > 0 
+      ? meta.fatorPallet 
+      : (meta.caixasPallet && meta.caixasPallet > 0 ? meta.caixasPallet : 50);
+    const lastro = meta.lastro && meta.lastro > 0 ? meta.lastro : Math.max(1, Math.round(fatorPallet / 5));
+    const precoUnitario = catalogItem?.preco || meta.preco || p.precoUnitario || 45;
 
-    const vendaDiariaCx = p.vendaMediaDiaria || 0;
-    const vendaQtdCx = Math.round(vendaDiariaCx * 30);
+    // Descrição completa e oficial conforme cadastros da plataforma
+    const descricaoOficial = getProductOfficialDescription(cod, p.produto || (p as any).descricao || '', empresaId);
+
+    // Vendas: Se houver dados importados na 03.05.19 para este SKU, acumular todos os trimestres
+    const v030519 = mapVendas030519Acumuladas.get(cod);
+
+    let vendaDiariaCx = p.vendaMediaDiaria || 0;
+    let vendaQtdCx = Math.round(vendaDiariaCx * 30);
+
+    if (v030519 && v030519.diasUteisTotais > 0 && v030519.volumeTotalTrimestres > 0) {
+      vendaDiariaCx = v030519.volumeTotalTrimestres / v030519.diasUteisTotais;
+      // Venda mensal representativa baseada na média diária acumulada dos trimestres importados
+      vendaQtdCx = Math.round(vendaDiariaCx * 30);
+    }
+
     const vendaValorRS = vendaQtdCx * precoUnitario;
-    const vendaVolumeHl = vendaQtdCx * fatorHecto;
+    const vendaVolumeHl = Number((vendaQtdCx * fatorHecto).toFixed(2));
 
+    // Estoque
     const estoqueSkuFechado = p.qtdSkuFechado ?? p.estoqueAtualTotal;
     const estoqueUnidadeAvulsa = p.qtdUnidadeAvulsa ?? 0;
     const estoqueAtualCx = p.estoqueAtualTotal;
@@ -181,33 +476,45 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
     const giroEstoque = vendaDiariaCx > 0 ? parseFloat(((vendaDiariaCx * 30) / Math.max(1, estoqueAtualCx)).toFixed(2)) : 0;
     const coberturaDias = p.coberturaDias || (vendaDiariaCx > 0 ? parseFloat((estoqueAtualCx / vendaDiariaCx).toFixed(1)) : 0);
 
-    // Operação
+    // Operação & Pallets Movimentados no Ressuprimento e Reabastecimento
     const qtdPickingCx = p.estoquePicking || Math.round(estoqueAtualCx * 0.2);
     const freqPicking = Math.max(1, Math.round(vendaDiariaCx * 1.5));
-    const qtdReabastecimentos = Math.max(0, Math.floor(vendaQtdCx / Math.max(1, p.estoquePicking || 10)));
+    
+    // Pallets de Ressuprimento (Descarga/Transferência de fornecedor para o Pulmão)
+    const palletsRessuprimento = Math.max(0, Math.ceil(vendaQtdCx / Math.max(1, fatorPallet)));
+    
+    // Pallets de Reabastecimento (Movimentação com empilhadeira do Pulmão para a Posição de Picking)
+    const capacidadePickingCx = Math.max(1, qtdPickingCx > 0 ? qtdPickingCx : lastro);
+    const qtdReabastecimentos = Math.max(0, Math.ceil(vendaQtdCx / capacidadePickingCx));
+    const palletsReabastecimento = qtdReabastecimentos;
     const freqReabastecimento = Math.max(0, Math.round(qtdReabastecimentos * 1.2));
-    const scoreImpactoOperacional = Math.round(vendaQtdCx + (freqPicking * 10) + (qtdReabastecimentos * 25));
+    
+    const totalPalletsMovimentados = palletsRessuprimento + palletsReabastecimento;
+    const scoreImpactoOperacional = totalPalletsMovimentados > 0 
+      ? totalPalletsMovimentados 
+      : Math.max(1, Math.round(vendaQtdCx / 50));
 
-    // Quebras
+    // Quebras / Avarias
     const qData = mapQuebras.get(cod) || { qtd: 0, valor: 0 };
     const qtdQuebras = qData.qtd;
     const valorQuebrasRS = qData.valor;
     const percentQuebra = vendaValorRS > 0 ? parseFloat(((valorQuebrasRS / vendaValorRS) * 100).toFixed(2)) : 0;
 
-    // FEFO / Validades
+    // FEFO / Validades & Shelf-Life Risk
     const vData = mapValidades.get(cod);
     const shelfLifeDias = 180;
-    const diasParaVencimentoMin = vData ? vData.diasMin : 120;
+    const diasParaVencimentoMin = vData ? vData.diasMin : 999;
     const statusFefo: MatrizAbcItem['statusFefo'] = vData ? (vData.status as any) : 'SemRegistro';
 
     let riscoVencimento: MatrizAbcItem['riscoVencimento'] = 'Baixo';
     if (diasParaVencimentoMin <= 0) riscoVencimento = 'Critico';
-    else if (diasParaVencimentoMin <= 20 && estoqueAtualCx > 0) riscoVencimento = 'Alto';
-    else if (diasParaVencimentoMin <= 45 && estoqueAtualCx > 0) riscoVencimento = 'Medio';
+    else if (diasParaVencimentoMin <= 15) riscoVencimento = 'Critico';
+    else if (diasParaVencimentoMin <= 45) riscoVencimento = 'Alto';
+    else if (diasParaVencimentoMin <= 60) riscoVencimento = 'Medio';
 
     return {
       codigo: cod,
-      descricao: p.produto || `Produto ${cod}`,
+      descricao: descricaoOficial,
       grupo: meta.grupo || p.grupo || 'CERVEJA',
       familia: p.familia || 'CERVEJA',
       marca: p.marca || 'AMBEV',
@@ -231,6 +538,9 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
       freqPicking,
       qtdReabastecimentos,
       freqReabastecimento,
+      palletsRessuprimento,
+      palletsReabastecimento,
+      totalPalletsMovimentados,
       scoreImpactoOperacional,
       qtdQuebras,
       valorQuebrasRS,
@@ -287,7 +597,7 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
       return newAcum;
     }, 0);
 
-  // 4. Calcular Curva ABC Operacional
+  // 4. Calcular Curva ABC Operacional (Pallets Movimentados)
   [...rawList]
     .sort((a, b) => b.scoreImpactoOperacional - a.scoreImpactoOperacional)
     .reduce((acum, item) => {
@@ -299,7 +609,7 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
     }, 0);
 
   // Montar o resultado final com diagnósticos e criticidade
-  return rawList.map(item => {
+  const resultado = rawList.map(item => {
     const valObj = mapCurvaValor.get(item.codigo) || { percent: 0, acum: 0, curva: 'C' };
     const volObj = mapCurvaVolume.get(item.codigo) || { percent: 0, acum: 0, curva: 'C' };
     const estObj = mapCurvaEstoque.get(item.codigo) || { percent: 0, acum: 0, curva: 'C' };
@@ -316,7 +626,7 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
 
     if (item.coberturaDias === 0 && (cVal === 'A' || cVol === 'A')) {
       criticidade = 'Crítica';
-      diagnosticoFinal = 'Ruptura Iminênte em Produto Classe A — Reposição Urgente';
+      diagnosticoFinal = 'Ruptura Iminente em Produto Classe A — Reposição Urgente';
     } else if (item.riscoVencimento === 'Critico' || item.riscoVencimento === 'Alto') {
       criticidade = 'Crítica';
       diagnosticoFinal = 'Risco FEFO Crítico / Vencimento Próximo — Ação Promocional ou Despacho Urgente';
@@ -361,6 +671,9 @@ export function calcularMatrizAbcLogistica(empresaId: string = 'demo'): MatrizAb
       diagnosticoFinal
     };
   });
+
+  // Retornar lista ordenada por maior Faturamento R$ para o menor faturamento
+  return resultado.sort((a, b) => b.vendaValorRS - a.vendaValorRS);
 }
 
 export function getMatrizAbcKPIs(items: MatrizAbcItem[]): MatrizAbcKPIs {
@@ -384,9 +697,15 @@ export function getMatrizAbcKPIs(items: MatrizAbcItem[]): MatrizAbcKPIs {
 
   const totalMovimentacoesOperacionais = items.reduce((acc, i) => acc + i.scoreImpactoOperacional, 0);
   const totalReabastecimentos = items.reduce((acc, i) => acc + i.qtdReabastecimentos, 0);
-  const valorTotalQuebras = items.reduce((acc, i) => acc + i.valorQuebrasRS, 0);
+  const palletsRessuprimentoTotal = items.reduce((acc, i) => acc + i.palletsRessuprimento, 0);
+  const palletsReabastecimentoTotal = items.reduce((acc, i) => acc + i.palletsReabastecimento, 0);
+  const totalPalletsMovimentados = palletsRessuprimentoTotal + palletsReabastecimentoTotal;
 
-  const skusRiscoVencimento = items.filter(i => i.riscoVencimento === 'Alto' || i.riscoVencimento === 'Critico').length;
+  const valorTotalQuebras = items.reduce((acc, i) => acc + i.valorQuebrasRS, 0);
+  const volumeTotalQuebrasCx = items.reduce((acc, i) => acc + i.qtdQuebras, 0);
+
+  // Itens com risco de validade (com menos de 45 dias para vencer)
+  const skusRiscoVencimento = items.filter(i => i.diasParaVencimentoMin <= 45 && i.statusFefo !== 'SemRegistro').length;
 
   return {
     totalSkus,
@@ -400,7 +719,11 @@ export function getMatrizAbcKPIs(items: MatrizAbcItem[]): MatrizAbcKPIs {
     coberturaMediaDias,
     totalMovimentacoesOperacionais,
     totalReabastecimentos,
+    totalPalletsMovimentados,
+    palletsRessuprimentoTotal,
+    palletsReabastecimentoTotal,
     valorTotalQuebras,
+    volumeTotalQuebrasCx,
     skusRiscoVencimento
   };
 }

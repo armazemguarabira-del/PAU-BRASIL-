@@ -7,7 +7,6 @@ import { RawRepackJsonItem } from './retroactiveRepackParser';
  * Contém registros históricos detalhados por data, embalagem, operador, tempos reais e metas calculadas.
  */
 export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
-  // JANEIRO 2026
   {
     "Data": "2026-01-01",
     "Embalagem": "PET 2,5L",
@@ -5066,7 +5065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:11",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-09",
@@ -5076,7 +5075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:59:01",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-09",
@@ -5086,7 +5085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:04:53",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-09",
@@ -5096,7 +5095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:46:17",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-09",
@@ -5106,7 +5105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:47:06",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5116,7 +5115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:27:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5126,7 +5125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:30:08",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5136,7 +5135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:28:30",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5146,7 +5145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:52:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5156,7 +5155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:47:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5166,7 +5165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:47:35",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5176,7 +5175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:01:26",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-12",
@@ -5186,7 +5185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:00:27",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5196,7 +5195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:36:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5206,7 +5205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:27:00",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5216,7 +5215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:23:37",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5226,7 +5225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:43:51",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5236,7 +5235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:35:32",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-13",
@@ -5246,7 +5245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:49:13",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5256,7 +5255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:42",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5266,7 +5265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:06:52",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5276,7 +5275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:03:09",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5286,7 +5285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:01:35",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5296,7 +5295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:03:10",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5306,7 +5305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:25:11",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5316,7 +5315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:57:36",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5326,7 +5325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:42:50",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-14",
@@ -5336,7 +5335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:42:41",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5346,7 +5345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:10:49",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5356,7 +5355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:46:23",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5366,7 +5365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:50:52",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5376,7 +5375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:18:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5386,7 +5385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:47:26",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5396,7 +5395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:15:15",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5406,7 +5405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:22:44",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5416,7 +5415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:43:21",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-15",
@@ -5426,7 +5425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:02",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5436,7 +5435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:17:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5446,7 +5445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:25:00",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5456,7 +5455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:10",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5466,7 +5465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:26:57",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5476,7 +5475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:33:23",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5486,7 +5485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:54:09",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5496,7 +5495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:24:15",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-16",
@@ -5506,7 +5505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:58:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5516,7 +5515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:00:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5526,7 +5525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:42:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5536,7 +5535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:50:38",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5546,7 +5545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:10:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5556,7 +5555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:50:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5566,7 +5565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:46:25",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-21",
@@ -5576,7 +5575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:47:21",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5586,7 +5585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:30:15",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5596,7 +5595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5606,7 +5605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:10:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5616,7 +5615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:13:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5626,7 +5625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5636,7 +5635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:05:51",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5646,7 +5645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:04",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5656,7 +5655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:38:30",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-22",
@@ -5666,7 +5665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:19:37",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-23",
@@ -5676,7 +5675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-23",
@@ -5686,7 +5685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:04",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5696,7 +5695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:38:30",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5706,7 +5705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:10:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5716,7 +5715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:05:51",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5726,7 +5725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:13:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5736,7 +5735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:19:37",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5746,7 +5745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-24",
@@ -5756,7 +5755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:30:15",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5766,7 +5765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:07:27",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5776,7 +5775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:19:27",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5786,7 +5785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:53:27",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5796,7 +5795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5806,7 +5805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:14:08",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5816,7 +5815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:18:51",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5826,7 +5825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:48:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5836,7 +5835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:29:23",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5846,7 +5845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:54:14",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-26",
@@ -5856,7 +5855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:13:29",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5866,7 +5865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:13:02",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5876,7 +5875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:17:18",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5886,7 +5885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:47:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5896,7 +5895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:57:11",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5906,7 +5905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:57:26",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5916,7 +5915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:22",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-27",
@@ -5926,7 +5925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:43:19",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5936,7 +5935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:26:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5946,7 +5945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:50:54",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5956,7 +5955,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:40:02",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5966,7 +5965,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:49:53",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5976,7 +5975,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5986,7 +5985,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:43:38",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -5996,7 +5995,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:45:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -6006,7 +6005,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-28",
@@ -6016,7 +6015,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:19:30",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6026,7 +6025,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:05:05",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6036,7 +6035,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:00:23",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6046,7 +6045,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:06:26",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6056,7 +6055,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:59:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6066,7 +6065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:43:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6076,7 +6075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:00:07",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6086,7 +6085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:03:35",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6096,7 +6095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:09:21",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-04-29",
@@ -6106,7 +6105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:46:51",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6116,7 +6115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:25:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6126,7 +6125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:57:38",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6136,7 +6135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:38:40",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6146,7 +6145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:52:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6156,7 +6155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:02:01",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6166,7 +6165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:57:15",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-03",
@@ -6176,7 +6175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:35:29",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6186,7 +6185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:24:44",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6196,7 +6195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:40:45",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6206,7 +6205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:11:35",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6216,7 +6215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:53:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6226,7 +6225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:28:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6236,7 +6235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:16:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6246,7 +6245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:43",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-04",
@@ -6256,7 +6255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:43:27",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6266,7 +6265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:37:07",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6276,7 +6275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:15",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6286,7 +6285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:43:18",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6296,7 +6295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6306,7 +6305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:58:21",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6316,7 +6315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:01",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6326,7 +6325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:37:16",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-05",
@@ -6336,7 +6335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:55:40",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6346,7 +6345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:22",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6356,7 +6355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:34:08",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6366,7 +6365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:06:45",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6376,7 +6375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6386,7 +6385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:36:02",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6396,7 +6395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:21:33",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6406,7 +6405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:04:17",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6416,7 +6415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:26:39",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-06",
@@ -6426,7 +6425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:17:00",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6436,7 +6435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:47:57",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6446,7 +6445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:53:29",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6456,7 +6455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:28:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6466,7 +6465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:15:08",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6476,7 +6475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:46:13",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6486,7 +6485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:01:47",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6496,7 +6495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:24:26",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-07",
@@ -6506,7 +6505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:32:38",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6516,7 +6515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:50:23",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6526,7 +6525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:07:30",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6536,7 +6535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:38",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6546,7 +6545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:53:12",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6556,7 +6555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:00:35",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6566,7 +6565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:11:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6576,7 +6575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:12:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6586,7 +6585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:22:20",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6596,7 +6595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:19:50",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-10",
@@ -6606,7 +6605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:38:32",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6616,7 +6615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:34:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6626,7 +6625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:24:34",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6636,7 +6635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:58:41",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6646,7 +6645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:26:28",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6656,7 +6655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:21:20",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6666,7 +6665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:16:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6676,7 +6675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:41:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6686,7 +6685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:47",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-11",
@@ -6696,7 +6695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:35:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6706,7 +6705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:45:55",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6716,7 +6715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:06:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6726,7 +6725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:27:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6736,7 +6735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:22:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6746,7 +6745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:12:47",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6756,7 +6755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:01:40",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6766,7 +6765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:32:46",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-12",
@@ -6776,7 +6775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:01:49",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6786,7 +6785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:18:12",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6796,7 +6795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:02:55",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6806,7 +6805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:25:16",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6816,7 +6815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:29:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6826,7 +6825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:52:51",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-13",
@@ -6836,7 +6835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:59:34",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6846,7 +6845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:29:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6856,7 +6855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:57:47",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6866,7 +6865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:37:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6876,7 +6875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:04:44",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6886,7 +6885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:19:41",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-14",
@@ -6896,7 +6895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:16:21",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6906,7 +6905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:12:26",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6916,7 +6915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:13:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6926,7 +6925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:48:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6936,7 +6935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:43",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6946,7 +6945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:29:57",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6956,7 +6955,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:24",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6966,7 +6965,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:32:28",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6976,7 +6975,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:25:21",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6986,7 +6985,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-18",
@@ -6996,7 +6995,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:21:30",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7006,7 +7005,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:00:53",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7016,7 +7015,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:22:53",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7026,7 +7025,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:57:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7036,7 +7035,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:30:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7046,7 +7045,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:07:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7056,7 +7055,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:15:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7066,7 +7065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:28:00",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7076,7 +7075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:33:13",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7086,7 +7085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:36:01",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7096,7 +7095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:37:37",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7106,7 +7105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:32:15",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-19",
@@ -7116,7 +7115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:47:52",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7126,7 +7125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:38",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7136,7 +7135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:33:12",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7146,7 +7145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:01",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7156,7 +7155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:40:50",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7166,7 +7165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:17",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7176,7 +7175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:59:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-20",
@@ -7186,7 +7185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:53:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-21",
@@ -7196,7 +7195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:03:59",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7206,7 +7205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:40:41",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7216,7 +7215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:39:10",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7226,7 +7225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:48:36",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7236,7 +7235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:26:15",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7246,7 +7245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:26:30",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7256,7 +7255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:16:51",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-24",
@@ -7266,7 +7265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:58:31",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7276,7 +7275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:09:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7286,7 +7285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:13:13",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7296,7 +7295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:56",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7306,7 +7305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:56:17",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7316,7 +7315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:37:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7326,7 +7325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:26:15",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7336,7 +7335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:03:59",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7346,7 +7345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:08:49",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7356,7 +7355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:01:59",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-25",
@@ -7366,7 +7365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:26:51",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7376,7 +7375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:11:16",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7386,7 +7385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:57:48",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7396,7 +7395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:47:15",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7406,7 +7405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:31:06",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7416,7 +7415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:40:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7426,7 +7425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:44:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7436,7 +7435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:43:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-26",
@@ -7446,7 +7445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:50:09",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7456,7 +7455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:38:42",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7466,7 +7465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:40:46",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7476,7 +7475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:34:04",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7486,7 +7485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:48:22",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7496,7 +7495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:30:42",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7506,7 +7505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:33:02",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7516,7 +7515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:54:05",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-27",
@@ -7526,7 +7525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:20:47",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7536,7 +7535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:58:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7546,7 +7545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:12:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7556,7 +7555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:42:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7566,7 +7565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:28:32",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7576,7 +7575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:51:23",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7586,7 +7585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:01:02",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-28",
@@ -7596,7 +7595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:11:56",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7606,7 +7605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:55",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7616,7 +7615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:47:35",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7626,7 +7625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:32:27",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7636,7 +7635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:59",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7646,7 +7645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:30:19",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7656,7 +7655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:21:52",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7666,7 +7665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:11:24",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-05-31",
@@ -7676,7 +7675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:49:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7686,7 +7685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:54:39",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7696,7 +7695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:01:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7706,7 +7705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:58:50",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7716,7 +7715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:56:06",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7726,7 +7725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:37:02",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7736,7 +7735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:35:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7746,7 +7745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:54:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-01",
@@ -7756,7 +7755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:47:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7766,7 +7765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:35:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7776,7 +7775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:16:46",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7786,7 +7785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:52:30",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7796,7 +7795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:10:37",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7806,7 +7805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:50:05",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7816,7 +7815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:47:33",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7826,7 +7825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:20:43",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7836,7 +7835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:31:09",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-02",
@@ -7846,7 +7845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:01:37",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7856,7 +7855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:53",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7866,7 +7865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:09:12",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7876,7 +7875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:16",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7886,7 +7885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:05:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7896,7 +7895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:27:22",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7906,7 +7905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7916,7 +7915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:08:08",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7926,7 +7925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:59:10",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-03",
@@ -7936,7 +7935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:33:51",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7946,7 +7945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:49:00",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7956,7 +7955,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:51:27",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7966,7 +7965,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7976,7 +7975,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:20:13",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7986,7 +7985,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:53:11",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -7996,7 +7995,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:48:01",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -8006,7 +8005,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -8016,7 +8015,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:39:33",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-04",
@@ -8026,7 +8025,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:49:24",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8036,7 +8035,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:57:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8046,7 +8045,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:12",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8056,7 +8055,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:30:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8066,7 +8065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:44:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8076,7 +8075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:04:53",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-07",
@@ -8086,7 +8085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:59:37",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8096,7 +8095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:17:08",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8106,7 +8105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8116,7 +8115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:40:18",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8126,7 +8125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:04:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8136,7 +8135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:19:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8146,7 +8145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:11:03",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-08",
@@ -8156,7 +8155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:07:12",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-09",
@@ -8166,7 +8165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:51:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-09",
@@ -8176,7 +8175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:54:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-09",
@@ -8186,7 +8185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-09",
@@ -8196,7 +8195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-09",
@@ -8206,7 +8205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:57:44",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8216,7 +8215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:01:13",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8226,7 +8225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:14:37",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8236,7 +8235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:10:50",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8246,7 +8245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:03:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8256,7 +8255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:54:03",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8266,7 +8265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:02",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8276,7 +8275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:05:19",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8286,7 +8285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:16:46",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8296,7 +8295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:14:14",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8306,7 +8305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:09:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-10",
@@ -8316,7 +8315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:00:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8326,7 +8325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:48:09",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8336,7 +8335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:09:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8346,7 +8345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:53:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8356,7 +8355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:21:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8366,7 +8365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:51:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8376,7 +8375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:39:42",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8386,7 +8385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:16:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8396,7 +8395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:52:59",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-11",
@@ -8406,7 +8405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:18:54",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8416,7 +8415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:59:43",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8426,7 +8425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:36",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8436,7 +8435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:50:34",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8446,7 +8445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:58:38",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8456,7 +8455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:57",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8466,7 +8465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:32:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8476,7 +8475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:32:49",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8486,7 +8485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:03:34",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8496,7 +8495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:45:38",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-14",
@@ -8506,7 +8505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:29:40",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8516,7 +8515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:31:49",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8526,7 +8525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:34:49",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8536,7 +8535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:45:06",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8546,7 +8545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:18:19",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8556,7 +8555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:41",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8566,7 +8565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:44:52",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8576,7 +8575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:53:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-15",
@@ -8586,7 +8585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:21:12",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-17",
@@ -8596,7 +8595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:03:35",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8606,7 +8605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:18",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8616,7 +8615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:56",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8626,7 +8625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:00:47",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8636,7 +8635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:30:34",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8646,7 +8645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:52:19",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-17",
@@ -8656,7 +8655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:36:59",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-06-19",
@@ -8666,7 +8665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:32:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8676,7 +8675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:59:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8686,7 +8685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:06:40",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8696,7 +8695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:27:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8706,7 +8705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:08:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8716,7 +8715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:35:45",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8726,7 +8725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:49:32",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8736,7 +8735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:56:29",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8746,7 +8745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:53:11",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8756,7 +8755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:57:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-22",
@@ -8766,7 +8765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:25:32",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8776,7 +8775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:12:17",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8786,7 +8785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:40",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8796,7 +8795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:46:21",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8806,7 +8805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:07:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8816,7 +8815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:22:24",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8826,7 +8825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:47:31",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-24",
@@ -8836,7 +8835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:47:52",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8846,7 +8845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8856,7 +8855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:25:57",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8866,7 +8865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:00:39",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8876,7 +8875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:43:11",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8886,7 +8885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:22:44",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8896,7 +8895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:52:54",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-25",
@@ -8906,7 +8905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:36:17",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8916,7 +8915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:39:27",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8926,7 +8925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:48:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8936,7 +8935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:21:09",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8946,7 +8945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:43:40",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8956,7 +8955,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:35:44",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-28",
@@ -8966,7 +8965,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:17:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -8976,7 +8975,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:39:28",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -8986,7 +8985,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:31:23",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -8996,7 +8995,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:13:09",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -9006,7 +9005,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:28:25",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -9016,7 +9015,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:56:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -9026,7 +9025,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:43",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -9036,7 +9035,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:52:45",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-06-30",
@@ -9046,7 +9045,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:21:49",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9056,7 +9055,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:11:59",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9066,7 +9065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:40:24",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9076,7 +9075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:50:05",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9086,7 +9085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:48:05",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9096,7 +9095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:45:50",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-01",
@@ -9106,7 +9105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:16:06",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9116,7 +9115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:31:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9126,7 +9125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:37:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9136,7 +9135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:34:07",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9146,7 +9145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:03:23",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9156,7 +9155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:33:07",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-02",
@@ -9166,7 +9165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:28:23",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-05",
@@ -9176,7 +9175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:09:37",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-05",
@@ -9186,7 +9185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:17:40",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-05",
@@ -9196,7 +9195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:54:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-05",
@@ -9206,7 +9205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:04:11",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-05",
@@ -9216,7 +9215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:24:11",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9226,7 +9225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9236,7 +9235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9246,7 +9245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:40:15",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9256,7 +9255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:08:02",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9266,7 +9265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:29:23",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9276,7 +9275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:09:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-07",
@@ -9286,7 +9285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:47",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-08",
@@ -9296,7 +9295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:50:59",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9306,7 +9305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:48:51",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9316,7 +9315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:50:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9326,7 +9325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:11:27",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9336,7 +9335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:53:56",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9346,7 +9345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:59:04",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9356,7 +9355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:15:00",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9366,7 +9365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:30:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-08",
@@ -9376,7 +9375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:01",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-12",
@@ -9386,7 +9385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9396,7 +9395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:41:11",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9406,7 +9405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:00:17",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9416,7 +9415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:08:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9426,7 +9425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:30:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9436,7 +9435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:34:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9446,7 +9445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:37:07",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9456,7 +9455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:07:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9466,7 +9465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:55:49",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-12",
@@ -9476,7 +9475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:46:26",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9486,7 +9485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:28:43",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9496,7 +9495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:21:25",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9506,7 +9505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:33:19",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9516,7 +9515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:53",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9526,7 +9525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:54:53",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9536,7 +9535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:16:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9546,7 +9545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:18:13",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9556,7 +9555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:59:05",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9566,7 +9565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:31:03",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-13",
@@ -9576,7 +9575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:18:36",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9586,7 +9585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:38:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9596,7 +9595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:22:45",
     "Meta": "02:17:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9606,7 +9605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:49:29",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9616,7 +9615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:50:00",
     "Meta": "00:05:00",
     "Resultado": "🔴 ACIMA DA META",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9626,7 +9625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:53:21",
     "Meta": "02:12:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9636,7 +9635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:35:01",
     "Meta": "02:17:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9646,7 +9645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:42:21",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9656,7 +9655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:27:16",
     "Meta": "01:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-15",
@@ -9666,7 +9665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:25:23",
     "Meta": "00:12:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9676,7 +9675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:23:45",
     "Meta": "00:50:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9686,7 +9685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:15:15",
     "Meta": "00:10:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9696,7 +9695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:09:25",
     "Meta": "01:22:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9706,7 +9705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:48:15",
     "Meta": "00:22:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9716,7 +9715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:31:53",
     "Meta": "00:27:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9726,7 +9725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:05:33",
     "Meta": "00:55:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9736,7 +9735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:27:48",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9746,7 +9745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:21",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-16",
@@ -9756,7 +9755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:41:07",
     "Meta": "00:49:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9766,7 +9765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:52:12",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9776,7 +9775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:14:59",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9786,7 +9785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:55:42",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9796,7 +9795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:13:01",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9806,7 +9805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:25:46",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9816,7 +9815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:31:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9826,7 +9825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:43:41",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-20",
@@ -9836,7 +9835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:37:36",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9846,7 +9845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:25:58",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9856,7 +9855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:17:12",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9866,7 +9865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:43:25",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9876,7 +9875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:21:13",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9886,7 +9885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:58:09",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9896,7 +9895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:51:11",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-21",
@@ -9906,7 +9905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:17:06",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-22",
@@ -9916,7 +9915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:47:35",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9926,7 +9925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:39:55",
     "Meta": "00:05:30",
     "Resultado": "🔴 ACIMA DA META",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9936,7 +9935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:57:10",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9946,7 +9945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:27:42",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9956,7 +9955,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:50:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9966,7 +9965,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:41:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9976,7 +9975,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:08:43",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9986,7 +9985,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:57:42",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -9996,7 +9995,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:20",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -10006,7 +10005,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:24:41",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-22",
@@ -10016,7 +10015,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:54:29",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-07-23",
@@ -10026,7 +10025,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:25:19",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10036,7 +10035,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:22:32",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10046,7 +10045,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:25",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10056,7 +10055,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:37:20",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10066,7 +10065,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:15:31",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10076,7 +10075,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:36",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10086,7 +10085,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:02:23",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-23",
@@ -10096,7 +10095,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:09:15",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10106,7 +10105,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:15:55",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10116,7 +10115,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:03",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10126,7 +10125,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:50:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10136,7 +10135,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:44:11",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10146,7 +10145,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:52:34",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10156,7 +10155,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:04:53",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10166,7 +10165,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:34:07",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-26",
@@ -10176,7 +10175,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:25:11",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10186,7 +10185,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:12:51",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10196,7 +10195,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:49:04",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10206,7 +10205,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:49:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10216,7 +10215,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:32:05",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10226,7 +10225,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:14:11",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10236,7 +10235,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:42:31",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10246,7 +10245,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:14:47",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10256,7 +10255,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:40:37",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10266,7 +10265,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:42",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-27",
@@ -10276,7 +10275,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:50:44",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10286,7 +10285,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:05:53",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10296,7 +10295,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:03:56",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10306,7 +10305,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:20:33",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10316,7 +10315,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:39:33",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10326,7 +10325,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:51:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10336,7 +10335,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:25:46",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10346,7 +10345,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:55:39",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10356,7 +10355,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:53:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10366,7 +10365,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:11:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10376,7 +10375,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:07:26",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10386,7 +10385,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:04:39",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-28",
@@ -10396,7 +10395,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:38",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-29",
@@ -10406,7 +10405,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:31:07",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-29",
@@ -10416,7 +10415,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "12:02:54",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10426,7 +10425,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:20:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10436,7 +10435,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:23:31",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10446,7 +10445,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:51:02",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10456,7 +10455,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:45:42",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10466,7 +10465,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:36:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10476,7 +10475,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:38:05",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10486,7 +10485,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:10",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10496,7 +10495,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:28",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-07-30",
@@ -10506,7 +10505,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:37:54",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10516,7 +10515,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:42:32",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10526,7 +10525,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:31:18",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10536,7 +10535,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:19",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10546,7 +10545,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:00:27",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10556,7 +10555,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "16:04:57",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10566,7 +10565,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:41:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10576,7 +10575,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:13:32",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-02",
@@ -10586,7 +10585,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:43:45",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10596,7 +10595,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:13:20",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10606,7 +10605,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:06:27",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10616,7 +10615,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:40:56",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10626,7 +10625,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:20:14",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10636,7 +10635,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:17:43",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10646,7 +10645,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:48:38",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-03",
@@ -10656,7 +10655,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:21:55",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-05",
@@ -10666,7 +10665,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:16:46",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-05",
@@ -10676,7 +10675,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:21:43",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-05",
@@ -10686,7 +10685,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:17:19",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-05",
@@ -10696,7 +10695,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:08:12",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-05",
@@ -10706,7 +10705,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:30:32",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-05",
@@ -10716,7 +10715,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:25:47",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "OZENILDO (G1137)"
   },
   {
     "Data": "2026-08-06",
@@ -10726,7 +10725,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:02:22",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10736,7 +10735,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:40:08",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10746,7 +10745,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:53:50",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10756,7 +10755,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:56:50",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10766,7 +10765,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:53:16",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10776,7 +10775,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:19:09",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10786,7 +10785,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:09:10",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10796,7 +10795,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:34:32",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10806,7 +10805,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:36:41",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-06",
@@ -10816,7 +10815,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:26:30",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10826,7 +10825,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:07:57",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10836,7 +10835,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:06:42",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10846,7 +10845,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:02:47",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10856,7 +10855,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:29:55",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10866,7 +10865,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "08:31:00",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10876,7 +10875,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "15:02:52",
     "Meta": "00:06:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10886,7 +10885,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:46:14",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10896,7 +10895,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "14:36:52",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-09",
@@ -10906,7 +10905,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:09:02",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-10",
@@ -10916,7 +10915,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:24:20",
     "Meta": "00:04:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-10",
@@ -10926,7 +10925,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "11:52:59",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-11",
@@ -10936,7 +10935,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "10:12:20",
     "Meta": "00:05:30",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   },
   {
     "Data": "2026-08-11",
@@ -10946,7 +10945,7 @@ export const OFFICIAL_REPACK_DATA_JSON: RawRepackJsonItem[] = [
     "Fim": "09:42:12",
     "Meta": "00:05:00",
     "Resultado": "🟢 META BATIDA",
-    "Operador": "GLADSON  (G1145)"
+    "Operador": "GLADSON LISBOA (G1145)"
   }
 ];
 

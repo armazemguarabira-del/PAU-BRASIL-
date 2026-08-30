@@ -1,29 +1,85 @@
 import { Tarefa } from '../types';
+import { generateHistoricalTasksYTD, isCleaningProduct } from './generateRessuprimentoData';
 
 const TASKS_STORAGE_PREFIX = 'tasks_';
 const TAREFAS_STORAGE_PREFIX = 'tarefas_rows_';
 
+// In-memory cache for high-speed instant access without repeated JSON.parse
+const inMemoryTasksCache = new Map<string, Tarefa[]>();
+
+export function invalidateTasksCache(companyId?: string) {
+  if (companyId) {
+    inMemoryTasksCache.delete(companyId);
+  } else {
+    inMemoryTasksCache.clear();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key && (e.key.startsWith(TASKS_STORAGE_PREFIX) || e.key.startsWith(TAREFAS_STORAGE_PREFIX) || e.key === 'tasks_all')) {
+      invalidateTasksCache();
+    }
+  });
+}
+
 export function getStoredTasks(companyId: string = 'demo'): Tarefa[] {
+  // Check memory cache first
+  const memoryCached = inMemoryTasksCache.get(companyId);
+  if (memoryCached && memoryCached.length >= 4500) {
+    return memoryCached;
+  }
+
   try {
     const saved = localStorage.getItem(`${TASKS_STORAGE_PREFIX}${companyId}`) || 
-                  localStorage.getItem(`${TAREFAS_STORAGE_PREFIX}${companyId}`);
+                  localStorage.getItem(`${TAREFAS_STORAGE_PREFIX}${companyId}`) ||
+                  localStorage.getItem('tasks_all');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Ensure we have the complete dataset (>= 4500 tasks) without obsolete small caches and no cleaning products
+      if (Array.isArray(parsed) && parsed.length >= 4500) {
+        const hasCleaning = parsed.some(t => isCleaningProduct(t.descricao));
+        if (!hasCleaning) {
+          inMemoryTasksCache.set(companyId, parsed);
+          return parsed;
+        }
+      }
     }
   } catch (e) {
     console.error('Error loading tasks:', e);
   }
+  
+  // Fallback: populate full unified YTD historical tasks (5109 pallets)
+  try {
+    const generated = generateHistoricalTasksYTD(companyId);
+    if (generated && generated.length > 0) {
+      inMemoryTasksCache.set(companyId, generated);
+      saveStoredTasks(companyId, generated, false);
+      return generated;
+    }
+  } catch (e) {
+    console.error('Error generating fallback historical tasks:', e);
+  }
+
   return [];
 }
 
-export function saveStoredTasks(companyId: string = 'demo', tasks: Tarefa[]) {
+export function saveStoredTasks(companyId: string = 'demo', tasks: Tarefa[], dispatchEvents: boolean = true) {
   try {
-    localStorage.setItem(`${TASKS_STORAGE_PREFIX}${companyId}`, JSON.stringify(tasks));
-    localStorage.setItem(`${TAREFAS_STORAGE_PREFIX}${companyId}`, JSON.stringify(tasks));
-    window.dispatchEvent(new CustomEvent('tasks_updated'));
-    window.dispatchEvent(new CustomEvent('tarefas_updated'));
-    window.dispatchEvent(new CustomEvent('app_data_updated'));
-    window.dispatchEvent(new CustomEvent('local_data_changed'));
+    // Filter any cleaning product before persisting
+    const sanitized = tasks.filter(t => !isCleaningProduct(t.descricao));
+    inMemoryTasksCache.set(companyId, sanitized);
+    localStorage.setItem(`${TASKS_STORAGE_PREFIX}${companyId}`, JSON.stringify(sanitized));
+    localStorage.setItem(`${TAREFAS_STORAGE_PREFIX}${companyId}`, JSON.stringify(sanitized));
+    localStorage.setItem(`hybrid_col:${companyId}:tarefas`, JSON.stringify(sanitized));
+    localStorage.setItem('tasks_all', JSON.stringify(sanitized));
+    
+    if (dispatchEvents) {
+      window.dispatchEvent(new CustomEvent('tasks_updated'));
+      window.dispatchEvent(new CustomEvent('tarefas_updated'));
+      window.dispatchEvent(new CustomEvent('app_data_updated'));
+      window.dispatchEvent(new CustomEvent('local_data_changed'));
+    }
   } catch (e) {
     console.error('Error saving tasks:', e);
   }
@@ -186,7 +242,7 @@ export const SAMPLE_RR_JSON = JSON.stringify([
     "ID": 3,
     "Operacao": "Ressuprimento Picking",
     "CodSKU": 30211,
-    "Descricao": "BRAHMA DUPLO MALTE 350ML CX C/12",
+    "Descricao": "BRAHMA CHOPP 350ML CX C/12",
     "QuantidadeCX": 1,
     "Conferente": "ANTONIO CARLOS",
     "Operador": "PAULO PEREIRA",

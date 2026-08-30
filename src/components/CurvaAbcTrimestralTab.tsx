@@ -26,10 +26,16 @@ import {
   Wine,
   ShoppingBag,
   Info,
-  Trash2
+  Trash2,
+  Truck
 } from 'lucide-react';
 import { PRODUCTS } from '../planosData';
-import { sync030519WithEstoqueStorage } from '../utils/vendaMedia030519';
+import { sync030519WithEstoqueStorage, getDefault030519Quarters } from '../utils/vendaMedia030519';
+import { getProductMeta, getProductUnit } from '../utils/productCatalogData';
+import CurvaAbcPickingTab from './CurvaAbcPickingTab';
+import CurvaAbcMarketplaceTab from './CurvaAbcMarketplaceTab';
+import CurvaAbcAderenciaRuasTab from './CurvaAbcAderenciaRuasTab';
+import { Compass } from 'lucide-react';
 
 // Helper to verify if an item is a registered finished beverage product (skipping vasilhames/garrafas vazias/ativos)
 export function isFinishedProductItem(codigo: number, rawName: string, unid: string): boolean {
@@ -209,23 +215,29 @@ function estimateProductMeta(codigo: number, nome: string, unid: string): { fato
   return { fatorHecto, precoUnitario };
 }
 
+export type CurvaAbcCriterio = 'faturamento' | 'hectolitro' | 'caixas';
+
 export default function CurvaAbcTrimestralTab() {
+  const [activeMainTab, setActiveMainTab] = useState<'030519' | 'picking' | 'marketplace' | 'aderencia_ruas'>('030519');
   const [activeQuarter, setActiveQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4' | 'ANUAL'>('Q1');
   
+  // Dynamic Curva ABC Metric Criteria: Faturamento (R$), Hectolitros (hL), or Caixas (CX)
+  const [criterioCurvaAbc, setCriterioCurvaAbc] = useState<CurvaAbcCriterio>('faturamento');
+
   // Store of 4 Quarters data
   const [quartersData, setQuartersData] = useState<Record<string, TrimestreDataStore>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_TRIMESTRES_V1);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.Q1 || parsed.Q2 || parsed.Q3 || parsed.Q4)) {
+          return parsed;
+        }
+      }
     } catch (e) {
       console.error('Erro ao carregar dados dos trimestres:', e);
     }
-    return {
-      Q1: { diasUteis: 66, itemsMap: {} },
-      Q2: { diasUteis: 65, itemsMap: {} },
-      Q3: { diasUteis: 66, itemsMap: {} },
-      Q4: { diasUteis: 64, itemsMap: {} },
-    };
+    return getDefault030519Quarters() as any;
   });
 
   // Filters
@@ -409,24 +421,37 @@ export default function CurvaAbcTrimestralTab() {
   const handleDeleteActiveQuarterData = () => {
     if (activeQuarter === 'ANUAL') return;
 
-    if (
-      window.confirm(
-        `Tem certeza que deseja excluir os dados da base 03.05.19 do ${activeQuarter.replace('Q', '')}º Trimestre (${activeQuarter})?`
-      )
-    ) {
-      setQuartersData(prev => ({
-        ...prev,
-        [activeQuarter]: {
-          diasUteis: DEFAULT_DAYS_PER_QUARTER[activeQuarter] || 66,
-          itemsMap: {},
-          importadoEm: undefined,
-          nomeArquivo: undefined,
-          overridesCategoria: {},
-          overridesABC: {}
-        }
-      }));
-      showNotify(`Base de dados 03.05.19 do ${activeQuarter} excluída com sucesso.`);
+    const companyId = (typeof window !== 'undefined' ? localStorage.getItem('af_empresa_id') : '') || 'demo';
+    
+    const updatedQuarters: Record<string, TrimestreDataStore> = {
+      ...quartersData,
+      [activeQuarter]: {
+        diasUteis: DEFAULT_DAYS_PER_QUARTER[activeQuarter] || 66,
+        itemsMap: {},
+        importadoEm: undefined,
+        nomeArquivo: undefined,
+        overridesCategoria: {},
+        overridesABC: {}
+      }
+    };
+
+    setQuartersData(updatedQuarters);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_TRIMESTRES_V1, JSON.stringify(updatedQuarters));
+    } catch (e) {
+      console.error('Erro ao salvar limpeza no localStorage:', e);
     }
+
+    try {
+      firestoreDb.create('af_curva_abc_trimestres', { id: 'quarters_data_doc', ...updatedQuarters }, companyId, 'quarters_data_doc').catch(() => {});
+    } catch (e) {}
+
+    try {
+      sync030519WithEstoqueStorage(updatedQuarters as any);
+    } catch (e) {}
+
+    showNotify(`Trimestre ${activeQuarter} limpo com sucesso! Base 03.05.19 zerada.`);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, targetQuarter: 'Q1' | 'Q2' | 'Q3' | 'Q4') => {
@@ -630,23 +655,39 @@ export default function CurvaAbcTrimestralTab() {
       });
     });
 
-    // Sort descending by Volume
-    sanitizedItems.sort((a, b) => b.volumeTotalTrimestre - a.volumeTotalTrimestre);
+    // Dynamic Sort descending by selected criteria: Faturamento (R$), Hectolitros (hL), or Caixas (CX)
+    if (criterioCurvaAbc === 'faturamento') {
+      sanitizedItems.sort((a, b) => b.faturamentoTotal - a.faturamentoTotal);
+    } else if (criterioCurvaAbc === 'hectolitro') {
+      sanitizedItems.sort((a, b) => b.volumeTotalHectolitros - a.volumeTotalHectolitros);
+    } else {
+      sanitizedItems.sort((a, b) => b.volumeTotalTrimestre - a.volumeTotalTrimestre);
+    }
 
-    const grandTotalVol = sanitizedItems.reduce((acc, i) => acc + i.volumeTotalTrimestre, 0) || 1;
-    let accumVol = 0;
+    const grandTotalMetric = criterioCurvaAbc === 'faturamento'
+      ? (sanitizedItems.reduce((acc, i) => acc + i.faturamentoTotal, 0) || 1)
+      : criterioCurvaAbc === 'hectolitro'
+      ? (sanitizedItems.reduce((acc, i) => acc + i.volumeTotalHectolitros, 0) || 1)
+      : (sanitizedItems.reduce((acc, i) => acc + i.volumeTotalTrimestre, 0) || 1);
 
+    let accumMetric = 0;
     const qStoreCurrent = activeQuarter !== 'ANUAL' ? quartersData[activeQuarter] : null;
 
-    // Pareto 80/20 ABC calculation
+    // Pareto 70/20/10 ABC calculation dynamically driven by the selected metric
     const calculated = sanitizedItems.map((item, idx) => {
-      accumVol += item.volumeTotalTrimestre;
-      const percentualVolume = (item.volumeTotalTrimestre / grandTotalVol) * 100;
-      const percentualAcumulado = (accumVol / grandTotalVol) * 100;
+      const itemMetric = criterioCurvaAbc === 'faturamento'
+        ? item.faturamentoTotal
+        : criterioCurvaAbc === 'hectolitro'
+        ? item.volumeTotalHectolitros
+        : item.volumeTotalTrimestre;
+
+      accumMetric += itemMetric;
+      const percentualVolume = (itemMetric / grandTotalMetric) * 100;
+      const percentualAcumulado = (accumMetric / grandTotalMetric) * 100;
 
       let classeABC: 'A' | 'B' | 'C' = 'C';
-      if (percentualAcumulado <= 80) classeABC = 'A';
-      else if (percentualAcumulado <= 95) classeABC = 'B';
+      if (percentualAcumulado <= 70.01 || idx === 0) classeABC = 'A';
+      else if (percentualAcumulado <= 90.01) classeABC = 'B';
       else classeABC = 'C';
 
       // Check for manual ABC override
@@ -664,7 +705,7 @@ export default function CurvaAbcTrimestralTab() {
     });
 
     return calculated;
-  }, [activeQuarter, quartersData]);
+  }, [activeQuarter, quartersData, criterioCurvaAbc]);
 
   // Filtered List
   const filteredList = useMemo(() => {
@@ -693,20 +734,22 @@ export default function CurvaAbcTrimestralTab() {
     const categoryTotals: Record<ProductCategoria, {
       skus: number;
       volHl: number;
+      volCx: number;
       vmReais: number;
       vmHl: number;
       faturamento: number;
     }> = {
-      'Cerveja': { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
-      'NAB': { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
-      'Match': { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
-      'Marketplace': { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
+      'Cerveja': { skus: 0, volHl: 0, volCx: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
+      'NAB': { skus: 0, volHl: 0, volCx: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
+      'Match': { skus: 0, volHl: 0, volCx: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
+      'Marketplace': { skus: 0, volHl: 0, volCx: 0, vmReais: 0, vmHl: 0, faturamento: 0 },
     };
 
     currentItemList.forEach(item => {
       if (categoryTotals[item.categoria]) {
         categoryTotals[item.categoria].skus++;
         categoryTotals[item.categoria].volHl += item.volumeTotalHectolitros;
+        categoryTotals[item.categoria].volCx += item.volumeTotalTrimestre;
         categoryTotals[item.categoria].vmReais += item.vendaMediaReais;
         categoryTotals[item.categoria].vmHl += item.vendaMediaHectolitro;
         categoryTotals[item.categoria].faturamento += item.faturamentoTotal;
@@ -715,23 +758,33 @@ export default function CurvaAbcTrimestralTab() {
 
     // By ABC Class
     const abcTotals = {
-      A: { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
-      B: { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
-      C: { skus: 0, volHl: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
+      A: { skus: 0, volHl: 0, volCx: 0, faturamento: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
+      B: { skus: 0, volHl: 0, volCx: 0, faturamento: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
+      C: { skus: 0, volHl: 0, volCx: 0, faturamento: 0, vmReais: 0, vmHl: 0, pctVol: 0 },
     };
 
     currentItemList.forEach(item => {
       const cls = item.classeABC || 'C';
       abcTotals[cls].skus++;
       abcTotals[cls].volHl += item.volumeTotalHectolitros;
+      abcTotals[cls].volCx += item.volumeTotalTrimestre;
+      abcTotals[cls].faturamento += item.faturamentoTotal;
       abcTotals[cls].vmReais += item.vendaMediaReais;
       abcTotals[cls].vmHl += item.vendaMediaHectolitro;
     });
 
-    if (totalVolumeHl > 0) {
+    if (criterioCurvaAbc === 'faturamento' && totalFaturamento > 0) {
+      abcTotals.A.pctVol = (abcTotals.A.faturamento / totalFaturamento) * 100;
+      abcTotals.B.pctVol = (abcTotals.B.faturamento / totalFaturamento) * 100;
+      abcTotals.C.pctVol = (abcTotals.C.faturamento / totalFaturamento) * 100;
+    } else if (criterioCurvaAbc === 'hectolitro' && totalVolumeHl > 0) {
       abcTotals.A.pctVol = (abcTotals.A.volHl / totalVolumeHl) * 100;
       abcTotals.B.pctVol = (abcTotals.B.volHl / totalVolumeHl) * 100;
       abcTotals.C.pctVol = (abcTotals.C.volHl / totalVolumeHl) * 100;
+    } else if (totalVolumeCx > 0) {
+      abcTotals.A.pctVol = (abcTotals.A.volCx / totalVolumeCx) * 100;
+      abcTotals.B.pctVol = (abcTotals.B.volCx / totalVolumeCx) * 100;
+      abcTotals.C.pctVol = (abcTotals.C.volCx / totalVolumeCx) * 100;
     }
 
     return {
@@ -745,7 +798,7 @@ export default function CurvaAbcTrimestralTab() {
       categoryTotals,
       abcTotals
     };
-  }, [currentItemList]);
+  }, [currentItemList, criterioCurvaAbc]);
 
   // Export CSV
   const handleExportCSV = () => {
@@ -767,140 +820,213 @@ export default function CurvaAbcTrimestralTab() {
 
   return (
     <div className="space-y-6">
-      
-      {/* BANNER ETAPA REQUERIMENTO */}
-      <div className="bg-gradient-to-r from-[#032b5e] via-slate-900 to-slate-950 p-6 rounded-2xl text-white shadow-lg border border-blue-900/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5 w-max">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              RELATÓRIO 03.05.19 — CURVA ABC TRIMESTRAL DE PRODUTOS
-            </span>
-          </div>
-          <h2 className="text-xl md:text-2xl font-black tracking-tight mt-2 flex items-center gap-2">
-            Gestão da Curva ABC e Venda Média por Trimestres (Q1 a Q4)
-          </h2>
-          <p className="text-xs text-slate-300 font-medium mt-1 max-w-4xl">
-            Importe o arquivo do relatório <strong>03.05.19</strong> (Coluna G = Código SKU, Coluna AC = Quantidade Vendida). O motor unifica os registros duplicados e calcula a Venda Média Diária dividindo pelo total de dias úteis do trimestre correspondente, com suporte às <strong>4 classificações oficiais (Cerveja, NAB, Match e Marketplace)</strong> e métricas em <strong>Reais (R$/dia)</strong> e <strong>Hectolitros (hL/dia)</strong>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
+      {/* TOP NAVIGATION: VENDAS 03.05.19 vs PICKING RESUPRIMENTO vs MARKETPLACE */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#111827] border border-slate-800 p-2.5 rounded-2xl shadow-md">
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={handleExportCSV}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => setActiveMainTab('030519')}
+            className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+              activeMainTab === '030519'
+                ? 'bg-blue-600 text-white shadow-lg border border-blue-500/40'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
           >
-            <Download className="w-4 h-4 text-blue-200" />
-            Exportar Curva ABC (.CSV)
+            <BarChart2 className="w-4 h-4" />
+            <span>Curva ABC Vendas (03.05.19)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMainTab('picking')}
+            className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+              activeMainTab === 'picking'
+                ? 'bg-emerald-600 text-white shadow-lg border border-emerald-500/40'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Truck className="w-4 h-4" />
+            <span>Curva ABC Picking (Ressuprimento)</span>
+            <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+              Pareto 70/20/10
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveMainTab('marketplace')}
+            className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+              activeMainTab === 'marketplace'
+                ? 'bg-fuchsia-600 text-white shadow-lg border border-fuchsia-500/40'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Curva ABC Marketplace</span>
+            <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-fuchsia-400/20 text-fuchsia-300 border border-fuchsia-400/30">
+              Pareto 70/20/10
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveMainTab('aderencia_ruas')}
+            className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+              activeMainTab === 'aderencia_ruas'
+                ? 'bg-indigo-600 text-white shadow-lg border border-indigo-500/40'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Compass className="w-4 h-4 text-amber-300" />
+            <span>Aderência Curva ABC × Ruas</span>
+            <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              Stock Age × ABC
+            </span>
           </button>
         </div>
-      </div>
 
-      {/* NOTIFICATION TOAST */}
-      {notification && (
-        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          {notification}
-        </div>
-      )}
-
-      {/* QUARTER TABS SELECTOR (4 TRIMESTRES + ANUAL) */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-xs flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {(['Q1', 'Q2', 'Q3', 'Q4', 'ANUAL'] as const).map((qKey) => {
-            const isSelected = activeQuarter === qKey;
-            const qNames = {
-              Q1: '1º Trimestre (Jan-Mar)',
-              Q2: '2º Trimestre (Abr-Jun)',
-              Q3: '3º Trimestre (Jul-Set)',
-              Q4: '4º Trimestre (Out-Dez)',
-              ANUAL: '📊 Consolidado Anual'
-            };
-
-            const store = quartersData[qKey];
-            const hasData = store && Object.keys(store.itemsMap || {}).length > 0;
-
-            return (
-              <button
-                key={qKey}
-                onClick={() => setActiveQuarter(qKey)}
-                className={`px-4 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-2 ${
-                  isSelected
-                    ? 'bg-[#032b5e] text-white shadow-md border border-blue-500/40'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Calendar className={`w-3.5 h-3.5 ${isSelected ? 'text-amber-400' : 'text-slate-400'}`} />
-                <span>{qNames[qKey]}</span>
-                {qKey !== 'ANUAL' && hasData && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* DAYS CONFIGURATION & UPLOAD ACTION FOR ACTIVE QUARTER */}
-        {activeQuarter !== 'ANUAL' && (
-          <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <Calendar className="w-4 h-4 text-amber-500" />
-              <span>Dias Úteis:</span>
-              {editingDays ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    value={tempDaysVal}
-                    onChange={(e) => setEditingDaysVal(e.target.value)}
-                    className="w-16 p-1 bg-white dark:bg-slate-800 border border-blue-500 rounded text-center text-xs font-mono font-bold text-white"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleSaveDays}
-                    className="p-1 bg-emerald-600 text-white rounded cursor-pointer hover:bg-emerald-500"
-                    title="Salvar Dias Úteis"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditingDaysVal(String(currentQData.diasUteis || 66));
-                    setEditingDays(true);
-                  }}
-                  className="font-mono font-black text-amber-500 underline decoration-dashed underline-offset-4 cursor-pointer hover:text-amber-400"
-                  title="Clique para alterar a quantidade de dias úteis do trimestre"
-                >
-                  {currentQData.diasUteis || 66} dias
-                </button>
-              )}
-            </div>
-
-            <label className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-lg cursor-pointer transition-all flex items-center gap-1.5 shadow-xs">
-              <Upload className="w-3.5 h-3.5" />
-              <span>Importar 03.05.19</span>
-              <input
-                type="file"
-                accept=".csv,.txt"
-                onChange={(e) => handleFileUpload(e, activeQuarter as 'Q1' | 'Q2' | 'Q3' | 'Q4')}
-                className="hidden"
-              />
-            </label>
-
-            {Object.keys(currentQData.itemsMap || {}).length > 0 && (
-              <button
-                onClick={handleDeleteActiveQuarterData}
-                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Excluir/Limpar importação deste trimestre"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Excluir Base</span>
-              </button>
-            )}
+        {activeMainTab === '030519' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCSV}
+              disabled={filteredList.length === 0}
+              className="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white font-black text-xs uppercase tracking-wider rounded-xl border border-blue-500/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Exportar (.CSV)</span>
+            </button>
           </div>
         )}
       </div>
+
+      {/* RENDER ACTIVE MODULE */}
+      {activeMainTab === 'picking' ? (
+        <CurvaAbcPickingTab />
+      ) : activeMainTab === 'marketplace' ? (
+        <CurvaAbcMarketplaceTab />
+      ) : activeMainTab === 'aderencia_ruas' ? (
+        <CurvaAbcAderenciaRuasTab />
+      ) : (
+        <>
+          {/* BANNER ETAPA REQUERIMENTO 03.05.19 */}
+          <div className="bg-gradient-to-r from-[#032b5e] via-slate-900 to-slate-950 p-6 rounded-2xl text-white shadow-lg border border-blue-900/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5 w-max">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  RELATÓRIO 03.05.19 — CURVA ABC TRIMESTRAL DE VENDAS
+                </span>
+              </div>
+              <h2 className="text-xl md:text-2xl font-black tracking-tight mt-2 flex items-center gap-2">
+                Gestão da Curva ABC e Venda Média por Trimestres (Q1 a Q4)
+              </h2>
+              <p className="text-xs text-slate-300 font-medium mt-1 max-w-4xl">
+                Cálculo de Curva ABC baseado estritamente nas planilhas importadas da rotina <strong>03.05.19</strong> (Coluna G = Código SKU, Coluna AC = Quantidade Vendida). O motor divide o volume pelos dias úteis do trimestre e calcula métricas em <strong>Reais (R$/dia)</strong> e <strong>Hectolitros (hL/dia)</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* NOTIFICATION TOAST */}
+          {notification && (
+            <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              {notification}
+            </div>
+          )}
+
+          {/* QUARTER TABS SELECTOR (4 TRIMESTRES + ANUAL) */}
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-xs flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(['Q1', 'Q2', 'Q3', 'Q4', 'ANUAL'] as const).map((qKey) => {
+                const isSelected = activeQuarter === qKey;
+                const qNames = {
+                  Q1: '1º Trimestre (Jan-Mar)',
+                  Q2: '2º Trimestre (Abr-Jun)',
+                  Q3: '3º Trimestre (Jul-Set)',
+                  Q4: '4º Trimestre (Out-Dez)',
+                  ANUAL: '📊 Consolidado Anual'
+                };
+
+                const store = quartersData[qKey];
+                const hasData = store && Object.keys(store.itemsMap || {}).length > 0;
+
+                return (
+                  <button
+                    key={qKey}
+                    onClick={() => setActiveQuarter(qKey)}
+                    className={`px-4 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-2 ${
+                      isSelected
+                        ? 'bg-[#032b5e] text-white shadow-md border border-blue-500/40'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Calendar className={`w-3.5 h-3.5 ${isSelected ? 'text-amber-400' : 'text-slate-400'}`} />
+                    <span>{qNames[qKey]}</span>
+                    {qKey !== 'ANUAL' && hasData && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* DAYS CONFIGURATION & UPLOAD ACTION FOR ACTIVE QUARTER */}
+            {activeQuarter !== 'ANUAL' && (
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <Calendar className="w-4 h-4 text-amber-500" />
+                  <span>Dias Úteis:</span>
+                  {editingDays ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={tempDaysVal}
+                        onChange={(e) => setEditingDaysVal(e.target.value)}
+                        className="w-16 p-1 bg-white dark:bg-slate-800 border border-blue-500 rounded text-center text-xs font-mono font-bold text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleSaveDays}
+                        className="p-1 bg-emerald-600 text-white rounded cursor-pointer hover:bg-emerald-500"
+                        title="Salvar Dias Úteis"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingDaysVal(String(currentQData.diasUteis || 66));
+                        setEditingDays(true);
+                      }}
+                      className="font-mono font-black text-amber-500 underline decoration-dashed underline-offset-4 cursor-pointer hover:text-amber-400"
+                      title="Clique para alterar a quantidade de dias úteis do trimestre"
+                    >
+                      {currentQData.diasUteis || 66} dias
+                    </button>
+                  )}
+                </div>
+
+                <label className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-lg cursor-pointer transition-all flex items-center gap-1.5 shadow-xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Importar 03.05.19</span>
+                  <input
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={(e) => handleFileUpload(e, activeQuarter as 'Q1' | 'Q2' | 'Q3' | 'Q4')}
+                    className="hidden"
+                  />
+                </label>
+
+                {Object.keys(currentQData.itemsMap || {}).length > 0 && (
+                  <button
+                    onClick={handleDeleteActiveQuarterData}
+                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer"
+                    title="Excluir/Limpar importação deste trimestre"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Limpar Trimestre</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
       {/* IMPORT SUMMARY BAR IF FILE IMPORTED OR DATA EXISTS */}
       {activeQuarter !== 'ANUAL' && (currentQData.nomeArquivo || Object.keys(currentQData.itemsMap || {}).length > 0) && (
@@ -999,22 +1125,30 @@ export default function CurvaAbcTrimestralTab() {
         {/* DISTRIBUIÇÃO PARETO CLASSE A */}
         <div className="bg-white dark:bg-[#111827] border-2 border-emerald-500/40 p-5 rounded-2xl shadow-xs space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            <span>Pareto Classe A (80%)</span>
-            <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">
+            <span>
+              Pareto Classe A (70% {criterioCurvaAbc === 'faturamento' ? 'Valor R$' : criterioCurvaAbc === 'hectolitro' ? 'hL' : 'Caixas'})
+            </span>
+            <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">
               {summaryKpis.abcTotals.A.skus} SKUs
             </span>
           </div>
           <div>
             <span className="text-2xl font-black font-mono text-emerald-400">
-              {summaryKpis.abcTotals.A.pctVol.toFixed(1)}% <span className="text-xs text-slate-400">do vol</span>
+              {summaryKpis.abcTotals.A.pctVol.toFixed(1)}% <span className="text-xs text-slate-400">do total</span>
             </span>
             <p className="text-[11px] text-slate-300 font-medium mt-1">
-              R$ {summaryKpis.abcTotals.A.vmReais.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/dia
+              R$ {summaryKpis.abcTotals.A.vmReais.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/dia • {summaryKpis.abcTotals.A.vmHl.toFixed(1)} hL/dia
             </p>
           </div>
           <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400 flex justify-between">
-            <span>Volume Alto Giro:</span>
-            <strong className="font-mono text-emerald-400">{summaryKpis.abcTotals.A.vmHl.toFixed(1)} hL/dia</strong>
+            <span>Total Classe A:</span>
+            <strong className="font-mono text-emerald-400">
+              {criterioCurvaAbc === 'faturamento'
+                ? `R$ ${summaryKpis.abcTotals.A.faturamento.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
+                : criterioCurvaAbc === 'hectolitro'
+                ? `${summaryKpis.abcTotals.A.volHl.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} hL`
+                : `${summaryKpis.abcTotals.A.volCx.toLocaleString('pt-BR')} cx`}
+            </strong>
           </div>
         </div>
 
@@ -1148,8 +1282,51 @@ export default function CurvaAbcTrimestralTab() {
           {/* FILTERS TOOLBAR */}
           <div className="flex flex-wrap items-center gap-3">
             
+            {/* CRITÉRIO DE CURVA ABC (FATURAMENTO R$, HECTOLITROS HL, CAIXAS CX) */}
+            <div className="flex items-center gap-1 bg-gradient-to-r from-blue-950 to-slate-900 p-1 rounded-xl border border-blue-500/30 shadow-xs">
+              <span className="text-[10px] font-black uppercase text-amber-400 px-2 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-400" /> Critério ABC:
+              </span>
+              <button
+                onClick={() => setCriterioCurvaAbc('faturamento')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+                  criterioCurvaAbc === 'faturamento'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md scale-105'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+                title="Ordenar e calcular Curva ABC por Faturamento / Valor Financeiro (R$)"
+              >
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>Valor (R$)</span>
+              </button>
+              <button
+                onClick={() => setCriterioCurvaAbc('hectolitro')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+                  criterioCurvaAbc === 'hectolitro'
+                    ? 'bg-sky-500 text-slate-950 shadow-md scale-105'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+                title="Ordenar e calcular Curva ABC por Volume Físico em Hectolitros (hL)"
+              >
+                <Droplets className="w-3.5 h-3.5" />
+                <span>Hectolitro (hL)</span>
+              </button>
+              <button
+                onClick={() => setCriterioCurvaAbc('caixas')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+                  criterioCurvaAbc === 'caixas'
+                    ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+                title="Ordenar e calcular Curva ABC por Quantidade de Caixas Vendidas (SKU)"
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>Caixas (CX)</span>
+              </button>
+            </div>
+
             {/* SEARCH */}
-            <div className="relative w-full sm:w-56">
+            <div className="relative w-full sm:w-48">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <input
                 type="text"
@@ -1167,7 +1344,7 @@ export default function CurvaAbcTrimestralTab() {
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black uppercase transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-[11px] font-black uppercase transition-all cursor-pointer ${
                     categoryFilter === cat
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-400 hover:text-slate-200'
@@ -1217,10 +1394,37 @@ export default function CurvaAbcTrimestralTab() {
                   <th className="py-3 px-3 whitespace-nowrap">Código</th>
                   <th className="py-3 px-3 min-w-[200px]">Descrição do Produto</th>
                   <th className="py-3 px-3 text-center whitespace-nowrap">Categoria</th>
-                  <th className="py-3 px-3 text-right font-bold text-amber-400 whitespace-nowrap">Venda Média (cx/d)</th>
-                  <th className="py-3 px-3 text-right font-bold text-emerald-400 whitespace-nowrap">Venda Média (R$/dia)</th>
-                  <th className="py-3 px-3 text-right font-bold text-sky-400 whitespace-nowrap">Venda Média (hL/dia)</th>
-                  <th className="py-3 px-3 text-right text-amber-300 whitespace-nowrap">% Acumulado</th>
+                  
+                  {/* Venda Média Caixas */}
+                  <th className={`py-3 px-3 text-right font-bold whitespace-nowrap transition-colors ${
+                    criterioCurvaAbc === 'caixas' ? 'bg-amber-500/20 text-amber-300 border-x border-amber-500/40' : 'text-amber-400'
+                  }`}>
+                    Venda Média (cx/d) {criterioCurvaAbc === 'caixas' && '★'}
+                  </th>
+
+                  {/* Venda Média Reais */}
+                  <th className={`py-3 px-3 text-right font-bold whitespace-nowrap transition-colors ${
+                    criterioCurvaAbc === 'faturamento' ? 'bg-emerald-500/20 text-emerald-300 border-x border-emerald-500/40' : 'text-emerald-400'
+                  }`}>
+                    Venda Média (R$/d) {criterioCurvaAbc === 'faturamento' && '★'}
+                  </th>
+
+                  {/* Venda Média Hectolitros */}
+                  <th className={`py-3 px-3 text-right font-bold whitespace-nowrap transition-colors ${
+                    criterioCurvaAbc === 'hectolitro' ? 'bg-sky-500/20 text-sky-300 border-x border-sky-500/40' : 'text-sky-400'
+                  }`}>
+                    Venda Média (hL/d) {criterioCurvaAbc === 'hectolitro' && '★'}
+                  </th>
+
+                  {/* Total Trimestre */}
+                  <th className="py-3 px-3 text-right text-slate-300 whitespace-nowrap">
+                    {criterioCurvaAbc === 'faturamento' ? 'Total (R$)' : criterioCurvaAbc === 'hectolitro' ? 'Total (hL)' : 'Total (cx)'}
+                  </th>
+
+                  {/* % Acumulado Pareto */}
+                  <th className="py-3 px-3 text-right text-amber-300 whitespace-nowrap font-black">
+                    % Acumulado ({criterioCurvaAbc === 'faturamento' ? 'R$' : criterioCurvaAbc === 'hectolitro' ? 'hL' : 'cx'})
+                  </th>
                   <th className="py-3 px-3 text-center whitespace-nowrap min-w-[100px]">Classe ABC</th>
                 </tr>
               </thead>
@@ -1259,14 +1463,27 @@ export default function CurvaAbcTrimestralTab() {
                           <option value="Marketplace">Marketplace</option>
                         </select>
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-black text-amber-400 text-xs whitespace-nowrap">
+                      <td className={`py-2.5 px-3 text-right font-mono font-black text-xs whitespace-nowrap ${
+                        criterioCurvaAbc === 'caixas' ? 'bg-amber-500/10 text-amber-300 font-extrabold border-x border-amber-500/20' : 'text-amber-400'
+                      }`}>
                         {item.vendaMediaDiaria.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-black text-emerald-400 whitespace-nowrap">
+                      <td className={`py-2.5 px-3 text-right font-mono font-black whitespace-nowrap ${
+                        criterioCurvaAbc === 'faturamento' ? 'bg-emerald-500/10 text-emerald-300 font-extrabold border-x border-emerald-500/20' : 'text-emerald-400'
+                      }`}>
                         R$ {item.vendaMediaReais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-black text-sky-400 whitespace-nowrap">
+                      <td className={`py-2.5 px-3 text-right font-mono font-black whitespace-nowrap ${
+                        criterioCurvaAbc === 'hectolitro' ? 'bg-sky-500/10 text-sky-300 font-extrabold border-x border-sky-500/20' : 'text-sky-400'
+                      }`}>
                         {item.vendaMediaHectolitro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} hL
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-slate-300 text-xs whitespace-nowrap">
+                        {criterioCurvaAbc === 'faturamento'
+                          ? `R$ ${item.faturamentoTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
+                          : criterioCurvaAbc === 'hectolitro'
+                          ? `${item.volumeTotalHectolitros.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} hL`
+                          : `${item.volumeTotalTrimestre.toLocaleString('pt-BR')} cx`}
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono font-bold text-amber-300 whitespace-nowrap">
                         {item.percentualAcumulado?.toFixed(1)}%
@@ -1289,6 +1506,8 @@ export default function CurvaAbcTrimestralTab() {
         )}
 
       </div>
+      </>
+      )}
 
     </div>
   );

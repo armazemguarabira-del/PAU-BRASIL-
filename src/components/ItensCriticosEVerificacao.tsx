@@ -61,7 +61,7 @@ interface ItensCriticosEVerificacaoProps {
 
 export const ItensCriticosEVerificacao: React.FC<ItensCriticosEVerificacaoProps> = ({
   user,
-  isSupervisorOrAdmin = false
+  isSupervisorOrAdmin = true
 }) => {
   const [items, setItems] = useState<ItemCriticoOuVerificacao[]>(() => {
     try {

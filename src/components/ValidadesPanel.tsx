@@ -16,11 +16,19 @@ import {
   requestAllFefoDemands,
   cancelFefoDemandRequest
 } from '../utils/fefoDemandManager';
+import {
+  getSemanaInfoFromDate,
+  getSemanaDoMesFromDate,
+  getMesKeyFromDate,
+  syncValidadesListToMonthlyColetas
+} from '../utils/stockAgeMonthlyManager';
 import StockAgeIndexTab from './StockAgeIndexTab';
 import FuturoShelfTab from './FuturoShelfTab';
 import GestaoEscoamentoTab from './GestaoEscoamentoTab';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
 import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
+import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
+import Import030519Modal from './Import030519Modal';
 
 interface ValidadesPanelProps {
   user: Usuario;
@@ -32,6 +40,7 @@ interface ValidadesPanelProps {
 export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, theme = 'light' }: ValidadesPanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `validades_draft_${empresaId}_${user.nome || 'guest'}`;
+  const [showImport030519Modal, setShowImport030519Modal] = useState(false);
 
   // Helper to load safe initial state
   const getDraftValue = (key: string, defaultValue: any) => {
@@ -89,10 +98,51 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
   });
   const [localizacao, setLocalizacao] = useState<string>(() => getDraftValue('localizacao', 'central'));
   const [bloco, setBloco] = useState<string>(() => getDraftValue('bloco', ''));
+  const [dataColetaInput, setDataColetaInput] = useState<string>(() => {
+    const val = getDraftValue('dataColetaInput', '');
+    return val || '28/08/2026';
+  });
+
+  const semanaColetaInfo = React.useMemo(() => {
+    return getSemanaInfoFromDate(dataColetaInput);
+  }, [dataColetaInput]);
+
+  const [filterSemana, setFilterSemana] = useState<'todas' | number>('todas');
+
+  const handleDataColetaChange = (val: string) => {
+    const cleaned = val.replace(/[^\d/]/g, '');
+    const digits = val.replace(/\D/g, '');
+    let formatted = '';
+    if (digits.length > 0) {
+      formatted += digits.slice(0, 2);
+    }
+    if (digits.length > 2) {
+      formatted += '/' + digits.slice(2, 4);
+    }
+    if (digits.length > 4) {
+      formatted += '/' + digits.slice(4, 8);
+    }
+    const finalVal = formatted || cleaned;
+    setDataColetaInput(finalVal);
+  };
 
   const [activeTab, setActiveTab] = useState<'form' | 'lista' | 'stock_age' | 'futuro_shelf' | 'escoamento' | 'fefo_quadro' | 'fefo_picking' | 'fefo_estoque'>('form');
   const [validadesList, setValidadesList] = useState<ValidadeRow[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Filtros personalizados para Estoque x Estoque
+  const [fefoEstoqueStartDate, setFefoEstoqueStartDate] = useState<string>('');
+  const [fefoEstoqueEndDate, setFefoEstoqueEndDate] = useState<string>('');
+  const [fefoEstoqueSemana, setFefoEstoqueSemana] = useState<'todas' | number>('todas');
+  const [fefoEstoqueSearch, setFefoEstoqueSearch] = useState<string>('');
+  const [fefoEstoqueViewMode, setFefoEstoqueViewMode] = useState<'lista' | 'cards'>('lista');
+
+  // Filtros personalizados para Estoque x Picking
+  const [fefoPickingStartDate, setFefoPickingStartDate] = useState<string>('');
+  const [fefoPickingEndDate, setFefoPickingEndDate] = useState<string>('');
+  const [fefoPickingSemana, setFefoPickingSemana] = useState<'todas' | number>('todas');
+  const [fefoPickingSearch, setFefoPickingSearch] = useState<string>('');
+  const [fefoPickingViewMode, setFefoPickingViewMode] = useState<'lista' | 'cards'>('lista');
 
   // Immediate notification modal for FEFO breaks upon entry or import
   const [importBreaksModalData, setImportBreaksModalData] = useState<{
@@ -109,13 +159,73 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     descricao: string;
   } | null>(null);
 
+  // Helper para filtrar validades antes do cálculo de quebras
+  const filterRowsForFefo = (
+    rows: ValidadeRow[],
+    startDate: string,
+    endDate: string,
+    semana: 'todas' | number,
+    search: string
+  ) => {
+    return rows.filter(r => {
+      // 1. Filtro por Semana
+      if (semana !== 'todas') {
+        const sem = r.semanaNumero || getSemanaDoMesFromDate(r.dataColeta || r.validade || '28/08/2026');
+        if (sem !== semana) return false;
+      }
+
+      // 2. Filtro por intervalo de datas (data de coleta / cadastro / validade)
+      if (startDate || endDate) {
+        let rowDate = '';
+        if (r.dataColeta) {
+          if (r.dataColeta.includes('/')) {
+            const parts = r.dataColeta.split('/');
+            if (parts.length === 3) rowDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          } else {
+            rowDate = r.dataColeta;
+          }
+        }
+        if (!rowDate && r.cadastradoEm) {
+          rowDate = r.cadastradoEm.split('T')[0];
+        }
+        if (!rowDate && r.validade) {
+          rowDate = r.validade;
+        }
+
+        if (startDate && rowDate && rowDate < startDate) return false;
+        if (endDate && rowDate && rowDate > endDate) return false;
+      }
+
+      // 3. Busca por texto
+      if (search.trim()) {
+        const q = search.toLowerCase().trim();
+        const match = 
+          String(r.codigo).toLowerCase().includes(q) ||
+          (r.descricao || '').toLowerCase().includes(q) ||
+          (r.bloco || '').toLowerCase().includes(q) ||
+          (r.localizacao || '').toLowerCase().includes(q);
+        if (!match) return false;
+      }
+
+      return true;
+    });
+  };
+
+  const filteredValidadesEstoque = React.useMemo(() => {
+    return filterRowsForFefo(validadesList, fefoEstoqueStartDate, fefoEstoqueEndDate, fefoEstoqueSemana, fefoEstoqueSearch);
+  }, [validadesList, fefoEstoqueStartDate, fefoEstoqueEndDate, fefoEstoqueSemana, fefoEstoqueSearch]);
+
   const quebrasFefoEstoque = React.useMemo(() => {
-    return calcularQuebrasFefoEstoqueXEstoque(validadesList);
-  }, [validadesList]);
+    return calcularQuebrasFefoEstoqueXEstoque(filteredValidadesEstoque);
+  }, [filteredValidadesEstoque]);
+
+  const filteredValidadesPicking = React.useMemo(() => {
+    return filterRowsForFefo(validadesList, fefoPickingStartDate, fefoPickingEndDate, fefoPickingSemana, fefoPickingSearch);
+  }, [validadesList, fefoPickingStartDate, fefoPickingEndDate, fefoPickingSemana, fefoPickingSearch]);
 
   const quebrasFefoPicking = React.useMemo(() => {
-    return calcularQuebrasFefoEstoqueXPicking(validadesList);
-  }, [validadesList]);
+    return calcularQuebrasFefoEstoqueXPicking(filteredValidadesPicking);
+  }, [filteredValidadesPicking]);
 
   // FEFO relocation demands state & automatic sync
   const [fefoDemands, setFefoDemands] = useState(() => getStoredFefoDemands(empresaId));
@@ -243,10 +353,11 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       caixa,
       validade,
       localizacao,
-      bloco
+      bloco,
+      dataColetaInput
     };
     localStorage.setItem(draftKey, JSON.stringify(draftData));
-  }, [produtoBusca, selectedProd, palhete, lastro, caixa, validade, localizacao, bloco, draftKey, editingRow]);
+  }, [produtoBusca, selectedProd, palhete, lastro, caixa, validade, localizacao, bloco, dataColetaInput, draftKey, editingRow]);
 
   // Sync with prop updates / user changing
   useEffect(() => {
@@ -264,6 +375,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         setValidadeInput(formatISODateToInput(val));
         setLocalizacao(parsed.localizacao || 'central');
         setBloco(parsed.bloco || '');
+        if (parsed.dataColetaInput) {
+          setDataColetaInput(parsed.dataColetaInput);
+        }
         setDraftRestored(!!(parsed.produtoBusca || parsed.selectedProd || parsed.palhete > 0 || parsed.lastro > 0 || parsed.caixa > 0 || val || (parsed.localizacao && parsed.localizacao !== 'central') || parsed.bloco));
       } else {
         setProdutoBusca('');
@@ -310,12 +424,17 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       return true;
     }));
 
+    if (conferenteRows.length === 0) {
+      conferenteRows = getInitialDefaultValidades(empresaId);
+    }
+
     try {
       localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
       localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(conferenteRows));
     } catch (e) {}
 
     setValidadesList(conferenteRows);
+    syncValidadesListToMonthlyColetas(conferenteRows, empresaId);
   }, [empresaData.validades, empresaId]);
 
   const getDaysRemaining = (expDate: string) => {
@@ -397,6 +516,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     setCaixa(0);
     setValidade('');
     setValidadeInput('');
+    setDataColetaInput('27/08/2026');
     // Preserva 'picking' se foi o local selecionado
     if (localizacao !== 'picking') {
       setLocalizacao('central');
@@ -453,6 +573,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     const currentDesc = selectedProd ? selectedProd.descricao : editingRow?.descricao || '';
     const totalCalculado = calcularTotalCaixas(currentCode, palhete, lastro, caixa);
 
+    const semanaNumCalculada = getSemanaDoMesFromDate(dataColetaInput);
+    const mesRefCalculado = getMesKeyFromDate(dataColetaInput);
+
     const dataObj = {
       codigo: currentCode,
       descricao: currentDesc,
@@ -465,6 +588,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       validade: isoDate,
       localizacao,
       bloco: (localizacao === 'pnc' || localizacao === 'picking') ? '' : bloco,
+      dataColeta: dataColetaInput,
+      semanaNumero: semanaNumCalculada,
+      mesReferencia: mesRefCalculado,
     };
 
     try {
@@ -479,7 +605,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         updatedListAfterSave = validadesList.map(item => item.id === editingRow.id ? { ...item, ...dataObj } : item);
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
-        toast('Produto atualizado!');
+        syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
+        toast(`Produto atualizado na Semana ${semanaNumCalculada} de Agosto!`);
       } else {
         // Sobrescrever registro anterior com a mesma combinação: código + localizacao + bloco (rua)
         const targetCod = String(dataObj.codigo).trim();
@@ -513,8 +640,25 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         updatedListAfterSave = [...filteredList, { _docId: created._docId || (created as any).id, ...newRow }];
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
-        toast('Produto salvo (registro anterior da mesma combinação foi sobrescrito)!');
+        syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
+        toast(`Produto salvo com sucesso na Semana ${semanaNumCalculada} de Agosto!`);
       }
+
+      if (dataObj.localizacao === 'pnc') {
+        encaminharItemParaPnc({
+          codigo: dataObj.codigo,
+          descricao: dataObj.descricao,
+          validade: dataObj.validade,
+          quantidade: dataObj.quantidade,
+          qtde_bloq_cx: dataObj.quantidade,
+          motivo: 'Lançado diretamente na Coleta de Validades como PNC',
+          responsavel: user?.nome || 'Conferente',
+          localizacaoAnterior: 'Coleta de Validades',
+          empresaId
+        }, empresaId);
+      }
+
+      window.dispatchEvent(new CustomEvent('stock_age_monthly_updated', { detail: { updated: true } }));
 
       // Check for immediate FEFO breaks on this product
       const targetCode = String(dataObj.codigo).trim();
@@ -671,6 +815,16 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     setValidadeInput(formatISODateToInput(r.validade));
     setLocalizacao(r.localizacao);
     setBloco(r.bloco || '');
+    if (r.dataColeta) {
+      let dc = r.dataColeta;
+      if (dc.includes('-')) {
+        const parts = dc.split('-');
+        if (parts[0].length === 4) dc = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      setDataColetaInput(dc);
+    } else {
+      setDataColetaInput('21/08/2026');
+    }
     setActiveTab('form');
   };
 
@@ -687,6 +841,45 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       setValidadesList(remaining);
       localStorage.setItem(`validades_${empresaId}`, JSON.stringify(remaining));
       toast('Registro de validade excluído com sucesso');
+    }
+  };
+
+  const handleSendRowToPnc = async (r: ValidadeRow) => {
+    const qtdCx = r.quantidade || r.totalUnities || 0;
+    if (!confirm(`Deseja encaminhar o item "${r.descricao}" (${qtdCx} cx) para a Guia de PNC para Tratativa?\n\nO item sairá da lista de estoque normal e será gerenciado pelo PNC.`)) {
+      return;
+    }
+
+    try {
+      encaminharItemParaPnc({
+        codigo: r.codigo,
+        descricao: r.descricao,
+        validade: r.validade,
+        quantidade: qtdCx,
+        qtde_bloq_cx: qtdCx,
+        motivo: 'Encaminhado da Guia de Validades / Coleta',
+        responsavel: user?.nome || 'Conferente FEFO',
+        localizacaoAnterior: r.localizacao === 'picking' ? 'Picking' : `Armazém Central (${r.bloco || 'Geral'})`,
+        empresaId
+      }, empresaId);
+
+      const updated = validadesList.map(item => (item.id === r.id || (r._docId && item._docId === r._docId)) ? { ...item, localizacao: 'pnc' } : item);
+      setValidadesList(updated);
+      localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updated));
+
+      const idToUpd = r._docId || (r as any).id;
+      if (idToUpd) {
+        try {
+          await ValidadesRepository.update(String(idToUpd), { localizacao: 'pnc' } as any, empresaId);
+        } catch (e) {}
+      }
+
+      window.dispatchEvent(new CustomEvent('pnc-records-updated'));
+      window.dispatchEvent(new Event('pnc_updated'));
+      window.dispatchEvent(new Event('local_data_changed'));
+      toast(`✅ Item "${r.descricao}" encaminhado para a Guia de PNC para tratativa com sucesso!`);
+    } catch (err) {
+      alert('Erro ao encaminhar para PNC: ' + err);
     }
   };
 
@@ -769,6 +962,12 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     if (filterBloco !== 'todos') {
       rows = rows.filter(r => (r.bloco || '') === filterBloco);
     }
+    if (filterSemana !== 'todas') {
+      rows = rows.filter(r => {
+        const sem = r.semanaNumero || getSemanaDoMesFromDate(r.dataColeta || '21/08/2026');
+        return sem === filterSemana;
+      });
+    }
     if (filterStatus !== 'todos') {
       rows = rows.filter(r => {
         const days = getDaysRemaining(r.validade);
@@ -796,6 +995,12 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           <span className="font-sans font-black text-sm tracking-widest text-[#8b5cf6] uppercase">🏷 CONTROLE DE VALIDADES — GESTÃO FEFO</span>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
+          <button 
+            onClick={() => setShowImport030519Modal(true)}
+            className="py-1 px-3 bg-indigo-600/20 border border-indigo-500/40 hover:bg-indigo-600 text-indigo-200 hover:text-white rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+          >
+            📊 Importar 03.05.19 (Venda Média)
+          </button>
           <label className="py-1 px-3 bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 hover:bg-[#8b5cf6] text-[#c4b5fd] hover:text-white rounded-lg text-[10px] font-bold tracking-wide uppercase transition-colors cursor-pointer flex items-center gap-1">
             📥 Importar Validades
             <input type="file" accept=".xlsx, .xls, .csv" onChange={handleImportExcel} className="hidden" />
@@ -1051,6 +1256,68 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
           </div>
 
+          {/* Recolha Semanal de Validades (Conferência Automática) */}
+          <div className="p-4 bg-gradient-to-r from-purple-950/30 via-[#151b23] to-[#151b23] border border-purple-500/40 rounded-xl flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#222d3a] pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🗓️</span>
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-purple-300">
+                    Data da Recolha da Validade (Conferente)
+                  </span>
+                  <p className="text-[11px] text-gray-400">
+                    Atualiza automaticamente a semana do mês e sincroniza com o Stock Age Index e FEFO.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-purple-600/30 border border-purple-400/50 rounded-lg text-xs font-mono font-black text-purple-200 shadow-sm">
+                  ⚡ {semanaColetaInfo.label}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div className="sm:col-span-4 flex flex-col gap-1">
+                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">
+                  Data de Recolha *
+                </label>
+                <input
+                  type="text"
+                  placeholder="DD/MM/AAAA"
+                  value={dataColetaInput}
+                  onChange={e => handleDataColetaChange(e.target.value)}
+                  className="g-input text-snow font-mono font-bold h-[40px]"
+                />
+              </div>
+
+              <div className="sm:col-span-8 flex flex-wrap items-center gap-2 pt-2 sm:pt-4">
+                <button
+                  type="button"
+                  onClick={() => setDataColetaInput('28/08/2026')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    dataColetaInput === '28/08/2026' || semanaColetaInfo.semanaNumero === 4
+                      ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
+                      : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
+                  }`}
+                >
+                  ✨ 4ª Semana de Agosto (28/08 - Esta Sexta)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataColetaInput('21/08/2026')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    dataColetaInput === '21/08/2026' || semanaColetaInfo.semanaNumero === 3
+                      ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
+                      : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
+                  }`}
+                >
+                  ⏪ 3ª Semana de Agosto (21/08 - Sexta Passada / Base Atual)
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Packaging calculation & Quantities Section */}
           {(() => {
             const currentCode = selectedProd ? selectedProd.codigo : editingRow?.codigo;
@@ -1291,6 +1558,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 <option value="alert">🟡 Alertas (≤60 dias)</option>
                 <option value="ok">🟢 Estáveis (&gt;60 dias)</option>
               </select>
+              <select value={filterSemana} onChange={e => setFilterSemana(e.target.value === 'todas' ? 'todas' : Number(e.target.value))} className="g-input text-xs py-2 px-3 bg-[#151b23]/80 border-[#222d3a] text-purple-300 font-bold">
+                <option value="todas">🗓️ Todas as Semanas</option>
+                <option value="3">🗓️ 3ª Semana de Agosto (21/08 - Sexta Passada - Base Atual)</option>
+                <option value="4">🗓️ 4ª Semana de Agosto (28/08 - Esta Sexta)</option>
+                <option value="1">🗓️ 1ª Semana de Agosto (01–07/08)</option>
+                <option value="2">🗓️ 2ª Semana de Agosto (08–14/08)</option>
+              </select>
               <select value={sortOrder} onChange={e => setSortSort(e.target.value as any)} className="g-input text-xs py-2 px-3 bg-[#151b23]/80 border-[#222d3a]">
                 <option value="asc">📅 Mais Próximos</option>
                 <option value="desc">📅 Mais Distantes</option>
@@ -1416,6 +1690,9 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                                   <span className="text-[9px] bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 rounded font-bold text-[#a78bfa]">
                                     📅 Vencimento: {formattedValidadeDate}
                                   </span>
+                                  <span className="text-[9px] bg-purple-600/20 border border-purple-500/40 px-2 py-0.5 rounded font-black text-purple-300">
+                                    🗓️ Sem. {r.semanaNumero || getSemanaDoMesFromDate(r.dataColeta || '21/08/2026')}
+                                  </span>
                                   <span className={`text-[9px] font-black px-2 py-0.5 rounded border ${spec.bg || 'bg-slate-800'} ${spec.text} border-current/20`}>
                                     {spec.label}
                                   </span>
@@ -1454,7 +1731,15 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                                 })()}
                               </div>
                               
-                              <div className="flex gap-2 self-end sm:self-auto">
+                              <div className="flex gap-2 self-end sm:self-auto items-center flex-wrap">
+                                <button 
+                                  id={`btn-validades-pnc-${r.id}`}
+                                  onClick={() => handleSendRowToPnc(r)}
+                                  title="Encaminhar este item imediatamente para a Guia de PNC para tratativa"
+                                  className="py-1.5 px-3 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 text-xs font-semibold rounded-lg cursor-pointer transition-colors flex items-center gap-1.5"
+                                >
+                                  <span>🚨</span> PNC
+                                </button>
                                 <button 
                                   onClick={() => handleEditInit(r)}
                                   className="py-1.5 px-3 border border-[#222d3a] hover:border-[#6a7d92] bg-[#151b23] text-xs font-semibold text-snow rounded-lg cursor-pointer transition-colors"
@@ -1772,7 +2057,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           </div>
         </div>
       ) : activeTab === 'fefo_picking' ? (
-        /* GUIA ESPECÍFICA ESTOQUE X PICKING (TAREFA 24) */
+        /* GUIA ESPECÍFICA ESTOQUE X PICKING COM FILTRO PERSONALIZADO E FORMATO LISTA */
         <div className="bg-white dark:bg-[#151b23] border border-red-200 dark:border-red-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 font-sans">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
@@ -1791,16 +2076,163 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 Visualização dedicada exclusivamente às quebras de tolerância zero entre a Área Picking e as ruas do Estoque Central.
               </p>
             </div>
-            <button 
-              type="button"
-              onClick={() => {
-                requestAllFefoDemands(empresaId, user.nome || 'Conferente');
-                setFefoDemands(getStoredFefoDemands(empresaId));
-              }}
-              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              🚜 Delegar Todas ao Empilhador
-            </button>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Toggle de Visualização Lista / Cards */}
+              <div className="flex bg-slate-100 dark:bg-[#222d3a] p-1 rounded-xl border border-slate-200 dark:border-[#303e4e]">
+                <button
+                  type="button"
+                  onClick={() => setFefoPickingViewMode('lista')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer ${
+                    fefoPickingViewMode === 'lista'
+                      ? 'bg-white dark:bg-slate-800 text-red-600 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  📋 Lista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFefoPickingViewMode('cards')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer ${
+                    fefoPickingViewMode === 'cards'
+                      ? 'bg-white dark:bg-slate-800 text-red-600 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  🗂 Cards
+                </button>
+              </div>
+
+              <button 
+                type="button"
+                onClick={() => {
+                  requestAllFefoDemands(empresaId, user.nome || 'Conferente');
+                  setFefoDemands(getStoredFefoDemands(empresaId));
+                }}
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                🚜 Delegar Todas ao Empilhador
+              </button>
+            </div>
+          </div>
+
+          {/* FILTRO DE DATA E SEMANA PERSONALIZADO ESTOQUE X PICKING */}
+          <div className="bg-slate-50 dark:bg-[#1a222c] p-4 rounded-xl border border-slate-200 dark:border-[#2d3a4b] flex flex-col md:flex-row md:items-end justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  📅 Data Inicial (Coleta/Validade)
+                </label>
+                <input
+                  type="date"
+                  value={fefoPickingStartDate}
+                  onChange={(e) => setFefoPickingStartDate(e.target.value)}
+                  className="px-3 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs font-mono font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  📅 Data Final
+                </label>
+                <input
+                  type="date"
+                  value={fefoPickingEndDate}
+                  onChange={(e) => setFefoPickingEndDate(e.target.value)}
+                  className="px-3 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs font-mono font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  🗓️ Sexta-feira da Coleta / Semana
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoPickingSemana('todas');
+                      setFefoPickingStartDate('');
+                      setFefoPickingEndDate('');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoPickingSemana === 'todas' && !fefoPickingStartDate && !fefoPickingEndDate
+                        ? 'bg-red-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoPickingSemana(3);
+                      setFefoPickingStartDate('2026-08-21');
+                      setFefoPickingEndDate('2026-08-21');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoPickingStartDate === '2026-08-21' && fefoPickingEndDate === '2026-08-21'
+                        ? 'bg-red-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Sexta 21/08 (Sem 3)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoPickingSemana(4);
+                      setFefoPickingStartDate('2026-08-28');
+                      setFefoPickingEndDate('2026-08-28');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoPickingStartDate === '2026-08-28' && fefoPickingEndDate === '2026-08-28'
+                        ? 'bg-red-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Sexta 28/08 (Sem 4)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar SKU, descrição ou rua..."
+                  value={fefoPickingSearch}
+                  onChange={(e) => setFefoPickingSearch(e.target.value)}
+                  className="pl-3 pr-8 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-red-500 w-52 sm:w-64"
+                />
+                {fefoPickingSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setFefoPickingSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {(fefoPickingStartDate || fefoPickingEndDate || fefoPickingSemana !== 'todas' || fefoPickingSearch) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFefoPickingStartDate('');
+                    setFefoPickingEndDate('');
+                    setFefoPickingSemana('todas');
+                    setFefoPickingSearch('');
+                  }}
+                  className="px-3 py-1.5 bg-slate-200 dark:bg-[#222d3a] hover:bg-slate-300 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
 
           {quebrasFefoPicking.length === 0 ? (
@@ -1809,13 +2241,95 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 ✓
               </div>
               <h4 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                Nenhuma Quebra Estoque x Picking Encontrada
+                Nenhuma Quebra Estoque x Picking Encontrada no Período
               </h4>
               <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1 max-w-lg">
-                Sua Área Picking está perfeitamente abastecida com as validades mais antigas do armazém.
+                Sua Área Picking está perfeitamente abastecida com as validades mais antigas do armazém para os filtros selecionados.
               </p>
             </div>
+          ) : fefoPickingViewMode === 'lista' ? (
+            /* FORMATO LISTA DE ALERTAS ESTOQUE X PICKING */
+            <div className="overflow-x-auto border border-red-200 dark:border-red-500/30 rounded-xl bg-white dark:bg-[#151b23] shadow-xs">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-red-50 dark:bg-red-950/40 text-red-950 dark:text-red-200 border-b border-red-200 dark:border-red-900/40 uppercase text-[10px] font-black tracking-wider">
+                    <th className="py-3 px-3">Gravidade / Gap</th>
+                    <th className="py-3 px-3">SKU & Descrição</th>
+                    <th className="py-3 px-3">Validade no Picking</th>
+                    <th className="py-3 px-3">Validade no Estoque</th>
+                    <th className="py-3 px-3">Ação Operacional</th>
+                    <th className="py-3 px-3 text-center">Delegação Empilhador</th>
+                    <th className="py-3 px-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-[#222d3a]">
+                  {quebrasFefoPicking.map((q, idx) => (
+                    <tr key={idx} className="hover:bg-red-50/40 dark:hover:bg-red-950/20 transition-colors">
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-800 border border-red-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/40">
+                          🚨 +{q.diasInversao} dias
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-xs bg-slate-100 dark:bg-[#222d3a] px-2 py-0.5 rounded border border-slate-200 dark:border-[#303e4e] text-slate-900 dark:text-slate-100">
+                            {q.codigo}
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-100">
+                            {q.descricao}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                          {q.validadePicking}
+                        </div>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase">Área Picking</span>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="font-mono font-bold text-red-600 dark:text-red-400">
+                          {q.validadeEstoque}
+                        </div>
+                        <span className="text-[9px] text-red-700 dark:text-red-300 font-black uppercase">
+                          Rua {q.ruaEstoque} (Mais Antigo)
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 max-w-xs">
+                        <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium leading-tight line-clamp-2" title={q.sugestaoAcao}>
+                          {q.sugestaoAcao}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {renderDelegationStatus('estoque_x_picking', q.codigo)}
+                      </td>
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => {
+                              setSearchQuery(q.codigo);
+                              setActiveTab('lista');
+                            }}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#222d3a] dark:hover:bg-[#303e4e] text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            title="Ver Lotes no Estoque"
+                          >
+                            📋
+                          </button>
+                          <button
+                            onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
+                            className="p-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            title="Inspecionar Detalhes do SKU"
+                          >
+                            🔍
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
+            /* FORMATO CARDS ESTOQUE X PICKING */
             <div className="grid grid-cols-1 gap-4">
               {quebrasFefoPicking.map((q, idx) => (
                 <div key={idx} className="bg-white dark:bg-[#151b23] border border-red-200 dark:border-red-500/50 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1874,7 +2388,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           )}
         </div>
       ) : (
-        /* GUIA ESPECÍFICA ESTOQUE X ESTOQUE (TAREFA 24) */
+        /* GUIA ESPECÍFICA ESTOQUE X ESTOQUE COM FILTRO PERSONALIZADO E FORMATO LISTA DE ALERTAS */
         <div className="bg-white dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/40 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 font-sans">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-4">
             <div>
@@ -1887,22 +2401,169 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 </span>
               </div>
               <h3 className="font-sans font-bold text-base tracking-wider uppercase text-amber-700 dark:text-amber-400 mt-2">
-                🔍 Análise de Inversão de FEFO entre Ruas / Blocos ({quebrasFefoEstoque.length})
+                🔍 Lista de Alertas de Inversão de FEFO entre Ruas / Blocos ({quebrasFefoEstoque.length})
               </h3>
               <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1">
-                Visualização dedicada às regras de layout e sequenciamento de ruas dentro do Estoque Central.
+                Visualização dedicada às regras de layout e sequenciamento de ruas dentro do Estoque Central com formato em lista estruturada.
               </p>
             </div>
-            <button 
-              type="button"
-              onClick={() => {
-                requestAllFefoDemands(empresaId, user.nome || 'Conferente');
-                setFefoDemands(getStoredFefoDemands(empresaId));
-              }}
-              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              🚜 Delegar Todas ao Empilhador
-            </button>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Toggle de Visualização Lista / Cards */}
+              <div className="flex bg-slate-100 dark:bg-[#222d3a] p-1 rounded-xl border border-slate-200 dark:border-[#303e4e]">
+                <button
+                  type="button"
+                  onClick={() => setFefoEstoqueViewMode('lista')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer ${
+                    fefoEstoqueViewMode === 'lista'
+                      ? 'bg-white dark:bg-slate-800 text-amber-700 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  📋 Lista de Alertas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFefoEstoqueViewMode('cards')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all cursor-pointer ${
+                    fefoEstoqueViewMode === 'cards'
+                      ? 'bg-white dark:bg-slate-800 text-amber-700 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  🗂 Cards
+                </button>
+              </div>
+
+              <button 
+                type="button"
+                onClick={() => {
+                  requestAllFefoDemands(empresaId, user.nome || 'Conferente');
+                  setFefoDemands(getStoredFefoDemands(empresaId));
+                }}
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                🚜 Delegar Todas ao Empilhador
+              </button>
+            </div>
+          </div>
+
+          {/* FILTRO DE DATA E SEMANA PERSONALIZADO ESTOQUE X ESTOQUE */}
+          <div className="bg-slate-50 dark:bg-[#1a222c] p-4 rounded-xl border border-slate-200 dark:border-[#2d3a4b] flex flex-col md:flex-row md:items-end justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  📅 Data Inicial (Coleta/Validade)
+                </label>
+                <input
+                  type="date"
+                  value={fefoEstoqueStartDate}
+                  onChange={(e) => setFefoEstoqueStartDate(e.target.value)}
+                  className="px-3 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs font-mono font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  📅 Data Final
+                </label>
+                <input
+                  type="date"
+                  value={fefoEstoqueEndDate}
+                  onChange={(e) => setFefoEstoqueEndDate(e.target.value)}
+                  className="px-3 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs font-mono font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  🗓️ Sexta-feira da Coleta / Semana
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoEstoqueSemana('todas');
+                      setFefoEstoqueStartDate('');
+                      setFefoEstoqueEndDate('');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoEstoqueSemana === 'todas' && !fefoEstoqueStartDate && !fefoEstoqueEndDate
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoEstoqueSemana(3);
+                      setFefoEstoqueStartDate('2026-08-21');
+                      setFefoEstoqueEndDate('2026-08-21');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoEstoqueStartDate === '2026-08-21' && fefoEstoqueEndDate === '2026-08-21'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Sexta 21/08 (Sem 3)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFefoEstoqueSemana(4);
+                      setFefoEstoqueStartDate('2026-08-28');
+                      setFefoEstoqueEndDate('2026-08-28');
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      fefoEstoqueStartDate === '2026-08-28' && fefoEstoqueEndDate === '2026-08-28'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    Sexta 28/08 (Sem 4)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar SKU, descrição ou rua..."
+                  value={fefoEstoqueSearch}
+                  onChange={(e) => setFefoEstoqueSearch(e.target.value)}
+                  className="pl-3 pr-8 py-1.5 bg-white dark:bg-[#151b23] border border-slate-300 dark:border-[#303e4e] rounded-lg text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-amber-500 w-52 sm:w-64"
+                />
+                {fefoEstoqueSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setFefoEstoqueSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {(fefoEstoqueStartDate || fefoEstoqueEndDate || fefoEstoqueSemana !== 'todas' || fefoEstoqueSearch) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFefoEstoqueStartDate('');
+                    setFefoEstoqueEndDate('');
+                    setFefoEstoqueSemana('todas');
+                    setFefoEstoqueSearch('');
+                  }}
+                  className="px-3 py-1.5 bg-slate-200 dark:bg-[#222d3a] hover:bg-slate-300 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
 
           {quebrasFefoEstoque.length === 0 ? (
@@ -1911,13 +2572,107 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 ✓
               </div>
               <h4 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                Nenhum Desvio de Ruas Encontrado
+                Nenhum Desvio de Ruas Encontrado no Período
               </h4>
               <p className="text-xs text-slate-600 dark:text-[#a0aec0] mt-1 max-w-lg">
-                Todas as ruas do Estoque Central estão devidamente organizadas conforme as regras de FEFO por bloco.
+                Todas as ruas do Estoque Central estão devidamente organizadas conforme as regras de FEFO por bloco para os filtros selecionados.
               </p>
             </div>
+          ) : fefoEstoqueViewMode === 'lista' ? (
+            /* FORMATO LISTA DE ALERTAS ESTOQUE X ESTOQUE SOLICITADO PELO USUÁRIO */
+            <div className="overflow-x-auto border border-amber-200 dark:border-amber-500/30 rounded-xl bg-white dark:bg-[#151b23] shadow-xs">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-200 border-b border-amber-200 dark:border-amber-900/40 uppercase text-[10px] font-black tracking-wider">
+                    <th className="py-3 px-3">Status / Inversão</th>
+                    <th className="py-3 px-3">SKU & Descrição</th>
+                    <th className="py-3 px-3">Rua Próxima (Mais Novo)</th>
+                    <th className="py-3 px-3">Rua Distante (Mais Antigo)</th>
+                    <th className="py-3 px-3">Desvio Tolerância</th>
+                    <th className="py-3 px-3">Ação Operacional Recomendada</th>
+                    <th className="py-3 px-3 text-center">Delegação Empilhador</th>
+                    <th className="py-3 px-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-[#222d3a]">
+                  {quebrasFefoEstoque.map((q, idx) => (
+                    <tr key={idx} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
+                          q.diasInversao > 30 
+                            ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40'
+                            : 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40'
+                        }`}>
+                          ⚠️ +{q.diasInversao} dias
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-xs bg-slate-100 dark:bg-[#222d3a] px-2 py-0.5 rounded border border-slate-200 dark:border-[#303e4e] text-slate-900 dark:text-slate-100">
+                            {q.codigo}
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-100">
+                            {q.descricao}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                          {q.validadeRuaProxima}
+                        </div>
+                        <span className="text-[9px] text-slate-500 font-bold uppercase">
+                          Rua {q.ruaProxima}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                          {q.validadeRuaDistante}
+                        </div>
+                        <span className="text-[9px] text-amber-700 dark:text-amber-300 font-black uppercase">
+                          Rua {q.ruaDistante} (Retido)
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                          {q.diasInversao - 7 > 0 ? `+${q.diasInversao - 7}d além tol.` : 'Dentro tol.'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 max-w-xs">
+                        <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium leading-tight line-clamp-2" title={q.sugestaoAcao}>
+                          {q.sugestaoAcao}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {renderDelegationStatus('estoque_x_estoque', q.codigo)}
+                      </td>
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => {
+                              setSearchQuery(q.codigo);
+                              setActiveTab('lista');
+                            }}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#222d3a] dark:hover:bg-[#303e4e] text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            title="Ver Lotes no Estoque"
+                          >
+                            📋
+                          </button>
+                          <button
+                            onClick={() => setSelectedProductAlert({ codigo: q.codigo, descricao: q.descricao })}
+                            className="p-1.5 bg-amber-100 hover:bg-amber-200 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            title="Inspecionar Detalhes do SKU"
+                          >
+                            🔍
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
+            /* FORMATO CARDS ESTOQUE X ESTOQUE */
             <div className="grid grid-cols-1 gap-4">
               {quebrasFefoEstoque.map((q, idx) => (
                 <div key={idx} className="bg-white dark:bg-[#151b23] border border-amber-200 dark:border-amber-500/40 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2150,6 +2905,16 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           </div>
         </div>
       )}
+
+      {/* MODAL 3: IMPORTAR 03.05.19 (VENDA MÉDIA / GIRO DIÁRIO) */}
+      <Import030519Modal
+        isOpen={showImport030519Modal}
+        onClose={() => setShowImport030519Modal(false)}
+        companyId={empresaId}
+        onSuccess={(msg) => {
+          alert(msg);
+        }}
+      />
     </div>
   );
 }

@@ -472,21 +472,36 @@ export default function SimuladorRessuprimentoPanel({ user }: SimuladorRessuprim
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> Histórico YTD de Snapshots diários (01/Jan até Hoje)
+                  <Calendar className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> Histórico YTD de Snapshots diários (02/Jan a 28/Ago/2026)
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Registros consolidados de movimentações para alimentação de evoluções diárias, semanais e mensais.
+                  Picking 160 PL • Reabastecimento ≤ 10 PL/dia (≤ 20%) • Ressuprimento ≤ 30 PL/dia (~80%) • SLA &lt; 5 min • Sem domingos/feriados.
                 </p>
               </div>
 
-              {isSupervisorOrAdmin && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShowAddModal(true)}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-1.5 shrink-0"
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('ressuprimento_ytd_records_demo');
+                    const fresh = gerarHistoricoYTDResuprimento('demo', metaRessuprimento);
+                    setHistorico(fresh);
+                  }}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shrink-0 border border-slate-300 dark:border-slate-700"
+                  title="Recarregar dados YTD 02/Jan a 28/Ago/2026"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar Snapshot
+                  <RefreshCw className="w-3.5 h-3.5" /> Atualizar Base YTD (02/Jan - 28/Ago)
                 </button>
-              )}
+
+                {isSupervisorOrAdmin && (
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-1.5 shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar Snapshot
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="overflow-x-auto">

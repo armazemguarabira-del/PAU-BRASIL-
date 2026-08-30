@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { DespejoRepository } from '../db';
 import { Usuario, Empresa, DespejoRow } from '../types';
@@ -10,6 +10,13 @@ import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/history
 import { elaborarTemposIlustrativosOperacao } from '../utils/quebrasDespejoUtils';
 import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
+import { 
+  DespejoTask, 
+  getStoredDespejoTasks, 
+  concluirDespejoTask,
+  saveDespejoTask 
+} from '../utils/pncManager';
+import { AlertTriangle as AlertTriangleIcon, Box, ArrowDownRight, Layers, Sparkles as SparklesIcon } from 'lucide-react';
 
 interface DespejoPanelProps {
   user: Usuario;
@@ -20,21 +27,15 @@ interface DespejoPanelProps {
 }
 
 const DESPEJO_EMBALAGENS = [
-  { nome: 'LATA 250', meta: '00:00:50' },
-  { nome: 'LATA 269', meta: '00:00:50' },
-  { nome: 'LATA 350', meta: '00:00:50' },
-  { nome: 'LATA 473', meta: '00:00:50' },
-  { nome: 'LONG NECK', meta: '00:00:50' },
-  { nome: 'PET 1L', meta: '00:00:50' },
+  { nome: 'LATA 350ML', meta: '00:00:50' },
   { nome: 'PET 2L', meta: '00:00:50' },
-  { nome: 'PET 500ml', meta: '00:00:50' },
-  { nome: 'PET 200ml', meta: '00:00:50' },
-  { nome: 'PET 2,5L', meta: '00:00:50' },
-  { nome: 'PET 3,3L', meta: '00:00:50' },
-  { nome: '600 OW', meta: '00:00:50' },
+  { nome: 'PET 1L', meta: '00:00:50' },
   { nome: '300 OW', meta: '00:00:50' },
-  { nome: 'GARRAFA 600ml', meta: '00:00:50' },
-  { nome: 'GARRAFA 1L', meta: '00:00:50' },
+  { nome: '600 OW', meta: '00:00:50' },
+  { nome: 'LATA 473ML', meta: '00:00:50' },
+  { nome: 'PET 200ML', meta: '00:00:50' },
+  { nome: 'LATA 269ML', meta: '00:00:50' },
+  { nome: 'LONG NECK', meta: '00:00:50' },
 ];
 
 export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShiftStart }: DespejoPanelProps) {
@@ -77,6 +78,20 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     return false;
   });
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+  const [despejoTasks, setDespejoTasks] = useState<DespejoTask[]>(() => getStoredDespejoTasks(empresaId));
+  const [activeTask, setActiveTask] = useState<DespejoTask | null>(null);
+
+  // Sync tasks listener
+  useEffect(() => {
+    const loadTasks = () => setDespejoTasks(getStoredDespejoTasks(empresaId));
+    loadTasks();
+    window.addEventListener('despejo_tasks_updated', loadTasks);
+    window.addEventListener('pnc_updated', loadTasks);
+    return () => {
+      window.removeEventListener('despejo_tasks_updated', loadTasks);
+      window.removeEventListener('pnc_updated', loadTasks);
+    };
+  }, [empresaId]);
 
   // Sync state with local draft saving
   useEffect(() => {
@@ -138,33 +153,75 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
   const empresaData = useEmpresaData(['despejo']);
 
   // Sync with official data and live manual entries
-  useEffect(() => {
+  const reloadDespejoData = useCallback(() => {
     const companyId = empresa?.id || 'demo';
     const officialRows = buildOfficialDespejoRows(companyId);
 
     let customManualRows: DespejoRow[] = [];
-    const saved = localStorage.getItem(`despejo_rows_${companyId}`);
-    if (saved) {
+    const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+    if (savedManual) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(savedManual);
         if (Array.isArray(parsed)) {
-          customManualRows = parsed.filter(r => 
-            !String(r.id || '').startsWith('retro_despejo_') && 
-            !String(r.id || '').startsWith('seed-despejo-')
-          );
+          customManualRows = parsed;
         }
       } catch (e) {}
+    } else {
+      // Fallback check on despejo_rows_
+      const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            customManualRows = parsed.filter(r => 
+              !String(r.id || '').startsWith('retro_despejo_') && 
+              !String(r.id || '').startsWith('seed-despejo-')
+            );
+          }
+        } catch (e) {}
+      }
     }
 
-    const rows = customManualRows.length > 0 ? [...customManualRows, ...officialRows] : [...officialRows];
-    rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setDespejoRows(rows);
-    if (customManualRows.length > 0) {
-      try {
-        localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(customManualRows));
-      } catch (e) {}
-    }
+    // Combine manual and official avoiding duplicated IDs
+    const seenIds = new Set<string>();
+    const combined: DespejoRow[] = [];
+
+    customManualRows.forEach(r => {
+      const idKey = String(r._docId || r.id || '');
+      if (idKey && !seenIds.has(idKey)) {
+        seenIds.add(idKey);
+        combined.push(r);
+      }
+    });
+
+    officialRows.forEach(r => {
+      const idKey = String(r._docId || r.id || '');
+      if (!seenIds.has(idKey)) {
+        seenIds.add(idKey);
+        combined.push(r);
+      }
+    });
+
+    combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+    setDespejoRows(combined);
   }, [empresa?.id]);
+
+  useEffect(() => {
+    reloadDespejoData();
+
+    const handleSync = () => reloadDespejoData();
+    window.addEventListener('despejo-updated', handleSync);
+    window.addEventListener('despejo-db-updated', handleSync);
+    window.addEventListener('empresa-data-reload', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      window.removeEventListener('despejo-updated', handleSync);
+      window.removeEventListener('despejo-db-updated', handleSync);
+      window.removeEventListener('empresa-data-reload', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [reloadDespejoData]);
 
   useEffect(() => {
     calcDuration();
@@ -204,23 +261,59 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     const today = new Date();
     const dataStr = today.toLocaleDateString('pt-BR');
     const dataISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const companyId = empresa?.id || 'demo';
 
     const newRow: Omit<DespejoRow, '_docId'> & { empresaId: string } = {
-      empresaId: empresa?.id || 'demo',
+      empresaId: companyId,
       data: dataStr,
       dataISO,
+      mes: today.toLocaleString('pt-BR', { month: 'long' }).toUpperCase(),
       embalagem,
       quantidade: Number(quantidade),
       inicio,
       fim,
       tempo,
+      duracao: tempo,
       meta: activeMeta,
       resultado: statusMeta,
+      status: statusMeta.includes('BATIDA') ? 'META BATIDA' : 'FORA DA META',
       operador: user.nome,
+      _criadoEm: today.toISOString()
     };
 
     try {
-      await DespejoRepository.create(newRow, empresa?.id || 'demo');
+      const added = await DespejoRepository.create(newRow, companyId);
+      const generatedId = added?._docId || added?.id || `despejo_manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      
+      const fullCreatedRow: DespejoRow = {
+        ...newRow,
+        _docId: generatedId,
+        id: generatedId
+      };
+
+      // 1. Atualiza imediatamente o estado local da tabela
+      setDespejoRows(prev => [fullCreatedRow, ...prev.filter(r => r.id !== generatedId && r._docId !== generatedId)]);
+
+      // 2. Persiste em despejo_manual_entries_ e despejo_rows_ para descarregar no dashboard em tempo real
+      try {
+        const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+        const manualList: DespejoRow[] = savedManual ? JSON.parse(savedManual) : [];
+        const updatedManual = [fullCreatedRow, ...manualList.filter(m => (m.id || m._docId) !== generatedId)];
+        localStorage.setItem(`despejo_manual_entries_${companyId}`, JSON.stringify(updatedManual));
+      } catch (e) {}
+
+      // 3. Notifica todos os módulos, abas e o DespejoDashboard em tempo real
+      window.dispatchEvent(new CustomEvent('despejo-updated', { detail: { record: fullCreatedRow, companyId } }));
+      window.dispatchEvent(new CustomEvent('despejo-db-updated', { detail: { record: fullCreatedRow, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload', { detail: { collection: 'despejo' } }));
+      window.dispatchEvent(new CustomEvent('despejo_tasks_updated', { detail: { companyId } }));
+      window.dispatchEvent(new CustomEvent('storage'));
+
+      // Se esse registro veio de uma tarefa ativa, conclui a tarefa
+      if (activeTask) {
+        concluirDespejoTask(activeTask.id, user.nome, companyId);
+        setActiveTask(null);
+      }
 
       // Reset fields
       setQuantidade('');
@@ -240,14 +333,26 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
+    const companyId = empresa?.id || 'demo';
     try {
-      await DespejoRepository.delete(docId, empresa?.id || 'demo');
+      await DespejoRepository.delete(docId, companyId);
     } catch (e) {
       console.error(e);
     } finally {
-      const remaining = despejoRows.filter(r => r._docId !== docId && (r as any).id !== docId);
-      setDespejoRows(remaining);
-      localStorage.setItem(`despejo_rows_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
+      setDespejoRows(prev => prev.filter(r => r._docId !== docId && (r as any).id !== docId));
+      try {
+        const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+        if (savedManual) {
+          const manualList: DespejoRow[] = JSON.parse(savedManual);
+          const updatedManual = manualList.filter(m => (m.id || m._docId) !== docId);
+          localStorage.setItem(`despejo_manual_entries_${companyId}`, JSON.stringify(updatedManual));
+        }
+      } catch (e) {}
+
+      window.dispatchEvent(new CustomEvent('despejo-updated', { detail: { deletedId: docId, companyId } }));
+      window.dispatchEvent(new CustomEvent('despejo-db-updated', { detail: { deletedId: docId, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload', { detail: { collection: 'despejo' } }));
+      window.dispatchEvent(new CustomEvent('storage'));
     }
   };
 
@@ -412,6 +517,113 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
 
       {activeTab === 'form' && (
         <div className="g-card p-6 flex flex-col gap-5">
+          {/* QUEUE OF PENDING DESPEJO TASKS */}
+          {despejoTasks.filter(t => t.status === 'Pendente').length > 0 && (
+            <div className="bg-rose-950/30 border-2 border-rose-500/60 rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-rose-600 text-white animate-pulse">
+                    <AlertTriangleIcon className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-sm font-black text-rose-400 uppercase tracking-wider">
+                    🚨 Tarefas de Despejo Recebidas ({despejoTasks.filter(t => t.status === 'Pendente').length} Pendentes)
+                  </h4>
+                </div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">
+                  Demandas CCO / PNC / FEFO
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                {despejoTasks.filter(t => t.status === 'Pendente').map(task => {
+                  const isSelected = activeTask?.id === task.id;
+                  return (
+                    <div
+                      key={task.id}
+                      className={`p-3.5 rounded-xl border transition-all ${
+                        isSelected 
+                          ? 'bg-rose-900/50 border-rose-400 shadow-md ring-2 ring-rose-400' 
+                          : 'bg-[#151b23] border-[#222d3a] hover:border-rose-500/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-rose-600 text-white">
+                          {task.prioridade} • {task.origem}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {task.dataSolicitacao}
+                        </span>
+                      </div>
+
+                      <div className="font-black text-snow text-xs">
+                        {task.codigo} - {task.descricao}
+                      </div>
+
+                      <div className="text-[11px] text-slate-300 mt-1 flex flex-wrap justify-between gap-x-2">
+                        <span>Lote: <strong className="font-mono text-white">{task.lote}</strong></span>
+                        <span>Validade: <strong className="font-mono text-white">{task.validade}</strong></span>
+                        <span>Qtd: <strong className="text-rose-400 font-mono font-bold text-sm">{task.quantidade} cx</strong></span>
+                      </div>
+
+                      <p className="text-[10px] text-slate-400 mt-1.5 truncate" title={task.motivo}>
+                        <strong>Motivo:</strong> {task.motivo} (Por: {task.solicitadoPor})
+                      </p>
+
+                      <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTask(task);
+                            setQuantidade(task.quantidade);
+                            // Set estimated packaging if matched
+                            const foundEmb = DESPEJO_EMBALAGENS.find(e => task.descricao.toUpperCase().includes(e.nome.toUpperCase().split(' ')[0]));
+                            if (foundEmb) setEmbalagem(foundEmb.nome);
+                            setDraftRestored(false);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                              : 'bg-rose-600 hover:bg-rose-500 text-white shadow-xs'
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Selecionada p/ Despejo</span>
+                            </>
+                          ) : (
+                            <>
+                              <ArrowDownRight className="w-3.5 h-3.5" />
+                              <span>Executar Esta Tarefa</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTask && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>
+                  Executando tarefa: <strong>{activeTask.codigo} - {activeTask.descricao}</strong> ({activeTask.quantidade} cx). O lançamento dará baixa automática!
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTask(null)}
+                className="text-[10px] font-bold text-slate-400 hover:text-white uppercase cursor-pointer"
+              >
+                Desvincular
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-3">
             <h3 className="font-sans font-bold text-sm tracking-wider uppercase text-[#ef4444]">Configurar Lançamento</h3>
             <div className="flex items-center gap-1.5 text-[9px] text-[#22c55e] font-black uppercase tracking-wider bg-[#22c55e]/5 px-2.5 py-1 rounded-lg border border-[#22c55e]/15">

@@ -1,16 +1,18 @@
 import { jsPDF } from 'jspdf';
-import { QUESTOES_RONDA_GSA, NivelAvaliacao } from '../components/RondaGsaComponent';
+import { QUESTOES_GSA_OFICIAIS, ItemVerificacaoGSA } from '../data/rondaGsaOfficialDataset';
 
 export interface ExportRondaGsaOptions {
   auditorNome?: string;
   colaboradorAuditado?: string;
   localAuditado?: string;
   dataStr?: string;
-  respostas?: Record<number, NivelAvaliacao>;
-  observacoes?: Record<number, string>;
+  respostas?: Record<string, string> | Record<number, string>;
+  observacoes?: Record<number, string> | Record<string, string>;
   pontosPercentual?: number;
   pontuacaoPercentual?: number;
   statusPontuacao?: string;
+  comentarios?: string;
+  acaoCorretiva?: string;
 }
 
 export function exportRondaGsaManualPdf(options?: ExportRondaGsaOptions) {
@@ -20,146 +22,180 @@ export function exportRondaGsaManualPdf(options?: ExportRondaGsaOptions) {
     format: 'a4'
   });
 
+  const pct = options?.pontuacaoPercentual ?? options?.pontosPercentual;
   const pageWidth = 210;
+  const pageHeight = 297;
   const margin = 10;
   const contentWidth = pageWidth - (margin * 2); // 190mm
 
-  // CABEÇALHO
-  doc.setFillColor(15, 23, 42); // Navy Dark
-  doc.rect(margin, 8, contentWidth, 20, 'F');
+  // CABEÇALHO INSTITUCIONAL DSPD GUARABIRA
+  doc.setFillColor(3, 43, 94); // Azul DPO
+  doc.rect(margin, 8, contentWidth, 22, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setTextColor(255, 255, 255);
-  doc.text('RONDA DE QUALIDADE SEMANAL - GSA (34 ITENS)', margin + 5, 16);
+  doc.text('DSPD GUARABIRA - LAUDO DE RONDA DE QUALIDADE', margin + 5, 16);
 
-  doc.setFontSize(7.5);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(148, 163, 184);
-  doc.text('DPO Qualidade & Armazém • Avaliação de Padrões Operacionais e Boas Práticas', margin + 5, 22);
+  doc.setTextColor(191, 219, 254);
+  doc.text('Gestão de Qualidade e Segurança Operacional (41 Quesitos / 6 Áreas) • DPO Guarabira', margin + 5, 22);
 
-  if (options?.pontuacaoPercentual !== undefined) {
+  if (pct !== undefined) {
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(pageWidth - margin - 48, 11, 44, 16, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.setTextColor(250, 204, 21);
-    doc.text(`${options.pontuacaoPercentual}% - ${options.statusPontuacao || ''}`, pageWidth - margin - 50, 18);
+    doc.setTextColor(3, 43, 94);
+    doc.text(`${pct}%`, pageWidth - margin - 44, 19);
+    doc.setFontSize(7.5);
+    doc.setTextColor(pct >= 95 ? 30 : 180, pct >= 95 ? 150 : 30, 30);
+    doc.text(options?.statusPontuacao || (pct >= 95 ? 'CONFORME DPO' : 'ATENÇÃO'), pageWidth - margin - 44, 24);
   }
 
   // DADOS DA AUDITORIA
-  let currentY = 32;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 30, 30);
-
-  doc.text(`Data: ${options?.dataStr || '_____/_____/________'}`, margin + 2, currentY);
-  doc.text(`Local / Setor: ${options?.localAuditado || '_____________________________________'}`, margin + 45, currentY);
-  doc.text(`Colaborador: ${options?.colaboradorAuditado || '_____________________________________'}`, margin + 115, currentY);
-  
-  currentY += 5;
-  doc.text(`Auditor Responsável: ${options?.auditorNome || '_____________________________________'}`, margin + 2, currentY);
-
-  currentY += 5;
-
-  // TABELA DAS 34 QUESTÕES
-  const colNumW = 8;
-  const colPerguntaW = 120;
-  const colNivelW = 62;
-
-  // Header Tabela
-  doc.setFillColor(226, 232, 240);
-  doc.rect(margin, currentY, contentWidth, 6, 'F');
-  doc.rect(margin, currentY, contentWidth, 6, 'S');
+  let currentY = 34;
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(margin, currentY, contentWidth, 18, 2, 2, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
 
-  doc.text('Nº', margin + 2, currentY + 4);
-  doc.text('Item / Pergunta de Qualidade Operacional', margin + colNumW + 2, currentY + 4);
-  doc.text('Avaliação (Exc. / Bom / Raz. / Ruim)', margin + colNumW + colPerguntaW + 2, currentY + 4);
-
-  currentY += 6;
-
+  doc.text('DATA:', margin + 3, currentY + 5);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.2);
+  doc.setTextColor(15, 23, 42);
+  doc.text(options?.dataStr || new Date().toLocaleDateString('pt-BR'), margin + 18, currentY + 5);
 
-  QUESTOES_RONDA_GSA.forEach((q) => {
-    // Quebra de página caso passe da página 1 (34 itens cabem em 2 páginas ou 1 página compacta)
-    if (currentY > 275) {
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 65, 85);
+  doc.text('LOCAL / UNIDADE:', margin + 65, currentY + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(15, 23, 42);
+  doc.text(options?.localAuditado || 'Armazém Geral - DSPD Guarabira', margin + 96, currentY + 5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 65, 85);
+  doc.text('AUDITOR RESP.:', margin + 3, currentY + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(15, 23, 42);
+  doc.text(options?.auditorNome || 'Djeanderson Soares', margin + 28, currentY + 11);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 65, 85);
+  doc.text('EQUIPE / TURNO:', margin + 75, currentY + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(15, 23, 42);
+  doc.text(options?.colaboradorAuditado || 'Equipe Operacional', margin + 105, currentY + 11);
+
+  if (options?.comentarios) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(180, 83, 9);
+    doc.text('OBS / COACHING:', margin + 3, currentY + 16);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(30, 41, 59);
+    const splitObs = doc.splitTextToSize(options.comentarios, 145);
+    doc.text(splitObs[0], margin + 30, currentY + 16);
+  }
+
+  currentY += 22;
+
+  // TABELA DOS 41 QUESITOS OFICIAIS
+  doc.setFillColor(30, 41, 59);
+  doc.rect(margin, currentY, contentWidth, 7, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('#', margin + 2, currentY + 5);
+  doc.text('ÁREA / QUESITO DE VERIFICAÇÃO', margin + 10, currentY + 5);
+  doc.text('RESPOSTA', pageWidth - margin - 35, currentY + 5);
+  doc.text('STATUS', pageWidth - margin - 18, currentY + 5);
+
+  currentY += 7;
+
+  QUESTOES_GSA_OFICIAIS.forEach((q, idx) => {
+    // Quebra de página se necessário
+    if (currentY > pageHeight - 20) {
       doc.addPage();
-      currentY = 12;
+      currentY = 15;
 
-      // Header na página seguinte
-      doc.setFillColor(226, 232, 240);
-      doc.rect(margin, currentY, contentWidth, 6, 'F');
-      doc.rect(margin, currentY, contentWidth, 6, 'S');
+      doc.setFillColor(30, 41, 59);
+      doc.rect(margin, currentY, contentWidth, 7, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.text('Nº', margin + 2, currentY + 4);
-      doc.text('Item / Pergunta de Qualidade Operacional (Cont.)', margin + colNumW + 2, currentY + 4);
-      doc.text('Avaliação (Exc. / Bom / Raz. / Ruim)', margin + colNumW + colPerguntaW + 2, currentY + 4);
-      currentY += 6;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.2);
+      doc.setFontSize(7.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text('#', margin + 2, currentY + 5);
+      doc.text('ÁREA / QUESITO DE VERIFICAÇÃO (CONTINUAÇÃO)', margin + 10, currentY + 5);
+      doc.text('RESPOSTA', pageWidth - margin - 35, currentY + 5);
+      doc.text('STATUS', pageWidth - margin - 18, currentY + 5);
+      currentY += 7;
     }
 
-    const rowH = 6.8;
-    doc.setDrawColor(203, 213, 225);
-    doc.rect(margin, currentY, colNumW, rowH);
-    doc.rect(margin + colNumW, currentY, colPerguntaW, rowH);
-    doc.rect(margin + colNumW + colPerguntaW, currentY, colNivelW, rowH);
+    const isEven = idx % 2 === 0;
+    doc.setFillColor(isEven ? 248 : 255, isEven ? 250 : 255, isEven ? 252 : 255);
+    doc.rect(margin, currentY, contentWidth, 5.2, 'F');
 
-    doc.setTextColor(30, 30, 30);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(q.id), margin + 2.5, currentY + 4.5);
+    doc.setFontSize(6.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(String(q.id), margin + 2, currentY + 3.8);
 
     doc.setFont('helvetica', 'normal');
-    const splitText = doc.splitTextToSize(q.pergunta, colPerguntaW - 4);
-    doc.text(splitText, margin + colNumW + 2, currentY + 3.5);
+    doc.setFontSize(6.2);
+    doc.setTextColor(15, 23, 42);
+    const itemText = `[${q.categoria}] ${q.perguntaCurta}`;
+    const truncatedText = doc.splitTextToSize(itemText, 130)[0];
+    doc.text(truncatedText, margin + 10, currentY + 3.8);
 
-    // Se tiver resposta preenchida
-    const resp = options?.respostas ? options.respostas[q.id] : undefined;
-    if (resp) {
-      doc.setFont('helvetica', 'bold');
-      if (resp === 'excelente') {
-        doc.setTextColor(37, 99, 235);
-        doc.text('[X] EXCELENTE', margin + colNumW + colPerguntaW + 2, currentY + 4.5);
-      } else if (resp === 'bom') {
-        doc.setTextColor(16, 185, 129);
-        doc.text('[X] BOM', margin + colNumW + colPerguntaW + 2, currentY + 4.5);
-      } else if (resp === 'razoavel') {
-        doc.setTextColor(217, 119, 6);
-        doc.text('[X] RAZOÁVEL', margin + colNumW + colPerguntaW + 2, currentY + 4.5);
-      } else {
-        doc.setTextColor(225, 29, 72);
-        doc.text('[X] RUIM', margin + colNumW + colPerguntaW + 2, currentY + 4.5);
-      }
-    } else {
-      // Checkboxes manuais para impressão
+    // Resposta
+    const rawResp = options?.respostas?.[q.id] || options?.respostas?.[q.pergunta] || options?.respostas?.[q.perguntaCurta] || 'Sim';
+    const isNao = String(rawResp).toLowerCase() === 'não' || String(rawResp).toLowerCase() === 'nao';
+    const isNA = String(rawResp).toLowerCase() === 'n/a' || String(rawResp).toLowerCase() === 'na';
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    if (isNao) {
+      doc.setTextColor(220, 38, 38);
+      doc.text('Não', pageWidth - margin - 35, currentY + 3.8);
+      doc.text('DESVIO', pageWidth - margin - 18, currentY + 3.8);
+    } else if (isNA) {
       doc.setTextColor(100, 116, 139);
-      doc.text('( ) Exc   ( ) Bom   ( ) Raz   ( ) Ruim', margin + colNumW + colPerguntaW + 3, currentY + 4.5);
+      doc.text('N/A', pageWidth - margin - 35, currentY + 3.8);
+      doc.text('N/A', pageWidth - margin - 18, currentY + 3.8);
+    } else {
+      doc.setTextColor(22, 101, 52);
+      doc.text('Sim', pageWidth - margin - 35, currentY + 3.8);
+      doc.text('OK', pageWidth - margin - 18, currentY + 3.8);
     }
 
-    currentY += rowH;
+    currentY += 5.2;
   });
 
   // ASSINATURAS NO FINAL
-  currentY += 8;
-  if (currentY > 265) {
+  if (currentY > pageHeight - 35) {
     doc.addPage();
     currentY = 20;
+  } else {
+    currentY += 8;
   }
 
-  doc.setDrawColor(71, 85, 105);
-  doc.line(margin + 15, currentY + 10, margin + 75, currentY + 10);
-  doc.line(margin + 115, currentY + 10, margin + 175, currentY + 10);
+  doc.setDrawColor(148, 163, 184);
+  doc.line(margin + 15, currentY + 12, margin + 75, currentY + 12);
+  doc.line(margin + 115, currentY + 12, margin + 175, currentY + 12);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59);
-  doc.text('Assinatura do Auditor (Controle / Gestão)', margin + 20, currentY + 14);
-  doc.text('Assinatura do Colaborador / Responsável', margin + 120, currentY + 14);
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
+  doc.text('Djeanderson Soares', margin + 30, currentY + 16);
+  doc.text('Supervisor / Gestão DPO', margin + 128, currentY + 16);
 
-  const filename = `Ronda_Qualidade_GSA_34_Itens_${(options?.dataStr || 'Manual').replace(/\//g, '-')}.pdf`;
-  doc.save(filename);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Auditor da Ronda de Qualidade', margin + 27, currentY + 20);
+  doc.text('DSPD Guarabira', margin + 138, currentY + 20);
+
+  doc.save(`Laudo_Ronda_DSPD_Guarabira_${options?.dataStr?.replace(/\//g, '-') || 'Manual'}.pdf`);
 }

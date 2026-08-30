@@ -38,38 +38,51 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
 }) => {
   const isRepack = tipo === 'repack';
   const setorNome = isRepack ? 'Repack' : 'Despejo';
-  const unitShort = isRepack ? 'cx' : 'reg';
-  const unitHora = isRepack ? 'cx/h' : 'reg/h';
-  const unitPlural = isRepack ? 'caixas' : 'registros';
-  const unitSingular = isRepack ? 'caixa' : 'registro';
+  const unitShort = isRepack ? 'cx' : 'un';
+  const unitHora = isRepack ? 'cx/h' : 'un/h';
+  const unitPlural = isRepack ? 'caixas' : 'unidades';
+  const unitSingular = isRepack ? 'caixa' : 'unidade';
 
   // Active Simulation Tab: 'caixas_hora' | 'caixas_qtd' | 'tempo' | 'percentual'
   const [simMode, setSimMode] = useState<'caixas_hora' | 'tempo' | 'caixas_qtd' | 'percentual'>('caixas_hora');
 
   // Real Current Metrics
   const horasTrabalhadas = Math.max(0.1, tempoTotalMinutos / 60);
-  const agilidadeAtualCxHora = totalCaixasUnidades > 0 ? totalCaixasUnidades / horasTrabalhadas : 19.0;
+  const effectiveMetaCxHora = metaCxHora && metaCxHora > 0 ? metaCxHora : (isRepack ? 10 : 30);
+  const agilidadeAtualCxHora = totalCaixasUnidades > 0 ? totalCaixasUnidades / horasTrabalhadas : (isRepack ? 10.0 : 32.0);
   const agilidadeAtualHlHora = totalHectolitros > 0 ? totalHectolitros / horasTrabalhadas : 1.89;
-  const tempoMedioMinUnit = totalCaixasUnidades > 0 ? tempoTotalMinutos / totalCaixasUnidades : 3.15; // minutes per package
-  const hlPorCaixa = totalCaixasUnidades > 0 ? totalHectolitros / totalCaixasUnidades : 0.095;
+  const tempoMedioMinUnit = totalCaixasUnidades > 0 ? tempoTotalMinutos / totalCaixasUnidades : (isRepack ? 6.0 : (44 / 60)); // minutes per package
+  const tempoMedioSecUnit = totalCaixasUnidades > 0 ? (tempoTotalMinutos * 60) / totalCaixasUnidades : (isRepack ? 360 : 44);
+  const tempoMedioDiarioMin = diasUteisElapsed > 0 ? tempoTotalMinutos / diasUteisElapsed : (tempoTotalMinutos / 20);
+  const hlPorCaixa = totalCaixasUnidades > 0 ? totalHectolitros / totalCaixasUnidades : 0.0035;
+
+  // Format Helper
+  const formatTimeHMS = (sec: number) => {
+    sec = Math.max(0, Math.round(sec));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
   // Simulation controls state with direct inputs
   const [simTargetCxHora, setSimTargetCxHora] = useState<number>(() => {
-    return Math.round(agilidadeAtualCxHora > 0 ? agilidadeAtualCxHora : 20);
+    return Math.round(agilidadeAtualCxHora > 0 ? agilidadeAtualCxHora : (isRepack ? 10 : 30));
   });
   const [simInputCxHoraText, setSimInputCxHoraText] = useState<string>(() => {
-    return String(Math.round(agilidadeAtualCxHora > 0 ? agilidadeAtualCxHora : 20));
+    return String(Math.round(agilidadeAtualCxHora > 0 ? agilidadeAtualCxHora : (isRepack ? 10 : 30)));
   });
 
   const [simTempoMin, setSimTempoMin] = useState<number>(() => Math.floor(tempoMedioMinUnit));
   const [simTempoSec, setSimTempoSec] = useState<number>(() => Math.round((tempoMedioMinUnit % 1) * 60));
 
-  const [extraBoxes, setExtraBoxes] = useState<number>(50); // +50 boxes
+  const [extraBoxes, setExtraBoxes] = useState<number>(50); // +50 boxes/units
   const [agilidadeBonusPct, setAgilidadeBonusPct] = useState<number>(10); // +10%
 
-  // Meta Target: Average time per package with 10% efficiency boost (+10% agility rate)
-  const metaTempoMedioMinUnit = metaCxHora > 0 ? (60 / metaCxHora) : 6.0;
-  const metaAgilidadeHlHora = metaCxHora * hlPorCaixa;
+  // Meta Target: Average time per package with standard rate
+  const metaTempoMedioMinUnit = effectiveMetaCxHora > 0 ? (60 / effectiveMetaCxHora) : (isRepack ? 6.0 : (50 / 60));
+  const metaAgilidadeHlHora = effectiveMetaCxHora * hlPorCaixa;
 
   // SIMULATION CALCULATIONS BASED ON ACTIVE MODE
   const simResults = useMemo(() => {
@@ -81,7 +94,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
     let simulatedTotalHl = totalHectolitros;
 
     if (simMode === 'caixas_hora') {
-      // 1. Simulação direta por Caixas por Hora (cx/h digitado pelo usuário)
+      // 1. Simulação direta por Unidades/Caixas por Hora digitado pelo usuário
       simulatedCxHora = Math.max(0.5, simTargetCxHora);
       simulatedHlHora = simulatedCxHora * hlPorCaixa;
       simulatedTempoMinUnit = 60 / simulatedCxHora;
@@ -91,7 +104,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
 
     } else if (simMode === 'tempo') {
       // 2. Simulação por tempo médio por embalagem (digitado em min e seg)
-      const totalSec = Math.max(15, simTempoMin * 60 + simTempoSec);
+      const totalSec = Math.max(10, simTempoMin * 60 + simTempoSec);
       simulatedTempoMinUnit = totalSec / 60;
       tempoEconomizadoPorCaixaMin = Math.max(0, tempoMedioMinUnit - simulatedTempoMinUnit);
       simulatedCxHora = 60 / simulatedTempoMinUnit;
@@ -100,7 +113,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
       simulatedTotalHl = simulatedTotalBoxes * hlPorCaixa;
 
     } else if (simMode === 'caixas_qtd') {
-      // 3. Simulação por acréscimo de caixas no lote/período
+      // 3. Simulação por acréscimo de caixas/unidades no lote/período
       simulatedTotalBoxes = Math.max(1, totalCaixasUnidades + extraBoxes);
       simulatedTotalHl = simulatedTotalBoxes * hlPorCaixa;
       simulatedCxHora = simulatedTotalBoxes / horasTrabalhadas;
@@ -128,8 +141,8 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
     const projecaoFechamentoHl = totalHectolitros + (mediaDiariaSimuladaHl * diasRestantes);
     const projecaoCaixasMes = Math.round(totalCaixasUnidades + (simulatedCxHora * 8 * diasRestantes));
 
-    const bateuMeta = simulatedCxHora >= metaCxHora;
-    const diferencaMetaCxH = simulatedCxHora - metaCxHora;
+    const bateuMeta = simulatedCxHora >= effectiveMetaCxHora;
+    const diferencaMetaCxH = simulatedCxHora - effectiveMetaCxHora;
     const atingimentoPercent = Math.min(300, Math.round((projecaoFechamentoHl / Math.max(1, metaHectolitrosMensal)) * 100));
 
     return {
@@ -160,7 +173,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
     totalHectolitros, 
     horasTrabalhadas, 
     tempoTotalMinutos, 
-    metaCxHora, 
+    effectiveMetaCxHora, 
     metaHectolitrosMensal, 
     diasUteisTotal, 
     diasUteisElapsed, 
@@ -192,7 +205,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             Simulador de Meta & Agilidade de Operador - {setorNome}
           </h3>
           <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-            Simule o aumento de {unitPlural} ou redução de tempo por operação vs a meta oficial de {metaCxHora} {unitHora}
+            Simule o aumento de {unitPlural} ou redução de tempo por operação vs a meta oficial de {effectiveMetaCxHora} {unitHora}
           </p>
         </div>
 
@@ -225,28 +238,32 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               </span>
             </div>
             <span className="text-[9px] text-slate-500 font-bold uppercase block mt-0.5">
-              Base: {totalCaixasUnidades} {unitShort} em {Math.round(tempoTotalMinutos)} min
+              Base: {totalCaixasUnidades.toLocaleString('pt-BR')} {unitShort} em {Math.round(tempoTotalMinutos)} min
             </span>
           </div>
         </div>
 
-        {/* CARD 2: TEMPO MÉDIO ATUAL P/ EMBALAGEM / REGISTRO */}
+        {/* CARD 2: TEMPO MÉDIO ATUAL P/ EMBALAGEM / REGISTRO / DIÁRIO */}
         <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3">
           <div className="p-2.5 bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-xl shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">
-              Tempo Médio Atual
+              {isRepack ? 'Tempo Médio / Caixa' : 'Tempo Médio / Unidade'}
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black font-mono text-purple-700 dark:text-purple-300">
-                {tempoMedioMinUnit.toFixed(2)}
+                {isRepack 
+                  ? `${Math.floor(tempoMedioMinUnit)}m ${Math.round((tempoMedioMinUnit % 1) * 60).toString().padStart(2, '0')}s` 
+                  : (tempoMedioSecUnit < 60 ? `${Math.round(tempoMedioSecUnit)}s` : `${Math.floor(tempoMedioSecUnit / 60)}m ${Math.round(tempoMedioSecUnit % 60)}s`)}
               </span>
-              <span className="text-xs font-bold text-slate-400">min /{unitShort}</span>
+              <span className="text-xs font-bold text-slate-400">/{unitShort}</span>
             </div>
             <span className="text-[9px] text-slate-500 font-bold uppercase block mt-0.5">
-              Média por {unitSingular}
+              {isRepack 
+                ? `Média: ${tempoMedioMinUnit.toFixed(1)} min/cx` 
+                : `Diário: ${Math.round(tempoMedioDiarioMin)} min/dia • Meta: < 50s`}
             </span>
           </div>
         </div>
@@ -262,7 +279,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black font-mono text-amber-900 dark:text-amber-200">
-                {metaCxHora.toFixed(1)}
+                {effectiveMetaCxHora.toFixed(1)}
               </span>
               <span className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">{unitHora}</span>
               <span className="text-[10px] text-amber-600 font-mono font-bold ml-1">
@@ -270,7 +287,7 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
               </span>
             </div>
             <span className="text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase block mt-0.5">
-              Alvo: {metaTempoMedioMinUnit.toFixed(2)} min/{unitShort}
+              Alvo: {isRepack ? `${metaTempoMedioMinUnit.toFixed(1)} min/cx` : '< 50s / unidade (00:00:50)'}
             </span>
           </div>
         </div>
@@ -515,14 +532,19 @@ export const SimuladorAgilidadeMeta: React.FC<SimuladorAgilidadeProps> = ({
             {/* BOTÕES DE ATALHO RÁPIDO */}
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Predefinições:</span>
-              {[
+              {(isRepack ? [
+                { label: '06:00 (Meta 10 cx/h)', min: 6, sec: 0 },
                 { label: '05:30 (Lata 350)', min: 5, sec: 30 },
                 { label: '04:30 (Lata 269)', min: 4, sec: 30 },
-                { label: `${Math.floor(tempoMedioMinUnit)}:${Math.round((tempoMedioMinUnit % 1) * 60).toString().padStart(2, '0')} (Média Atual)`, min: Math.floor(tempoMedioMinUnit), sec: Math.round((tempoMedioMinUnit % 1) * 60) },
-                { label: `03:00 (20 ${unitHora})`, min: 3, sec: 0 },
-                { label: `02:30 (24 ${unitHora})`, min: 2, sec: 30 },
-                { label: `02:00 (30 ${unitHora})`, min: 2, sec: 0 }
-              ].map((btn, idx) => (
+                { label: `${Math.floor(tempoMedioMinUnit)}:${Math.round((tempoMedioMinUnit % 1) * 60).toString().padStart(2, '0')} (Média)`, min: Math.floor(tempoMedioMinUnit), sec: Math.round((tempoMedioMinUnit % 1) * 60) },
+                { label: '03:00 (20 cx/h)', min: 3, sec: 0 }
+              ] : [
+                { label: '00:50 (Meta DPO 50s)', min: 0, sec: 50 },
+                { label: '00:44 (Média Real 44s)', min: 0, sec: 44 },
+                { label: '00:40 (45 un/h)', min: 0, sec: 40 },
+                { label: '00:30 (60 un/h)', min: 0, sec: 30 },
+                { label: '01:00 (30 un/h)', min: 1, sec: 0 }
+              ]).map((btn, idx) => (
                 <button
                   key={idx}
                   type="button"

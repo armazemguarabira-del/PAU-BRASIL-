@@ -39,6 +39,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { ImportAcoesModal } from './ImportAcoesModal';
+import { matchesProcessFilter } from './QuadroAcoesDpo';
 import { 
   AcaoCorretiva, 
   CincoPorques,
@@ -270,7 +271,7 @@ export const ExecutiveActionBoard: React.FC<ExecutiveActionBoardProps> = ({
   const filteredAcoes = useMemo(() => {
     return acoes.filter(a => {
       // Processo
-      if (selectedProcesso !== 'todos' && a.processo !== selectedProcesso) return false;
+      if (selectedProcesso !== 'todos' && !matchesProcessFilter(a.processo, selectedProcesso)) return false;
       
       // Tipo (Corretiva / Rotina / Melhoria)
       if (selectedTipo !== 'todos') {

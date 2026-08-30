@@ -2,10 +2,12 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { 
   initializeFirestore, 
+  getFirestore,
   persistentLocalCache, 
   persistentMultipleTabManager, 
   memoryLocalCache, 
-  setLogLevel 
+  setLogLevel,
+  Firestore
 } from 'firebase/firestore';
 
 // Set Firestore log level to silent to suppress backend retry warnings in offline mode
@@ -43,12 +45,12 @@ interface FirebaseConfigExtended {
 const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
 
 const DEFAULT_CONFIG: FirebaseConfigExtended = {
-  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyCRqq7FK0L9m_aEqte7BXCu5q0C68JbJ64",
-  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "banco-03-teste.firebaseapp.com",
-  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "banco-03-teste",
-  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "banco-03-teste.firebasestorage.app",
-  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "960111862390",
-  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:960111862390:web:14e480b12d53eb9fb0b557",
+  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyCEVc8_C4nk8_NBitfE1oBki_dWYvBpXyg",
+  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "mesmerizing-rampart-wdzmz.firebaseapp.com",
+  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "mesmerizing-rampart-wdzmz",
+  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "mesmerizing-rampart-wdzmz.firebasestorage.app",
+  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "612888387646",
+  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:612888387646:web:57f543336ce0209dceb16f",
   measurementId: metaEnv?.VITE_FIREBASE_MEASUREMENT_ID || undefined,
   firestoreDatabaseId: metaEnv?.VITE_FIREBASE_DATABASE_ID || undefined
 };
@@ -113,13 +115,26 @@ try {
   hybridFirestoreCache = memoryLocalCache();
 }
 
-const db = firebaseConfig.firestoreDatabaseId 
-  ? initializeFirestore(app, {
-      localCache: hybridFirestoreCache
-    }, firebaseConfig.firestoreDatabaseId)
-  : initializeFirestore(app, {
-      localCache: hybridFirestoreCache
-    });
+let db: Firestore;
+try {
+  db = firebaseConfig.firestoreDatabaseId 
+    ? initializeFirestore(app, {
+        localCache: hybridFirestoreCache
+      }, firebaseConfig.firestoreDatabaseId)
+    : initializeFirestore(app, {
+        localCache: hybridFirestoreCache
+      });
+} catch (err) {
+  try {
+    db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+  } catch (e2) {
+    try {
+      db = initializeFirestore(app, { localCache: memoryLocalCache() });
+    } catch (e3) {
+      db = getFirestore(app);
+    }
+  }
+}
 
 // Helper to determine if we are using custom config
 export const isCustomFirebaseConnected = () => {

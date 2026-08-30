@@ -37,11 +37,11 @@ export function StockAgeRankingSection({
     if (validades.length === 0 && produtos.length === 0) {
       // Generate standard realistic stock batch items from unit products if empty
       const baseSkus = [
-        { sku: 'SKU-001', nome: 'Brahma Duplo Malte 350ml', lote: 'L-2026-08', fab: '2026-01-10', val: '2026-07-10', totalDays: 180, colab: 'JOSE RONILDO DA SILVA' },
+        { sku: 'SKU-001', nome: 'Brahma Chopp 350ml', lote: 'L-2026-08', fab: '2026-01-10', val: '2026-07-10', totalDays: 180, colab: 'JOSE RONILDO DA SILVA' },
         { sku: 'SKU-002', nome: 'Skol Pilsen 350ml', lote: 'L-2026-09', fab: '2026-01-15', val: '2026-07-15', totalDays: 180, colab: 'MARIVALDO ARTUR ALVES' },
         { sku: 'SKU-003', nome: 'Antarctica Original 600ml', lote: 'L-2026-03', fab: '2025-11-01', val: '2026-05-01', totalDays: 180, colab: 'PAULO PEREIRA DA SILVA' },
         { sku: 'SKU-004', nome: 'Stella Artois 330ml Long Neck', lote: 'L-2026-04', fab: '2025-10-01', val: '2026-04-01', totalDays: 180, colab: 'GILSON ROSA DA SILVA' },
-        { sku: 'SKU-005', nome: 'Corona Extra 330ml Long Neck', lote: 'L-2026-11', fab: '2026-02-01', val: '2026-08-01', totalDays: 180, colab: 'MATEUS HENRIQUE DE SOUZA' },
+        { sku: 'SKU-005', nome: 'Corona Extra 330ml Long Neck', lote: 'L-2026-11', fab: '2026-02-01', val: '2026-08-01', totalDays: 180, colab: 'CICERO MATHEU DE OLIVEIRA SILVA' },
         { sku: 'SKU-006', nome: 'Guaraná Antarctica 2L PET', lote: 'L-2026-12', fab: '2026-02-10', val: '2026-08-10', totalDays: 180, colab: 'CICERO MATHEU DE OLIVEIRA SILVA' },
         { sku: 'SKU-007', nome: 'Budweiser 350ml Lata', lote: 'L-2026-01', fab: '2025-09-15', val: '2026-03-15', totalDays: 180, colab: 'JOSE GONCALVES DE SOUZA' },
         { sku: 'SKU-008', nome: 'Becks 330ml Long Neck', lote: 'L-2026-15', fab: '2026-02-20', val: '2026-08-20', totalDays: 180, colab: 'DJEANDERSON SOARES DO NASCIMENTO' }

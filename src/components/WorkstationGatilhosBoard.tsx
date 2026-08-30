@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import {
   ShieldAlert,
   AlertTriangle,
@@ -28,40 +29,30 @@ import {
   Layers,
   Truck,
   ShieldCheck,
-  RotateCcw
+  RotateCcw,
+  Calculator,
+  Info,
+  HelpCircle,
+  X,
+  Sparkles,
+  Award,
+  ChevronDown,
+  Download,
+  FileSpreadsheet,
+  Printer
 } from 'lucide-react';
+import { useEmpresaData } from '../context/EmpresaDataContext';
+import { useSystemTargets } from '../utils/useSystemTargets';
+import {
+  calcularGatilhosOperacionaisCompletos,
+  IndicadorGatilhoCalculado,
+  CategoriaGatilho
+} from '../utils/workstationGatilhosAnalytics';
 
 interface WorkstationGatilhosBoardProps {
   user: any;
   empresaId?: string;
   onNavigateToAcoes?: () => void;
-}
-
-export type CategoriaGatilho =
-  | 'WLP'
-  | 'PNP'
-  | 'REPACK'
-  | 'DESPEJO'
-  | 'QUALIDADE'
-  | 'ESTOQUE'
-  | 'FROTA_ROTAS'
-  | 'ABASTECIMENTO';
-
-export interface IndicadorGatilho {
-  id: string;
-  nome: string;
-  codigo: string;
-  categoria: CategoriaGatilho;
-  unidade: string;
-  valorHoje: number;
-  mediaDiaria: number;
-  limiteGatilho: number; // Limite operacional do gatilho
-  isMenorMelhor: boolean;
-  status: 'NORMAL' | 'ALERTA' | 'DISPARADO';
-  responsavelArea: string;
-  desviosCount: number;
-  descricaoIndicador: string;
-  metaPlataforma: string;
 }
 
 export interface DesvioDiarioItem {
@@ -88,13 +79,45 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
   empresaId = 'demo',
   onNavigateToAcoes
 }) => {
+  const { targets } = useSystemTargets(empresaId);
+  const empresaData = useEmpresaData();
+
   const [selectedCategoria, setSelectedCategoria] = useState<string>('TODOS');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('TODOS');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [diasUteisParam, setDiasUteisParam] = useState<number>(26);
+  const [refreshTick, setRefreshTick] = useState<number>(0);
+
+  // Ouvintes de eventos para recálculo automático em tempo real quando qualquer dashboard for atualizado
+  useEffect(() => {
+    const handlePlatformDataUpdated = () => {
+      setRefreshTick((t) => t + 1);
+    };
+
+    window.addEventListener('quebras-db-updated', handlePlatformDataUpdated);
+    window.addEventListener('repack-updated', handlePlatformDataUpdated);
+    window.addEventListener('despejo-updated', handlePlatformDataUpdated);
+    window.addEventListener('wlp-updated', handlePlatformDataUpdated);
+    window.addEventListener('storage', handlePlatformDataUpdated);
+
+    return () => {
+      window.removeEventListener('quebras-db-updated', handlePlatformDataUpdated);
+      window.removeEventListener('repack-updated', handlePlatformDataUpdated);
+      window.removeEventListener('despejo-updated', handlePlatformDataUpdated);
+      window.removeEventListener('wlp-updated', handlePlatformDataUpdated);
+      window.removeEventListener('storage', handlePlatformDataUpdated);
+    };
+  }, []);
+
+  // Modal para visualização e impressão do relatório mensal formatado
+  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState<boolean>(false);
+
+  // Modal para detalhamento analítico sênior
+  const [drilldownIndicador, setDrilldownIndicador] = useState<IndicadorGatilhoCalculado | null>(null);
 
   // Modal para registro de anomalia / desvio
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [newDesvioIndicadorId, setNewDesvioIndicadorId] = useState<string>('pnp_ajudante');
+  const [newDesvioIndicadorId, setNewDesvioIndicadorId] = useState<string>('quebras_armazem_movimentacao');
   const [newDesvioValor, setNewDesvioValor] = useState<string>('');
   const [newDesvioTurno, setNewDesvioTurno] = useState<string>('Turno 1');
   const [newDesvioEquipe, setNewDesvioEquipe] = useState<string>('Armazém - Operacional');
@@ -110,79 +133,24 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
       if (saved) return JSON.parse(saved);
     } catch (e) {}
 
-    // Seed inicial de desvios operacionais reais nos gatilhos
     return [
       {
         id: 'desv-01',
-        dataISO: '2026-08-08',
-        dataStr: '08/08/2026',
-        indicadorId: 'repack_produtividade',
-        indicadorNome: 'Rendimento Operacional Repack',
-        valorApurado: 128,
-        limiteGatilho: 165,
-        unidade: 'Cx/HH',
-        turno: 'Turno 1',
-        equipeResponsavel: 'Setor de Repack / Reestiva',
-        colaboradorEnvolvido: 'Equipe Repack T1',
-        causaAnomalia: 'Indisponibilidade momentânea de embalagens secundárias e gargalo na seladora',
-        statusAcao: 'EM_ANALISE',
-        planoAcaoDesc: 'Solicitar suporte imediato do almoxarifado de insumos e manutenção da seladora',
-        registradoPor: 'Líder de Repack',
-        registradoEm: '2026-08-08T14:30:00Z'
-      },
-      {
-        id: 'desv-02',
-        dataISO: '2026-08-07',
-        dataStr: '07/08/2026',
-        indicadorId: 'pnp_empilhador',
-        indicadorNome: 'PNP - Empilhadores',
-        valorApurado: 4.15,
-        limiteGatilho: 5.20,
-        unidade: 'HL/HH',
+        dataISO: '2026-08-28',
+        dataStr: '28/08/2026',
+        indicadorId: 'wqi_quebras',
+        indicadorNome: 'Qualidade & WQI (Quebras Diárias)',
+        valorApurado: 1.45,
+        limiteGatilho: 1.32,
+        unidade: 'HL/dia',
         turno: 'Turno 2',
-        equipeResponsavel: 'Movimentação / Empilhadeiras',
-        colaboradorEnvolvido: 'Carlos Santos',
-        causaAnomalia: 'Parada não programada por manutenção corretiva da empilhadeira #04',
-        statusAcao: 'PENDENTE',
-        planoAcaoDesc: 'Abrir chamado prioritário na manutenção de frota',
-        registradoPor: 'Líder de Turno',
-        registradoEm: '2026-08-07T22:15:00Z'
-      },
-      {
-        id: 'desv-03',
-        dataISO: '2026-08-06',
-        dataStr: '06/08/2026',
-        indicadorId: 'tempo_patio',
-        indicadorNome: 'Permanência no Pátio CCO',
-        valorApurado: 58,
-        limiteGatilho: 44,
-        unidade: 'min/veículo',
-        turno: 'Turno 1',
-        equipeResponsavel: 'Controle de Portaria',
-        colaboradorEnvolvido: 'Portaria & CCO',
-        causaAnomalia: 'Acúmulo de carretas na recepção por validação síncrona de NFe',
-        statusAcao: 'CONCLUIDO',
-        planoAcaoDesc: 'Implantar pré-triagem digital no portão de entrada',
-        registradoPor: 'Gestor CCO',
-        registradoEm: '2026-08-06T11:00:00Z'
-      },
-      {
-        id: 'desv-04',
-        dataISO: '2026-08-05',
-        dataStr: '05/08/2026',
-        indicadorId: 'estoque_age_index',
-        indicadorNome: 'Age Index Médio de Estoque',
-        valorApurado: 38.5,
-        limiteGatilho: 27.5,
-        unidade: 'Dias',
-        turno: 'Geral',
-        equipeResponsavel: 'Gestão de Estoques & FEFO',
-        colaboradorEnvolvido: 'Auditor de Inventário',
-        causaAnomalia: 'Retenção temporária de lote de cerveja especial aguardando laudo de liberação',
+        equipeResponsavel: 'Armazém / Puxada',
+        colaboradorEnvolvido: 'Equipe Puxada T2',
+        causaAnomalia: 'Avaria mecânica por instabilidade de pallet misto durante o descarregamento da carreta #18',
         statusAcao: 'EM_ANALISE',
-        planoAcaoDesc: 'Priorizar giros no picking no primeiro dia após emissão do laudo',
-        registradoPor: 'Analista de Estoques',
-        registradoEm: '2026-08-05T09:20:00Z'
+        planoAcaoDesc: 'Reforçar enfitamento de segurança e fiscalizar velocidade máxima da empilhadeira no pátio',
+        registradoPor: 'Analista de Dados & Qualidade',
+        registradoEm: '2026-08-28T15:30:00Z'
       }
     ];
   });
@@ -192,310 +160,53 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
     localStorage.setItem(`workstation_gatilhos_desvios_v2_${empresaId}`, JSON.stringify(updated));
   };
 
-  // Lista de Indicadores Medidos na Plataforma com Metas e Limite de Gatilho
-  const indicadoresList: IndicadorGatilho[] = useMemo(() => {
-    // Definimos os 8 indicadores de metas oficiais medidos nos dashboards
-    const items: IndicadorGatilho[] = [
-      // 1. WLP Geral (Gatilho se WLP < 6.23 HL/HH)
-      {
-        id: 'wlp_geral_armazem',
-        nome: 'WLP Geral Armazém',
-        codigo: 'IND-WLP',
-        categoria: 'WLP',
-        unidade: 'HL/HH',
-        valorHoje: 6.93,
-        mediaDiaria: 6.23,
-        limiteGatilho: 6.23,
-        isMenorMelhor: false,
-        status: 6.93 < 6.23 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Supervisão de Logística',
-        desviosCount: 0,
-        descricaoIndicador: 'Produtividade total do armazém. O gatilho dispara caso o WLP seja menor que 6.23 HL/HH.',
-        metaPlataforma: 'Meta: 6.23 HL/HH'
-      },
+  // =========================================================================
+  // MOTOR ANALÍTICO DINÂMICO 100% CORRELACIONADO AOS DASHBOARDS E METAS
+  // Regra do Usuário: Limite de Gatilho = Média Diária + 10% (Acumulado Mês / Dias Úteis)
+  // =========================================================================
+  const indicadoresList: IndicadorGatilhoCalculado[] = useMemo(() => {
+    return calcularGatilhosOperacionaisCompletos(
+      empresaId,
+      empresaData,
+      targets,
+      diasUteisParam
+    );
+  }, [empresaId, empresaData, targets, diasUteisParam, refreshTick]);
 
-      // 2. PNP Ajudante (Gatilho se PNP < 6.23 HL/HH)
-      {
-        id: 'pnp_ajudante',
-        nome: 'PNP - Ajudantes Operacionais',
-        codigo: 'PNP-AJU',
-        categoria: 'PNP',
-        unidade: 'HL/HH',
-        valorHoje: 6.85,
-        mediaDiaria: 6.23,
-        limiteGatilho: 6.23,
-        isMenorMelhor: false,
-        status: 6.85 < 6.23 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Liderança de Pátio',
-        desviosCount: 0,
-        descricaoIndicador: 'Movimentação e carga por ajudante. O gatilho dispara caso o rendimento seja menor que 6.23 HL/HH.',
-        metaPlataforma: 'Meta: 6.23 HL/HH'
-      },
-
-      // 3. PNP Empilhador (Gatilho se PNP < 6.23 HL/HH)
-      {
-        id: 'pnp_empilhador',
-        nome: 'PNP - Empilhadores',
-        codigo: 'PNP-EMP',
-        categoria: 'PNP',
-        unidade: 'HL/HH',
-        valorHoje: 6.40,
-        mediaDiaria: 6.23,
-        limiteGatilho: 6.23,
-        isMenorMelhor: false,
-        status: 6.40 < 6.23 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Encarregado de Movimentação',
-        desviosCount: 0,
-        descricaoIndicador: 'Armazenagem e elevação por operador de empilhadeira. Dispara caso o PNP seja menor que 6.23 HL/HH.',
-        metaPlataforma: 'Meta: 6.23 HL/HH'
-      },
-
-      // 4. PNP Conferente (Gatilho se PNP < 2.00 Carretas/HH)
-      {
-        id: 'pnp_conferente',
-        nome: 'PNP - Conferentes',
-        codigo: 'PNP-CONF',
-        categoria: 'PNP',
-        unidade: 'Carretas/HH',
-        valorHoje: 2.38,
-        mediaDiaria: 2.00,
-        limiteGatilho: 2.00,
-        isMenorMelhor: false,
-        status: 2.38 < 2.00 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Gestão de Qualidade',
-        desviosCount: 0,
-        descricaoIndicador: 'Taxa de liberação por hora de conferente. Dispara caso o rendimento seja menor que 2.00 Carretas/HH.',
-        metaPlataforma: 'Meta: 2.00 Carretas/HH'
-      },
-
-      // 5. Repack 1 (Gatilho se < 10 cx/hora: -10 cx/h)
-      {
-        id: 'repack_produtividade',
-        nome: 'Repack (Meta 1 • Ritmo 10 cx/h)',
-        codigo: 'RPK-PROD',
-        categoria: 'REPACK',
-        unidade: 'cx/h',
-        valorHoje: 12.4,
-        mediaDiaria: 10.0,
-        limiteGatilho: 10.0, // Gatilho de Repack = -10 caixas por hora (< 10 cx/h)
-        isMenorMelhor: false,
-        status: 12.4 < 10.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Supervisão de Repack',
-        desviosCount: 0,
-        descricaoIndicador: 'Ritmo operacional do Repack. O gatilho dispara caso o ritmo seja inferior a 10 caixas por hora (-10 cx/h).',
-        metaPlataforma: 'Meta: 10 cx/h'
-      },
-
-      // 5b. Repack 2 (Meta por Embalagem: Soma das metas de todas embalagens vs Real do dia)
-      {
-        id: 'repack_tempo_embalagem',
-        nome: 'Repack (Meta 2 • Tempo por Embalagem)',
-        codigo: 'RPK-EMB',
-        categoria: 'REPACK',
-        unidade: 'min',
-        valorHoje: 185, // Tempo real gasto no dia (min)
-        mediaDiaria: 210, // Soma das metas das embalagens repacadas no dia (min)
-        limiteGatilho: 210, // Gatilho dispara se Real > Soma das Metas (fora do tempo padrão)
-        isMenorMelhor: true,
-        status: 185 > 210 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Operação de Repack',
-        desviosCount: 0,
-        descricaoIndicador: 'Meta por embalagem diária. Soma da meta de todas as embalagens repacadas vs tempo real consumido no dia.',
-        metaPlataforma: 'Meta: Σ Metas Embalagens'
-      },
-
-      // 6. Despejo (Gatilho segue a média diária do Repack + 10%)
-      {
-        id: 'despejo_tempo',
-        nome: 'Despejo & Refugo (Tempo por Unidade)',
-        codigo: 'DSP-TEMPO',
-        categoria: 'DESPEJO',
-        unidade: 'min/cx',
-        valorHoje: 3.25, // > 3.08 (2.80 + 10%) -> DISPARADO
-        mediaDiaria: 2.80,
-        limiteGatilho: 3.08, // Média Repack 2.80 + 10%
-        isMenorMelhor: true,
-        status: 3.25 > 3.08 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Fiscalização de Refugo',
-        desviosCount: 0,
-        descricaoIndicador: 'Tempo médio de descarte/refugo. Segue a média diária de processamento do Repack + 10%.',
-        metaPlataforma: 'Meta: Média Repack + 10%'
-      },
-
-      // 7. WQI (Gatilho = Média em hectolitro quebrado por mês ÷ quantidade de dias + 10%)
-      {
-        id: 'wqi_quebras',
-        nome: 'Qualidade & WQI (Quebras Mensais)',
-        codigo: 'WQI-QUEB',
-        categoria: 'QUALIDADE',
-        unidade: 'HL/dia',
-        valorHoje: 1.45, // > 1.32 (1.20 + 10%) -> DISPARADO
-        mediaDiaria: 1.20,
-        limiteGatilho: 1.32, // Média mensal ÷ dias úteis (1.20) + 10%
-        isMenorMelhor: true,
-        status: 1.45 > 1.32 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Controle de Qualidade & WQI',
-        desviosCount: 0,
-        descricaoIndicador: 'Hectolitros quebrados/dia. Limite de gatilho = Média em HL quebrado no mês ÷ dias úteis + 10%.',
-        metaPlataforma: 'Meta: Média Mês/Dias + 10%'
-      },
-
-      // 8. Estoque Age Index & Recolhimento de Validade (Dispara se < 80%)
-      {
-        id: 'estoque_age_index',
-        nome: 'Estoque Age Index & Recolhimento Validade',
-        codigo: 'EST-AGE',
-        categoria: 'ESTOQUE',
-        unidade: '% Aderência',
-        valorHoje: 74.5, // < 80% -> DISPARADO
-        mediaDiaria: 80.0,
-        limiteGatilho: 80.0,
-        isMenorMelhor: false,
-        status: 74.5 < 80.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Gestão de Estoques & FEFO',
-        desviosCount: 0,
-        descricaoIndicador: 'Aderência ao recolhimento e rota de validade. Dispara caso o Stock Age Index geral seja menor que 80%.',
-        metaPlataforma: 'Meta: ≥ 80%'
-      },
-
-      // 9. EFC (Eficiência da Frota de Carga)
-      {
-        id: 'efc_frota_carga',
-        nome: 'EFC - Eficiência da Frota de Carga',
-        codigo: 'FROTA-EFC',
-        categoria: 'FROTA_ROTAS',
-        unidade: '%',
-        valorHoje: 91.5, // < 95.0% -> DISPARADO
-        mediaDiaria: 95.0,
-        limiteGatilho: 95.0,
-        isMenorMelhor: false,
-        status: 91.5 < 95.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Gestão de Frota & Carga',
-        desviosCount: 0,
-        descricaoIndicador: 'Eficiência e aproveitamento da frota de carga e transferência pesada (carretas/suprimentos). Dispara se EFC < 95.0%.',
-        metaPlataforma: 'Meta: ≥ 95.0%'
-      },
-
-      // 10. EFD (Eficiência da Frota de Distribuição)
-      {
-        id: 'efd_frota_distribuicao',
-        nome: 'EFD - Eficiência da Frota de Distribuição',
-        codigo: 'FROTA-EFD',
-        categoria: 'FROTA_ROTAS',
-        unidade: '%',
-        valorHoje: 94.2, // >= 92.0% -> NORMAL
-        mediaDiaria: 92.0,
-        limiteGatilho: 92.0,
-        isMenorMelhor: false,
-        status: 94.2 < 92.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Supervisão de Distribuição Comercial',
-        desviosCount: 0,
-        descricaoIndicador: 'Eficiência e taxa de entregas da frota urbana de distribuição comercial. Dispara se EFD < 92.0%.',
-        metaPlataforma: 'Meta: ≥ 92.0%'
-      },
-
-      // 11. TMR (Tempo Médio de Rota)
-      {
-        id: 'tmr_tempo_rota',
-        nome: 'TMR - Tempo Médio de Rota',
-        codigo: 'ROTA-TMR',
-        categoria: 'FROTA_ROTAS',
-        unidade: 'min',
-        valorHoje: 495, // > 480 min -> DISPARADO
-        mediaDiaria: 450,
-        limiteGatilho: 480,
-        isMenorMelhor: true,
-        status: 495 > 480 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Controle de Rotas & CCO',
-        desviosCount: 0,
-        descricaoIndicador: 'Tempo médio de ciclo de rota dos veículos em percurso. Dispara caso o TMR exceda 480 min (8h).',
-        metaPlataforma: 'Meta: ≤ 450 min'
-      },
-
-      // 12. Ressuprimento de Pátio & Armazém
-      {
-        id: 'ressuprimento_patio',
-        nome: 'Ressuprimento de Pátio & Armazém',
-        codigo: 'MOV-RESSUP',
-        categoria: 'ABASTECIMENTO',
-        unidade: '% Aderência',
-        valorHoje: 91.0, // < 95.0% -> DISPARADO
-        mediaDiaria: 95.0,
-        limiteGatilho: 95.0,
-        isMenorMelhor: false,
-        status: 91.0 < 95.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Liderança de Armazém & Recebimento',
-        desviosCount: 0,
-        descricaoIndicador: 'Aderência ao tempo de ressuprimento de carretas/módulos para o pulmão do armazém. Dispara se < 95.0%.',
-        metaPlataforma: 'Meta: ≥ 95.0%'
-      },
-
-      // 13. Reabastecimento de Área de Picking
-      {
-        id: 'reabastecimento_picking',
-        nome: 'Reabastecimento de Área de Picking',
-        codigo: 'MOV-REAB',
-        categoria: 'ABASTECIMENTO',
-        unidade: '% Aderência',
-        valorHoje: 96.5, // >= 95.0% -> NORMAL
-        mediaDiaria: 95.0,
-        limiteGatilho: 95.0,
-        isMenorMelhor: false,
-        status: 96.5 < 95.0 ? 'DISPARADO' : 'NORMAL',
-        responsavelArea: 'Operadores de Empilhadeira & Picking',
-        desviosCount: 0,
-        descricaoIndicador: 'Prontidão do reabastecimento das posições de picking (pulmão → picking) sem risco de ruptura. Dispara se < 95.0%.',
-        metaPlataforma: 'Meta: ≥ 95.0%'
-      }
-    ];
-
-    return items.map((item) => {
-      const count = desviosDiariosList.filter((d) => d.indicadorId === item.id).length;
-      return {
-        ...item,
-        desviosCount: count
-      };
+  // Contagem de desvios por indicador
+  const indicadoresComDesvios = useMemo(() => {
+    return indicadoresList.map((ind) => {
+      const count = desviosDiariosList.filter((d) => d.indicadorId === ind.id).length;
+      return { ...ind, desviosCount: count };
     });
-  }, [desviosDiariosList]);
+  }, [indicadoresList, desviosDiariosList]);
 
-  // Contadores gerais dos gatilhos
+  // Filtros aplicados
+  const filteredIndicadores = useMemo(() => {
+    return indicadoresComDesvios.filter((ind) => {
+      const matchCat = selectedCategoria === 'TODOS' || ind.categoria === selectedCategoria;
+      const matchStatus =
+        selectedStatusFilter === 'TODOS' || ind.status === selectedStatusFilter;
+      const matchSearch =
+        ind.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ind.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ind.responsavelArea.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ind.descricaoIndicador.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchCat && matchStatus && matchSearch;
+    });
+  }, [indicadoresComDesvios, selectedCategoria, selectedStatusFilter, searchTerm]);
+
+  // Totais e KPIs de conformidade
   const totalIndicadores = indicadoresList.length;
   const gatilhosDisparados = indicadoresList.filter((i) => i.status === 'DISPARADO').length;
   const gatilhosAlerta = indicadoresList.filter((i) => i.status === 'ALERTA').length;
   const gatilhosNormais = indicadoresList.filter((i) => i.status === 'NORMAL').length;
+  const taxaConformidade = Math.round(((gatilhosNormais + gatilhosAlerta) / (totalIndicadores || 1)) * 1000) / 10;
 
-  // Filtragem da Lista de Indicadores
-  const filteredIndicadores = useMemo(() => {
-    return indicadoresList.filter((item) => {
-      const matchCat = selectedCategoria === 'TODOS' || item.categoria === selectedCategoria;
-      const matchStatus = selectedStatusFilter === 'TODOS' || item.status === selectedStatusFilter;
-      const matchText =
-        item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.responsavelArea.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.metaPlataforma.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchCat && matchStatus && matchText;
-    });
-  }, [indicadoresList, selectedCategoria, selectedStatusFilter, searchTerm]);
-
-  // Categories com seus ícones e rótulos
-  const categoriasList: { key: string; label: string; icon: any }[] = [
-    { key: 'TODOS', label: 'Todos', icon: Layers },
-    { key: 'WLP', label: 'WLP Geral', icon: BarChart3 },
-    { key: 'PNP', label: 'PNP Individual', icon: Users },
-    { key: 'REPACK', label: 'Repack', icon: RotateCcw },
-    { key: 'DESPEJO', label: 'Despejo', icon: Trash2 },
-    { key: 'QUALIDADE', label: 'Qualidade & WQI', icon: ShieldCheck },
-    { key: 'ESTOQUE', label: 'Estoque & Validade', icon: Calendar },
-    { key: 'FROTA_ROTAS', label: 'Frota & Rotas (EFC/EFD/TMR)', icon: Truck },
-    { key: 'ABASTECIMENTO', label: 'Ressuprimento & Reabast.', icon: Boxes }
-  ];
-
-  // Handler para salvar novo desvio registrado manualmente
-  const handleCreateDesvio = (e: React.FormEvent) => {
+  const handleCriarDesvio = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDesvioCausa.trim()) {
-      alert('Por favor, informe a causa da anomalia / desvio.');
+      alert('Por favor, informe a causa identificada para a anomalia.');
       return;
     }
 
@@ -521,7 +232,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
       causaAnomalia: newDesvioCausa.trim(),
       statusAcao: 'PENDENTE',
       planoAcaoDesc: newDesvioPlano.trim() || undefined,
-      registradoPor: user?.nome || 'Gestor de Turno',
+      registradoPor: user?.nome || 'Analista de Operações',
       registradoEm: new Date().toISOString()
     };
 
@@ -533,8 +244,6 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
     setNewDesvioColab('');
     setNewDesvioValor('');
     setIsModalOpen(false);
-
-    alert('✅ Registro de desvio diário criado com sucesso e adicionado ao quadro de gatilhos!');
   };
 
   const handleUpdateStatusDesvio = (
@@ -547,8 +256,152 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
     saveDesvios(updated);
   };
 
+  const handleDeleteDesvio = (id: string) => {
+    if (window.confirm('Deseja realmente remover este registro de anomalia?')) {
+      const updated = desviosDiariosList.filter((d) => d.id !== id);
+      saveDesvios(updated);
+    }
+  };
+
+  // =========================================================================
+  // EXPORTAÇÃO COMPLETA DO RELATÓRIO DE GATILHOS DETALHADO DO MÊS (EXCEL & CSV)
+  // =========================================================================
+  const exportGatilhosExcel = () => {
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // 1. Aba Resumo Executivo
+      const resumoData = [
+        ['PAU BRASIL DISTRIBUIDORA - UNIDADE GUARABIRA'],
+        ['RELATÓRIO MENSAL DE GATILHOS E DESVIOS OPERACIONAIS (WORKSTATION DPO)'],
+        ['Data da Emissão:', new Date().toLocaleString('pt-BR')],
+        ['Responsável / Usuário:', user?.nome || 'Analista de Operações DPO'],
+        ['Regra Mestra do Gatilho:', `Limite de Gatilho = Média Diária + 10% (Acumulado Mês ÷ ${diasUteisParam} Dias Úteis)`],
+        [],
+        ['KPIS DE CONFORMIDADE OPERACIONAL'],
+        ['Total de Indicadores Monitorados:', totalIndicadores],
+        ['Gatilhos Sob Controle (Verde):', gatilhosNormais],
+        ['Gatilhos em Alerta (Amarelo):', gatilhosAlerta],
+        ['Gatilhos Disparados / Desvios Reais (Vermelho):', gatilhosDisparados],
+        ['Taxa Global de Conformidade:', `${taxaConformidade}%`]
+      ];
+      const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+      XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo_Executivo');
+
+      // 2. Aba Matriz Completa dos Gatilhos
+      const matrizRows = indicadoresList.map((ind) => ({
+        'Código': ind.codigo,
+        'Indicador': ind.nome,
+        'Categoria': ind.categoria,
+        'Diretriz da Meta': ind.isMenorMelhor ? 'Minimizar (Menor é Melhor)' : 'Maximizar (Maior é Melhor)',
+        'Acumulado Mês': ind.detalhes.acumuladoMesFormatado,
+        'Dias Úteis': ind.detalhes.diasUteis,
+        'Média Diária Base': ind.detalhes.mediaDiariaFormatada,
+        'Limite Gatilho (+10%)': `${ind.limiteGatilho} ${ind.unidade}`,
+        'Apurado Hoje (Real)': `${ind.valorHoje} ${ind.unidade}`,
+        'Delta vs Limite (%)': ind.detalhes.deltaPctFormatado,
+        'Status Gatilho': ind.status === 'DISPARADO' ? 'DISPARADO (DESVIO REAL)' : ind.status === 'ALERTA' ? 'ALERTA' : 'SOB CONTROLE',
+        'Meta Oficial': ind.metaPlataforma,
+        'Responsável': ind.responsavelArea,
+        'Desvios Registrados': ind.desviosCount || 0,
+        'Diagnóstico do Analista': ind.detalhes.diagnosticoAnalista,
+        'Fonte dos Dados': ind.detalhes.fonteDados
+      }));
+      const wsMatriz = XLSX.utils.json_to_sheet(matrizRows);
+      XLSX.utils.book_append_sheet(wb, wsMatriz, 'Matriz_Gatilhos');
+
+      // 3. Aba Histórico de Desvios Registrados
+      const desviosRows = desviosDiariosList.map((d) => ({
+        'ID Registro': d.id,
+        'Data': d.dataStr,
+        'Indicador': d.indicadorNome,
+        'Valor Apurado': `${d.valorApurado} ${d.unidade}`,
+        'Limite Gatilho': `${d.limiteGatilho} ${d.unidade}`,
+        'Turno': d.turno,
+        'Equipe / Setor': d.equipeResponsavel,
+        'Colaborador / Equipamento': d.colaboradorEnvolvido || 'N/A',
+        'Causa Raiz Identificada': d.causaAnomalia,
+        'Plano de Ação D0 (Contenção)': d.planoAcaoDesc || 'N/A',
+        'Status Tratativa': d.statusAcao,
+        'Registrado Por': d.registradoPor,
+        'Registrado Em': d.registradoEm
+      }));
+      const wsDesvios = XLSX.utils.json_to_sheet(desviosRows);
+      XLSX.utils.book_append_sheet(wb, wsDesvios, 'Historico_Desvios');
+
+      const fileName = `Relatorio_Gatilhos_Desvios_Mensal_DPO_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+    } catch (err) {
+      console.error('Erro ao exportar Excel:', err);
+      alert('Ocorreu um erro ao exportar para Excel. Tente o formato CSV.');
+    }
+  };
+
+  const exportGatilhosCSV = () => {
+    try {
+      let csv = '\uFEFF'; // UTF-8 BOM
+      csv += 'PAU BRASIL DISTRIBUIDORA - RELATORIO MENSAL DE GATILHOS E DESVIOS OPERACIONAIS (WORKSTATION DPO)\n';
+      csv += `Emitido em:;${new Date().toLocaleString('pt-BR')};Usuario:;${user?.nome || 'Analista DPO'}\n`;
+      csv += `Regra Mestra:;Limite de Gatilho = Media Diaria + 10% (Acumulado Mes / ${diasUteisParam} Dias Uteis)\n`;
+      csv += `Conformidade Geral:;${taxaConformidade}%;Gatilhos Disparados:;${gatilhosDisparados};Alerta:;${gatilhosAlerta};Sob Controle:;${gatilhosNormais}\n\n`;
+
+      csv += 'CODIGO;INDICADOR;CATEGORIA;DIRECAO_META;ACUMULADO_MES;DIAS_UTEIS;MEDIA_DIARIA;LIMITE_GATILHO_10PCT;APURADO_HOJE;DELTA_PCT;STATUS;RESPONSAVEL;FONTE_DADOS;DIAGNOSTICO\n';
+
+      indicadoresList.forEach((ind) => {
+        const row = [
+          `"${ind.codigo}"`,
+          `"${ind.nome.replace(/"/g, '""')}"`,
+          `"${ind.categoria}"`,
+          `"${ind.isMenorMelhor ? 'Minimizar' : 'Maximizar'}"`,
+          `"${ind.detalhes.acumuladoMesFormatado}"`,
+          ind.detalhes.diasUteis,
+          `"${ind.detalhes.mediaDiariaFormatada}"`,
+          `"${ind.limiteGatilho} ${ind.unidade}"`,
+          `"${ind.valorHoje} ${ind.unidade}"`,
+          `"${ind.detalhes.deltaPctFormatado}"`,
+          `"${ind.status}"`,
+          `"${ind.responsavelArea}"`,
+          `"${ind.detalhes.fonteDados}"`,
+          `"${ind.detalhes.diagnosticoAnalista.replace(/"/g, '""')}"`
+        ];
+        csv += row.join(';') + '\n';
+      });
+
+      csv += '\n\nHISTORICO DE DESVIOS E ANOMALIAS REGISTRADAS\n';
+      csv += 'DATA;INDICADOR;VALOR_APURADO;LIMITE_GATILHO;TURNO;EQUIPE;COLABORADOR;CAUSA_RAIZ;PLANO_CONTENCAO;STATUS_TRATATIVA;REGISTRADO_POR\n';
+
+      desviosDiariosList.forEach((d) => {
+        const row = [
+          `"${d.dataStr}"`,
+          `"${d.indicadorNome.replace(/"/g, '""')}"`,
+          `"${d.valorApurado} ${d.unidade}"`,
+          `"${d.limiteGatilho} ${d.unidade}"`,
+          `"${d.turno}"`,
+          `"${d.equipeResponsavel}"`,
+          `"${(d.colaboradorEnvolvido || 'N/A').replace(/"/g, '""')}"`,
+          `"${d.causaAnomalia.replace(/"/g, '""')}"`,
+          `"${(d.planoAcaoDesc || 'N/A').replace(/"/g, '""')}"`,
+          `"${d.statusAcao}"`,
+          `"${d.registradoPor}"`
+        ];
+        csv += row.join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Relatorio_Gatilhos_Desvios_Mensal_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Erro ao exportar CSV:', err);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div id="workstation-gatilhos-container" className="space-y-6">
       {/* BANNER PRINCIPAL DO QUADRO DE GATILHOS WORKSTATION */}
       <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#031d3d] dark:via-[#092b52] dark:to-[#0f172a] border-2 border-amber-500/40 p-6 rounded-2xl text-slate-900 dark:text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
@@ -559,22 +412,73 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-500/20 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-amber-500/20 border border-amber-500/40 rounded-2xl text-amber-500 dark:text-amber-400 shadow-inner">
-                <Zap className="w-8 h-8" />
+                <Calculator className="w-8 h-8" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
-                    WORKSTATION CCO
+                    ANÁLISE SÊNIOR DE DADOS • WORKSTATION DPO
                   </span>
-                  <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">Painel de Anomalias Diárias</span>
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">
+                    Correlação 100% com Dashboards Oficiais
+                  </span>
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
-                  Quadro de Gatilhos & Desvios Operacionais
+                  Quadro de Gatilhos & Desvios Operacionais Reais
                 </h1>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Seletor de Dias Úteis para a Regra de Média Diária */}
+              <div className="flex items-center gap-2 bg-white dark:bg-[#081326] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <Calendar className="w-4 h-4 text-amber-500" />
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Dias Úteis Mês:</span>
+                <select
+                  value={diasUteisParam}
+                  onChange={(e) => setDiasUteisParam(Number(e.target.value))}
+                  className="bg-transparent text-xs font-black text-amber-600 dark:text-amber-400 focus:outline-none cursor-pointer"
+                >
+                  <option value={26} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">26 dias (Seg-Sáb Ambev)</option>
+                  <option value={22} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">22 dias (Seg-Sex Padrão)</option>
+                  <option value={20} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">20 dias</option>
+                  <option value={30} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">30 dias (Operação Contínua)</option>
+                </select>
+              </div>
+
+              {/* Botões de Exportação e Relatório Mensal */}
+              <div className="flex items-center gap-1.5 bg-white dark:bg-[#081326] p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <button
+                  type="button"
+                  onClick={exportGatilhosExcel}
+                  className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Exportar Relatório Detalhado em Excel (.xlsx)"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportGatilhosCSV}
+                  className="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Exportar Relatório em Formato CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsMonthlyReportModalOpen(true)}
+                  className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Visualizar e Imprimir Relatório Mensal"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Relatório</span>
+                </button>
+              </div>
+
               {onNavigateToAcoes && (
                 <button
                   type="button"
@@ -582,48 +486,83 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
                   className="px-4 py-2.5 bg-white dark:bg-[#0b1222] hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-500/30 transition-all cursor-pointer flex items-center gap-2 shadow-md"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Planos de Ação DPO</span>
+                  <span>Planos DPO</span>
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-amber-500/20"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Registrar Desvio</span>
+              </button>
             </div>
           </div>
 
-          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-5xl leading-relaxed">
-            Painel consolidado dos gatilhos operacionais medidos na plataforma: <strong>PNP, Repack, Despejo/Refugo, Estoque & Age Index, Política de Cobertura, Montagem, Aferimento, Pátio e Qualidade</strong>. Qualquer anomalia apurada dispara o limite do gatilho e exige plano imediato de contenção.
-          </p>
+          {/* FÓRMULA MESTRA EXPLICADA */}
+          <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-black text-amber-700 dark:text-amber-300 uppercase tracking-wide block">
+                  Regra Estatística dos Gatilhos Operacionais:
+                </span>
+                <span className="text-slate-700 dark:text-slate-300">
+                  <strong>Limite de Gatilho = Média + 10%</strong>. Quebras de Movimentação calculam a{' '}
+                  <strong>Média Diária Anual sobre todos os 312 dias úteis do ano</strong>. <strong>TMR (Tempo Médio de Revenda)</strong> possui meta de <strong>150 min</strong> com gatilho em <strong>1h40 (100 min)</strong> para descarregar e carregar carretas. <strong>Ressuprimento & Reabastecimento no Carregamento</strong> dispara se <strong>ultrapassar 20%</strong>.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end md:self-auto bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-lg border border-amber-500/30 shrink-0">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                Auditoria Senior: <strong className="text-emerald-600 dark:text-emerald-400">{taxaConformidade}% Sob Controle</strong>
+              </span>
+            </div>
+          </div>
 
           {/* KPIS RESUMO DOS GATILHOS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="p-3.5 bg-white/80 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Indicadores Medidos</span>
-                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{totalIndicadores}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">
+                  Indicadores Analisados
+                </span>
+                <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">{totalIndicadores}</span>
               </div>
-              <BarChart3 className="w-6 h-6 text-sky-500 dark:text-sky-400" />
+              <BarChart3 className="w-7 h-7 text-sky-500 dark:text-sky-400" />
             </div>
 
-            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-emerald-500/30 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="p-3.5 bg-white/80 dark:bg-[#081326] border border-emerald-500/30 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Operação Sob Controle</span>
-                <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">{gatilhosNormais}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">
+                  Sob Controle
+                </span>
+                <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">{gatilhosNormais}</span>
               </div>
-              <CheckCircle2 className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
+              <CheckCircle2 className="w-7 h-7 text-emerald-500 dark:text-emerald-400" />
             </div>
 
-            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-rose-500/40 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="p-3.5 bg-white/80 dark:bg-[#081326] border border-amber-500/30 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Gatilhos Disparados</span>
-                <span className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">{gatilhosDisparados}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">
+                  Em Alerta (±5%)
+                </span>
+                <span className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400">{gatilhosAlerta}</span>
               </div>
-              <AlertTriangle className="w-6 h-6 text-rose-500 dark:text-rose-400 animate-pulse" />
+              <Activity className="w-7 h-7 text-amber-500 dark:text-amber-400" />
             </div>
 
-            <div className="p-3 bg-white/80 dark:bg-[#081326] border border-amber-500/30 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="p-3.5 bg-white/80 dark:bg-[#081326] border border-rose-500/40 rounded-xl flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">Desvios Registrados</span>
-                <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">{desviosDiariosList.filter(d => d.statusAcao !== 'CONCLUIDO').length}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider block">
+                  Gatilhos Disparados (Real)
+                </span>
+                <span className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400">{gatilhosDisparados}</span>
               </div>
-              <ShieldAlert className="w-6 h-6 text-amber-500 dark:text-amber-400" />
+              <AlertTriangle className="w-7 h-7 text-rose-500 dark:text-rose-400 animate-pulse" />
             </div>
           </div>
         </div>
@@ -639,7 +578,7 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por indicador (Repack, Despejo, Age Index, PNP, Quebras...)"
+              placeholder="Buscar por indicador (Quebras Movimentação, Despejo, WLP, PNP, Repack, Reabastecimento Carregamento, TMR...)"
               className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all"
             />
           </div>
@@ -650,42 +589,51 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="px-3 py-2 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
             >
-              <option value="TODOS">Todos os Status ({totalIndicadores})</option>
-              <option value="DISPARADO">🚨 Gatilho Disparado ({gatilhosDisparados})</option>
-              <option value="ALERTA">⚠️ Alerta de Limite ({gatilhosAlerta})</option>
-              <option value="NORMAL">✅ Normal / Sob Controle ({gatilhosNormais})</option>
+              <option value="TODOS">Todos os Status</option>
+              <option value="NORMAL">✅ Sob Controle</option>
+              <option value="ALERTA">⚠️ Em Alerta</option>
+              <option value="DISPARADO">🚨 Gatilho Disparado (Desvio Real)</option>
             </select>
           </div>
         </div>
 
-        {/* BARRINHA DE BOTÕES DE CATEGORIAS */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
-          {categoriasList.map((cat) => {
-            const IconComp = cat.icon;
-            const isSelected = selectedCategoria === cat.key;
+        {/* Abas de Categorias */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-t border-slate-100 dark:border-slate-800/80 pt-3">
+          {[
+            { id: 'TODOS', label: 'Todos os Pilares', icon: Layers },
+            { id: 'WLP', label: 'WLP Geral', icon: Activity },
+            { id: 'PNP', label: 'PNP Operacional', icon: Users },
+            { id: 'REPACK', label: 'Repack', icon: PackageCheck },
+            { id: 'DESPEJO', label: 'Despejo & Refugo', icon: Trash2 },
+            { id: 'ESTOQUE', label: 'Estoque & Quebras', icon: Boxes },
+            { id: 'FROTA_ROTAS', label: 'TMR (Carga/Descarga)', icon: Truck },
+            { id: 'ABASTECIMENTO', label: 'Reabastecimento no Carregamento', icon: TrendingUp }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = selectedCategoria === tab.id;
             return (
               <button
-                key={cat.key}
+                key={tab.id}
                 type="button"
-                onClick={() => setSelectedCategoria(cat.key)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 border ${
+                onClick={() => setSelectedCategoria(tab.id)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-500/20'
-                    : 'bg-slate-50 dark:bg-[#0b1222] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
+                    : 'bg-slate-100 dark:bg-[#0b1222] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
                 }`}
               >
-                <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'}`} />
-                <span>{cat.label}</span>
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* GRID DE CARDS DOS INDICADORES MEDIDOS NA PLATAFORMA */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* GRID DE CARDS DOS INDICADORES E GATILHOS CALCULADOS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredIndicadores.map((ind) => {
           const isDisparado = ind.status === 'DISPARADO';
           const isAlerta = ind.status === 'ALERTA';
@@ -693,103 +641,124 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
           return (
             <div
               key={ind.id}
-              className={`p-4 bg-white dark:bg-[#111a30] border-2 ${
+              onClick={() => setDrilldownIndicador(ind)}
+              className={`bg-white dark:bg-[#111a30] rounded-2xl p-5 border transition-all duration-200 hover:shadow-2xl cursor-pointer relative group flex flex-col justify-between ${
                 isDisparado
-                  ? 'border-rose-500/80 shadow-rose-500/10 bg-rose-50/50 dark:bg-rose-950/10'
+                  ? 'border-rose-500/80 bg-rose-500/[0.03] shadow-rose-500/10'
                   : isAlerta
-                  ? 'border-amber-500/80 shadow-amber-500/10 bg-amber-50/50 dark:bg-amber-950/10'
-                  : 'border-slate-200 dark:border-slate-800'
-              } rounded-2xl shadow-xl flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all`}
+                  ? 'border-amber-500/60 bg-amber-500/[0.02] shadow-amber-500/5'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] font-black font-mono uppercase text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                      {ind.codigo}
-                    </span>
-                    <span className="text-[9px] font-extrabold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                      {ind.categoria}
-                    </span>
+              <div>
+                {/* Header do Card */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md font-mono">
+                        {ind.codigo}
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                        {ind.responsavelArea}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1 group-hover:text-amber-500 transition-colors">
+                      {ind.nome}
+                    </h3>
                   </div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase mt-1 leading-snug">
-                    {ind.nome}
-                  </h3>
+
+                  {/* Badge de Status */}
+                  <div className="shrink-0">
+                    {isDisparado ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-md shadow-rose-500/30 animate-pulse">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Gatilho Disparado
+                      </span>
+                    ) : isAlerta ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                        <Activity className="w-3.5 h-3.5" />
+                        Em Alerta
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Sob Controle
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <span
-                  className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase border shrink-0 flex items-center gap-1 ${
-                    isDisparado
-                      ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40 animate-pulse'
-                      : isAlerta
-                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                  }`}
-                >
-                  {isDisparado && <AlertTriangle className="w-3 h-3" />}
-                  {isAlerta && <ShieldAlert className="w-3 h-3" />}
-                  {ind.status === 'NORMAL' && <CheckCircle2 className="w-3 h-3" />}
-                  <span>
-                    {isDisparado
-                      ? 'Gatilho Disparado'
-                      : isAlerta
-                      ? 'Alerta'
-                      : 'Sob Controle'}
-                  </span>
-                </span>
-              </div>
-
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-snug line-clamp-2">
-                {ind.descricaoIndicador}
-              </p>
-
-              {/* BLOCO DE VALORES: VALOR HOJE x LIMITE DE GATILHO */}
-              <div className="bg-slate-50 dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2">
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="border-r border-slate-200 dark:border-slate-800/80 pr-2">
-                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+                {/* Métricas Principais (Apurado Hoje vs Limite do Gatilho) */}
+                <div className="grid grid-cols-2 gap-2 my-3 p-3 bg-slate-50 dark:bg-[#0b1222] rounded-xl border border-slate-100 dark:border-slate-800/80">
+                  <div>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
                       Apurado Hoje
                     </span>
-                    <span
-                      className={`text-base font-black font-mono mt-0.5 block ${
-                        isDisparado ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                      }`}
-                    >
-                      {ind.valorHoje}{' '}
-                      <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span
+                        className={`text-xl font-black font-mono ${
+                          isDisparado
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : isAlerta
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-slate-900 dark:text-white'
+                        }`}
+                      >
+                        {ind.valorHoje}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                         {ind.unidade}
                       </span>
-                    </span>
+                    </div>
                   </div>
 
-                  <div className="pl-2">
-                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+                  <div>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-300 font-black uppercase block flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber-500" />
                       Limite Gatilho
                     </span>
-                    <span className="text-base font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5 block">
-                      {ind.limiteGatilho}{' '}
-                      <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">
+                        {ind.limiteGatilho}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                         {ind.unidade}
                       </span>
-                    </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
-                  <span className="text-slate-600 dark:text-slate-400">Meta da Plataforma:</span>
-                  <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                    {ind.metaPlataforma}
-                  </span>
+                {/* Caixa de Fórmula da Média Diária + 10% */}
+                <div className="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-300 mb-3 bg-white dark:bg-[#081326] p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">Acumulado Mês:</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                      {ind.detalhes.acumuladoMesFormatado}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">Média Diária ({ind.detalhes.diasUteis} dias):</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                      {ind.detalhes.mediaDiariaFormatada}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-1">
+                    <span className="text-slate-500 dark:text-slate-400">Meta da Plataforma:</span>
+                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                      {ind.metaPlataforma}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* RODAPÉ DO CARD */}
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400">
-                <span className="truncate max-w-[150px] font-semibold text-slate-700 dark:text-slate-300">
-                  {ind.responsavelArea}
+              {/* Footer do Card */}
+              <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3 flex items-center justify-between text-xs">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Calculator className="w-3.5 h-3.5 text-amber-500" />
+                  Ver memória de cálculo
                 </span>
-                <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {ind.desviosCount} desvio(s)
+                <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
+                  Detalhes <ChevronRight className="w-4 h-4" />
                 </span>
               </div>
             </div>
@@ -797,179 +766,308 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
         })}
       </div>
 
-      {/* TABELA DE REGISTROS DE DESVIOS DIÁRIOS DOS GATILHOS */}
-      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-            <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-              Histórico & Registro de Desvios Diários nos Gatilhos ({desviosDiariosList.length})
+      {/* REGISTRO DE DESVIOS DIÁRIOS / ANOMALIAS DA OPERAÇÃO */}
+      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                AUDITORIA DE ANOMALIAS
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Tratativas Rápidas D0</span>
+            </div>
+            <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
+              Histórico de Desvios Registrados nos Gatilhos
             </h2>
           </div>
 
-          <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-[#0b1222] px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
-            Status dos Gatilhos Operacionais
-          </span>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-amber-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Adicionar Anomalia</span>
+          </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0b1222]">
-          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-            <thead className="bg-slate-100 dark:bg-[#111a30] text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="p-3 text-center">Data / Turno</th>
-                <th className="p-3">Indicador Operacional</th>
-                <th className="p-3 text-center">Valor Apurado</th>
-                <th className="p-3 text-center">Limite Gatilho</th>
-                <th className="p-3">Equipe / Envolvidos</th>
-                <th className="p-3">Causa da Anomalia / Desvio</th>
-                <th className="p-3 text-center">Status Ação</th>
-                <th className="p-3 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-sans">
-              {desviosDiariosList.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-slate-500">
-                    Nenhum desvio registrado no quadro de gatilhos até o momento.
-                  </td>
+        {desviosDiariosList.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 dark:text-slate-400">
+            <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-2 opacity-60" />
+            <p className="font-bold text-sm">Nenhum desvio diário pendente de tratativa!</p>
+            <p className="text-xs">Todos os gatilhos operacionais estão em conformidade com as metas do sistema.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                  <th className="py-3 px-3">Data</th>
+                  <th className="py-3 px-3">Indicador / Gatilho</th>
+                  <th className="py-3 px-3">Apurado vs Limite</th>
+                  <th className="py-3 px-3">Turno / Equipe</th>
+                  <th className="py-3 px-3">Causa da Anomalia</th>
+                  <th className="py-3 px-3">Status Tratativa</th>
+                  <th className="py-3 px-3 text-right">Ações</th>
                 </tr>
-              ) : (
-                desviosDiariosList.map((desv) => (
-                  <tr key={desv.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-all">
-                    <td className="p-3 text-center">
-                      <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs">
-                        {desv.dataStr}
-                      </span>
-                      <span className="text-[9px] text-amber-600 dark:text-amber-400 uppercase font-black">
-                        {desv.turno}
-                      </span>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {desviosDiariosList.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-slate-700 dark:text-slate-300">
+                      {item.dataStr}
                     </td>
-
-                    <td className="p-3 font-bold text-slate-900 dark:text-white">
-                      <div className="text-xs">{desv.indicadorNome}</div>
-                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-normal">
-                        Cadastrado por: {desv.registradoPor}
+                    <td className="py-3 px-3">
+                      <span className="font-bold text-slate-900 dark:text-white block">
+                        {item.indicadorNome}
                       </span>
-                    </td>
-
-                    <td className="p-3 text-center font-mono font-black text-rose-600 dark:text-rose-400 text-sm">
-                      {desv.valorApurado}{' '}
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                        {desv.unidade}
-                      </span>
-                    </td>
-
-                    <td className="p-3 text-center font-mono font-bold text-amber-600 dark:text-amber-400">
-                      {desv.limiteGatilho}{' '}
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                        {desv.unidade}
-                      </span>
-                    </td>
-
-                    <td className="p-3">
-                      <span className="text-slate-800 dark:text-slate-200 font-semibold block text-xs">
-                        {desv.equipeResponsavel}
-                      </span>
-                      {desv.colaboradorEnvolvido && (
-                        <span className="text-[10px] text-indigo-600 dark:text-indigo-300 font-mono block">
-                          Colab: {desv.colaboradorEnvolvido}
+                      {item.colaboradorEnvolvido && (
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Colab: {item.colaboradorEnvolvido}
                         </span>
                       )}
                     </td>
-
-                    <td className="p-3 max-w-xs">
-                      <p
-                        className="text-slate-700 dark:text-slate-300 text-xs leading-snug line-clamp-2"
-                        title={desv.causaAnomalia}
-                      >
-                        {desv.causaAnomalia}
-                      </p>
-                      {desv.planoAcaoDesc && (
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono block mt-0.5">
-                          Ação: {desv.planoAcaoDesc}
-                        </span>
-                      )}
+                    <td className="py-3 px-3 font-mono">
+                      <span className="text-rose-600 dark:text-rose-400 font-bold">
+                        {item.valorApurado} {item.unidade}
+                      </span>{' '}
+                      <span className="text-slate-400 text-[10px]">
+                        (Gatilho: {item.limiteGatilho} {item.unidade})
+                      </span>
                     </td>
-
-                    <td className="p-3 text-center">
+                    <td className="py-3 px-3">
+                      <span className="font-medium text-slate-800 dark:text-slate-200 block">
+                        {item.turno}
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {item.equipeResponsavel}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 max-w-xs text-slate-700 dark:text-slate-300">
+                      {item.causaAnomalia}
+                    </td>
+                    <td className="py-3 px-3">
                       <select
-                        value={desv.statusAcao}
+                        value={item.statusAcao}
                         onChange={(e) =>
                           handleUpdateStatusDesvio(
-                            desv.id,
-                            e.target.value as any
+                            item.id,
+                            e.target.value as 'PENDENTE' | 'EM_ANALISE' | 'CONCLUIDO'
                           )
                         }
-                        className={`px-2 py-1 rounded text-[10px] font-black uppercase border cursor-pointer focus:outline-none ${
-                          desv.statusAcao === 'CONCLUIDO'
-                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                            : desv.statusAcao === 'EM_ANALISE'
-                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                            : 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                        className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${
+                          item.statusAcao === 'CONCLUIDO'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                            : item.statusAcao === 'EM_ANALISE'
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
                         }`}
                       >
-                        <option value="PENDENTE">🔴 Pendente</option>
+                        <option value="PENDENTE">🔴 Pendente D0</option>
                         <option value="EM_ANALISE">🟡 Em Análise</option>
-                        <option value="CONCLUIDO">🟢 Concluído</option>
+                        <option value="CONCLUIDO">🟢 Concluído / Sanado</option>
                       </select>
                     </td>
-
-                    <td className="p-3 text-center">
+                    <td className="py-3 px-3 text-right">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (onNavigateToAcoes) onNavigateToAcoes();
-                          else
-                            alert(
-                              `Desvio no gatilho (${desv.indicadorNome}): ${desv.causaAnomalia}`
-                            );
-                        }}
-                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-all border border-blue-500/30 cursor-pointer shadow-sm"
+                        onClick={() => handleDeleteDesvio(item.id)}
+                        className="p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                        title="Excluir Registro"
                       >
-                        Ver no DPO
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* MODAL DE REGISTRO MANUAL DE DESVIO NO GATILHO */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111a30] border-2 border-amber-500/50 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 relative">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  Registrar Desvio Operacional no Gatilho
-                </h3>
+      {/* MODAL DE MEMÓRIA DE CÁLCULO E ANÁLISE SÊNIOR */}
+      {drilldownIndicador && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-2xl text-amber-500">
+                  <Calculator className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                    {drilldownIndicador.codigo} • {drilldownIndicador.categoria}
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">
+                    {drilldownIndicador.nome}
+                  </h3>
+                </div>
               </div>
+
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold p-1 cursor-pointer"
+                onClick={() => setDrilldownIndicador(null)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl transition-all cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateDesvio} className="space-y-4">
+            {/* Caixa de Fórmula Matemática */}
+            <div className="p-4 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-700 dark:text-slate-300 uppercase">
+                <Target className="w-4 h-4 text-amber-500" />
+                <span>Memória de Cálculo do Gatilho</span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed bg-white dark:bg-[#0b1222] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                {drilldownIndicador.detalhes.formulaExplicativa}
+              </p>
+            </div>
+
+            {/* Grid dos Componentes do Cálculo */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="p-3 bg-slate-50 dark:bg-[#081326] rounded-xl border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                  Acumulado no Mês
+                </span>
+                <span className="text-sm font-black font-mono text-slate-900 dark:text-white mt-1 block">
+                  {drilldownIndicador.detalhes.acumuladoMesFormatado}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-[#081326] rounded-xl border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                  Dias Úteis Considerados
+                </span>
+                <span className="text-sm font-black font-mono text-slate-900 dark:text-white mt-1 block">
+                  {drilldownIndicador.detalhes.diasUteis} dias
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-[#081326] rounded-xl border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                  Média Diária
+                </span>
+                <span className="text-sm font-black font-mono text-slate-900 dark:text-white mt-1 block">
+                  {drilldownIndicador.detalhes.mediaDiariaFormatada}
+                </span>
+              </div>
+
+              <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30">
+                <span className="text-[10px] text-amber-700 dark:text-amber-300 font-black uppercase block">
+                  Limite de Gatilho (+10%)
+                </span>
+                <span className="text-sm font-black font-mono text-amber-600 dark:text-amber-400 mt-1 block">
+                  {drilldownIndicador.limiteGatilho} {drilldownIndicador.unidade}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-[#081326] rounded-xl border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                  Apurado Real Hoje
+                </span>
+                <span className="text-sm font-black font-mono text-slate-900 dark:text-white mt-1 block">
+                  {drilldownIndicador.valorHoje} {drilldownIndicador.unidade}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-[#081326] rounded-xl border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                  Delta vs Limite
+                </span>
+                <span
+                  className={`text-sm font-black font-mono mt-1 block ${
+                    drilldownIndicador.status === 'DISPARADO'
+                      ? 'text-rose-500'
+                      : 'text-emerald-500'
+                  }`}
+                >
+                  {drilldownIndicador.detalhes.deltaPctFormatado}
+                </span>
+              </div>
+            </div>
+
+            {/* Parecer do Analista Sênior */}
+            <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/40 rounded-2xl space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300 block">
+                Diagnóstico Analítico:
+              </span>
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                {drilldownIndicador.detalhes.diagnosticoAnalista}
+              </p>
+              <span className="text-[10px] text-slate-400 block pt-1">
+                Fonte de Dados Auditada: {drilldownIndicador.detalhes.fonteDados}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDrilldownIndicador(null)}
+                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+              >
+                Fechar
+              </button>
+              {onNavigateToAcoes && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDrilldownIndicador(null);
+                    onNavigateToAcoes();
+                  }}
+                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Abrir Plano no Quadro DPO</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE REGISTRO MANUAL DE ANOMALIA / DESVIO */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-500">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                    Registrar Anomalia de Gatilho
+                  </h3>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                    Abertura imediata de contenção D0
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCriarDesvio} className="space-y-3.5">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Indicador Operacional
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Indicador do Gatilho
                 </label>
                 <select
                   value={newDesvioIndicadorId}
                   onChange={(e) => setNewDesvioIndicadorId(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                 >
-                  {indicadoresList.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      [{i.categoria}] {i.codigo} - {i.nome} (Limite: {i.limiteGatilho} {i.unidade})
+                  {indicadoresList.map((ind) => (
+                    <option key={ind.id} value={ind.id}>
+                      {ind.nome} ({ind.unidade}) - Gatilho: {ind.limiteGatilho}
                     </option>
                   ))}
                 </select>
@@ -977,111 +1075,333 @@ export const WorkstationGatilhosBoard: React.FC<WorkstationGatilhosBoardProps> =
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Turno da Operação
-                  </label>
-                  <select
-                    value={newDesvioTurno}
-                    onChange={(e) => setNewDesvioTurno(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="Turno 1">Turno 1 (Manhã)</option>
-                    <option value="Turno 2">Turno 2 (Tarde)</option>
-                    <option value="Turno 3">Turno 3 (Noite)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Valor Apurado do Dia
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Valor Apurado na Anomalia
                   </label>
                   <input
                     type="number"
                     step="0.01"
                     value={newDesvioValor}
                     onChange={(e) => setNewDesvioValor(e.target.value)}
-                    placeholder="Ex: 4.80"
-                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Equipe Responsável
-                  </label>
-                  <input
-                    type="text"
-                    value={newDesvioEquipe}
-                    onChange={(e) => setNewDesvioEquipe(e.target.value)}
-                    placeholder="Ex: Armazém - Repack / Estocagem"
-                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                    placeholder="Ex: 1.45"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Colaborador Envolvido (Opcional)
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Turno Operacional
                   </label>
-                  <input
-                    type="text"
-                    value={newDesvioColab}
-                    onChange={(e) => setNewDesvioColab(e.target.value)}
-                    placeholder="Nome ou matrícula..."
-                    className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                  />
+                  <select
+                    value={newDesvioTurno}
+                    onChange={(e) => setNewDesvioTurno(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="Turno 1">Turno 1 (Manhã)</option>
+                    <option value="Turno 2">Turno 2 (Tarde/Noite)</option>
+                    <option value="Turno 3">Turno 3 (Madrugada)</option>
+                    <option value="Administrativo">Administrativo</option>
+                  </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Causa da Anomalia / Descrição do Desvio <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={newDesvioCausa}
-                  onChange={(e) => setNewDesvioCausa(e.target.value)}
-                  placeholder="Descreva detalhadamente a causa da anomalia identificada..."
-                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Plano de Contenção / Ação Imediata (Opcional)
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Equipe / Setor Responsável
                 </label>
                 <input
                   type="text"
-                  value={newDesvioPlano}
-                  onChange={(e) => setNewDesvioPlano(e.target.value)}
-                  placeholder="Ex: Reorganizar escala de expedição e triagem no FEFO"
-                  className="w-full bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  value={newDesvioEquipe}
+                  onChange={(e) => setNewDesvioEquipe(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Colaborador(es) ou Equipamento (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={newDesvioColab}
+                  onChange={(e) => setNewDesvioColab(e.target.value)}
+                  placeholder="Ex: Carlos Santos ou Empilhadeira #04"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Causa Raiz Preliminar da Anomalia *
+                </label>
+                <textarea
+                  rows={2}
+                  value={newDesvioCausa}
+                  onChange={(e) => setNewDesvioCausa(e.target.value)}
+                  placeholder="Descreva o que motivou a quebra do limite do gatilho..."
+                  required
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Ação Imediata de Contenção (D0)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newDesvioPlano}
+                  onChange={(e) => setNewDesvioPlano(e.target.value)}
+                  placeholder="Ação executada no momento do disparo para conter o desvio..."
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl cursor-pointer shadow-lg"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-amber-500/20"
                 >
-                  Salvar Desvio
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Salvar Registro</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* MODAL DE VISUALIZAÇÃO E IMPRESSÃO DO RELATÓRIO MENSAL DETALHADO */}
+      {isMonthlyReportModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-5xl w-full shadow-2xl space-y-6 my-6 max-h-[92vh] overflow-y-auto">
+            {/* Barra Superior do Relatório */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-2xl text-amber-500">
+                  <FileSpreadsheet className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                    Relatório Mensal de Gatilhos & Desvios Operacionais
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Pau Brasil Distribuidora • Metodologia DPO e Regra de Média Diária + 10%
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimir / PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportGatilhosExcel}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Baixar Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportGatilhosCSV}
+                  className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Baixar CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsMonthlyReportModalOpen(false)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl transition-all cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo Imprimível do Relatório */}
+            <div id="printable-monthly-gatilhos-report" className="space-y-6 text-slate-900 dark:text-white">
+              {/* Cabeçalho Corporativo */}
+              <div className="p-4 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                    PAU BRASIL DISTRIBUIDORA • GUARABIRA
+                  </span>
+                  <h2 className="text-base font-black uppercase mt-1">
+                    Auditoria Mensal de Desvios e Conformidade de Gatilhos
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <strong>Regra Estatística:</strong> Limite do Gatilho = Média Diária + 10% Tolerância (Acumulado Mês ÷ {diasUteisParam} Dias Úteis).
+                  </p>
+                </div>
+                <div className="text-left md:text-right text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                  <div><strong>Emissão:</strong> {new Date().toLocaleString('pt-BR')}</div>
+                  <div><strong>Auditor:</strong> {user?.nome || 'Analista Sênior DPO'}</div>
+                  <div><strong>Status Geral:</strong> <span className="text-emerald-500 font-bold">{taxaConformidade}% Conforme</span></div>
+                </div>
+              </div>
+
+              {/* Grid dos KPIs Resumo */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-xl">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">
+                    Indicadores Totais
+                  </span>
+                  <span className="text-xl font-black font-mono mt-0.5 block">{totalIndicadores}</span>
+                </div>
+
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">
+                    Sob Controle (Verde)
+                  </span>
+                  <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                    {gatilhosNormais}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 block">
+                    Em Alerta (Amarelo)
+                  </span>
+                  <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5 block">
+                    {gatilhosAlerta}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+                  <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 block">
+                    Desvios Reais (Disparados)
+                  </span>
+                  <span className="text-xl font-black font-mono text-rose-600 dark:text-rose-400 mt-0.5 block">
+                    {gatilhosDisparados}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tabela Completa dos Indicadores e Limites */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  1. Matriz de Indicadores e Limites Calculados no Mês
+                </h4>
+                <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 dark:bg-[#081326] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider text-[9px] border-b border-slate-200 dark:border-slate-800">
+                        <th className="py-2 px-3">Cód.</th>
+                        <th className="py-2 px-3">Indicador</th>
+                        <th className="py-2 px-3">Categoria</th>
+                        <th className="py-2 px-3">Acum. Mês</th>
+                        <th className="py-2 px-3">Média Diária</th>
+                        <th className="py-2 px-3">Limite Gatilho (+10%)</th>
+                        <th className="py-2 px-3">Apurado Hoje</th>
+                        <th className="py-2 px-3">Delta %</th>
+                        <th className="py-2 px-3">Status</th>
+                        <th className="py-2 px-3">Responsável</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono">
+                      {indicadoresList.map((ind) => (
+                        <tr key={ind.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                          <td className="py-2 px-3 font-bold text-amber-600 dark:text-amber-400">{ind.codigo}</td>
+                          <td className="py-2 px-3 font-sans font-bold text-slate-900 dark:text-white">{ind.nome}</td>
+                          <td className="py-2 px-3 font-sans text-slate-500 dark:text-slate-400">{ind.categoria}</td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-300">{ind.detalhes.acumuladoMesFormatado}</td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-300">{ind.detalhes.mediaDiariaFormatada}</td>
+                          <td className="py-2 px-3 font-bold text-amber-600 dark:text-amber-400">
+                            {ind.limiteGatilho} {ind.unidade}
+                          </td>
+                          <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">
+                            {ind.valorHoje} {ind.unidade}
+                          </td>
+                          <td className={`py-2 px-3 font-bold ${ind.status === 'DISPARADO' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                            {ind.detalhes.deltaPctFormatado}
+                          </td>
+                          <td className="py-2 px-3 font-sans">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                              ind.status === 'DISPARADO'
+                                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                : ind.status === 'ALERTA'
+                                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            }`}>
+                              {ind.status}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 font-sans text-slate-500 dark:text-slate-400">{ind.responsavelArea}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Tabela dos Desvios e Ocorrências Registradas */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  2. Histórico de Anomalias e Contenção D0 do Mês
+                </h4>
+                {desviosDiariosList.length === 0 ? (
+                  <div className="p-4 bg-slate-50 dark:bg-[#081326] border border-slate-200 dark:border-slate-800 rounded-2xl text-center text-xs text-slate-500 dark:text-slate-400">
+                    Nenhum desvio crítico registrado no período.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-[#081326] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider text-[9px] border-b border-slate-200 dark:border-slate-800">
+                          <th className="py-2 px-3">Data</th>
+                          <th className="py-2 px-3">Indicador</th>
+                          <th className="py-2 px-3">Apurado vs Limite</th>
+                          <th className="py-2 px-3">Turno / Setor</th>
+                          <th className="py-2 px-3">Causa da Anomalia</th>
+                          <th className="py-2 px-3">Ação D0</th>
+                          <th className="py-2 px-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        {desviosDiariosList.map((d) => (
+                          <tr key={d.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                            <td className="py-2 px-3 font-mono font-bold text-slate-700 dark:text-slate-300">{d.dataStr}</td>
+                            <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">{d.indicadorNome}</td>
+                            <td className="py-2 px-3 font-mono text-rose-600 dark:text-rose-400 font-bold">
+                              {d.valorApurado} {d.unidade} <span className="text-slate-400 text-[9px] font-normal">(gatilho: {d.limiteGatilho})</span>
+                            </td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-300">{d.turno} • {d.equipeResponsavel}</td>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300 max-w-xs">{d.causaAnomalia}</td>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300 max-w-xs">{d.planoAcaoDesc || '—'}</td>
+                            <td className="py-2 px-3">
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                {d.statusAcao}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-export default WorkstationGatilhosBoard;

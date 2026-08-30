@@ -3,8 +3,9 @@ import { isCustomFirebaseConnected } from '../firebase';
 import { RefugoRepository } from '../db';
 import { Usuario, Empresa, BlitzRefugoRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
-import { TrendingUp, CheckCircle, Clock, Award, BarChart2 } from 'lucide-react';
+import { TrendingUp, CheckCircle, Clock, Award, BarChart2, ExternalLink } from 'lucide-react';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
+import { REFUGO_POWERBI_URL } from '../data/refugoOfficialDataset';
 
 interface RefugoPanelProps {
   user: Usuario;
@@ -303,8 +304,19 @@ export default function RefugoPanel({ user, empresa }: RefugoPanelProps) {
     <div className="flex flex-col gap-6">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full">
-        <span className="font-sans font-black text-sm tracking-widest text-[#eab308] uppercase">🍾 BLITZ DE REFUGO — AFERIÇÃO RETORNÁVEIS</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-[#11151c] border border-[#222d3a] rounded-xl w-full">
+        <span className="font-sans font-black text-sm tracking-widest text-[#eab308] uppercase flex items-center gap-2">
+          <span>🍾 BLITZ DE REFUGO — AFERIÇÃO RETORNÁVEIS</span>
+        </span>
+        <a
+          href={REFUGO_POWERBI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all"
+        >
+          <span>Abrir Relatório Oficial no Power BI</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
 
       <div className="ptabs border-b border-[#222d3a] flex gap-2">

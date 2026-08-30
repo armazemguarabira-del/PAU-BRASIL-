@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Trophy, 
   Users, 
@@ -26,6 +26,8 @@ import { useSystemTargets } from '../utils/useSystemTargets';
 import { BlitzEstoqueSection } from './BlitzEstoqueSection';
 import { StockAgeRankingSection } from './StockAgeRankingSection';
 import { getBlitzEstoqueRecords } from '../utils/blitzEstoqueUtils';
+import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
+import { buildOfficialDespejoRows } from '../utils/retroactiveDespejoParser';
 
 export interface ColaboradorRankingItem {
   matricula: string;
@@ -35,7 +37,7 @@ export interface ColaboradorRankingItem {
   setor: 'Picking' | 'Repack' | 'Quebras' | 'Despejo' | 'Ressuprimento' | 'Gestão da Capacidade' | 'Recebimento' | 'Montagem' | 'EFC / EFD' | 'FEFO' | 'Política de Estoque' | 'Temperatura' | '5S' | 'Ações';
   supervisor: string;
   resultado: number;
-  unidadeMedida: 'cx/h' | 'mov/h' | '%' | 'min/pl' | 'cx' | 'PL/h';
+  unidadeMedida: 'cx/h' | 'un/h' | 'mov/h' | '%' | 'min/pl' | 'cx' | 'PL/h';
   meta: number;
   percentualMeta: number;
   tendencia?: 'up' | 'down' | 'stable';
@@ -55,20 +57,19 @@ export const LISTA_COLABORADORES_OFICIAIS = [
   // AJUDANTE / MOTORISTA OPERACIONAL
   { matricula: 'G1053', nome: 'ADELSON SANTOS DE ARAUJO', cargo: 'MOTORISTA', cpf: '101.598.524-63', turno: 'MANHÃ', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1160', nome: 'ADMILTON HERMINIO DOS SANTOS MARCELINO', cargo: 'AJUDANTE', cpf: '042.370.104-57', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
-  { matricula: 'G1001', nome: 'DEJEAN SILVA DE OLIVEIRA', cargo: 'AJUDANTE', cpf: '106.036.454-96', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
+  { matricula: 'G1001', nome: 'DEJEAN SILVA DE OLIVEIRA', cargo: 'AJUDANTE', cpf: '106.036.454-96', turno: 'MANHÃ', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1161', nome: 'DIMAS EMANUEL MISSIAS DA SILVA', cargo: 'AJUDANTE', cpf: '014.305.954-85', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1055', nome: 'DIOGENES PEREIRA DA SILVA', cargo: 'AJUDANTE', cpf: '701.931.834-71', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1154', nome: 'EDILSON VIEIRA DA SILVA', cargo: 'AJUDANTE', cpf: '099.129.724-57', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1128', nome: 'ELDENKLEBER MAURICIO DA SILVA', cargo: 'AJUDANTE', cpf: '000.618.854-01', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
-  { matricula: 'G1145', nome: 'GLADSON LISBOA DOS SANTOS', cargo: 'AJUDANTE', cpf: '017.832.554-63', turno: 'TARDE', funcaoGroup: 'Ajudante' as const },
+  { matricula: 'G1145', nome: 'GLADSON LISBOA DOS SANTOS', cargo: 'AJUDANTE', cpf: '017.832.554-63', turno: 'MANHÃ', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1147', nome: 'LUIS ANTONIO FREIRE MOREIRA', cargo: 'AJUDANTE', cpf: '088.770.774-25', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
   { matricula: 'G1125', nome: 'NATANAEL LUIZ DA SILVA', cargo: 'AJUDANTE', cpf: '708.229.224-44', turno: 'NOITE', funcaoGroup: 'Ajudante' as const },
-  { matricula: 'G1137', nome: 'OZENILDO SOUSA SILVA', cargo: 'AJUDANTE', cpf: '083.601.774-90', turno: 'MANHÃ', funcaoGroup: 'Ajudante' as const },
+  { matricula: 'G1137', nome: 'OZENILDO SOUSA SILVA', cargo: 'AJUDANTE', cpf: '083.601.774-90', turno: 'TARDE', funcaoGroup: 'Ajudante' as const },
 
   // CONFERENTE
   { matricula: 'G1121', nome: 'CICERO MATHEU DE OLIVEIRA SILVA', cargo: 'CONFERENTE', cpf: '148.472.344-99', turno: 'NOITE', funcaoGroup: 'Operador' as const },
   { matricula: 'G1088', nome: 'GILSON ROSA DA SILVA', cargo: 'CONFERENTE', cpf: '125.403.194-40', turno: 'MANHÃ', funcaoGroup: 'Operador' as const },
-  { matricula: 'G1022', nome: 'MATEUS HENRIQUE DE SOUZA', cargo: 'CONFERENTE', cpf: '092.118.434-11', turno: 'TARDE', funcaoGroup: 'Operador' as const },
 
   // EMPILHADOR
   { matricula: 'G1093', nome: 'JOSE RONILDO DA SILVA', cargo: 'EMPILHADOR', cpf: '085.789.634-23', turno: 'TARDE', funcaoGroup: 'Empilhador' as const },
@@ -89,10 +90,38 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
   const [activeSetor, setActiveSetor] = useState<string>(initialSetor || 'Visão Geral (Metas vs Reais)');
   const [activeFuncao, setActiveFuncao] = useState<'Todos' | 'Conferente' | 'Ajudante' | 'Empilhador'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const empresaData = useEmpresaData();
   const empresaId = user?.empresaId || 'demo';
   const { targets, updateTarget, recalcularAtingimento } = useSystemTargets(empresaId);
+
+  // Real-time listener for any collaborator action across panels
+  useEffect(() => {
+    const handleUpdate = () => {
+      setRefreshTick(prev => prev + 1);
+    };
+
+    window.addEventListener('quebras-db-updated', handleUpdate);
+    window.addEventListener('quebras-updated', handleUpdate);
+    window.addEventListener('repack-db-updated', handleUpdate);
+    window.addEventListener('despejo-db-updated', handleUpdate);
+    window.addEventListener('montagem-db-updated', handleUpdate);
+    window.addEventListener('dto_historico_updated', handleUpdate);
+    window.addEventListener('empresa-data-reload', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('quebras-db-updated', handleUpdate);
+      window.removeEventListener('quebras-updated', handleUpdate);
+      window.removeEventListener('repack-db-updated', handleUpdate);
+      window.removeEventListener('despejo-db-updated', handleUpdate);
+      window.removeEventListener('montagem-db-updated', handleUpdate);
+      window.removeEventListener('dto_historico_updated', handleUpdate);
+      window.removeEventListener('empresa-data-reload', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const setoresList = [
     'Visão Geral (Metas vs Reais)',
@@ -127,8 +156,14 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
 
     // Helper para obter oficial
     const findOfficial = (name: string) => {
+      if (!name) return undefined;
+      const clean = name.trim().toLowerCase();
       return LISTA_COLABORADORES_OFICIAIS.find(
-        c => c.nome.toLowerCase() === name.toLowerCase() || c.matricula.toLowerCase() === name.toLowerCase()
+        c => c.nome.toLowerCase() === clean || 
+             c.matricula.toLowerCase() === clean ||
+             c.nome.toLowerCase().includes(clean) ||
+             clean.includes(c.nome.toLowerCase()) ||
+             (clean.split(' ')[0] && c.nome.toLowerCase().startsWith(clean.split(' ')[0]))
       );
     };
 
@@ -250,56 +285,137 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
       console.error(e);
     }
 
-    // 4. Despejo de localStorage / Contexto
+    // 4. Despejo: Agregação por operador autorizado (Ozenildo Sousa Silva e Gladson Lisboa dos Santos)
     try {
+      let dRows: any[] = [];
       const savedDespejo = localStorage.getItem(`despejo_rows_${empresaId}`);
       if (savedDespejo) {
-        const dRows = JSON.parse(savedDespejo);
-        if (Array.isArray(dRows) && dRows.length > 0) {
-          dRows.forEach((d: any, idx: number) => {
-            const name = d.colaborador || `Ajudante ${idx + 1}`;
-            const official = findOfficial(name);
-            const mat = d.matricula || (official ? official.matricula : `M-DSP-${idx + 101}`);
-            if (deletedMatriculas.includes(mat)) return;
+        try {
+          const parsed = JSON.parse(savedDespejo);
+          if (Array.isArray(parsed) && parsed.length > 0) dRows = parsed;
+        } catch (_) {}
+      }
+      if (dRows.length === 0) {
+        dRows = buildOfficialDespejoRows(empresaId);
+      }
 
-            const res = Number(d.caixasDespejadas || d.caixas || 0);
-            const pct = Number(d.eficienciaPct || 0);
-            const meta = targets.despejo_produtividade || 40;
+      if (Array.isArray(dRows) && dRows.length > 0) {
+        const opDespejoMap = new Map<string, { totalUn: number; totalSec: number }>();
+        dRows.forEach((d: any) => {
+          const rawName = String(d.operador || d.colaborador || 'OZENILDO SOUSA SILVA').split('(')[0].trim().toUpperCase();
+          const cleanName = rawName.includes('GLAD') ? 'GLADSON LISBOA DOS SANTOS' : 'OZENILDO SOUSA SILVA';
+          const prev = opDespejoMap.get(cleanName) || { totalUn: 0, totalSec: 0 };
+          const un = Number(d.quantidade) || Number(d.caixas) || 1;
+          
+          let sec = 0;
+          if (d.tempo && typeof d.tempo === 'string' && d.tempo.includes(':')) {
+            const parts = d.tempo.split(':').map(Number);
+            if (parts.length === 3) sec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            else if (parts.length === 2) sec = parts[0] * 60 + parts[1];
+          } else if (typeof d.duracao === 'number') {
+            sec = d.duracao <= 300 ? d.duracao * 60 : d.duracao;
+          } else {
+            sec = 44 * un; // média coerente < 50s
+          }
 
-            if (res > 0 || pct > 0) {
-              records.push({
-                matricula: mat,
-                nome: official ? official.nome : name,
-                cargo: official ? official.cargo : 'Ajudante de Despejo',
-                funcaoGroup: 'Ajudante',
-                supervisor: 'SUPERVISÃO DE DESPEJO',
-                setor: 'Despejo',
-                unidadeMedida: 'cx/h',
-                meta,
-                resultado: res,
-                percentualMeta: pct,
-                variacaoMetaPct: Math.round((pct - 100) * 10) / 10,
-                statusMeta: pct >= 100 ? '🟢 DENTRO DA META' : '🔴 FORA DA META'
-              });
-            }
+          opDespejoMap.set(cleanName, {
+            totalUn: prev.totalUn + un,
+            totalSec: prev.totalSec + sec
           });
-        }
+        });
+
+        const meta = targets.despejo_produtividade || 30; // 30 un/h
+
+        opDespejoMap.forEach((data, name) => {
+          const official = findOfficial(name);
+          const mat = official ? official.matricula : (name.includes('GLAD') ? 'G1050' : 'G1040');
+          if (deletedMatriculas.includes(mat)) return;
+
+          const horas = data.totalSec / 3600;
+          const res = horas > 0 ? Math.round((data.totalUn / horas) * 10) / 10 : 31.5;
+          const pct = Math.round((res / meta) * 100);
+
+          records.push({
+            matricula: mat,
+            nome: official ? official.nome : name,
+            cargo: official ? official.cargo : 'AJUDANTE',
+            funcaoGroup: 'Ajudante',
+            supervisor: 'SUPERVISÃO DE DESPEJO',
+            setor: 'Despejo',
+            unidadeMedida: 'un/h',
+            meta,
+            resultado: res,
+            percentualMeta: pct,
+            variacaoMetaPct: Math.round((pct - 100) * 10) / 10,
+            statusMeta: pct >= 100 ? '🟢 DENTRO DA META' : '🔴 FORA DA META'
+          });
+        });
       }
     } catch (e) {
       console.error(e);
     }
 
-    // 5. Quebras de empresaData.quebras ou localStorage
+    // 5. Quebras de official rows, empresaData.quebras, localStorage e DTOs
     try {
-      const quebrasList = empresaData.quebras || JSON.parse(localStorage.getItem(`quebras_records_${empresaId}`) || '[]');
-      if (Array.isArray(quebrasList) && quebrasList.length > 0) {
-        const colabMap: Record<string, { totalAvaria: number; totalVolume: number; nome: string }> = {};
-        quebrasList.forEach((q: any) => {
-          const name = q.colaborador || q.responsavel;
-          if (name) {
-            if (!colabMap[name]) colabMap[name] = { totalAvaria: 0, totalVolume: 0, nome: name };
+      const allQuebras: any[] = [];
+      const seenQKeys = new Set<string>();
+
+      const addQItem = (q: any) => {
+        if (!q) return;
+        const key = `${q.id || q._docId || ''}_${q.dataISO || q.data || ''}_${q.codProduto || ''}_${q.colaborador || q.colaboradorQuebrou || q.responsavel || ''}_${q.quantidade || q.caixas || 0}`;
+        if (seenQKeys.has(key)) return;
+        seenQKeys.add(key);
+        allQuebras.push(q);
+      };
+
+      // A) Official Dataset Quebras
+      const officialQ = buildOfficialQuebrasRows(empresaId);
+      if (Array.isArray(officialQ)) officialQ.forEach(addQItem);
+
+      // B) EmpresaData Quebras
+      if (Array.isArray(empresaData.quebras)) empresaData.quebras.forEach(addQItem);
+
+      // C) Local Storage custom quebras
+      const lsKeys = [`custom_quebras_${empresaId}`, `quebras_${empresaId}`, `quebras_records_${empresaId}`, `local_quebras_${empresaId}`, `quebras_manual_entries_${empresaId}`];
+      lsKeys.forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) parsed.forEach(addQItem);
+          } catch (_) {}
+        }
+      });
+
+      // D) DTO Historico de Registros para Quebras
+      const rawDto = localStorage.getItem('armazem_dto_historico_registros_v1');
+      if (rawDto) {
+        try {
+          const parsedDto = JSON.parse(rawDto);
+          if (Array.isArray(parsedDto)) {
+            parsedDto.filter((d: any) => d.operacaoId === 'quebras' || d.modulo === 'quebras' || (d.tipo && d.tipo.toLowerCase().includes('quebra'))).forEach((dto: any) => {
+              addQItem({
+                id: dto.id,
+                colaborador: dto.operadorNome || dto.colaborador || dto.usuarioNome || dto.auditorNome,
+                quantidade: Number(dto.itensContados || dto.quantidade || 1),
+                volumeTotal: Number(dto.hectolitros || 100),
+                motivo: dto.motivo || 'QUEBRA COM MOVIMENTAÇÃO',
+                dataISO: dto.dataHoraISO || dto.dataISO
+              });
+            });
+          }
+        } catch (_) {}
+      }
+
+      if (allQuebras.length > 0) {
+        const colabMap: Record<string, { totalAvaria: number; totalVolume: number; nome: string; motivoPrincipal?: string }> = {};
+        allQuebras.forEach((q: any) => {
+          const name = String(q.colaborador || q.colaboradorQuebrou || q.responsavel || q.operador || '').trim();
+          if (name && name !== 'NÃO IDENTIFICADO' && name !== 'SISTEMA' && name !== '-') {
+            if (!colabMap[name]) colabMap[name] = { totalAvaria: 0, totalVolume: 0, nome: name, motivoPrincipal: q.motivo };
             colabMap[name].totalAvaria += Number(q.quantidade || q.caixas || 1);
             colabMap[name].totalVolume += Number(q.volumeTotal || 1000);
+            if (q.motivo && !colabMap[name].motivoPrincipal) colabMap[name].motivoPrincipal = q.motivo;
           }
         });
 
@@ -333,7 +449,7 @@ export default function RankingModule({ user, initialSetor = 'Visão Geral (Meta
     }
 
     return records;
-  }, [empresaData, empresaId, targets]);
+  }, [empresaData, empresaId, targets, refreshTick]);
 
   // ── CÁLCULO DA GESTÃO DA CAPACIDADE DE ESTOQUE ──
   const capacidadeEstoqueStats = useMemo(() => {

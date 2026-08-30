@@ -42,17 +42,108 @@ import {
   Cell
 } from 'recharts';
 import { BaseSkuData, ABASTECIMENTO_PRODUCTS_DATA } from '../data/abastecimentoData';
+import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
 import { PRODUCTS } from '../planosData';
 import { Tarefa } from '../types';
 import * as XLSX from 'xlsx';
 import { getRepository } from '../db';
+import { getAbcMapForPeriod, resolveQuarterFromFilters } from '../utils/curvaAbcUtils';
+import { isCleaningProduct } from '../utils/generateRessuprimentoData';
 
 const abastecimentoAnaliseRepo = getRepository<any>('analises_abastecimento_diario');
+
+// Helper to convert total SKU caixas into Full Pallets and loose SKU (caixas)
+export const convertSkuToPalletAndSku = (totalCaixas: number, qtdPallet: number) => {
+  const palSize = Math.max(1, qtdPallet || 100);
+  const total = Math.max(0, totalCaixas || 0);
+  const palletsFechados = Math.floor(total / palSize);
+  const skuFracionado = total % palSize;
+  const palletsDecimal = Math.round((total / palSize) * 10) / 10;
+  
+  let formatado = '';
+  if (palletsFechados > 0 && skuFracionado > 0) {
+    formatado = `${palletsFechados} PL + ${skuFracionado} cx`;
+  } else if (palletsFechados > 0) {
+    formatado = `${palletsFechados} PL (${total} cx)`;
+  } else {
+    formatado = `${skuFracionado} cx`;
+  }
+
+  return {
+    palletsFechados,
+    skuFracionado,
+    totalCaixas: total,
+    palletsDecimal,
+    formatado
+  };
+};
+
+// Helper to pull complete official product info from master data
+export const getOfficialProductInfo = (sku: number, fallbackDesc?: string) => {
+  const skuNum = Number(sku);
+  const master = PRODUCT_MASTER_DATA.find(p => p.cod === skuNum);
+  if (master && master.descricao) {
+    return {
+      sku: skuNum,
+      descricao: master.descricao.trim(),
+      embalagem: typeof (master as any).embalagem === 'number' ? (master as any).embalagem : (Number(master.fator) || 1),
+      unidade: (master as any).unidade ? String((master as any).unidade) : 'cx',
+      qtdPallet: master.fatorPallet || 100,
+      fatorHecto: master.fatorHecto || 0.072,
+      curvaAbc: (master.curva as 'A' | 'B' | 'C') || 'B',
+      grupo: master.grupo || 'GERAL'
+    };
+  }
+  const plano = PRODUCTS.find(p => Number(p.codigo) === skuNum);
+  if (plano && plano.descricao) {
+    return {
+      sku: skuNum,
+      descricao: plano.descricao.trim(),
+      embalagem: Number(plano.fator) || 1,
+      unidade: typeof plano.unidade === 'string' ? plano.unidade : 'cx',
+      qtdPallet: plano.caixasPallet || 100,
+      fatorHecto: Number(plano.fatorHecto) || 0.072,
+      curvaAbc: (plano.curva as 'A' | 'B' | 'C') || 'B',
+      grupo: plano.grupo || 'GERAL'
+    };
+  }
+  return {
+    sku: skuNum,
+    descricao: fallbackDesc?.trim() || `PRODUTO ${skuNum}`,
+    embalagem: 1,
+    unidade: 'cx',
+    qtdPallet: 100,
+    fatorHecto: 0.072,
+    curvaAbc: 'B' as const,
+    grupo: 'GERAL'
+  };
+};
 
 interface AbastecimentoDiarioComponentProps {
   user: any;
   empresa: any;
   tasks: any[];
+}
+
+export interface Imported021101File {
+  id: string;
+  name: string;
+  timestamp: string;
+  skuCount: number;
+  pickingBoxes: number;
+  totalBoxes: number;
+  data: Array<{
+    sku: number;
+    descricao: string;
+    embalagem: number;
+    unidade: string;
+    qtdPallet: number;
+    estoquePicking: number;
+    estoqueCentral: number;
+    estoqueMarketplace: number;
+    estoquePulmao: number;
+    estoqueContingencia: number;
+  }>;
 }
 
 export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: AbastecimentoDiarioComponentProps) {
@@ -67,8 +158,20 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'ok' | 'attention' | 'critical' | 'night_need' | 'no_picking_sales' | 'total_rupture'>('night_need');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'suficiente_picking' | 'carregar_pulmao' | 'carregar_central' | 'carregar_marketplace' | 'carregar_contingencia' | 'reabastecer_picking' | 'reabastecer_misto' | 'ok' | 'attention' | 'critical' | 'night_need' | 'no_picking_sales' | 'total_rupture' | 'ruptura_in_full' | 'estoque_insuficiente'>('all');
   const [showOnlyWithSales, setShowOnlyWithSales] = useState(false);
+
+  // Unit Metric Selector: 'cx' | 'pl' | 'hl'
+  const [unitMetric, setUnitMetric] = useState<'cx' | 'pl' | 'hl'>('cx');
+  // Curva ABC Filter: 'all' | 'A' | 'B' | 'C'
+  const [curvaFilter, setCurvaFilter] = useState<'all' | 'A' | 'B' | 'C'>('all');
+
+  // Dynamic Curva ABC Engine synchronized with Curva ABC Commercial Dashboard (03.05.19 / Quarters)
+  const abcEngine = useMemo(() => {
+    return getAbcMapForPeriod({
+      date: selectedAnalysisDate
+    });
+  }, [selectedAnalysisDate]);
 
   // Night Replenishment Strategy State
   const [nightStrategy, setNightStrategy] = useState<'repor_vendas' | 'completar_1pl' | 'completar_2pl' | 'deficit'>('deficit');
@@ -86,18 +189,57 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
   // States for importing sales/venda files (Rotina 020304) and picking stock (Rotina 021101)
   const [importing021101, setImporting021101] = useState(false);
   const [fileName021101, setFileName021101] = useState('');
+  const [imported021101Files, setImported021101Files] = useState<Imported021101File[]>([]);
   const [importing020304, setImporting020304] = useState(false);
   const [fileName020304, setFileName020304] = useState('');
 
-  // Customizable products list initialized with default baseline values
-  const [productsList, setProductsList] = useState<BaseSkuData[]>(ABASTECIMENTO_PRODUCTS_DATA);
+  // Customizable products list initialized with enriched official master data across all 5 areas (excluding CERVEGELA/limpeza)
+  const [productsList, setProductsList] = useState<BaseSkuData[]>(() => {
+    return ABASTECIMENTO_PRODUCTS_DATA
+      .filter(p => !isCleaningProduct(p.descricao) && !p.descricao.toUpperCase().includes('CERVEGELA'))
+      .map(p => {
+        const official = getOfficialProductInfo(p.sku, p.descricao);
+        return {
+          ...p,
+          descricao: official.descricao,
+          embalagem: official.embalagem,
+          qtdPallet: official.qtdPallet,
+          estoquePicking: p.estoquePicking !== undefined ? p.estoquePicking : p.estoqueInicialCaixas,
+          estoqueCentral: p.estoqueCentral !== undefined ? p.estoqueCentral : 0,
+          estoqueMarketplace: p.estoqueMarketplace !== undefined ? p.estoqueMarketplace : 0,
+          estoquePulmao: p.estoquePulmao !== undefined ? p.estoquePulmao : 0,
+          estoqueContingencia: p.estoqueContingencia !== undefined ? p.estoqueContingencia : 0,
+        };
+      });
+  });
 
-  // Customizable product data state initialized with default baseline values
-  const [customProductData, setCustomProductData] = useState<Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }>>(() => {
-    const initial: Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }> = {};
+  // Customizable product data state holding all 5 areas: Picking (2), Central (1), Marketplace (3), Pulmão (4), Contingência (5) and Sales
+  const [customProductData, setCustomProductData] = useState<Record<number, { 
+    estoqueInicialCaixas: number; 
+    estoquePicking?: number;      // Área 2: Picking
+    estoqueCentral?: number;      // Área 1: Central
+    estoqueMarketplace?: number;  // Área 3: Marketplace
+    estoquePulmao?: number;       // Área 4: Pulmão
+    estoqueContingencia?: number; // Área 5: Área de Contingência
+    vendaCaixas: number;
+  }>>(() => {
+    const initial: Record<number, { 
+      estoqueInicialCaixas: number; 
+      estoquePicking?: number;
+      estoqueCentral?: number; 
+      estoqueMarketplace?: number; 
+      estoquePulmao?: number;
+      estoqueContingencia?: number;
+      vendaCaixas: number;
+    }> = {};
     ABASTECIMENTO_PRODUCTS_DATA.forEach(p => {
       initial[p.sku] = {
         estoqueInicialCaixas: p.estoqueInicialCaixas,
+        estoquePicking: p.estoquePicking !== undefined ? p.estoquePicking : p.estoqueInicialCaixas,
+        estoqueCentral: p.estoqueCentral !== undefined ? p.estoqueCentral : 0,
+        estoqueMarketplace: p.estoqueMarketplace !== undefined ? p.estoqueMarketplace : 0,
+        estoquePulmao: p.estoquePulmao !== undefined ? p.estoquePulmao : 0,
+        estoqueContingencia: p.estoqueContingencia !== undefined ? p.estoqueContingencia : 0,
         vendaCaixas: p.vendaCaixas
       };
     });
@@ -107,6 +249,41 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Helper functions for persistent draft storage in localStorage
+  const getDraftKey = (empId: string, date: string) => `ambev_abastecimento_draft_${empId}_${date}`;
+
+  const saveLocalDraft = (
+    products: BaseSkuData[],
+    customData: Record<number, any>,
+    files021101: Imported021101File[],
+    name021101: string,
+    name020304: string,
+    dateToSave: string = selectedAnalysisDate
+  ) => {
+    if (!empresa?.id) return;
+    try {
+      const payload = {
+        productsList: products,
+        customProductData: customData,
+        imported021101Files: files021101,
+        fileName021101: name021101,
+        fileName020304: name020304,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(getDraftKey(empresa.id, dateToSave), JSON.stringify(payload));
+    } catch (e) {
+      console.warn("Erro ao salvar draft local:", e);
+    }
+  };
+
+  const clearLocalDraft = (empId: string, date: string) => {
+    try {
+      localStorage.removeItem(getDraftKey(empId, date));
+    } catch (e) {
+      console.warn("Erro ao limpar draft local:", e);
+    }
   };
 
   // 1. Load saved analysis for the selected date
@@ -120,45 +297,137 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         const docData = matching[0];
         const productDetails = docData.productDetails || [];
         
-        const loadedData: Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }> = {};
+        const loadedData: Record<number, { 
+          estoqueInicialCaixas: number; 
+          estoquePicking?: number; 
+          estoqueCentral?: number; 
+          estoqueMarketplace?: number; 
+          estoquePulmao?: number;
+          estoqueContingencia?: number;
+          vendaCaixas: number;
+        }> = {};
         const loadedProductsList: BaseSkuData[] = [];
         
         productDetails.forEach((p: any) => {
-          loadedData[p.sku] = {
-            estoqueInicialCaixas: p.estoqueInicialCaixas,
-            vendaCaixas: p.vendaCaixas
+          const official = getOfficialProductInfo(Number(p.sku), p.descricao);
+          const pickingStock = p.estoquePicking !== undefined ? Number(p.estoquePicking) : Number(p.estoqueInicialCaixas || 0);
+          const centralStock = p.estoqueCentral !== undefined ? Number(p.estoqueCentral) : 0;
+          const mkpStock = p.estoqueMarketplace !== undefined ? Number(p.estoqueMarketplace) : 0;
+          const pulmaoStock = p.estoquePulmao !== undefined ? Number(p.estoquePulmao) : 0;
+          const contStock = p.estoqueContingencia !== undefined ? Number(p.estoqueContingencia) : 0;
+
+          loadedData[Number(p.sku)] = {
+            estoqueInicialCaixas: pickingStock,
+            estoquePicking: pickingStock,
+            estoqueCentral: centralStock,
+            estoqueMarketplace: mkpStock,
+            estoquePulmao: pulmaoStock,
+            estoqueContingencia: contStock,
+            vendaCaixas: Number(p.vendaCaixas || 0)
           };
           loadedProductsList.push({
             sku: Number(p.sku),
-            descricao: p.descricao || `PRODUTO ${p.sku}`,
-            unidade: p.unidade || 'cx',
-            embalagem: p.embalagem || 1,
-            qtdPallet: p.qtdPallet || 100,
-            estoqueInicialCaixas: p.estoqueInicialCaixas,
-            vendaCaixas: p.vendaCaixas
+            descricao: official.descricao,
+            unidade: p.unidade || official.unidade || 'cx',
+            embalagem: p.embalagem || official.embalagem || 1,
+            qtdPallet: p.qtdPallet || official.qtdPallet || 100,
+            estoqueInicialCaixas: pickingStock,
+            estoquePicking: pickingStock,
+            estoqueCentral: centralStock,
+            estoqueMarketplace: mkpStock,
+            estoquePulmao: pulmaoStock,
+            estoqueContingencia: contStock,
+            vendaCaixas: Number(p.vendaCaixas || 0)
           });
         });
-        
-        setProductsList(loadedProductsList.length > 0 ? loadedProductsList : ABASTECIMENTO_PRODUCTS_DATA);
+
+        const files021101: Imported021101File[] = docData.imported021101Files || [];
+        const name021101: string = docData.fileName021101 || (files021101.length > 0 ? (files021101.length === 1 ? files021101[0].name : `${files021101.length} arquivos 02.11.01`) : '');
+        const name020304: string = docData.fileName020304 || '';
+
+        const finalProductsList = loadedProductsList.length > 0 ? loadedProductsList : ABASTECIMENTO_PRODUCTS_DATA;
+        setProductsList(finalProductsList);
         setCustomProductData(loadedData);
+        setImported021101Files(files021101);
+        setFileName021101(name021101);
+        setFileName020304(name020304);
         setIsHistoricalLoaded(true);
         setLoadedHistoryMeta({
           id: docData._docId || docData.id,
-          savedBy: docData.usuarioEmail || docData.usuarioNome || 'Sistema',
+          savedBy: docData.usuarioNome || docData.usuarioEmail || 'Sistema',
           savedAt: docData.createdAt || ''
         });
-        showToast(`Análise para ${dateStr} carregada com sucesso!`, "success");
+
+        saveLocalDraft(finalProductsList, loadedData, files021101, name021101, name020304, dateStr);
+        showToast(`Análise registrada de ${dateStr} carregada com sucesso!`, "success");
       } else {
-        // Fallback to baseline default values
-        const initial: Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }> = {};
-        ABASTECIMENTO_PRODUCTS_DATA.forEach(p => {
+        // Check if there is an active draft saved locally for this date and company
+        const draftRaw = localStorage.getItem(getDraftKey(empresa.id, dateStr));
+        if (draftRaw) {
+          try {
+            const draft = JSON.parse(draftRaw);
+            if (draft.productsList && draft.customProductData) {
+              setProductsList(draft.productsList);
+              setCustomProductData(draft.customProductData);
+              setImported021101Files(draft.imported021101Files || []);
+              setFileName021101(draft.fileName021101 || '');
+              setFileName020304(draft.fileName020304 || '');
+              setIsHistoricalLoaded(false);
+              setLoadedHistoryMeta(null);
+              return;
+            }
+          } catch (err) {
+            console.error("Erro ao ler rascunho de relatórios salvos:", err);
+          }
+        }
+
+        // Fallback to baseline default values with master descriptions
+        const initial: Record<number, { 
+          estoqueInicialCaixas: number; 
+          estoquePicking?: number; 
+          estoqueCentral?: number; 
+          estoqueMarketplace?: number; 
+          estoquePulmao?: number; 
+          estoqueContingencia?: number; 
+          vendaCaixas: number;
+        }> = {};
+        const enrichedList = ABASTECIMENTO_PRODUCTS_DATA.map(p => {
+          const official = getOfficialProductInfo(p.sku, p.descricao);
+          const pickingStock = p.estoquePicking !== undefined ? p.estoquePicking : p.estoqueInicialCaixas;
+          const centralStock = p.estoqueCentral !== undefined ? p.estoqueCentral : 0;
+          const mkpStock = p.estoqueMarketplace !== undefined ? p.estoqueMarketplace : 0;
+          const pulmaoStock = p.estoquePulmao !== undefined ? p.estoquePulmao : 0;
+          const contStock = p.estoqueContingencia !== undefined ? p.estoqueContingencia : 0;
+
           initial[p.sku] = {
-            estoqueInicialCaixas: p.estoqueInicialCaixas,
+            estoqueInicialCaixas: pickingStock,
+            estoquePicking: pickingStock,
+            estoqueCentral: centralStock,
+            estoqueMarketplace: mkpStock,
+            estoquePulmao: pulmaoStock,
+            estoqueContingencia: contStock,
             vendaCaixas: p.vendaCaixas
           };
+
+          return {
+            ...p,
+            descricao: official.descricao,
+            embalagem: official.embalagem,
+            qtdPallet: official.qtdPallet,
+            estoqueInicialCaixas: pickingStock,
+            estoquePicking: pickingStock,
+            estoqueCentral: centralStock,
+            estoqueMarketplace: mkpStock,
+            estoquePulmao: pulmaoStock,
+            estoqueContingencia: contStock,
+          };
         });
-        setProductsList(ABASTECIMENTO_PRODUCTS_DATA);
+
+        setProductsList(enrichedList);
         setCustomProductData(initial);
+        setImported021101Files([]);
+        setFileName021101('');
+        setFileName020304('');
         setIsHistoricalLoaded(false);
         setLoadedHistoryMeta(null);
       }
@@ -195,7 +464,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
   // 3. Process tasks to map to our real Ambev SKUs
   const replenishmentMap = useMemo(() => {
-    const map = new Map<number, { boxes: number; pallets: number; operators: Set<string>; hourlyCounts: Record<number, number> }>();
+    const map = new Map<number, { boxes: number; pallets: number; operators: Set<string>; hourlyCounts: Record<number, number>; hourlyBoxes: Record<number, number> }>();
     
     // Initialize map with 0s for all products
     productsList.forEach(p => {
@@ -203,7 +472,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         boxes: 0,
         pallets: 0,
         operators: new Set<string>(),
-        hourlyCounts: {}
+        hourlyCounts: {}, // Pallets por hora
+        hourlyBoxes: {}   // Caixas por hora
       });
     });
 
@@ -234,7 +504,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
       if (taskDate && taskDate !== selectedAnalysisDate) return;
 
       // Extract completion hour (0-23)
-      let hour = 12; // default
+      let hour = 10; // default pico matinal
       if (t.horaConclusao !== undefined && t.horaConclusao >= 0 && t.horaConclusao <= 23) {
         hour = t.horaConclusao;
       } else if (t.rawTask?.finalizadoEm) {
@@ -247,11 +517,11 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
             hour = parseInt(timePart.split(':')[0], 10);
           }
         } catch (e) {
-          hour = 12;
+          hour = 10;
         }
       }
 
-      if (isNaN(hour) || hour < 0 || hour > 23) hour = 12;
+      if (isNaN(hour) || hour < 0 || hour > 23) hour = 10;
 
       // Map generated task SKU to real Ambev SKU if it's from mock generator (codes 20000+)
       let targetSku = Number(t.sku || t.codigo || 0);
@@ -296,7 +566,10 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           entry.operators.add(t.operador);
         }
         
-        entry.hourlyCounts[hour] = (entry.hourlyCounts[hour] || 0) + qtyBoxes;
+        // Visão por PALETE como métrica operacional principal
+        entry.hourlyCounts[hour] = (entry.hourlyCounts[hour] || 0) + qtyPallets;
+        entry.hourlyBoxes = entry.hourlyBoxes || {};
+        entry.hourlyBoxes[hour] = (entry.hourlyBoxes[hour] || 0) + qtyBoxes;
       }
     });
 
@@ -314,13 +587,29 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     return map;
   }, []);
 
-  // 4. Combine baseline or custom values with active replenishment data
+  // 4. Process all SKUs with replenishment, 5-area stocks and sales
   const processedSkus = useMemo(() => {
     return productsList.map(p => {
+      const dynamicCurvaAbc = abcEngine.getCurva(p.sku, p.curvaAbc);
       const replData = replenishmentMap.map.get(p.sku) || { boxes: 0, pallets: 0, operators: new Set<string>() };
       
-      const customData = customProductData[p.sku] || { estoqueInicialCaixas: p.estoqueInicialCaixas, vendaCaixas: p.vendaCaixas };
-      const estoqueInicial = customData.estoqueInicialCaixas;
+      const customData = customProductData[p.sku] || { 
+        estoqueInicialCaixas: p.estoqueInicialCaixas,
+        estoquePicking: p.estoquePicking !== undefined ? p.estoquePicking : p.estoqueInicialCaixas,
+        estoqueCentral: p.estoqueCentral || 0,
+        estoqueMarketplace: p.estoqueMarketplace || 0,
+        estoquePulmao: p.estoquePulmao || 0,
+        estoqueContingencia: p.estoqueContingencia || 0,
+        vendaCaixas: p.vendaCaixas 
+      };
+      
+      const estoquePicking = customData.estoquePicking !== undefined ? customData.estoquePicking : (p.estoquePicking !== undefined ? p.estoquePicking : customData.estoqueInicialCaixas);
+      const estoqueCentral = customData.estoqueCentral !== undefined ? customData.estoqueCentral : (p.estoqueCentral || 0);
+      const estoqueMarketplace = customData.estoqueMarketplace !== undefined ? customData.estoqueMarketplace : (p.estoqueMarketplace || 0);
+      const estoquePulmao = customData.estoquePulmao !== undefined ? customData.estoquePulmao : (p.estoquePulmao || 0);
+      const estoqueContingencia = customData.estoqueContingencia !== undefined ? customData.estoqueContingencia : (p.estoqueContingencia || 0);
+
+      const estoqueInicial = estoquePicking;
       const abastecimento = replData.boxes;
       const venda = customData.vendaCaixas;
       
@@ -329,6 +618,11 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
       
       const fatorHecto = planoHectoMap.get(Number(p.sku)) || 0.072;
       const estoqueInicialHecto = estoqueInicial * fatorHecto;
+      const estoquePickingHecto = estoquePicking * fatorHecto;
+      const estoqueCentralHecto = estoqueCentral * fatorHecto;
+      const estoqueMarketplaceHecto = estoqueMarketplace * fatorHecto;
+      const estoquePulmaoHecto = estoquePulmao * fatorHecto;
+      const estoqueContingenciaHecto = estoqueContingencia * fatorHecto;
       const abastecimentoHecto = abastecimento * fatorHecto;
       const vendaHecto = venda * fatorHecto;
       const saldoPickingHecto = saldoPicking * fatorHecto;
@@ -338,6 +632,201 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         status = 'critical';
       } else if (venda > 0 && (saldoPicking < (venda * 0.20))) {
         status = 'attention';
+      }
+
+      // Conversões detalhadas de SKU em Paletes Fechados e SKUs Fracionados
+      const convPickingInicial = convertSkuToPalletAndSku(estoqueInicial, p.qtdPallet);
+      const convPickingDisponivel = convertSkuToPalletAndSku(estoqueTotalDisponivel, p.qtdPallet);
+      const convPulmao = convertSkuToPalletAndSku(estoquePulmao, p.qtdPallet);
+      const convCentral = convertSkuToPalletAndSku(estoqueCentral, p.qtdPallet);
+      const convMarketplace = convertSkuToPalletAndSku(estoqueMarketplace, p.qtdPallet);
+      const convContingencia = convertSkuToPalletAndSku(estoqueContingencia, p.qtdPallet);
+      const convVenda = convertSkuToPalletAndSku(venda, p.qtdPallet);
+      const convSaldo = convertSkuToPalletAndSku(Math.abs(saldoPicking), p.qtdPallet);
+
+      const pickingDisponivelCaixas = estoqueTotalDisponivel;
+      const pickingDisponivelPaletes = convPickingDisponivel.palletsDecimal;
+      const pickingInicialPaletes = convPickingInicial.palletsDecimal;
+      
+      const estoqueTotalGeralCaixas = estoquePicking + estoquePulmao + estoqueCentral + estoqueMarketplace + estoqueContingencia + abastecimento;
+      const estoqueTotalGeralPaletes = Math.round((estoqueTotalGeralCaixas / p.qtdPallet) * 10) / 10;
+      
+      const vendaPaletes = convVenda.palletsDecimal;
+      const palletsFechadosVenda = convVenda.palletsFechados;
+      const fracaoPickingVenda = convVenda.skuFracionado;
+
+      const coberturaPickingPct = venda > 0 ? Math.round((estoqueTotalDisponivel / venda) * 100) : 100;
+      const coberturaPickingDias = venda > 0 ? Math.round((estoqueTotalDisponivel / venda) * 10) / 10 : 99;
+
+      // Hierarquia e Detalhamento de Retiradas para Abastecimento das Áreas:
+      // Ordem de abastecimento quando o picking não supre a saída:
+      // 1. Área 4 (Pulmão)
+      // 2. Área 1 (Central)
+      // 3. Área 3 (Marketplace)
+      // 4. Área 5 (Área de Contingência)
+      interface RetiradaAreaItem {
+        areaId: 1 | 2 | 3 | 4 | 5;
+        areaCodigo: string;
+        areaNome: string;
+        caixas: number;
+        palletsFechados: number;
+        skuFracionado: number;
+        formatado: string;
+        badgeBg: string;
+        badgeBorder: string;
+        badgeText: string;
+      }
+
+      const retiradasDetalhadas: RetiradaAreaItem[] = [];
+      let statusMontagem: 'suficiente_picking' | 'carregar_pulmao' | 'carregar_central' | 'carregar_marketplace' | 'carregar_contingencia' | 'reabastecer_misto' | 'ruptura_total' = 'suficiente_picking';
+      let acaoMontagemTexto = '';
+      let tagMontagemTexto = '';
+      let rupturaCaixas = 0;
+      let rupturaPaletes = 0;
+
+      let carregarPulmaoCaixas = 0;
+      let carregarPulmaoPaletes = 0;
+      let carregarCentralCaixas = 0;
+      let carregarCentralPaletes = 0;
+      let carregarMarketplaceCaixas = 0;
+      let carregarMarketplacePaletes = 0;
+      let carregarContingenciaCaixas = 0;
+      let carregarContingenciaPaletes = 0;
+      let reabastecerPickingCaixas = 0;
+      let reabastecerPickingPaletes = 0;
+
+      if (venda === 0) {
+        statusMontagem = 'suficiente_picking';
+        acaoMontagemTexto = 'Sem demanda de saída no dia';
+        tagMontagemTexto = 'Sem Saída';
+      } else if (saldoPicking >= 0) {
+        statusMontagem = 'suficiente_picking';
+        acaoMontagemTexto = `Picking suficiente (Sobra: +${saldoPicking} cx / +${convSaldo.formatado})`;
+        tagMontagemTexto = `Picking OK`;
+      } else {
+        const deficitCaixas = Math.abs(saldoPicking);
+        let deficitRestante = deficitCaixas;
+
+        // 1. Prioridade: Pulmão (Área 4)
+        if (deficitRestante > 0 && estoquePulmao > 0) {
+          const qtd = Math.min(estoquePulmao, deficitRestante);
+          carregarPulmaoCaixas = qtd;
+          const conv = convertSkuToPalletAndSku(qtd, p.qtdPallet);
+          carregarPulmaoPaletes = conv.palletsDecimal;
+          retiradasDetalhadas.push({
+            areaId: 4,
+            areaCodigo: 'Área 4',
+            areaNome: 'Pulmão',
+            caixas: qtd,
+            palletsFechados: conv.palletsFechados,
+            skuFracionado: conv.skuFracionado,
+            formatado: conv.formatado,
+            badgeBg: 'bg-blue-50',
+            badgeBorder: 'border-blue-300',
+            badgeText: 'text-blue-900'
+          });
+          deficitRestante -= qtd;
+        }
+
+        // 2. Prioridade: Central (Área 1)
+        if (deficitRestante > 0 && estoqueCentral > 0) {
+          const qtd = Math.min(estoqueCentral, deficitRestante);
+          carregarCentralCaixas = qtd;
+          const conv = convertSkuToPalletAndSku(qtd, p.qtdPallet);
+          carregarCentralPaletes = conv.palletsDecimal;
+          retiradasDetalhadas.push({
+            areaId: 1,
+            areaCodigo: 'Área 1',
+            areaNome: 'Central',
+            caixas: qtd,
+            palletsFechados: conv.palletsFechados,
+            skuFracionado: conv.skuFracionado,
+            formatado: conv.formatado,
+            badgeBg: 'bg-amber-50',
+            badgeBorder: 'border-amber-300',
+            badgeText: 'text-amber-900'
+          });
+          deficitRestante -= qtd;
+        }
+
+        // 3. Prioridade: Marketplace (Área 3)
+        if (deficitRestante > 0 && estoqueMarketplace > 0) {
+          const qtd = Math.min(estoqueMarketplace, deficitRestante);
+          carregarMarketplaceCaixas = qtd;
+          const conv = convertSkuToPalletAndSku(qtd, p.qtdPallet);
+          carregarMarketplacePaletes = conv.palletsDecimal;
+          retiradasDetalhadas.push({
+            areaId: 3,
+            areaCodigo: 'Área 3',
+            areaNome: 'Marketplace',
+            caixas: qtd,
+            palletsFechados: conv.palletsFechados,
+            skuFracionado: conv.skuFracionado,
+            formatado: conv.formatado,
+            badgeBg: 'bg-orange-50',
+            badgeBorder: 'border-orange-300',
+            badgeText: 'text-orange-900'
+          });
+          deficitRestante -= qtd;
+        }
+
+        // 4. Prioridade: Área de Contingência (Área 5)
+        if (deficitRestante > 0 && estoqueContingencia > 0) {
+          const qtd = Math.min(estoqueContingencia, deficitRestante);
+          carregarContingenciaCaixas = qtd;
+          const conv = convertSkuToPalletAndSku(qtd, p.qtdPallet);
+          carregarContingenciaPaletes = conv.palletsDecimal;
+          retiradasDetalhadas.push({
+            areaId: 5,
+            areaCodigo: 'Área 5',
+            areaNome: 'Contingência',
+            caixas: qtd,
+            palletsFechados: conv.palletsFechados,
+            skuFracionado: conv.skuFracionado,
+            formatado: conv.formatado,
+            badgeBg: 'bg-purple-50',
+            badgeBorder: 'border-purple-300',
+            badgeText: 'text-purple-900'
+          });
+          deficitRestante -= qtd;
+        }
+
+        // Se após todas as 4 áreas ainda resta déficit, há Ruptura de Estoque no Armazém
+        if (deficitRestante > 0) {
+          rupturaCaixas = deficitRestante;
+          rupturaPaletes = Math.ceil(deficitRestante / p.qtdPallet);
+          reabastecerPickingCaixas = deficitRestante;
+          reabastecerPickingPaletes = rupturaPaletes;
+        }
+
+        if (retiradasDetalhadas.length === 1 && rupturaCaixas === 0) {
+          const single = retiradasDetalhadas[0];
+          if (single.areaId === 4) {
+            statusMontagem = 'carregar_pulmao';
+            acaoMontagemTexto = `Retirar ${single.formatado} do Pulmão (Área 4)`;
+            tagMontagemTexto = `Pulmão: ${single.formatado}`;
+          } else if (single.areaId === 1) {
+            statusMontagem = 'carregar_central';
+            acaoMontagemTexto = `Retirar ${single.formatado} do Central (Área 1)`;
+            tagMontagemTexto = `Central: ${single.formatado}`;
+          } else if (single.areaId === 3) {
+            statusMontagem = 'carregar_marketplace';
+            acaoMontagemTexto = `Retirar ${single.formatado} do MktPlace (Área 3)`;
+            tagMontagemTexto = `MktPlace: ${single.formatado}`;
+          } else if (single.areaId === 5) {
+            statusMontagem = 'carregar_contingencia';
+            acaoMontagemTexto = `Retirar ${single.formatado} da Contingência (Área 5)`;
+            tagMontagemTexto = `Contingência: ${single.formatado}`;
+          }
+        } else if (retiradasDetalhadas.length > 1) {
+          statusMontagem = 'reabastecer_misto';
+          acaoMontagemTexto = retiradasDetalhadas.map(r => `${r.areaNome}: ${r.formatado}`).join(' + ') + (rupturaCaixas > 0 ? ` + Ruptura: ${rupturaCaixas} cx` : '');
+          tagMontagemTexto = `Misto (${retiradasDetalhadas.length} Áreas)`;
+        } else if (rupturaCaixas > 0) {
+          statusMontagem = 'ruptura_total';
+          acaoMontagemTexto = `Ruptura Total no Armazém (Faltam ${rupturaCaixas} cx / ${rupturaPaletes} PL)`;
+          tagMontagemTexto = `Ruptura Total`;
+        }
       }
 
       // Calculate Night Replenishment Need based on selected strategy
@@ -362,10 +851,29 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
       return {
         ...p,
+        curvaAbc: dynamicCurvaAbc,
         fatorHecto,
+        estoquePicking,
+        estoquePickingHecto,
+        estoqueCentral,
+        estoqueCentralHecto,
+        estoqueMarketplace,
+        estoqueMarketplaceHecto,
+        estoquePulmao,
+        estoquePulmaoHecto,
+        estoqueContingencia,
+        estoqueContingenciaHecto,
         estoqueInicialCaixas: estoqueInicial,
         estoqueInicialHecto,
+        pickingInicialPaletes,
+        pickingDisponivelCaixas,
+        pickingDisponivelPaletes,
+        estoqueTotalGeralCaixas,
+        estoqueTotalGeralPaletes,
+        coberturaPickingPct,
+        coberturaPickingDias,
         vendaCaixas: venda,
+        vendaPaletes,
         vendaHecto,
         abastecimento,
         abastecimentoPaletes: replData.pallets,
@@ -374,6 +882,27 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         estoqueTotalHecto: estoqueTotalDisponivel * fatorHecto,
         saldoPicking,
         saldoPickingHecto,
+        palletsNoPicking: pickingDisponivelPaletes,
+        palletsVendaTotal: vendaPaletes,
+        palletsFechadosVenda,
+        fracaoPickingVenda,
+        carregarPulmaoCaixas,
+        carregarPulmaoPaletes,
+        carregarCentralCaixas,
+        carregarCentralPaletes,
+        carregarMarketplaceCaixas,
+        carregarMarketplacePaletes,
+        carregarContingenciaCaixas,
+        carregarContingenciaPaletes,
+        reabastecerPickingCaixas,
+        reabastecerPickingPaletes,
+        retiradasDetalhadas,
+        rupturaCaixas,
+        rupturaPaletes,
+        statusMontagem,
+        acaoMontagemTexto,
+        tagMontagemTexto,
+        isPickingSuficiente: saldoPicking >= 0,
         status,
         operadores: Array.from(replData.operators),
         necessidadeNoturna,
@@ -381,24 +910,45 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         necessidadeNoturnaHecto
       };
     });
-  }, [productsList, replenishmentMap, customProductData, nightStrategy, planoHectoMap]);
+  }, [productsList, replenishmentMap, customProductData, nightStrategy, planoHectoMap, abcEngine]);
 
-  // 5. Totals calculations
-  const totalSkusChecked = useMemo(() => processedSkus.filter(p => p.estoqueInicialCaixas > 0).length, [processedSkus]);
-  const totalInitialBoxes = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.estoqueInicialCaixas, 0), [processedSkus]);
+  // Active SKUs filtered for header metrics
+  const activeSkusForMetrics = useMemo(() => {
+    if (curvaFilter === 'all') return processedSkus;
+    return processedSkus.filter(p => (p.curvaAbc || 'B') === curvaFilter);
+  }, [processedSkus, curvaFilter]);
+
+  // 5. Totals calculations (dynamically reactive to active curvaFilter across all 5 areas)
+  const totalSkusChecked = useMemo(() => activeSkusForMetrics.filter(p => p.estoqueInicialCaixas > 0).length, [activeSkusForMetrics]);
+  const totalInitialBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.estoqueInicialCaixas, 0), [activeSkusForMetrics]);
   const totalInitialPallets = useMemo(() => {
-    return Math.round(processedSkus.reduce((acc, curr) => acc + (curr.estoqueInicialCaixas / curr.qtdPallet), 0) * 10) / 10;
-  }, [processedSkus]);
+    return Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueInicialCaixas / curr.qtdPallet), 0) * 10) / 10;
+  }, [activeSkusForMetrics]);
   const totalInitialHecto = useMemo(() => {
-    return processedSkus.reduce((acc, curr) => acc + (curr.estoqueInicialHecto || 0), 0);
-  }, [processedSkus]);
+    return activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueInicialHecto || 0), 0);
+  }, [activeSkusForMetrics]);
 
-  const totalSkusReplenished = useMemo(() => processedSkus.filter(p => p.abastecimento > 0).length, [processedSkus]);
-  const totalReplenishedBoxes = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.abastecimento, 0), [processedSkus]);
-  const totalReplenishedPallets = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.abastecimentoPaletes, 0), [processedSkus]);
+  const totalPulmaoBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoquePulmao || 0), 0), [activeSkusForMetrics]);
+  const totalPulmaoPallets = useMemo(() => Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + ((curr.estoquePulmao || 0) / curr.qtdPallet), 0) * 10) / 10, [activeSkusForMetrics]);
+
+  const totalCentralBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueCentral || 0), 0), [activeSkusForMetrics]);
+  const totalCentralPallets = useMemo(() => Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + ((curr.estoqueCentral || 0) / curr.qtdPallet), 0) * 10) / 10, [activeSkusForMetrics]);
+
+  const totalMarketplaceBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueMarketplace || 0), 0), [activeSkusForMetrics]);
+  const totalMarketplacePallets = useMemo(() => Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + ((curr.estoqueMarketplace || 0) / curr.qtdPallet), 0) * 10) / 10, [activeSkusForMetrics]);
+
+  const totalContingenciaBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueContingencia || 0), 0), [activeSkusForMetrics]);
+  const totalContingenciaPallets = useMemo(() => Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + ((curr.estoqueContingencia || 0) / curr.qtdPallet), 0) * 10) / 10, [activeSkusForMetrics]);
+
+  const totalGeralArmazemBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.estoqueTotalGeralCaixas || 0), 0), [activeSkusForMetrics]);
+  const totalGeralArmazemPallets = useMemo(() => Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + ((curr.estoqueTotalGeralCaixas || 0) / curr.qtdPallet), 0) * 10) / 10, [activeSkusForMetrics]);
+
+  const totalSkusReplenished = useMemo(() => activeSkusForMetrics.filter(p => p.abastecimento > 0).length, [activeSkusForMetrics]);
+  const totalReplenishedBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.abastecimento, 0), [activeSkusForMetrics]);
+  const totalReplenishedPallets = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.abastecimentoPaletes, 0), [activeSkusForMetrics]);
   const totalReplenishedHecto = useMemo(() => {
-    return processedSkus.reduce((acc, curr) => acc + (curr.abastecimentoHecto || 0), 0);
-  }, [processedSkus]);
+    return activeSkusForMetrics.reduce((acc, curr) => acc + (curr.abastecimentoHecto || 0), 0);
+  }, [activeSkusForMetrics]);
 
   const activeOperators = useMemo(() => {
     const allOps = new Set<string>();
@@ -408,52 +958,143 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     return allOps.size || 5;
   }, [replenishmentMap]);
 
-  const totalSalesBoxes = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.vendaCaixas, 0), [processedSkus]);
-  const totalSalesHecto = useMemo(() => processedSkus.reduce((acc, curr) => acc + (curr.vendaHecto || 0), 0), [processedSkus]);
-  const totalCurrentBalanceBoxes = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.saldoPicking, 0), [processedSkus]);
-  const totalCurrentBalanceHecto = useMemo(() => processedSkus.reduce((acc, curr) => acc + (curr.saldoPickingHecto || 0), 0), [processedSkus]);
+  const totalSalesBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.vendaCaixas, 0), [activeSkusForMetrics]);
+  const totalSalesPallets = useMemo(() => {
+    return Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + (curr.vendaCaixas / curr.qtdPallet), 0) * 10) / 10;
+  }, [activeSkusForMetrics]);
+  const totalSalesHecto = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.vendaHecto || 0), 0), [activeSkusForMetrics]);
   
+  const totalCurrentBalanceBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.saldoPicking, 0), [activeSkusForMetrics]);
+  const totalCurrentBalancePallets = useMemo(() => {
+    return Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + (curr.saldoPicking / curr.qtdPallet), 0) * 10) / 10;
+  }, [activeSkusForMetrics]);
+  const totalCurrentBalanceHecto = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + (curr.saldoPickingHecto || 0), 0), [activeSkusForMetrics]);
+  
+  // Montagem e Retiradas por Área Totals
+  const montagemTotals = useMemo(() => {
+    const comVenda = activeSkusForMetrics.filter(p => p.vendaCaixas > 0);
+    const suficientes = comVenda.filter(p => p.statusMontagem === 'suficiente_picking');
+    
+    const comPulmao = comVenda.filter(p => (p.carregarPulmaoCaixas || 0) > 0);
+    const caixasPulmao = comVenda.reduce((acc, p) => acc + (p.carregarPulmaoCaixas || 0), 0);
+    const palletsPulmao = Math.round(comVenda.reduce((acc, p) => acc + ((p.carregarPulmaoCaixas || 0) / p.qtdPallet), 0) * 10) / 10;
+
+    const comCentral = comVenda.filter(p => (p.carregarCentralCaixas || 0) > 0);
+    const caixasCentral = comVenda.reduce((acc, p) => acc + (p.carregarCentralCaixas || 0), 0);
+    const palletsCentral = Math.round(comVenda.reduce((acc, p) => acc + ((p.carregarCentralCaixas || 0) / p.qtdPallet), 0) * 10) / 10;
+    
+    const comMarketplace = comVenda.filter(p => (p.carregarMarketplaceCaixas || 0) > 0);
+    const caixasMarketplace = comVenda.reduce((acc, p) => acc + (p.carregarMarketplaceCaixas || 0), 0);
+    const palletsMarketplace = Math.round(comVenda.reduce((acc, p) => acc + ((p.carregarMarketplaceCaixas || 0) / p.qtdPallet), 0) * 10) / 10;
+
+    const comContingencia = comVenda.filter(p => (p.carregarContingenciaCaixas || 0) > 0);
+    const caixasContingencia = comVenda.reduce((acc, p) => acc + (p.carregarContingenciaCaixas || 0), 0);
+    const palletsContingencia = Math.round(comVenda.reduce((acc, p) => acc + ((p.carregarContingenciaCaixas || 0) / p.qtdPallet), 0) * 10) / 10;
+    
+    const comReabastecer = comVenda.filter(p => (p.reabastecerPickingCaixas || 0) > 0);
+    const caixasReabastecer = comVenda.reduce((acc, p) => acc + (p.reabastecerPickingCaixas || 0), 0);
+    const palletsReabastecer = Math.round(comVenda.reduce((acc, p) => acc + ((p.reabastecerPickingCaixas || 0) / p.qtdPallet), 0) * 10) / 10;
+
+    const comRuptura = comVenda.filter(p => (p.rupturaCaixas || 0) > 0);
+    const caixasRuptura = comVenda.reduce((acc, p) => acc + (p.rupturaCaixas || 0), 0);
+    const palletsRuptura = Math.ceil(caixasRuptura / 100);
+
+    return {
+      totalSkusComVenda: comVenda.length,
+      skusSuficientes: suficientes.length,
+      skusCarregarPulmao: comPulmao.length,
+      caixasPulmao,
+      palletsPulmao,
+      skusCarregarCentral: comCentral.length,
+      caixasCentral,
+      palletsCentral,
+      skusCarregarMarketplace: comMarketplace.length,
+      caixasMarketplace,
+      palletsMarketplace,
+      skusCarregarContingencia: comContingencia.length,
+      caixasContingencia,
+      palletsContingencia,
+      skusReabastecer: comReabastecer.length,
+      caixasReabastecer,
+      palletsReabastecer,
+      skusRuptura: comRuptura.length,
+      caixasRuptura,
+      palletsRuptura
+    };
+  }, [activeSkusForMetrics]);
+
   // Night Replenishment Totals
-  const totalSkusNightReplenish = useMemo(() => processedSkus.filter(p => p.necessidadeNoturna > 0).length, [processedSkus]);
-  const totalNightReplenishBoxes = useMemo(() => processedSkus.reduce((acc, curr) => acc + curr.necessidadeNoturna, 0), [processedSkus]);
+  const totalSkusNightReplenish = useMemo(() => activeSkusForMetrics.filter(p => p.necessidadeNoturna > 0).length, [activeSkusForMetrics]);
+  const totalNightReplenishBoxes = useMemo(() => activeSkusForMetrics.reduce((acc, curr) => acc + curr.necessidadeNoturna, 0), [activeSkusForMetrics]);
   const totalNightReplenishPallets = useMemo(() => {
-    return Math.round(processedSkus.reduce((acc, curr) => acc + (curr.necessidadeNoturna / curr.qtdPallet), 0) * 10) / 10;
-  }, [processedSkus]);
+    return Math.round(activeSkusForMetrics.reduce((acc, curr) => acc + (curr.necessidadeNoturna / curr.qtdPallet), 0) * 10) / 10;
+  }, [activeSkusForMetrics]);
   const totalNightReplenishHecto = useMemo(() => {
-    return processedSkus.reduce((acc, curr) => acc + (curr.necessidadeNoturnaHecto || 0), 0);
-  }, [processedSkus]);
+    return activeSkusForMetrics.reduce((acc, curr) => acc + (curr.necessidadeNoturnaHecto || 0), 0);
+  }, [activeSkusForMetrics]);
   
   const statusCounts = useMemo(() => {
     let ok = 0;
     let attention = 0;
     let critical = 0;
-    processedSkus.forEach(p => {
+    activeSkusForMetrics.forEach(p => {
       if (p.status === 'ok') ok++;
       else if (p.status === 'attention') attention++;
       else if (p.status === 'critical') critical++;
     });
     return { ok, attention, critical };
-  }, [processedSkus]);
+  }, [activeSkusForMetrics]);
 
   // SKUs without initial picking stock that had sales output
   const skusSemEstoqueInicialComVenda = useMemo(() => {
-    return processedSkus.filter(p => p.estoqueInicialCaixas === 0 && p.vendaCaixas > 0);
-  }, [processedSkus]);
+    return activeSkusForMetrics.filter(p => p.estoqueInicialCaixas === 0 && p.vendaCaixas > 0);
+  }, [activeSkusForMetrics]);
 
   const skusRupturaTotalPicking = useMemo(() => {
-    return processedSkus.filter(p => p.estoqueTotalDisponivel === 0 && p.vendaCaixas > 0);
-  }, [processedSkus]);
+    return activeSkusForMetrics.filter(p => p.estoqueTotalDisponivel === 0 && p.vendaCaixas > 0);
+  }, [activeSkusForMetrics]);
 
-  // Hourly replenishment data for charts
+  // Alerta Crítico: Ruptura In Full (SKU com saída e ZERO estoque em TODAS as áreas do armazém)
+  const skusRupturaInFull = useMemo(() => {
+    return activeSkusForMetrics.filter(p => p.vendaCaixas > 0 && p.estoqueTotalGeralCaixas === 0);
+  }, [activeSkusForMetrics]);
+
+  const caixasRupturaInFull = useMemo(() => {
+    return skusRupturaInFull.reduce((acc, p) => acc + p.vendaCaixas, 0);
+  }, [skusRupturaInFull]);
+
+  const palletsRupturaInFull = useMemo(() => {
+    return Math.round(skusRupturaInFull.reduce((acc, p) => acc + (p.vendaCaixas / p.qtdPallet), 0) * 10) / 10;
+  }, [skusRupturaInFull]);
+
+  // Alerta de Estoque Insuficiente (Tem saída, tem algum estoque no armazém, mas < saída necessária)
+  const skusEstoqueInsuficiente = useMemo(() => {
+    return activeSkusForMetrics.filter(p => p.vendaCaixas > 0 && p.estoqueTotalGeralCaixas > 0 && p.estoqueTotalGeralCaixas < p.vendaCaixas);
+  }, [activeSkusForMetrics]);
+
+  const caixasDeficitArmazem = useMemo(() => {
+    return skusEstoqueInsuficiente.reduce((acc, p) => acc + (p.vendaCaixas - p.estoqueTotalGeralCaixas), 0);
+  }, [skusEstoqueInsuficiente]);
+
+  const palletsDeficitArmazem = useMemo(() => {
+    return Math.round(skusEstoqueInsuficiente.reduce((acc, p) => acc + ((p.vendaCaixas - p.estoqueTotalGeralCaixas) / p.qtdPallet), 0) * 10) / 10;
+  }, [skusEstoqueInsuficiente]);
+
+  // Hourly replenishment data for charts (visão por PALLET)
   const hourlyChartData = useMemo(() => {
+    // Horários diurnos (07h às 19h) com foco nos picos reais (Pico 10h, Pausa 12h-14h, Tarde 14h-16h)
     const hours = Array.from({ length: 13 }, (_, i) => i + 7); // 7 to 19
     const hourLabels: Record<number, string> = {
-      7: '07h', 8: '08h', 9: '09h', 10: '10h', 11: '11h', 12: '12h',
-      13: '13h', 14: '14h', 15: '15h', 16: '16h', 17: '17h', 18: '18h', 19: '19h'
+      7: '07h', 8: '08h', 9: '09h', 10: '10h (Pico)', 11: '11h', 12: '12h (Pausa)',
+      13: '13h (Pausa)', 14: '14h', 15: '15h', 16: '16h', 17: '17h', 18: '18h', 19: '19h'
     };
 
-    const dataMap: Record<number, number> = {};
-    hours.forEach(h => { dataMap[h] = 0; });
+    const dataPalletsMap: Record<number, number> = {};
+    const dataBoxesMap: Record<number, number> = {};
+    hours.forEach(h => {
+      dataPalletsMap[h] = 0;
+      dataBoxesMap[h] = 0;
+    });
 
     replenishmentMap.map.forEach(val => {
       Object.entries(val.hourlyCounts).forEach(([h, count]) => {
@@ -461,65 +1102,112 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         if (hourNum >= 0 && hourNum <= 23) {
           const countNum = Number(count) || 0;
           const targetHour = (hourNum >= 7 && hourNum <= 19) ? hourNum : (hourNum < 7 ? 7 : 19);
-          dataMap[targetHour] = (dataMap[targetHour] || 0) + countNum;
+          dataPalletsMap[targetHour] = (dataPalletsMap[targetHour] || 0) + countNum;
         }
       });
+      if (val.hourlyBoxes) {
+        Object.entries(val.hourlyBoxes).forEach(([h, boxes]) => {
+          const hourNum = Number(h);
+          if (hourNum >= 0 && hourNum <= 23) {
+            const boxesNum = Number(boxes) || 0;
+            const targetHour = (hourNum >= 7 && hourNum <= 19) ? hourNum : (hourNum < 7 ? 7 : 19);
+            dataBoxesMap[targetHour] = (dataBoxesMap[targetHour] || 0) + boxesNum;
+          }
+        });
+      }
     });
 
-    let totalComputed = Object.values(dataMap).reduce((a, b) => a + b, 0);
+    let totalComputedPallets = Object.values(dataPalletsMap).reduce((a, b) => a + b, 0);
 
-    if (totalComputed === 0 && totalReplenishedBoxes > 0) {
-      const weights: Record<number, number> = { 7: 0.05, 8: 0.10, 9: 0.14, 10: 0.18, 11: 0.12, 12: 0.05, 13: 0.08, 14: 0.12, 15: 0.10, 16: 0.04, 17: 0.02 };
+    // Fallback inteligente se não houver dados de tarefas na data selecionada
+    if (totalComputedPallets === 0 && totalReplenishedPallets > 0) {
+      // Distribuição coerente: Pico 10h (~35%), Manhã (07-11h: ~65%), Pausa 12h-14h (0%), Tarde (14-16h: ~35%)
+      const weights: Record<number, number> = { 7: 0.08, 8: 0.12, 9: 0.16, 10: 0.28, 11: 0.08, 12: 0.0, 13: 0.0, 14: 0.12, 15: 0.12, 16: 0.04 };
       let allocated = 0;
       Object.entries(weights).forEach(([hStr, w]) => {
         const h = Number(hStr);
-        const val = Math.round(totalReplenishedBoxes * w);
-        dataMap[h] = val;
+        const val = Math.round(totalReplenishedPallets * w);
+        dataPalletsMap[h] = val;
+        dataBoxesMap[h] = val * 100;
         allocated += val;
       });
-      dataMap[10] = (dataMap[10] || 0) + (totalReplenishedBoxes - allocated);
+      dataPalletsMap[10] = (dataPalletsMap[10] || 0) + (totalReplenishedPallets - allocated);
+      dataBoxesMap[10] = (dataBoxesMap[10] || 0) + ((totalReplenishedPallets - allocated) * 100);
     }
 
     return hours.map(h => ({
       hour: hourLabels[h] || `${h}h`,
-      caixas: dataMap[h] || 0
+      rawHour: h,
+      paletes: dataPalletsMap[h] || 0,
+      caixas: dataBoxesMap[h] || ((dataPalletsMap[h] || 0) * 100)
     }));
-  }, [replenishmentMap, totalReplenishedBoxes]);
+  }, [replenishmentMap, totalReplenishedPallets]);
 
   const totalHourlyReplenished = useMemo(() => {
-    return hourlyChartData.reduce((acc, curr) => acc + curr.caixas, 0);
+    return hourlyChartData.reduce((acc, curr) => acc + curr.paletes, 0);
   }, [hourlyChartData]);
 
-  // Top 15 product replenishments (real day's data)
+  // Top 10 product replenishments ranked by selected metric (cx, pl, hl) and curvaFilter
   const topProductsChartData = useMemo(() => {
     return processedSkus
-      .filter(p => p.abastecimento > 0)
-      .map(p => ({
-        sku: p.sku,
-        name: p.descricao.length > 20 ? p.descricao.substring(0, 18) + '...' : p.descricao,
-        fullName: p.descricao,
-        caixas: p.abastecimento,
-        paletes: Math.round((p.abastecimento / p.qtdPallet) * 10) / 10
-      }))
-      .sort((a, b) => b.caixas - a.caixas)
-      .slice(0, 15);
-  }, [processedSkus]);
+      .filter(p => {
+        if (curvaFilter !== 'all' && (p.curvaAbc || 'B') !== curvaFilter) return false;
+        return p.abastecimento > 0;
+      })
+      .map(p => {
+        const caixas = p.abastecimento;
+        const paletes = Math.round((p.abastecimento / p.qtdPallet) * 10) / 10;
+        const hecto = p.abastecimentoHecto !== undefined ? Math.round(p.abastecimentoHecto * 10) / 10 : Math.round((p.abastecimento * (p.fatorHecto || 0.072)) * 10) / 10;
 
-  // Top 15 products with the lowest sales (Rotina 020304) of the day
-  const lowestSalesChartData = useMemo(() => {
+        let primaryValue = caixas;
+        if (unitMetric === 'pl') primaryValue = paletes;
+        else if (unitMetric === 'hl') primaryValue = hecto;
+
+        return {
+          sku: p.sku,
+          name: p.descricao.length > 22 ? p.descricao.substring(0, 20) + '...' : p.descricao,
+          fullName: p.descricao,
+          curvaAbc: p.curvaAbc || 'B',
+          primaryValue,
+          caixas,
+          paletes,
+          hecto
+        };
+      })
+      .sort((a, b) => b.primaryValue - a.primaryValue)
+      .slice(0, 10);
+  }, [processedSkus, unitMetric, curvaFilter]);
+
+  // Top 10 products with highest sales (Rotina 020304) ranked by selected metric (cx, pl, hl) and curvaFilter
+  const topSales10ChartData = useMemo(() => {
     return processedSkus
-      .filter(p => (p.vendaCaixas || 0) > 0)
-      .map(p => ({
-        sku: p.sku,
-        name: p.descricao.length > 20 ? p.descricao.substring(0, 18) + '...' : p.descricao,
-        fullName: p.descricao,
-        vendas: p.vendaCaixas,
-        paletes: Math.round(((p.vendaCaixas || 0) / p.qtdPallet) * 10) / 10,
-        hecto: p.vendaHecto !== undefined ? Math.round(p.vendaHecto * 10) / 10 : Math.round(((p.vendaCaixas || 0) * p.fatorHecto) * 10) / 10
-      }))
-      .sort((a, b) => a.vendas - b.vendas) // Ascending order: lowest sales first
-      .slice(0, 15);
-  }, [processedSkus]);
+      .filter(p => {
+        if (curvaFilter !== 'all' && (p.curvaAbc || 'B') !== curvaFilter) return false;
+        return (p.vendaCaixas || 0) > 0;
+      })
+      .map(p => {
+        const caixas = p.vendaCaixas || 0;
+        const paletes = Math.round(((p.vendaCaixas || 0) / p.qtdPallet) * 10) / 10;
+        const hecto = p.vendaHecto !== undefined ? Math.round(p.vendaHecto * 10) / 10 : Math.round(((p.vendaCaixas || 0) * (p.fatorHecto || 0.072)) * 10) / 10;
+
+        let primaryValue = caixas;
+        if (unitMetric === 'pl') primaryValue = paletes;
+        else if (unitMetric === 'hl') primaryValue = hecto;
+
+        return {
+          sku: p.sku,
+          name: p.descricao.length > 22 ? p.descricao.substring(0, 20) + '...' : p.descricao,
+          fullName: p.descricao,
+          curvaAbc: p.curvaAbc || 'B',
+          primaryValue,
+          caixas,
+          paletes,
+          hecto
+        };
+      })
+      .sort((a, b) => b.primaryValue - a.primaryValue)
+      .slice(0, 10);
+  }, [processedSkus, unitMetric, curvaFilter]);
 
   // Filtered SKUs for active table
   const filteredSkus = useMemo(() => {
@@ -528,18 +1216,28 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                             String(p.sku).includes(searchTerm);
       if (!matchesSearch) return false;
 
+      if (curvaFilter !== 'all' && (p.curvaAbc || 'B') !== curvaFilter) return false;
+
+      if (statusFilter === 'suficiente_picking' && !(p.vendaCaixas > 0 && p.saldoPicking >= 0)) return false;
+      if (statusFilter === 'carregar_pulmao' && !(p.vendaCaixas > 0 && (p.carregarPulmaoCaixas || 0) > 0)) return false;
+      if (statusFilter === 'carregar_central' && !(p.vendaCaixas > 0 && (p.carregarCentralCaixas || 0) > 0)) return false;
+      if (statusFilter === 'carregar_marketplace' && !(p.vendaCaixas > 0 && (p.carregarMarketplaceCaixas || 0) > 0)) return false;
+      if (statusFilter === 'carregar_contingencia' && !(p.vendaCaixas > 0 && (p.carregarContingenciaCaixas || 0) > 0)) return false;
+      if (statusFilter === 'reabastecer_picking' && !(p.vendaCaixas > 0 && (p.reabastecerPickingCaixas || 0) > 0)) return false;
       if (statusFilter === 'ok' && p.status !== 'ok') return false;
       if (statusFilter === 'attention' && p.status !== 'attention') return false;
       if (statusFilter === 'critical' && p.status !== 'critical') return false;
       if (statusFilter === 'night_need' && p.necessidadeNoturna === 0) return false;
       if (statusFilter === 'no_picking_sales' && !(p.estoqueInicialCaixas === 0 && p.vendaCaixas > 0)) return false;
       if (statusFilter === 'total_rupture' && !(p.estoqueTotalDisponivel === 0 && p.vendaCaixas > 0)) return false;
+      if (statusFilter === 'ruptura_in_full' && !(p.vendaCaixas > 0 && p.estoqueTotalGeralCaixas === 0)) return false;
+      if (statusFilter === 'estoque_insuficiente' && !(p.vendaCaixas > 0 && p.estoqueTotalGeralCaixas > 0 && p.estoqueTotalGeralCaixas < p.vendaCaixas)) return false;
 
       if (showOnlyWithSales && p.vendaCaixas === 0 && p.abastecimento === 0) return false;
 
       return true;
     });
-  }, [processedSkus, searchTerm, statusFilter, showOnlyWithSales]);
+  }, [processedSkus, searchTerm, statusFilter, showOnlyWithSales, curvaFilter]);
 
   // Export to Excel handler
   const handleExportExcel = () => {
@@ -552,8 +1250,12 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
       "Estoque Inicial (Caixas) - Rotina 021101": item.estoqueInicialCaixas,
       "Abastecido (Caixas) - Shift Diurno": item.abastecimento,
       "Estoque Total Disp. (Caixas)": item.estoqueTotalDisponivel,
+      "Pallets no Picking": item.palletsNoPicking,
       "Vendas (Caixas) - Rotina 020304": item.vendaCaixas,
+      "Pallets Venda Total": item.palletsVendaTotal,
+      "Pallets Fechados Central": item.palletsFechadosVenda,
       "Saldo Final (Caixas)": item.saldoPicking,
+      "Análise Montagem": item.acaoMontagemTexto,
       "Necessidade Noturna (Caixas)": item.necessidadeNoturna,
       "Necessidade Noturna (Paletes)": item.necessidadeNoturnaPaletes,
       "Status": item.status === 'ok' ? '🟢 OK' : item.status === 'attention' ? '🟡 ATENÇÃO' : '🔴 CRÍTICO'
@@ -609,6 +1311,9 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         usuarioEmail: user?.email || 'default',
         usuarioNome: user?.nome || user?.email || 'default',
         createdAt: new Date().toISOString(),
+        fileName021101: fileName021101 || '',
+        fileName020304: fileName020304 || '',
+        imported021101Files: imported021101Files || [],
         totals: {
           totalInitialBoxes,
           totalReplenishedBoxes,
@@ -619,7 +1324,15 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         productDetails: processedSkus.map(p => ({
           sku: p.sku,
           descricao: p.descricao,
+          unidade: p.unidade,
+          embalagem: p.embalagem,
+          qtdPallet: p.qtdPallet,
           estoqueInicialCaixas: p.estoqueInicialCaixas,
+          estoquePicking: p.estoquePicking,
+          estoqueCentral: p.estoqueCentral,
+          estoqueMarketplace: p.estoqueMarketplace,
+          estoquePulmao: p.estoquePulmao,
+          estoqueContingencia: p.estoqueContingencia,
           vendaCaixas: p.vendaCaixas,
           abastecimento: p.abastecimento,
           abastecimentoPaletes: p.abastecimentoPaletes,
@@ -635,14 +1348,18 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         }
       }
       
-      await abastecimentoAnaliseRepo.create(analysisDoc, empresa.id);
-      showToast(`Análise de abastecimento para o dia ${selectedAnalysisDate} salva com sucesso!`, "success");
+      const created = await abastecimentoAnaliseRepo.create(analysisDoc, empresa.id);
+      showToast(`Análise para o dia ${selectedAnalysisDate} salva e registrada com sucesso!`, "success");
       
+      // Update local storage draft to match saved doc
+      saveLocalDraft(productsList, customProductData, imported021101Files, fileName021101, fileName020304);
+
       // Sync history lists
       await fetchHistory();
       setIsHistoricalLoaded(true);
       setLoadedHistoryMeta({
-        savedBy: user?.email || 'Sistema',
+        id: created?.id || created?._docId,
+        savedBy: user?.nome || user?.email || 'Sistema',
         savedAt: new Date().toISOString()
       });
     } catch (error) {
@@ -657,6 +1374,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
   const handleDeleteAnalysis = async (id: string, dateStr: string) => {
     try {
       await abastecimentoAnaliseRepo.delete(id, empresa?.id);
+      clearLocalDraft(empresa?.id || '', dateStr);
       showToast(`Análise salva do dia ${dateStr} excluída com sucesso.`, "success");
       await fetchHistory();
       if (selectedAnalysisDate === dateStr) {
@@ -668,15 +1386,64 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     }
   };
 
-  // Form value updater
-  const handleUpdateValue = (sku: number, field: 'estoqueInicialCaixas' | 'vendaCaixas', value: number) => {
-    setCustomProductData(prev => ({
-      ...prev,
-      [sku]: {
-        ...prev[sku],
-        [field]: isNaN(value) ? 0 : Math.max(0, value)
+  // Helper to parse Area from imported files (021101)
+  // In 02.11.01, Column B is the Area of Counting:
+  // 1: Central, 2: Picking, 3: Marketplace, 4: Pulmão, 5: Área de Contingência
+  const parseAreaFromRow = (cell0: any, cell1: any): 1 | 2 | 3 | 4 | 5 => {
+    // 1. Inspect Column B (cell1) first as the designated area column
+    const str1 = String(cell1 ?? '').toLowerCase().trim();
+    if (str1) {
+      if (str1 === '2' || str1.startsWith('2') || str1.includes('picking') || str1.includes('pick')) return 2;
+      if (str1 === '4' || str1.startsWith('4') || str1.includes('pulmao') || str1.includes('pulmão')) return 4;
+      if (str1 === '1' || str1.startsWith('1') || str1.includes('central') || str1.includes('deposito central') || str1.includes('armazem central')) return 1;
+      if (str1 === '3' || str1.startsWith('3') || str1.includes('marketplace') || str1.includes('mkp') || str1.includes('mkt')) return 3;
+      if (str1 === '5' || str1.startsWith('5') || str1.includes('contingencia') || str1.includes('contingência') || str1.includes('reserva')) return 5;
+    }
+
+    // 2. Fallback to Column A (cell0) if cell1 is empty or text-only without area numbers
+    const str0 = String(cell0 ?? '').toLowerCase().trim();
+    if (str0) {
+      if (str0 === '2' || str0.includes('picking') || str0.includes('pick')) return 2;
+      if (str0 === '4' || str0.includes('pulmao') || str0.includes('pulmão')) return 4;
+      if (str0 === '3' || str0.includes('marketplace') || str0.includes('mkp') || str0.includes('mkt')) return 3;
+      if (str0 === '5' || str0.includes('contingencia') || str0.includes('contingência')) return 5;
+      if (str0.includes('central') || str0.includes('armazem central')) return 1;
+    }
+
+    return 2; // Default fallback to Area 2 (Picking)
+  };
+
+  // Form value updater for all 5 areas
+  const handleUpdateValue = (
+    sku: number, 
+    field: 'estoqueInicialCaixas' | 'estoquePicking' | 'estoqueCentral' | 'estoqueMarketplace' | 'estoquePulmao' | 'estoqueContingencia' | 'vendaCaixas', 
+    value: number
+  ) => {
+    const val = isNaN(value) ? 0 : Math.max(0, value);
+    setCustomProductData(prev => {
+      const current = prev[sku] || { 
+        estoqueInicialCaixas: 0, 
+        estoquePicking: 0, 
+        estoqueCentral: 0, 
+        estoqueMarketplace: 0, 
+        estoquePulmao: 0,
+        estoqueContingencia: 0,
+        vendaCaixas: 0 
+      };
+      const updated = {
+        ...current,
+        [field]: val
+      };
+      if (field === 'estoqueInicialCaixas') {
+        updated.estoquePicking = val;
+      } else if (field === 'estoquePicking') {
+        updated.estoqueInicialCaixas = val;
       }
-    }));
+      return {
+        ...prev,
+        [sku]: updated
+      };
+    });
   };
 
   // Reset fields utilities
@@ -684,9 +1451,18 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     setCustomProductData(prev => {
       const updated = { ...prev };
       productsList.forEach(p => {
-        const current = updated[p.sku] || { estoqueInicialCaixas: p.estoqueInicialCaixas, vendaCaixas: p.vendaCaixas };
+        const current = updated[p.sku] || { 
+          estoqueInicialCaixas: p.estoqueInicialCaixas, 
+          estoquePicking: p.estoquePicking || p.estoqueInicialCaixas,
+          estoqueCentral: p.estoqueCentral || 0,
+          estoqueMarketplace: p.estoqueMarketplace || 0,
+          estoquePulmao: p.estoquePulmao || 0,
+          estoqueContingencia: p.estoqueContingencia || 0,
+          vendaCaixas: p.vendaCaixas 
+        };
         updated[p.sku] = { ...current, vendaCaixas: 0 };
       });
+      saveLocalDraft(productsList, updated, imported021101Files, fileName021101, fileName020304);
       return updated;
     });
     showToast("Saídas diárias (020304) zeradas para edição!", "success");
@@ -696,38 +1472,237 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     setCustomProductData(prev => {
       const updated = { ...prev };
       productsList.forEach(p => {
-        const current = updated[p.sku] || { estoqueInicialCaixas: p.estoqueInicialCaixas, vendaCaixas: p.vendaCaixas };
-        updated[p.sku] = { ...current, estoqueInicialCaixas: 0 };
+        const current = updated[p.sku] || { 
+          estoqueInicialCaixas: p.estoqueInicialCaixas, 
+          estoquePicking: p.estoquePicking || p.estoqueInicialCaixas,
+          estoqueCentral: p.estoqueCentral || 0,
+          estoqueMarketplace: p.estoqueMarketplace || 0,
+          estoquePulmao: p.estoquePulmao || 0,
+          estoqueContingencia: p.estoqueContingencia || 0,
+          vendaCaixas: p.vendaCaixas 
+        };
+        updated[p.sku] = { 
+          ...current, 
+          estoqueInicialCaixas: 0,
+          estoquePicking: 0
+        };
       });
+      saveLocalDraft(productsList, updated, imported021101Files, fileName021101, fileName020304);
       return updated;
     });
-    showToast("Contagens iniciais (021101) zeradas para edição!", "success");
+    showToast("Contagens iniciais do Picking (Área 2) zeradas para edição!", "success");
   };
 
   const handleRestoreDefaults = () => {
-    const initial: Record<number, { estoqueInicialCaixas: number; vendaCaixas: number }> = {};
-    ABASTECIMENTO_PRODUCTS_DATA.forEach(p => {
+    const initial: Record<number, { 
+      estoqueInicialCaixas: number; 
+      estoquePicking?: number;
+      estoqueCentral?: number; 
+      estoqueMarketplace?: number; 
+      estoquePulmao?: number;
+      estoqueContingencia?: number;
+      vendaCaixas: number;
+    }> = {};
+    const enrichedList = ABASTECIMENTO_PRODUCTS_DATA.map(p => {
+      const official = getOfficialProductInfo(p.sku, p.descricao);
+      const pickingStock = p.estoquePicking !== undefined ? p.estoquePicking : p.estoqueInicialCaixas;
+      const centralStock = p.estoqueCentral !== undefined ? p.estoqueCentral : 0;
+      const mkpStock = p.estoqueMarketplace !== undefined ? p.estoqueMarketplace : 0;
+      const pulmaoStock = p.estoquePulmao !== undefined ? p.estoquePulmao : 0;
+      const contStock = p.estoqueContingencia !== undefined ? p.estoqueContingencia : 0;
+
       initial[p.sku] = {
-        estoqueInicialCaixas: p.estoqueInicialCaixas,
+        estoqueInicialCaixas: pickingStock,
+        estoquePicking: pickingStock,
+        estoqueCentral: centralStock,
+        estoqueMarketplace: mkpStock,
+        estoquePulmao: pulmaoStock,
+        estoqueContingencia: contStock,
         vendaCaixas: p.vendaCaixas
       };
+
+      return {
+        ...p,
+        descricao: official.descricao,
+        embalagem: official.embalagem,
+        qtdPallet: official.qtdPallet,
+        estoqueInicialCaixas: pickingStock,
+        estoquePicking: pickingStock,
+        estoqueCentral: centralStock,
+        estoqueMarketplace: mkpStock,
+        estoquePulmao: pulmaoStock,
+        estoqueContingencia: contStock
+      };
     });
-    setProductsList(ABASTECIMENTO_PRODUCTS_DATA);
+
+    setProductsList(enrichedList);
     setCustomProductData(initial);
-    showToast("Valores padrões restaurados com sucesso!", "success");
+    setImported021101Files([]);
+    setFileName021101('');
+    setFileName020304('');
+    clearLocalDraft(empresa?.id || '', selectedAnalysisDate);
+    showToast("Valores padrões e cadastros mestres restaurados!", "success");
+  };
+
+  const apply021101Files = (filesList: Imported021101File[]) => {
+    if (filesList.length === 0) {
+      setFileName021101('');
+      const updatedProducts = productsList.map(p => ({
+        ...p,
+        estoqueInicialCaixas: 0,
+        estoquePicking: 0,
+        estoqueCentral: 0,
+        estoqueMarketplace: 0,
+        estoquePulmao: 0,
+        estoqueContingencia: 0
+      }));
+      setProductsList(updatedProducts);
+
+      const updatedCustom: Record<number, any> = { ...customProductData };
+      Object.keys(updatedCustom).forEach(skuStr => {
+        const skuNum = Number(skuStr);
+        updatedCustom[skuNum] = {
+          ...updatedCustom[skuNum],
+          estoqueInicialCaixas: 0,
+          estoquePicking: 0,
+          estoqueCentral: 0,
+          estoqueMarketplace: 0,
+          estoquePulmao: 0,
+          estoqueContingencia: 0
+        };
+      });
+      setCustomProductData(updatedCustom);
+      saveLocalDraft(updatedProducts, updatedCustom, [], '', fileName020304);
+      return;
+    }
+
+    // Chronological merge: later files overwrite only the SKUs contained within them
+    const mergedSkuMap = new Map<number, {
+      sku: number;
+      descricao: string;
+      embalagem: number;
+      unidade: string;
+      qtdPallet: number;
+      estoquePicking: number;
+      estoqueCentral: number;
+      estoqueMarketplace: number;
+      estoquePulmao: number;
+      estoqueContingencia: number;
+    }>();
+
+    filesList.forEach(fileEntry => {
+      fileEntry.data.forEach(item => {
+        mergedSkuMap.set(item.sku, item);
+      });
+    });
+
+    const mergedItems = Array.from(mergedSkuMap.values());
+    const newFileName021101 = filesList.length === 1 
+      ? filesList[0].name 
+      : `${filesList.length} arquivos 02.11.01 importados`;
+
+    setFileName021101(newFileName021101);
+
+    let nextProductsList: BaseSkuData[] = [];
+    setProductsList(prevProducts => {
+      const updatedProducts = prevProducts.map(p => {
+        const merged = mergedSkuMap.get(p.sku);
+        if (merged) {
+          return {
+            ...p,
+            descricao: merged.descricao || p.descricao,
+            embalagem: merged.embalagem || p.embalagem,
+            unidade: merged.unidade || p.unidade,
+            qtdPallet: merged.qtdPallet || p.qtdPallet,
+            estoquePicking: merged.estoquePicking,
+            estoqueCentral: merged.estoqueCentral,
+            estoqueMarketplace: merged.estoqueMarketplace,
+            estoquePulmao: merged.estoquePulmao,
+            estoqueContingencia: merged.estoqueContingencia,
+            estoqueInicialCaixas: merged.estoquePicking,
+          };
+        }
+        return {
+          ...p,
+          estoquePicking: 0,
+          estoqueCentral: 0,
+          estoqueMarketplace: 0,
+          estoquePulmao: 0,
+          estoqueContingencia: 0,
+          estoqueInicialCaixas: 0,
+        };
+      });
+
+      mergedItems.forEach(item => {
+        const exists = updatedProducts.some(p => p.sku === item.sku);
+        if (!exists) {
+          const official = getOfficialProductInfo(item.sku, item.descricao);
+          updatedProducts.push({
+            sku: item.sku,
+            descricao: official.descricao,
+            unidade: item.unidade || official.unidade,
+            embalagem: item.embalagem || official.embalagem,
+            qtdPallet: item.qtdPallet || official.qtdPallet,
+            estoqueInicialCaixas: item.estoquePicking,
+            estoquePicking: item.estoquePicking,
+            estoqueCentral: item.estoqueCentral,
+            estoqueMarketplace: item.estoqueMarketplace,
+            estoquePulmao: item.estoquePulmao,
+            estoqueContingencia: item.estoqueContingencia,
+            vendaCaixas: 0
+          });
+        }
+      });
+
+      nextProductsList = updatedProducts;
+      return updatedProducts;
+    });
+
+    setCustomProductData(prevCustom => {
+      const updatedCustom = { ...prevCustom };
+      Object.keys(updatedCustom).forEach(skuStr => {
+        const skuNum = Number(skuStr);
+        updatedCustom[skuNum] = {
+          ...updatedCustom[skuNum],
+          estoqueInicialCaixas: 0,
+          estoquePicking: 0,
+          estoqueCentral: 0,
+          estoqueMarketplace: 0,
+          estoquePulmao: 0,
+          estoqueContingencia: 0
+        };
+      });
+
+      mergedItems.forEach(item => {
+        updatedCustom[item.sku] = {
+          estoqueInicialCaixas: item.estoquePicking,
+          estoquePicking: item.estoquePicking,
+          estoqueCentral: item.estoqueCentral,
+          estoqueMarketplace: item.estoqueMarketplace,
+          estoquePulmao: item.estoquePulmao,
+          estoqueContingencia: item.estoqueContingencia,
+          vendaCaixas: prevCustom[item.sku]?.vendaCaixas || 0
+        };
+      });
+
+      saveLocalDraft(nextProductsList.length > 0 ? nextProductsList : productsList, updatedCustom, filesList, newFileName021101, fileName020304);
+      return updatedCustom;
+    });
+  };
+
+  const handleDelete021101File = (fileId: string) => {
+    const fileToRemove = imported021101Files.find(f => f.id === fileId);
+    const nextFiles = imported021101Files.filter(f => f.id !== fileId);
+    setImported021101Files(nextFiles);
+    apply021101Files(nextFiles);
+    showToast(`Arquivo "${fileToRemove?.name || '02.11.01'}" excluído e estoque recalculado!`, "success");
   };
 
   const handleClear021101 = () => {
+    setImported021101Files([]);
     setFileName021101('');
-    setCustomProductData(prev => {
-      const updated = { ...prev };
-      productsList.forEach(p => {
-        const current = updated[p.sku] || { estoqueInicialCaixas: p.estoqueInicialCaixas, vendaCaixas: p.vendaCaixas };
-        updated[p.sku] = { ...current, estoqueInicialCaixas: 0 };
-      });
-      return updated;
-    });
-    showToast("Arquivo de Contagem Inicial desvinculado e valores zerados.", "success");
+    apply021101Files([]);
+    showToast("Todos os arquivos 02.11.01 foram excluídos e os estoques zerados.", "success");
   };
 
   const handleClear020304 = () => {
@@ -735,9 +1710,18 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     setCustomProductData(prev => {
       const updated = { ...prev };
       productsList.forEach(p => {
-        const current = updated[p.sku] || { estoqueInicialCaixas: p.estoqueInicialCaixas, vendaCaixas: p.vendaCaixas };
+        const current = updated[p.sku] || { 
+          estoqueInicialCaixas: p.estoqueInicialCaixas, 
+          estoquePicking: p.estoquePicking || p.estoqueInicialCaixas,
+          estoqueCentral: p.estoqueCentral || 0,
+          estoqueMarketplace: p.estoqueMarketplace || 0,
+          estoquePulmao: p.estoquePulmao || 0,
+          estoqueContingencia: p.estoqueContingencia || 0,
+          vendaCaixas: p.vendaCaixas 
+        };
         updated[p.sku] = { ...current, vendaCaixas: 0 };
       });
+      saveLocalDraft(productsList, updated, imported021101Files, fileName021101, '');
       return updated;
     });
     showToast("Arquivo de Saídas/Vendas desvinculado e valores zerados.", "success");
@@ -748,7 +1732,6 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     if (!file) return;
 
     setImporting021101(true);
-    setFileName021101(file.name);
 
     const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
 
@@ -762,50 +1745,138 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
 
-          const importedItems: Array<{ sku: number; descricao: string; embalagem: number; unidade: string; qtdPallet: number; estoqueInicialCaixas: number }> = [];
-          let totalQty = 0;
+          const skuMap = new Map<number, {
+            sku: number;
+            descricao: string;
+            embalagem: number;
+            unidade: string;
+            qtdPallet: number;
+            estoquePicking: number;
+            estoqueCentral: number;
+            estoqueMarketplace: number;
+            estoquePulmao: number;
+            estoqueContingencia: number;
+          }>();
+
+          let totalPicking = 0;
+          let totalCentral = 0;
+          let totalMkp = 0;
+          let totalPulmao = 0;
+          let totalContingencia = 0;
+
+          // Helper to parse numbers safely with Portuguese formatting (e.g. 1.250 or 50,0)
+          const parseNumSafely = (val: any): number => {
+            if (val === undefined || val === null || val === '') return 0;
+            if (typeof val === 'number') return Math.round(val);
+            const str = String(val).trim();
+            if (!str) return 0;
+            const cleaned = str.replace(/\s/g, '');
+            if (cleaned.includes(',') && cleaned.includes('.')) {
+              return Math.round(parseFloat(cleaned.replace(/\./g, '').replace(',', '.'))) || 0;
+            }
+            if (cleaned.includes(',')) {
+              return Math.round(parseFloat(cleaned.replace(',', '.'))) || 0;
+            }
+            return Math.round(parseFloat(cleaned.replace(/\./g, ''))) || 0;
+          };
 
           for (let i = 0; i < jsonData.length; i++) {
             const row = jsonData[i];
-            if (!row || row.length < 10) continue;
+            if (!row || row.length < 3) continue;
 
-            // Skip header if first row has string indicators
+            // Skip header row
             if (i === 0) {
-              const cellC = String(row[2] || '').toLowerCase();
-              if (cellC.includes('produto') || cellC.includes('código') || cellC.includes('codigo') || cellC.includes('deposito')) {
+              const rowStr = row.map((c: any) => String(c || '').toLowerCase()).join(' ');
+              if (rowStr.includes('produto') || rowStr.includes('código') || rowStr.includes('codigo') || rowStr.includes('deposito') || rowStr.includes('área') || rowStr.includes('area')) {
                 continue;
               }
             }
 
-            const skuVal = parseInt(String(row[2] || '').trim(), 10);
-            const descVal = String(row[3] || '').trim();
-            const embVal = parseInt(String(row[4] || '').trim(), 10) || 1;
-            const uniVal = String(row[5] || 'cx').trim();
-            const palVal = parseInt(String(row[7] || '').trim(), 10) || 100;
-            const qtyVal = parseInt(String(row[9] || '').trim().replace(/\s/g, '').replace(/\./g, ''), 10);
+            // Coluna B (index 1) is the Area
+            const area = parseAreaFromRow(row[0], row[1]);
 
-            if (!isNaN(skuVal) && !isNaN(qtyVal)) {
-              importedItems.push({
-                sku: skuVal,
-                descricao: descVal || `PRODUTO ${skuVal}`,
-                embalagem: embVal,
-                unidade: uniVal,
-                qtdPallet: palVal,
-                estoqueInicialCaixas: qtyVal
-              });
-              totalQty += qtyVal;
+            // Coluna C (index 2) is SKU Code
+            const rawSkuStr = String(row[2] || '').trim();
+            const skuVal = parseInt(rawSkuStr.replace(/\D/g, ''), 10);
+            if (isNaN(skuVal) || skuVal <= 0) continue;
+
+            const rawDesc = String(row[3] || '').trim();
+            const embVal = parseNumSafely(row[4]) || 1;
+            const uniVal = String(row[5] || 'cx').trim();
+            const palVal = parseNumSafely(row[7]) || 100;
+            
+            // Coluna J (index 9) is physical boxes count / SKU Total
+            let qtyVal = 0;
+            if (row.length > 9 && row[9] !== undefined && row[9] !== null && row[9] !== '') {
+              qtyVal = parseNumSafely(row[9]);
+            } else if (row.length > 8 && row[8] !== undefined && row[8] !== null && row[8] !== '') {
+              qtyVal = parseNumSafely(row[8]);
+            } else if (row.length > 7 && row[7] !== undefined && row[7] !== null && row[7] !== '') {
+              qtyVal = parseNumSafely(row[7]);
+            }
+
+            if (!isNaN(skuVal) && skuVal > 0) {
+              const official = getOfficialProductInfo(skuVal, rawDesc);
+              let item = skuMap.get(skuVal);
+              if (!item) {
+                item = {
+                  sku: skuVal,
+                  descricao: official.descricao,
+                  embalagem: embVal || official.embalagem,
+                  unidade: uniVal || official.unidade,
+                  qtdPallet: palVal || official.qtdPallet,
+                  estoquePicking: 0,
+                  estoqueCentral: 0,
+                  estoqueMarketplace: 0,
+                  estoquePulmao: 0,
+                  estoqueContingencia: 0,
+                };
+                skuMap.set(skuVal, item);
+              }
+
+              if (area === 2) {
+                item.estoquePicking += qtyVal;
+                totalPicking += qtyVal;
+              } else if (area === 1) {
+                item.estoqueCentral += qtyVal;
+                totalCentral += qtyVal;
+              } else if (area === 3) {
+                item.estoqueMarketplace += qtyVal;
+                totalMkp += qtyVal;
+              } else if (area === 4) {
+                item.estoquePulmao += qtyVal;
+                totalPulmao += qtyVal;
+              } else if (area === 5) {
+                item.estoqueContingencia += qtyVal;
+                totalContingencia += qtyVal;
+              }
             }
           }
 
+          const importedItems = Array.from(skuMap.values());
+
           if (importedItems.length === 0) {
-            showToast("Nenhum código de produto (SKU) válido encontrado nas colunas C e J da planilha de Contagem.", "error");
+            showToast("Nenhum código de produto (SKU) válido encontrado na planilha 021101.", "error");
             setImporting021101(false);
             return;
           }
 
-          // Merge data
-          merge021101Data(importedItems);
-          showToast(`Sucesso! Importados ${importedItems.length} SKUs da rotina 021101. Total inicial: ${totalQty} caixas.`, "success");
+          const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia;
+          const newFileEntry: Imported021101File = {
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            name: file.name,
+            timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            skuCount: importedItems.length,
+            pickingBoxes: totalPicking,
+            totalBoxes,
+            data: importedItems
+          };
+
+          const nextFiles = [...imported021101Files, newFileEntry];
+          setImported021101Files(nextFiles);
+          apply021101Files(nextFiles);
+
+          showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs).`, "success");
         } catch (err) {
           console.error("Erro ao ler planilha Excel 021101:", err);
           showToast("Erro ao processar planilha Excel da rotina 021101.", "error");
@@ -818,7 +1889,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
       return;
     }
 
-    // Default: text / csv parsing
+    // Text / CSV parsing
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -830,66 +1901,139 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         }
 
         const lines = text.split('\n');
-        const importedItems: Array<{ sku: number; descricao: string; embalagem: number; unidade: string; qtdPallet: number; estoqueInicialCaixas: number }> = [];
-        let totalQty = 0;
+        const skuMap = new Map<number, {
+          sku: number;
+          descricao: string;
+          embalagem: number;
+          unidade: string;
+          qtdPallet: number;
+          estoquePicking: number;
+          estoqueCentral: number;
+          estoqueMarketplace: number;
+          estoquePulmao: number;
+          estoqueContingencia: number;
+        }>();
+
+        let totalPicking = 0;
+        let totalCentral = 0;
+        let totalMkp = 0;
+        let totalPulmao = 0;
+        let totalContingencia = 0;
+
+        const parseNumSafely = (val: any): number => {
+          if (val === undefined || val === null || val === '') return 0;
+          if (typeof val === 'number') return Math.round(val);
+          const str = String(val).trim();
+          if (!str) return 0;
+          const cleaned = str.replace(/\s/g, '');
+          if (cleaned.includes(',') && cleaned.includes('.')) {
+            return Math.round(parseFloat(cleaned.replace(/\./g, '').replace(',', '.'))) || 0;
+          }
+          if (cleaned.includes(',')) {
+            return Math.round(parseFloat(cleaned.replace(',', '.'))) || 0;
+          }
+          return Math.round(parseFloat(cleaned.replace(/\./g, ''))) || 0;
+        };
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           if (!line) continue;
 
-          // Skip header row if it contains text like "Deposito" or "Produto"
-          if (i === 0 && (line.toLowerCase().includes('deposito') || line.toLowerCase().includes('produto') || line.toLowerCase().includes('descricao'))) {
+          if (i === 0 && (line.toLowerCase().includes('deposito') || line.toLowerCase().includes('produto') || line.toLowerCase().includes('descricao') || line.toLowerCase().includes('area') || line.toLowerCase().includes('área'))) {
             continue;
           }
 
           let delimiter = ';';
-          if (line.includes(';')) {
-            delimiter = ';';
-          } else if (line.includes(',')) {
-            delimiter = ',';
-          } else if (line.includes('\t')) {
-            delimiter = '\t';
-          }
+          if (line.includes(';')) delimiter = ';';
+          else if (line.includes('\t')) delimiter = '\t';
+          else if (line.includes(',')) delimiter = ',';
 
-          const parts = line.split(delimiter);
-          if (parts.length < 10) continue;
+          const parts = line.split(delimiter).map(p => p.trim().replace(/^"|"$/g, ''));
+          if (parts.length < 3) continue;
 
-          const skuRaw = parts[2]?.trim(); // Coluna C is index 2
-          const descVal = parts[3]?.trim() || '';
-          const embRaw = parts[4]?.trim();
-          const uniVal = parts[5]?.trim() || 'cx';
-          const palRaw = parts[7]?.trim();
-          const qtyRaw = parts[9]?.trim(); // Coluna J is index 9
-
-          if (!skuRaw || !qtyRaw) continue;
+          const area = parseAreaFromRow(parts[0], parts[1]);
+          const skuRaw = parts[2]?.replace(/\D/g, '');
+          if (!skuRaw) continue;
 
           const sku = parseInt(skuRaw, 10);
-          const emb = parseInt(embRaw || '1', 10) || 1;
-          const pal = parseInt(palRaw || '100', 10) || 100;
-          const cleanQty = qtyRaw.replace(/\s/g, '').replace(/\./g, '');
-          const qty = parseInt(cleanQty, 10);
+          if (isNaN(sku) || sku <= 0) continue;
 
-          if (!isNaN(sku) && !isNaN(qty)) {
-            importedItems.push({
-              sku,
-              descricao: descVal || `PRODUTO ${sku}`,
-              embalagem: emb,
-              unidade: uniVal,
-              qtdPallet: pal,
-              estoqueInicialCaixas: qty
-            });
-            totalQty += qty;
+          const descVal = parts[3]?.trim() || '';
+          const emb = parseNumSafely(parts[4]) || 1;
+          const uniVal = parts[5]?.trim() || 'cx';
+          const pal = parseNumSafely(parts[7]) || 100;
+          
+          let qty = 0;
+          if (parts.length > 9 && parts[9] !== '') {
+            qty = parseNumSafely(parts[9]);
+          } else if (parts.length > 8 && parts[8] !== '') {
+            qty = parseNumSafely(parts[8]);
+          } else if (parts.length > 7 && parts[7] !== '') {
+            qty = parseNumSafely(parts[7]);
+          }
+
+          if (!isNaN(sku) && sku > 0) {
+            const official = getOfficialProductInfo(sku, descVal);
+            let item = skuMap.get(sku);
+            if (!item) {
+              item = {
+                sku,
+                descricao: official.descricao,
+                embalagem: emb || official.embalagem,
+                unidade: uniVal || official.unidade,
+                qtdPallet: pal || official.qtdPallet,
+                estoquePicking: 0,
+                estoqueCentral: 0,
+                estoqueMarketplace: 0,
+                estoquePulmao: 0,
+                estoqueContingencia: 0,
+              };
+              skuMap.set(sku, item);
+            }
+
+            if (area === 2) {
+              item.estoquePicking += qty;
+              totalPicking += qty;
+            } else if (area === 1) {
+              item.estoqueCentral += qty;
+              totalCentral += qty;
+            } else if (area === 3) {
+              item.estoqueMarketplace += qty;
+              totalMkp += qty;
+            } else if (area === 4) {
+              item.estoquePulmao += qty;
+              totalPulmao += qty;
+            } else if (area === 5) {
+              item.estoqueContingencia += qty;
+              totalContingencia += qty;
+            }
           }
         }
 
+        const importedItems = Array.from(skuMap.values());
+
         if (importedItems.length === 0) {
-          showToast("Nenhum código de produto ou quantidade válidos encontrados na Coluna C e J (Rotina 021101).", "error");
+          showToast("Nenhum código de produto válido encontrado no arquivo 021101.", "error");
           setImporting021101(false);
           return;
         }
 
-        merge021101Data(importedItems);
-        showToast(`Sucesso! Importados ${importedItems.length} SKUs de Contagem Inicial. Total de estoque: ${totalQty} caixas.`, "success");
+        const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia;
+        const newFileEntry: Imported021101File = {
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          name: file.name,
+          timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          skuCount: importedItems.length,
+          pickingBoxes: totalPicking,
+          totalBoxes,
+          data: importedItems
+        };
+
+        const nextFiles = [...imported021101Files, newFileEntry];
+        setImported021101Files(nextFiles);
+        apply021101Files(nextFiles);
+
+        showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs).`, "success");
       } catch (err) {
         console.error("Erro ao ler arquivo 021101:", err);
         showToast("Erro ao processar o arquivo de importação 021101.", "error");
@@ -905,46 +2049,6 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
     };
 
     reader.readAsText(file, 'utf-8');
-  };
-
-  const merge021101Data = (importedItems: Array<{ sku: number; descricao: string; embalagem: number; unidade: string; qtdPallet: number; estoqueInicialCaixas: number }>) => {
-    setProductsList(prevProducts => {
-      const updatedProducts = [...prevProducts];
-      importedItems.forEach(item => {
-        const existingIdx = updatedProducts.findIndex(p => p.sku === item.sku);
-        if (existingIdx !== -1) {
-          updatedProducts[existingIdx] = {
-            ...updatedProducts[existingIdx],
-            descricao: item.descricao || updatedProducts[existingIdx].descricao,
-            embalagem: item.embalagem || updatedProducts[existingIdx].embalagem,
-            unidade: item.unidade || updatedProducts[existingIdx].unidade,
-            qtdPallet: item.qtdPallet || updatedProducts[existingIdx].qtdPallet,
-          };
-        } else {
-          updatedProducts.push({
-            sku: item.sku,
-            descricao: item.descricao || `PRODUTO ${item.sku}`,
-            unidade: item.unidade,
-            embalagem: item.embalagem,
-            qtdPallet: item.qtdPallet,
-            estoqueInicialCaixas: item.estoqueInicialCaixas,
-            vendaCaixas: 0
-          });
-        }
-      });
-      return updatedProducts;
-    });
-
-    setCustomProductData(prevCustom => {
-      const updatedCustom = { ...prevCustom };
-      importedItems.forEach(item => {
-        updatedCustom[item.sku] = {
-          estoqueInicialCaixas: item.estoqueInicialCaixas,
-          vendaCaixas: prevCustom[item.sku]?.vendaCaixas || 0
-        };
-      });
-      return updatedCustom;
-    });
   };
 
   const handleImport020304 = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -971,9 +2075,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
           for (let i = 0; i < jsonData.length; i++) {
             const row = jsonData[i];
-            if (!row || row.length < 10) continue;
+            if (!row || row.length < 4) continue;
 
-            // Skip header if first row has string indicators
             if (i === 0) {
               const cellB = String(row[1] || '').toLowerCase();
               if (cellB.includes('cod') || cellB.includes('produto') || cellB.includes('grade')) {
@@ -984,13 +2087,14 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
             const skuVal = parseInt(String(row[1] || '').trim(), 10);
             const descVal = String(row[2] || '').trim();
             const uniVal = String(row[3] || 'cx').trim();
-            const qtyVal = parseInt(String(row[9] || '').trim().replace(/\s/g, '').replace(/\./g, ''), 10);
+            const qtyVal = parseInt(String(row[9] || row[8] || '').trim().replace(/\s/g, '').replace(/\./g, ''), 10);
 
             if (!isNaN(skuVal) && !isNaN(qtyVal)) {
+              const official = getOfficialProductInfo(skuVal, descVal);
               importedItems.push({
                 sku: skuVal,
-                descricao: descVal || `PRODUTO ${skuVal}`,
-                unidade: uniVal,
+                descricao: official.descricao,
+                unidade: uniVal || official.unidade,
                 vendaCaixas: qtyVal
               });
               totalSales += qtyVal;
@@ -998,14 +2102,13 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           }
 
           if (importedItems.length === 0) {
-            showToast("Nenhum código de produto (SKU) válido encontrado nas colunas B e J da planilha de Saídas.", "error");
+            showToast("Nenhum código de produto (SKU) válido encontrado nas colunas da planilha 020304.", "error");
             setImporting020304(false);
             return;
           }
 
-          // Merge data
           merge020304Data(importedItems);
-          showToast(`Sucesso! Importados ${importedItems.length} SKUs da rotina 020304. Total de saídas: ${totalSales} caixas.`, "success");
+          showToast(`020304 Importada! ${importedItems.length} SKUs com saídas/vendas totalizando ${totalSales.toLocaleString()} caixas.`, "success");
         } catch (err) {
           console.error("Erro ao ler planilha Excel 020304:", err);
           showToast("Erro ao processar planilha Excel da rotina 020304.", "error");
@@ -1037,27 +2140,22 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           const line = lines[i].trim();
           if (!line) continue;
 
-          // Skip header row if it contains text like "Grade" or "Cod" or "Saidas"
           if (i === 0 && (line.toLowerCase().includes('grade') || line.toLowerCase().includes('cod') || line.toLowerCase().includes('saidas'))) {
             continue;
           }
 
           let delimiter = ';';
-          if (line.includes(';')) {
-            delimiter = ';';
-          } else if (line.includes(',')) {
-            delimiter = ',';
-          } else if (line.includes('\t')) {
-            delimiter = '\t';
-          }
+          if (line.includes(';')) delimiter = ';';
+          else if (line.includes(',')) delimiter = ',';
+          else if (line.includes('\t')) delimiter = '\t';
 
           const parts = line.split(delimiter);
-          if (parts.length < 10) continue;
+          if (parts.length < 4) continue;
 
-          const skuRaw = parts[1]?.trim(); // Coluna B is index 1
+          const skuRaw = parts[1]?.trim();
           const descVal = parts[2]?.trim() || '';
           const uniVal = parts[3]?.trim() || 'cx';
-          const qtyRaw = parts[9]?.trim(); // Coluna J is index 9
+          const qtyRaw = parts[9]?.trim() || parts[8]?.trim();
 
           if (!skuRaw || !qtyRaw) continue;
 
@@ -1066,10 +2164,11 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           const qty = parseInt(cleanQty, 10);
 
           if (!isNaN(sku) && !isNaN(qty)) {
+            const official = getOfficialProductInfo(sku, descVal);
             importedItems.push({
               sku,
-              descricao: descVal || `PRODUTO ${sku}`,
-              unidade: uniVal,
+              descricao: official.descricao,
+              unidade: uniVal || official.unidade,
               vendaCaixas: qty
             });
             totalSales += qty;
@@ -1077,13 +2176,13 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         }
 
         if (importedItems.length === 0) {
-          showToast("Nenhum código de produto ou quantidade válidos encontrados na Coluna B e J (Rotina 020304).", "error");
+          showToast("Nenhum código de produto ou quantidade válidos encontrados na Rotina 020304.", "error");
           setImporting020304(false);
           return;
         }
 
         merge020304Data(importedItems);
-        showToast(`Sucesso! Importados ${importedItems.length} SKUs de Saídas/Vendas. Total de saídas: ${totalSales} caixas.`, "success");
+        showToast(`020304 Importada! ${importedItems.length} SKUs com saídas/vendas totalizando ${totalSales.toLocaleString()} caixas.`, "success");
       } catch (err) {
         console.error("Erro ao ler arquivo 020304:", err);
         showToast("Erro ao processar o arquivo de importação 020304.", "error");
@@ -1102,28 +2201,35 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
   };
 
   const merge020304Data = (importedItems: Array<{ sku: number; descricao: string; unidade?: string; vendaCaixas: number }>) => {
+    let nextProductsList: BaseSkuData[] = [];
     setProductsList(prevProducts => {
       const updatedProducts = [...prevProducts];
       importedItems.forEach(item => {
+        const official = getOfficialProductInfo(item.sku, item.descricao);
         const existingIdx = updatedProducts.findIndex(p => p.sku === item.sku);
         if (existingIdx !== -1) {
           updatedProducts[existingIdx] = {
             ...updatedProducts[existingIdx],
-            descricao: item.descricao || updatedProducts[existingIdx].descricao,
-            unidade: item.unidade || updatedProducts[existingIdx].unidade,
+            descricao: official.descricao,
+            unidade: item.unidade || official.unidade || updatedProducts[existingIdx].unidade,
+            vendaCaixas: item.vendaCaixas
           };
         } else {
           updatedProducts.push({
             sku: item.sku,
-            descricao: item.descricao || `PRODUTO ${item.sku}`,
-            unidade: item.unidade || 'cx',
-            embalagem: 1,
-            qtdPallet: 100,
+            descricao: official.descricao,
+            unidade: item.unidade || official.unidade || 'cx',
+            embalagem: official.embalagem || 1,
+            qtdPallet: official.qtdPallet || 100,
             estoqueInicialCaixas: 0,
+            estoquePicking: 0,
+            estoqueCentral: 0,
+            estoqueMarketplace: 0,
             vendaCaixas: item.vendaCaixas
           });
         }
       });
+      nextProductsList = updatedProducts;
       return updatedProducts;
     });
 
@@ -1145,9 +2251,14 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
       importedItems.forEach(item => {
         updatedCustom[item.sku] = {
           estoqueInicialCaixas: prevCustom[item.sku]?.estoqueInicialCaixas || 0,
+          estoquePicking: prevCustom[item.sku]?.estoquePicking || prevCustom[item.sku]?.estoqueInicialCaixas || 0,
+          estoqueCentral: prevCustom[item.sku]?.estoqueCentral || 0,
+          estoqueMarketplace: prevCustom[item.sku]?.estoqueMarketplace || 0,
           vendaCaixas: item.vendaCaixas
         };
       });
+
+      saveLocalDraft(nextProductsList.length > 0 ? nextProductsList : productsList, updatedCustom, imported021101Files, fileName021101, fileName020304);
       return updatedCustom;
     });
   };
@@ -1340,8 +2451,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         <>
           {/* ANALYSIS CONTROLS TOOLBAR */}
           <div className="p-4 bg-white text-slate-800 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500 text-white rounded-xl">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="p-2 bg-amber-500 text-white rounded-xl shadow-xs">
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
@@ -1349,7 +2460,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs font-black text-slate-800 font-mono">{selectedAnalysisDate}</span>
                   {isHistoricalLoaded ? (
-                    <span className="text-[8px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black tracking-wider uppercase animate-pulse">
+                    <span className="text-[8px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black tracking-wider uppercase">
                       REGISTRO SALVO EM BANCO
                     </span>
                   ) : (
@@ -1359,10 +2470,120 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                   )}
                 </div>
               </div>
+
+              {/* CURVA ABC FILTER */}
+              <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200 gap-1 ml-2">
+                <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 flex items-center gap-1">
+                  <span>Curva:</span>
+                  <span className="text-[8px] font-black text-amber-700 bg-amber-100 px-1 py-0.2 rounded border border-amber-200" title={`Classificação ABC baseada na rotina comercial 03.05.19 (${abcEngine.quarter === 'ANUAL' ? 'Consolidado Anual' : `${abcEngine.quarter.replace('Q', '')}º Trimestre - ${abcEngine.quarter}`}) para a data selecionada`}>
+                    {abcEngine.quarter}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurvaFilter('all')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    curvaFilter === 'all'
+                      ? 'bg-slate-800 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
+                >
+                  Todas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurvaFilter('A')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    curvaFilter === 'A'
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'text-amber-700 hover:bg-amber-100/50 bg-transparent'
+                  }`}
+                >
+                  Curva A
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurvaFilter('B')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    curvaFilter === 'B'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-blue-700 hover:bg-blue-100/50 bg-transparent'
+                  }`}
+                >
+                  Curva B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurvaFilter('C')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    curvaFilter === 'C'
+                      ? 'bg-slate-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-200/50 bg-transparent'
+                  }`}
+                >
+                  Curva C
+                </button>
+              </div>
+
+              {/* UNIT METRIC SELECTOR */}
+              <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200 gap-1">
+                <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5">Unidade:</span>
+                <button
+                  type="button"
+                  onClick={() => setUnitMetric('hl')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    unitMetric === 'hl'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
+                  title="Exibir métricas em Hectolitros"
+                >
+                  Hectolitros (HL)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnitMetric('pl')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    unitMetric === 'pl'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
+                  title="Exibir métricas em Paletes"
+                >
+                  Paletes (PL)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnitMetric('cx')}
+                  className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border-none cursor-pointer ${
+                    unitMetric === 'cx'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
+                  title="Exibir métricas em Caixas"
+                >
+                  Caixas (CX)
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  isEditMode
+                    ? 'bg-amber-50 text-amber-800 border-amber-300 ring-2 ring-amber-400'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                }`}
+                title="Habilitar edição manual de contagem inicial e saídas"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                {isEditMode ? 'Fechar Edição' : 'Editar Contagens'}
+              </button>
+
               <button 
+                type="button"
                 onClick={handleSaveAnalysis}
                 disabled={saving}
                 className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-sans font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border-none flex items-center gap-2 shadow-sm disabled:opacity-50"
@@ -1456,21 +2677,71 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                     </div>
                   </div>
                   
-                  {fileName021101 ? (
-                    <div className="flex items-center justify-between bg-amber-50/30 border border-amber-200/40 rounded-xl px-3 py-2 mt-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span className="text-[10px] text-amber-900 font-mono font-bold truncate" title={fileName021101}>
-                          {fileName021101}
-                        </span>
+                  {imported021101Files.length > 0 ? (
+                    <div className="flex flex-col gap-2.5 bg-amber-50/50 border border-amber-200/80 rounded-xl p-3.5 mt-1">
+                      <div className="flex items-center justify-between border-b border-amber-200/60 pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span className="text-[10.5px] font-black text-amber-950 uppercase tracking-wider">
+                            Arquivos 02.11.01 ({imported021101Files.length})
+                          </span>
+                        </div>
+                        <button 
+                          onClick={handleClear021101}
+                          className="px-2 py-1 bg-rose-100/80 hover:bg-rose-200 text-rose-800 rounded-md transition-colors cursor-pointer border border-rose-200/80 text-[9px] font-black uppercase flex items-center gap-1"
+                          title="Excluir todos os arquivos 02.11.01 e zerar estoques"
+                        >
+                          <Trash2 className="w-3 h-3 text-rose-600" />
+                          Excluir Todos
+                        </button>
                       </div>
-                      <button 
-                        onClick={handleClear021101}
-                        className="p-1 bg-amber-100/50 hover:bg-amber-100 text-amber-900 rounded-md transition-colors cursor-pointer border-none"
-                        title="Remover arquivo e zerar valores"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+
+                      {/* List of individual imported 02.11.01 files */}
+                      <div className="flex flex-col gap-1.5 max-h-36 overflow-y-auto pr-1">
+                        {imported021101Files.map((fileEntry, idx) => (
+                          <div 
+                            key={fileEntry.id}
+                            className="flex items-center justify-between gap-2 p-2 bg-white/90 border border-amber-200/70 rounded-lg shadow-3xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-mono font-bold text-[8.5px] rounded">
+                                #{idx + 1}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-mono font-bold text-slate-800 truncate" title={fileEntry.name}>
+                                  {fileEntry.name}
+                                </p>
+                                <span className="text-[8.5px] text-slate-500 font-medium">
+                                  {fileEntry.skuCount} SKUs • {fileEntry.pickingBoxes.toLocaleString()} cx picking • {fileEntry.timestamp}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDelete021101File(fileEntry.id)}
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 rounded-md transition-colors cursor-pointer border border-rose-200 shrink-0"
+                              title={`Excluir "${fileEntry.name}" e recalcular`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Button to Merge Recontagem */}
+                      <label className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-sans font-black text-[9.5px] uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-3xs text-center border-none mt-1">
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        {importing021101 ? 'Mesclando...' : '+ Mesclar Nova Recontagem 02.11.01'}
+                        <input 
+                          type="file"
+                          accept=".csv,.txt,.xlsx,.xls"
+                          onChange={handleImport021101}
+                          className="hidden"
+                          disabled={importing021101}
+                        />
+                      </label>
+                      <span className="text-[8.5px] text-amber-800/80 font-medium">
+                        💡 <strong>Gestão de Erro:</strong> Se importou algum arquivo errado, exclua-o individualmente na lixeira ao lado para recalcular o estoque automaticamente.
+                      </span>
                     </div>
                   ) : (
                     <div className="mt-1">
@@ -1554,190 +2825,252 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
             </motion.div>
           )}
 
-          {/* PROCESS SECTIONS CARDS GRID */}
+          {/* PROCESS SECTIONS CARDS GRID - PERFECT SYMMETRICAL DESIGN */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             
-            {/* PROCESS 1: CONTAGEM INICIAL */}
-            <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col gap-4 relative shadow-sm hover:shadow-md transition-all">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[8px] font-mono font-black uppercase rounded-md">
-                    Processo 1 • Rotina 021101
-                  </span>
-                  <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1">
-                    Contagem Inicial (Turno Diurno)
-                  </h3>
-                  <p className="text-[10px] text-slate-500">
-                    Inventário físico realizado pelo conferente antes do início da operação.
-                  </p>
+            {/* PROCESS 1: CONTAGEM INICIAL COM 5 ÁREAS (PICKING, PULMÃO, CENTRAL, MARKETPLACE, CONTINGÊNCIA) */}
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col justify-between gap-4 shadow-sm hover:shadow-md transition-all h-full">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-900 text-[8.5px] font-mono font-black uppercase rounded-md">
+                        Rotina 021101
+                      </span>
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[8.5px] font-mono font-black uppercase rounded-md">
+                        5 Áreas
+                      </span>
+                    </div>
+                    <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1.5">
+                      Contagem Inicial por Área
+                    </h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                      Inventário por Áreas: 2-Pick, 4-Pulmão, 1-Cent, 3-Mkt, 5-Cont.
+                    </p>
+                  </div>
+                  <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-200/60 shadow-xs shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
                 </div>
-                <div className="p-2 bg-amber-50 text-amber-600 rounded-xl border border-amber-200/50">
-                  <Clock className="w-5 h-5" />
+
+                {/* Symmetrical 2x2 Metric Grid */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/70">
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-amber-700 font-bold uppercase">Picking (Área 2)</span>
+                    <span className="text-base font-black font-mono text-amber-900 leading-tight">
+                      {totalInitialBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalInitialPallets} PL • {totalInitialHecto.toFixed(1)} HL
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-purple-700 font-bold uppercase">Pulmão (Área 4)</span>
+                    <span className="text-base font-black font-mono text-purple-900 leading-tight">
+                      {totalPulmaoBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalPulmaoPallets} PL Reserva
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-indigo-700 font-bold uppercase">Central (Área 1)</span>
+                    <span className="text-base font-black font-mono text-indigo-900 leading-tight">
+                      {totalCentralBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalCentralPallets} PL Depósito
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-orange-700 font-bold uppercase">MKP (3) & Cont (5)</span>
+                    <span className="text-base font-black font-mono text-slate-800 leading-tight">
+                      {(totalMarketplaceBoxes + totalContingenciaBoxes).toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalMarketplacePallets} PL (3) • {totalContingenciaPallets} PL (5)
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2 bg-white p-3 rounded-xl border border-slate-200/60 shadow-inner">
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">SKUs</span>
-                  <span className="text-xl font-black font-mono text-slate-800">{totalSkusChecked}</span>
+              <div className="text-[9.5px] text-slate-600 font-medium flex items-center justify-between bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="font-semibold">Total Geral: {totalGeralArmazemBoxes.toLocaleString()} cx ({totalGeralArmazemPallets} PL)</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Caixas</span>
-                  <span className="text-xl font-black font-mono text-slate-800">{totalInitialBoxes.toLocaleString()}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Paletes</span>
-                  <span className="text-xl font-black font-mono text-slate-800">{totalInitialPallets.toLocaleString()} <span className="text-[10px] font-bold text-slate-400 font-sans">PL</span></span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-amber-600 font-bold uppercase">Hectolitros</span>
-                  <span className="text-xl font-black font-mono text-amber-700">{totalInitialHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span className="text-[10px] font-bold text-amber-500 font-sans">HL</span></span>
-                </div>
-              </div>
-
-              <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                <span>GILSON ROSA DA SILVA em</span>
-                <span className="font-mono text-[9px] font-bold text-slate-600">06:15 AM (Diurno)</span>
+                <span className="font-mono text-[9px] font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded">
+                  {totalSkusChecked} SKUs
+                </span>
               </div>
             </div>
 
-            {/* PROCESS 2: ABASTECIMENTO COMERCIAL */}
-            <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col gap-4 relative shadow-sm hover:shadow-md transition-all">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[8px] font-mono font-black uppercase rounded-md">
-                    Processo 2 • Operador Empilhadeira
-                  </span>
-                  <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1">
-                    Abastecimento Comercial Diurno
-                  </h3>
-                  <p className="text-[10px] text-slate-500">
-                    Monitoramento de reabastecimentos realizados exclusivamente de <strong className="text-slate-700">07:00 às 19:00</strong>.
-                  </p>
+            {/* PROCESS 2: ABASTECIMENTO DIURNO */}
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col justify-between gap-4 shadow-sm hover:shadow-md transition-all h-full">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[8.5px] font-mono font-black uppercase rounded-md">
+                        Processo 2 • Empilhadeiras
+                      </span>
+                    </div>
+                    <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1.5">
+                      Abastecimento Diurno
+                    </h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                      Ressuprimento operacional exclusivo de <strong className="text-slate-700">07:00 às 19:00</strong>.
+                    </p>
+                  </div>
+                  <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200/60 shadow-xs shrink-0">
+                    <Truck className="w-5 h-5" />
+                  </div>
                 </div>
-                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200/50">
-                  <Truck className="w-5 h-5" />
+
+                {/* Symmetrical 2x2 Metric Grid */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/70">
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-emerald-700 font-bold uppercase">Volume Abastecido</span>
+                    <span className="text-base font-black font-mono text-emerald-800 leading-tight">
+                      {totalReplenishedBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalReplenishedPallets} PL • {totalReplenishedHecto.toFixed(1)} HL
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-slate-600 font-bold uppercase">SKUs Abastecidos</span>
+                    <span className="text-base font-black font-mono text-slate-900 leading-tight">
+                      {totalSkusReplenished || 0} SKUs
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      de {processedSkus.length} ativos
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-slate-600 font-bold uppercase">Equipe Operacional</span>
+                    <span className="text-base font-black font-mono text-slate-900 leading-tight">
+                      {activeOperators} Operadores
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      Marivaldo, Ronildo...
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-emerald-700 font-bold uppercase">Eficiência Turno</span>
+                    <span className="text-base font-black font-mono text-emerald-800 leading-tight">
+                      100%
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      Janela 07:00 às 19:00
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2 bg-white p-3 rounded-xl border border-slate-200/60 shadow-inner">
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Abastecidos</span>
-                  <span className="text-xl font-black font-mono text-emerald-600">
-                    {totalSkusReplenished || 0} <span className="text-[10px] font-bold text-emerald-500 font-sans">SKUs</span>
-                  </span>
+              <div className="text-[9.5px] text-slate-600 font-medium flex items-center justify-between bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="font-semibold">Janela Operacional: 07h às 19h</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Caixas</span>
-                  <span className="text-xl font-black font-mono text-emerald-600">
-                    {totalReplenishedBoxes.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Paletes</span>
-                  <span className="text-xl font-black font-mono text-emerald-600">
-                    {totalReplenishedPallets.toLocaleString()} <span className="text-[10px] font-bold text-emerald-500 font-sans">PL</span>
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-emerald-700 font-bold uppercase">Hectolitros</span>
-                  <span className="text-xl font-black font-mono text-emerald-600">
-                    {totalReplenishedHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span className="text-[10px] font-bold text-emerald-500 font-sans">HL</span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-[10px] text-slate-500 font-medium flex items-center justify-between bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-                  <span>{activeOperators} Operadores Ativos</span>
-                </div>
-                {replenishmentMap.excludedCount > 0 && (
-                  <span className="text-[8px] text-red-500 font-bold uppercase bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
+                {replenishmentMap.excludedCount > 0 ? (
+                  <span className="text-[8.5px] text-rose-700 font-black uppercase bg-rose-100/80 px-2 py-0.5 rounded border border-rose-200">
                     -{replenishmentMap.excludedCount} fora do horário
+                  </span>
+                ) : (
+                  <span className="text-[8.5px] text-emerald-800 font-black uppercase bg-emerald-100/80 px-2 py-0.5 rounded">
+                    100% no turno
                   </span>
                 )}
               </div>
             </div>
 
-            {/* PROCESS 3: COMPARATIVO & COBERTURA */}
-            <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col gap-4 relative shadow-sm hover:shadow-md transition-all">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-mono font-black uppercase rounded-md">
-                    Processo 3 • Rotina 020304
-                  </span>
-                  <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1">
-                    Comparativo de Cobertura
-                  </h3>
-                  <p className="text-[10px] text-slate-500">
-                    Comparação entre o estoque disponível (Inicial + Abastecido) vs. Vendas.
-                  </p>
+            {/* PROCESS 3: SAÍDAS & COBERTURA */}
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col justify-between gap-4 shadow-sm hover:shadow-md transition-all h-full">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-900 text-[8.5px] font-mono font-black uppercase rounded-md">
+                        Rotina 020304 • Saídas
+                      </span>
+                    </div>
+                    <h3 className="text-xs font-sans font-black uppercase tracking-wider text-slate-800 mt-1.5">
+                      Saídas & Cobertura
+                    </h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                      Demanda de vendas vs. Estoque Disponível no Picking.
+                    </p>
+                  </div>
+                  <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-200/60 shadow-xs shrink-0">
+                    <Package className="w-5 h-5" />
+                  </div>
                 </div>
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-200/50">
-                  <Package className="w-5 h-5" />
+
+                {/* Symmetrical 2x2 Metric Grid */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/70">
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-blue-700 font-bold uppercase">Saída / Vendas</span>
+                    <span className="text-base font-black font-mono text-blue-800 leading-tight">
+                      {totalSalesBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalSalesPallets} PL • {totalSalesHecto.toFixed(1)} HL
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-slate-600 font-bold uppercase">Saldo Picking</span>
+                    <span className={`text-base font-black font-mono leading-tight ${totalCurrentBalanceBoxes >= 0 ? 'text-emerald-800' : 'text-rose-700'}`}>
+                      {totalCurrentBalanceBoxes >= 0 ? `+${totalCurrentBalanceBoxes.toLocaleString()}` : totalCurrentBalanceBoxes.toLocaleString()} cx
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {totalCurrentBalancePallets >= 0 ? `+${totalCurrentBalancePallets}` : totalCurrentBalancePallets} PL no Picking
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-indigo-700 font-bold uppercase">Cobertura Picking</span>
+                    <span className="text-base font-black font-mono text-indigo-800 leading-tight">
+                      {totalSalesBoxes > 0 ? `${Math.round(((totalInitialBoxes + totalReplenishedBoxes) / totalSalesBoxes) * 100)}%` : '100%'}
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      Suficiência Demanda
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                    <span className="text-[8.5px] tracking-wider text-slate-600 font-bold uppercase">Status Operacional</span>
+                    <span className="text-base font-black font-mono text-slate-900 leading-tight">
+                      {statusCounts.ok} OK
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5">
+                      {statusCounts.attention} Atenção • {statusCounts.critical} Crítico
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2 bg-white p-3 rounded-xl border border-slate-200/60 shadow-inner">
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Venda Diária</span>
-                  <span className="text-xl font-black font-mono text-blue-600">
-                    {totalSalesBoxes.toLocaleString()} <span className="text-[10px] font-bold text-blue-400 font-sans">cx</span>
-                  </span>
-                  <span className="text-[8px] font-mono text-blue-500 font-bold">{totalSalesHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} HL</span>
+              <div className="grid grid-cols-3 gap-1.5 text-[9.5px] text-center font-black uppercase">
+                <div className="bg-emerald-50 text-emerald-800 py-1.5 px-2 rounded-xl border border-emerald-200 flex items-center justify-between">
+                  <span className="text-[9px]">OK</span>
+                  <span className="font-mono bg-emerald-600 text-white px-1.5 py-0.2 rounded-md text-[9px] font-black">{statusCounts.ok}</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Saldo Picking</span>
-                  <span className={`text-xl font-black font-mono ${totalCurrentBalanceBoxes >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {totalCurrentBalanceBoxes.toLocaleString()} <span className="text-[10px] font-bold font-sans opacity-70">cx</span>
-                  </span>
-                  <span className="text-[8px] font-mono text-slate-500 font-bold">{totalCurrentBalanceHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} HL</span>
+                <div className="bg-amber-50 text-amber-800 py-1.5 px-2 rounded-xl border border-amber-200 flex items-center justify-between">
+                  <span className="text-[9px]">Atenção</span>
+                  <span className="font-mono bg-amber-500 text-white px-1.5 py-0.2 rounded-md text-[9px] font-black">{statusCounts.attention}</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-slate-500 font-bold uppercase">Suficiência</span>
-                  <span className="text-xl font-black font-mono text-indigo-600">
-                    {totalSalesBoxes > 0 ? `${Math.round((totalInitialBoxes + totalReplenishedBoxes) / totalSalesBoxes * 100)}%` : '0%'}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] tracking-wider text-indigo-600 font-bold uppercase">Vol. Total</span>
-                  <span className="text-xl font-black font-mono text-indigo-700">
-                    {(totalInitialHecto + totalReplenishedHecto).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span className="text-[10px] font-bold font-sans">HL</span>
-                  </span>
+                <div className="bg-rose-50 text-rose-800 py-1.5 px-2 rounded-xl border border-rose-200 flex items-center justify-between">
+                  <span className="text-[9px]">Crítico</span>
+                  <span className="font-mono bg-rose-500 text-white px-1.5 py-0.2 rounded-md text-[9px] font-black">{statusCounts.critical}</span>
                 </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-1.5 text-[11px] text-center font-extrabold uppercase">
-                <div className="bg-emerald-50 text-emerald-700 py-2 px-1 rounded-xl border border-emerald-150 flex items-center justify-center gap-1.5">
-                  <span>OK</span>
-                  <span className="font-mono bg-emerald-600 text-white w-4.5 h-4.5 rounded-full text-[9px] flex items-center justify-center font-black">{statusCounts.ok}</span>
-                </div>
-                <div className="bg-amber-50 text-amber-700 py-2 px-1 rounded-xl border border-amber-150 flex items-center justify-center gap-1.5">
-                  <span>Atenção</span>
-                  <span className="font-mono bg-amber-500 text-white w-4.5 h-4.5 rounded-full text-[9px] flex items-center justify-center font-black">{statusCounts.attention}</span>
-                </div>
-                <div className="bg-red-50 text-red-600 py-2 px-1 rounded-xl border border-red-150 flex items-center justify-center gap-1.5">
-                  <span>Crítico</span>
-                  <span className="font-mono bg-red-500 text-white w-4.5 h-4.5 rounded-full text-[9px] flex items-center justify-center font-black">{statusCounts.critical}</span>
-                </div>
-              </div>
-
-              {skusSemEstoqueInicialComVenda.length > 0 && (
-                <button 
-                  onClick={() => setStatusFilter('no_picking_sales')}
-                  className="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 p-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                    Sem Inicial c/ Venda
-                  </span>
-                  <span className="bg-amber-600 text-white px-2 py-0.5 rounded-full font-mono text-[9px] font-black">
-                    {skusSemEstoqueInicialComVenda.length} SKUs
-                  </span>
-                </button>
-              )}
             </div>
 
           </div>
@@ -1751,32 +3084,32 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                 <div>
                   <span className="text-xs uppercase font-black text-slate-700 tracking-wider flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-500" />
-                    Volume de Abastecimento por Horário (Diurno 07h - 19h)
+                    Volume de Ressuprimento por Horário (Paletes / PL)
                   </span>
                   <span className="text-[10px] text-slate-400 uppercase block font-bold mt-0.5">
-                    Detalhamento de caixas reabastecidas para auditoria de produtividade diurna
+                    Visão operacional em Paletes: Turno Diurno / Intermediário (Marivaldo / Ronildo), Pausa 12h-14h e Noturno (Paulo Pereira / Ronildo)
                   </span>
                 </div>
                 <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] uppercase font-black text-slate-400">Total Reabastecido</span>
+                  <span className="text-[9px] uppercase font-black text-slate-400">Total no Dia</span>
                   <span className="text-xs font-black font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg">
-                    {totalReplenishedBoxes.toLocaleString('pt-BR')} CX
+                    {totalReplenishedPallets} PL <span className="text-[10px] font-medium text-slate-500">(~{totalReplenishedBoxes.toLocaleString('pt-BR')} CX)</span>
                   </span>
                 </div>
               </div>
               
               <div className="h-72 w-full pt-2">
-                {totalReplenishedBoxes === 0 && totalHourlyReplenished === 0 ? (
+                {totalReplenishedPallets === 0 && totalHourlyReplenished === 0 ? (
                   <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <Info className="w-6 h-6 text-slate-300" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhum abastecimento de operador registrado na data selecionada</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhum ressuprimento registrado na data selecionada</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={hourlyChartData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} unit=" PL" />
                       <Tooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
@@ -1785,7 +3118,10 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                               <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-white shadow-xl">
                                 <p className="font-extrabold text-xs text-amber-400 mb-1">Horário: {label}</p>
                                 <p className="text-[11px] font-bold text-slate-200">
-                                  Reabastecimento: <span className="font-black text-amber-400">{data.caixas.toLocaleString('pt-BR')} caixas</span>
+                                  Volume: <span className="font-black text-amber-400">{data.paletes} Paletes (PL)</span>
+                                </p>
+                                <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                                  Equivalente: {data.caixas.toLocaleString('pt-BR')} caixas
                                 </p>
                               </div>
                             );
@@ -1793,10 +3129,16 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                           return null;
                         }}
                       />
-                      <Bar dataKey="caixas" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="paletes" radius={[4, 4, 0, 0]}>
                         {hourlyChartData.map((entry, index) => {
-                          const isLunch = entry.hour === '12h';
-                          return <Cell key={`cell-${index}`} fill={isLunch ? '#94a3b8' : '#032b5e'} />;
+                          const isPeak = entry.rawHour === 10;
+                          const isPause = entry.rawHour === 12 || entry.rawHour === 13;
+                          const isAfternoon = entry.rawHour >= 14 && entry.rawHour <= 16;
+                          let barFill = '#032b5e';
+                          if (isPeak) barFill = '#f59e0b';
+                          else if (isPause) barFill = '#cbd5e1';
+                          else if (isAfternoon) barFill = '#2563eb';
+                          return <Cell key={`cell-${index}`} fill={barFill} />;
                         })}
                       </Bar>
                     </BarChart>
@@ -1805,41 +3147,45 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
               </div>
             </div>
 
-            {/* CHART 2: TOP 15 REPLENISHED SKUS */}
+            {/* CHART 2: TOP 10 REPLENISHED SKUS */}
             <div className="lg:col-span-6 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col gap-3 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs uppercase font-black text-slate-700 tracking-wider flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    Top 15 SKUs Mais Abastecidos no Dia
+                    Top 10 SKUs Mais Abastecidos ({unitMetric.toUpperCase()})
                   </span>
                   <span className="text-[10px] text-slate-400 uppercase block font-bold mt-0.5">
-                    SKUs com maior volume de reabastecimento operacional no turno
+                    {curvaFilter === 'all' ? 'Todas as Curvas' : `Filtrado por Curva ${curvaFilter}`} • Ordenado por {unitMetric === 'hl' ? 'Hectolitros' : unitMetric === 'pl' ? 'Paletes' : 'Caixas'}
                   </span>
                 </div>
-                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] uppercase font-black text-slate-400">SKUs Reabastecidos</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-[9px] uppercase font-black text-slate-400">Total Abastecido</span>
                   <span className="text-xs font-black font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
-                    {totalSkusReplenished} SKUs
+                    {unitMetric === 'hl' 
+                      ? `${totalReplenishedHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} HL` 
+                      : unitMetric === 'pl' 
+                        ? `${totalReplenishedPallets} PL` 
+                        : `${totalReplenishedBoxes.toLocaleString()} cx`}
                   </span>
                 </div>
               </div>
 
-              <div className="h-[460px] w-full pt-2">
+              <div className="h-[420px] w-full pt-2">
                 {topProductsChartData.length === 0 ? (
                   <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <Info className="w-6 h-6 text-slate-300" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhum abastecimento registrado na data selecionada</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhum abastecimento registrado para o filtro ativo</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart 
                       data={topProductsChartData} 
                       layout="vertical"
-                      margin={{ top: 5, right: 15, left: 10, bottom: 5 }}
+                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                      <XAxis type="number" stroke="#94a3b8" fontSize={10} tickLine={false} unit={` ${unitMetric.toUpperCase()}`} />
                       <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={9} width={130} tickLine={false} />
                       <Tooltip 
                         content={({ active, payload }) => {
@@ -1847,63 +3193,77 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                             const data = payload[0].payload;
                             return (
                               <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-white shadow-xl max-w-xs">
-                                <p className="font-extrabold text-xs text-emerald-400 mb-0.5">#{data.sku} - {data.fullName || data.name}</p>
-                                <p className="text-[11px] font-bold text-slate-200">
-                                  Reabastecido Hoje: <span className="font-black text-emerald-400">{data.caixas.toLocaleString('pt-BR')} caixas</span>
-                                </p>
-                                {data.paletes !== undefined && (
-                                  <p className="text-[10px] text-slate-400 font-medium">
-                                    Equivalente: {data.paletes} palete(s)
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <span className="font-mono text-[10px] text-slate-400 font-bold">SKU #{data.sku}</span>
+                                  <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded font-mono ${
+                                    data.curvaAbc === 'A' ? 'bg-amber-400 text-slate-950' : data.curvaAbc === 'B' ? 'bg-blue-400 text-slate-950' : 'bg-slate-300 text-slate-900'
+                                  }`}>
+                                    Curva {data.curvaAbc}
+                                  </span>
+                                </div>
+                                <p className="font-extrabold text-xs text-white mb-2 leading-tight">{data.fullName || data.name}</p>
+                                <div className="space-y-1 pt-1 border-t border-slate-700/80 text-[10.5px]">
+                                  <p className="flex justify-between font-bold text-emerald-400">
+                                    <span>Abastecimento:</span>
+                                    <span>{data.caixas.toLocaleString('pt-BR')} cx ({data.paletes} PL)</span>
                                   </p>
-                                )}
+                                  <p className="flex justify-between text-slate-300 font-medium">
+                                    <span>Hectolitros:</span>
+                                    <span className="font-mono">{data.hecto} HL</span>
+                                  </p>
+                                </div>
                               </div>
                             );
                           }
                           return null;
                         }}
                       />
-                      <Bar dataKey="caixas" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12} />
+                      <Bar dataKey="primaryValue" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
 
-            {/* CHART 3: TOP 15 LOWEST SALES / LOWEST OUTPUT (ROTINA 020304) */}
+            {/* CHART 3: TOP 10 HIGHEST SALES / OUTPUT (ROTINA 020304) */}
             <div className="lg:col-span-6 bg-white border border-slate-200 p-5 rounded-2xl flex flex-col gap-3 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs uppercase font-black text-slate-700 tracking-wider flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4 text-amber-500" />
-                    Top 15 Produtos com Menor Saída (Rotina 020304 do Dia)
+                    <TrendingDown className="w-4 h-4 text-blue-500" />
+                    Top 10 Maiores Saídas / Vendas ({unitMetric.toUpperCase()})
                   </span>
                   <span className="text-[10px] text-slate-400 uppercase block font-bold mt-0.5">
-                    Produtos com menor volume de vendas/saída apurados no relatório 020304
+                    {curvaFilter === 'all' ? 'Todas as Curvas' : `Filtrado por Curva ${curvaFilter}`} • Rotina 020304
                   </span>
                 </div>
-                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] uppercase font-black text-slate-400">Origem Dados</span>
-                  <span className="text-xs font-black font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg">
-                    Rotina 020304
+                <div className="flex flex-col items-end">
+                  <span className="text-[9px] uppercase font-black text-slate-400">Total de Saída</span>
+                  <span className="text-xs font-black font-mono text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg">
+                    {unitMetric === 'hl' 
+                      ? `${totalSalesHecto.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} HL` 
+                      : unitMetric === 'pl' 
+                        ? `${totalSalesPallets} PL` 
+                        : `${totalSalesBoxes.toLocaleString()} cx`}
                   </span>
                 </div>
               </div>
 
-              <div className="h-[460px] w-full pt-2">
-                {lowestSalesChartData.length === 0 ? (
+              <div className="h-[420px] w-full pt-2">
+                {topSales10ChartData.length === 0 ? (
                   <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <Info className="w-6 h-6 text-slate-300" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhuma saída/venda (020304) registrada para a data selecionada</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-center px-4">Nenhuma saída registrada para o filtro ativo</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart 
-                      data={lowestSalesChartData} 
+                      data={topSales10ChartData} 
                       layout="vertical"
-                      margin={{ top: 5, right: 15, left: 10, bottom: 5 }}
+                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                      <XAxis type="number" stroke="#94a3b8" fontSize={10} tickLine={false} unit={` ${unitMetric.toUpperCase()}`} />
                       <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={9} width={130} tickLine={false} />
                       <Tooltip 
                         content={({ active, payload }) => {
@@ -1911,22 +3271,32 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                             const data = payload[0].payload;
                             return (
                               <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-white shadow-xl max-w-xs">
-                                <p className="font-extrabold text-xs text-amber-400 mb-0.5">#{data.sku} - {data.fullName || data.name}</p>
-                                <p className="text-[11px] font-bold text-slate-200">
-                                  Saída / Venda Hoje: <span className="font-black text-amber-400">{data.vendas.toLocaleString('pt-BR')} caixas</span>
-                                </p>
-                                {data.paletes !== undefined && (
-                                  <p className="text-[10px] text-slate-300 font-medium">
-                                    Equivalente: {data.paletes} palete(s) ({data.hecto} HL)
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <span className="font-mono text-[10px] text-slate-400 font-bold">SKU #{data.sku}</span>
+                                  <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded font-mono ${
+                                    data.curvaAbc === 'A' ? 'bg-amber-400 text-slate-950' : data.curvaAbc === 'B' ? 'bg-blue-400 text-slate-950' : 'bg-slate-300 text-slate-900'
+                                  }`}>
+                                    Curva {data.curvaAbc}
+                                  </span>
+                                </div>
+                                <p className="font-extrabold text-xs text-white mb-2 leading-tight">{data.fullName || data.name}</p>
+                                <div className="space-y-1 pt-1 border-t border-slate-700/80 text-[10.5px]">
+                                  <p className="flex justify-between font-bold text-blue-400">
+                                    <span>Saída 020304:</span>
+                                    <span>{data.caixas.toLocaleString('pt-BR')} cx ({data.paletes} PL)</span>
                                   </p>
-                                )}
+                                  <p className="flex justify-between text-slate-300 font-medium">
+                                    <span>Hectolitros:</span>
+                                    <span className="font-mono">{data.hecto} HL</span>
+                                  </p>
+                                </div>
                               </div>
                             );
                           }
                           return null;
                         }}
                       />
-                      <Bar dataKey="vendas" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={12} />
+                      <Bar dataKey="primaryValue" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={14} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -1938,58 +3308,191 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           {/* COMPREHENSIVE STATUS TABLE */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-4 shadow-sm">
             
-            {/* ALERT BANNER: SKUs without Picking Stock that had Sales Output */}
-            {skusSemEstoqueInicialComVenda.length > 0 && (
-              <div className="p-4 bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+            {/* ANÁLISE DE MONTAGEM DE CARGA: PICKING vs CENTRAL vs MARKETPLACE vs REABASTECIMENTO */}
+            <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-2xl text-white shadow-md">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-3 bg-amber-500 text-slate-950 rounded-xl shadow font-black shrink-0">
+                    <Layers className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-black uppercase tracking-wider text-amber-400">
+                        Análise de Montagem: Picking x Central x Marketplace
+                      </h4>
+                      <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 font-mono text-[9px] font-black rounded-full uppercase border border-amber-400/30">
+                        {montagemTotals.totalSkusComVenda} SKUs com Saída
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 font-normal mt-0.5">
+                      Diagnóstico logístico: paletes fechados carregam direto do Central (Área 1) ou Marketplace (Área 3), fracionados saem do Picking (Área 2).
+                    </p>
+                  </div>
+                </div>
+
+                {/* 6 Symmetrical Action Filter Cards for All 5 Supply Areas */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 shrink-0">
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'suficiente_picking' ? 'all' : 'suficiente_picking')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'suficiente_picking'
+                        ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200 ring-2 ring-emerald-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-emerald-400 block truncate">🟢 Picking OK</span>
+                    <span className="text-xs font-mono font-black text-emerald-300 block mt-0.5">{montagemTotals.skusSuficientes} SKUs</span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">Cobre direto</p>
+                  </button>
+
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'carregar_pulmao' ? 'all' : 'carregar_pulmao')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'carregar_pulmao'
+                        ? 'bg-purple-500/25 border-purple-400 text-purple-200 ring-2 ring-purple-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-purple-400 block truncate">🟣 Pulmão (4)</span>
+                    <span className="text-xs font-mono font-black text-purple-300 block mt-0.5">{montagemTotals.palletsPulmao} PL</span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">{montagemTotals.skusCarregarPulmao} SKUs</p>
+                  </button>
+
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'carregar_central' ? 'all' : 'carregar_central')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'carregar_central'
+                        ? 'bg-amber-500/25 border-amber-400 text-amber-200 ring-2 ring-amber-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-amber-400 block truncate">🟡 Central (1)</span>
+                    <span className="text-xs font-mono font-black text-amber-300 block mt-0.5">{montagemTotals.palletsCentral} PL</span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">{montagemTotals.skusCarregarCentral} SKUs</p>
+                  </button>
+
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'carregar_marketplace' ? 'all' : 'carregar_marketplace')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'carregar_marketplace'
+                        ? 'bg-orange-500/25 border-orange-400 text-orange-200 ring-2 ring-orange-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-orange-400 block truncate">🟠 MktPlace (3)</span>
+                    <span className="text-xs font-mono font-black text-orange-300 block mt-0.5">{montagemTotals.palletsMarketplace} PL</span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">{montagemTotals.skusCarregarMarketplace} SKUs</p>
+                  </button>
+
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'carregar_contingencia' ? 'all' : 'carregar_contingencia')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'carregar_contingencia'
+                        ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 ring-2 ring-cyan-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-cyan-400 block truncate">🔵 Contingência (5)</span>
+                    <span className="text-xs font-mono font-black text-cyan-300 block mt-0.5">{montagemTotals.palletsContingencia} PL</span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">{montagemTotals.skusCarregarContingencia} SKUs</p>
+                  </button>
+
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'reabastecer_picking' ? 'all' : 'reabastecer_picking')}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                      statusFilter === 'reabastecer_picking'
+                        ? 'bg-rose-500/25 border-rose-400 text-rose-200 ring-2 ring-rose-400'
+                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider text-rose-400 block truncate">🔴 Reabastecer</span>
+                    <span className="text-xs font-mono font-black text-rose-300 block mt-0.5">
+                      {montagemTotals.palletsReabastecer} PL ({montagemTotals.caixasReabastecer.toLocaleString()} cx)
+                    </span>
+                    <p className="text-[8px] text-slate-400 mt-0.5 truncate">{montagemTotals.skusReabastecer} SKUs déficit</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* CRITICAL ALERT BANNER: RUPTURA IN FULL (Zero Estoque em TODAS as áreas com Saída) */}
+            {skusRupturaInFull.length > 0 && (
+              <div className="p-4 bg-gradient-to-r from-rose-900 via-rose-800 to-rose-950 border-2 border-rose-500 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg text-white">
                 <div className="flex items-start md:items-center gap-3">
-                  <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-sm flex-shrink-0">
-                    <AlertTriangle className="w-6 h-6 animate-pulse" />
+                  <div className="p-2.5 bg-rose-600 text-white rounded-xl shadow-md flex-shrink-0 animate-bounce">
+                    <AlertOctagon className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-amber-950">
-                        Alerta Operacional: Venda sem Estoque no Picking
+                      <span className="text-xs font-black uppercase tracking-wider text-rose-200">
+                        🚨 ALERTA CRÍTICO: RUPTURA IN FULL NO ARMAZÉM
                       </span>
-                      <span className="px-2 py-0.5 bg-amber-200 text-amber-950 font-mono font-black text-[9px] rounded-full uppercase">
-                        {skusSemEstoqueInicialComVenda.length} SKUs Afetados
+                      <span className="px-2 py-0.5 bg-rose-700 text-white font-mono font-black text-[9px] rounded-full uppercase border border-rose-400">
+                        {skusRupturaInFull.length} SKUs Afetados
                       </span>
                     </div>
-                    <p className="text-[11px] font-medium text-slate-700 mt-0.5">
-                      Estes produtos tiveram <strong className="text-blue-700">saída de venda registrada (Rotina 020304)</strong>, mas estavam com <strong className="text-amber-900">Zero Estoque na Contagem Inicial do Picking</strong> (Rotina 021101). Desses, <strong className="text-rose-700">{skusRupturaTotalPicking.length} SKUs</strong> continuam sem nenhum abastecimento no dia (Ruptura Total).
+                    <p className="text-[11px] font-medium text-rose-100 mt-0.5 leading-snug">
+                      Estes produtos possuem <strong className="text-white underline">saída de venda confirmada</strong>, porém constam com <strong className="text-amber-300">ESTOQUE ZERO em todas as 5 áreas</strong> (Picking, Pulmão, Central, Marketplace e Contingência) em todas as contagens/recontagens.
+                      Falta total no armazém: <strong className="text-amber-300 font-mono">{caixasRupturaInFull.toLocaleString()} cx ({palletsRupturaInFull} PL)</strong>.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => setStatusFilter('no_picking_sales')}
+                    onClick={() => setStatusFilter(statusFilter === 'ruptura_in_full' ? 'all' : 'ruptura_in_full')}
+                    className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all border cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                      statusFilter === 'ruptura_in_full'
+                        ? 'bg-white text-rose-900 border-white ring-2 ring-white'
+                        : 'bg-rose-700 hover:bg-rose-600 text-white border-rose-500'
+                    }`}
+                  >
+                    <AlertOctagon className="w-3.5 h-3.5" />
+                    Filtrar In Full ({skusRupturaInFull.length})
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* OBSERVATION BANNER: ESTOQUE INSUFICIENTE NO ARMAZÉM */}
+            {skusEstoqueInsuficiente.length > 0 && (
+              <div className="p-4 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border-2 border-amber-400 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-start md:items-center gap-3">
+                  <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black uppercase tracking-wider text-amber-950">
+                        Observação: Estoque de Armazém Insuficiente
+                      </span>
+                      <span className="px-2 py-0.5 bg-amber-200 text-amber-950 font-mono font-black text-[9px] rounded-full uppercase border border-amber-300">
+                        {skusEstoqueInsuficiente.length} SKUs com Déficit
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-medium text-slate-700 mt-0.5">
+                      Mesmo somando todas as áreas de estoque do armazém (Picking, Pulmão, Central, MktPlace e Contingência), o volume total disponível é inferior à saída total de venda.
+                      Déficit total não atendível: <strong className="text-rose-700 font-mono">{caixasDeficitArmazem.toLocaleString()} cx ({palletsDeficitArmazem} PL)</strong>.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setStatusFilter(statusFilter === 'estoque_insuficiente' ? 'all' : 'estoque_insuficiente')}
                     className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all border cursor-pointer flex items-center gap-1.5 ${
-                      statusFilter === 'no_picking_sales'
+                      statusFilter === 'estoque_insuficiente'
                         ? 'bg-amber-600 text-white border-amber-700 shadow-md'
                         : 'bg-white text-amber-900 border-amber-300 hover:bg-amber-100'
                     }`}
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    Sem Inicial ({skusSemEstoqueInicialComVenda.length})
+                    Ver Insuficientes ({skusEstoqueInsuficiente.length})
                   </button>
-                  {skusRupturaTotalPicking.length > 0 && (
-                    <button
-                      onClick={() => setStatusFilter('total_rupture')}
-                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all border cursor-pointer flex items-center gap-1.5 ${
-                        statusFilter === 'total_rupture'
-                          ? 'bg-rose-600 text-white border-rose-700 shadow-md'
-                          : 'bg-white text-rose-900 border-rose-300 hover:bg-rose-100'
-                      }`}
-                    >
-                      <AlertOctagon className="w-3.5 h-3.5" />
-                      Ruptura Total ({skusRupturaTotalPicking.length})
-                    </button>
-                  )}
                 </div>
               </div>
             )}
 
             {/* Table Toolbar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
               
               <div className="flex items-center gap-2 flex-1 max-w-md">
                 <div className="relative w-full">
@@ -2006,39 +3509,61 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
               <div className="flex flex-wrap items-center gap-2">
                 
-                <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
+                <div className="flex flex-wrap items-center bg-white p-1 rounded-lg border border-slate-200 gap-1">
                   <button 
                     onClick={() => setStatusFilter('all')}
-                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-800 bg-transparent'}`}
+                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 bg-transparent'}`}
                   >
                     Todos ({processedSkus.length})
                   </button>
                   <button 
-                    onClick={() => setStatusFilter('ok')}
-                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'ok' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-800 bg-transparent'}`}
+                    onClick={() => setStatusFilter('suficiente_picking')}
+                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'suficiente_picking' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-700 hover:bg-emerald-50 bg-transparent'}`}
+                    title="Itens com estoque suficiente no picking para montagem"
                   >
-                    OK ({statusCounts.ok})
+                    🟢 Suficiente ({montagemTotals.skusSuficientes})
                   </button>
                   <button 
-                    onClick={() => setStatusFilter('attention')}
-                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'attention' ? 'bg-amber-500 text-white' : 'text-slate-500 hover:text-slate-800 bg-transparent'}`}
+                    onClick={() => setStatusFilter('carregar_central')}
+                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'carregar_central' ? 'bg-amber-600 text-white shadow-sm' : 'text-amber-800 hover:bg-amber-50 bg-transparent'}`}
+                    title="Itens com paletes fechados para carregar direto do central"
                   >
-                    Atenção ({statusCounts.attention})
+                    🟡 Central ({montagemTotals.skusCarregarCentral})
                   </button>
                   <button 
-                    onClick={() => setStatusFilter('critical')}
-                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'critical' ? 'bg-red-500 text-white' : 'text-slate-500 hover:text-slate-800 bg-transparent'}`}
+                    onClick={() => setStatusFilter('carregar_marketplace')}
+                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'carregar_marketplace' ? 'bg-orange-600 text-white shadow-sm' : 'text-orange-800 hover:bg-orange-50 bg-transparent'}`}
+                    title="Itens com paletes fechados para carregar do marketplace"
                   >
-                    Crítico ({statusCounts.critical})
+                    🟠 Marketplace ({montagemTotals.skusCarregarMarketplace})
                   </button>
                   <button 
-                    onClick={() => setStatusFilter('night_need')}
-                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all flex items-center gap-1 ${statusFilter === 'night_need' ? 'bg-indigo-600 text-white font-black shadow-sm' : 'text-indigo-600 hover:bg-indigo-50 bg-transparent'}`}
-                    title="Exibir apenas SKUs que precisam de abastecimento para a noite"
+                    onClick={() => setStatusFilter('reabastecer_picking')}
+                    className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all ${statusFilter === 'reabastecer_picking' ? 'bg-rose-600 text-white shadow-sm' : 'text-rose-700 hover:bg-rose-50 bg-transparent'}`}
+                    title="Itens que exigem reabastecimento no picking para montagem"
                   >
-                    <Moon className="w-2.5 h-2.5" />
-                    Abastar à Noite ({totalSkusNightReplenish})
+                    🔴 Reabastecer ({montagemTotals.skusReabastecer})
                   </button>
+                  {skusRupturaInFull.length > 0 && (
+                    <button 
+                      onClick={() => setStatusFilter('ruptura_in_full')}
+                      className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all flex items-center gap-1 ${statusFilter === 'ruptura_in_full' ? 'bg-rose-700 text-white font-black shadow-sm' : 'text-rose-900 bg-rose-100 hover:bg-rose-200'}`}
+                      title="Produtos com saída e ZERO estoque em todas as áreas do armazém (Ruptura In Full)"
+                    >
+                      <AlertOctagon className="w-2.5 h-2.5" />
+                      In Full ({skusRupturaInFull.length})
+                    </button>
+                  )}
+                  {skusEstoqueInsuficiente.length > 0 && (
+                    <button 
+                      onClick={() => setStatusFilter('estoque_insuficiente')}
+                      className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all flex items-center gap-1 ${statusFilter === 'estoque_insuficiente' ? 'bg-amber-600 text-white font-black shadow-sm' : 'text-amber-900 bg-amber-100 hover:bg-amber-200'}`}
+                      title="Produtos onde o estoque de armazém não supre a saída"
+                    >
+                      <AlertTriangle className="w-2.5 h-2.5" />
+                      Insuficiente ({skusEstoqueInsuficiente.length})
+                    </button>
+                  )}
                   <button 
                     onClick={() => setStatusFilter('no_picking_sales')}
                     className={`px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md cursor-pointer border-none transition-all flex items-center gap-1 ${statusFilter === 'no_picking_sales' ? 'bg-amber-600 text-white font-black shadow-sm' : 'text-amber-800 hover:bg-amber-50 bg-transparent'}`}
@@ -2053,22 +3578,8 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                     title="Produtos sem estoque e sem abastecimento com vendas (Ruptura Total)"
                   >
                     <AlertOctagon className="w-2.5 h-2.5" />
-                    Ruptura Total ({skusRupturaTotalPicking.length})
+                    Ruptura ({skusRupturaTotalPicking.length})
                   </button>
-                </div>
-
-                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-                  <span className="text-slate-400 font-bold">Cálculo Noite:</span>
-                  <select 
-                    value={nightStrategy}
-                    onChange={(e) => setNightStrategy(e.target.value as any)}
-                    className="bg-transparent border-none text-[9px] font-black text-slate-700 focus:outline-none cursor-pointer uppercase py-0"
-                  >
-                    <option value="deficit">Apenas Sanar Déficit do Carregamento (Venda &gt; Inicial + Abast.)</option>
-                    <option value="repor_vendas">Repor 100% das Vendas do Dia (Processo 3)</option>
-                    <option value="completar_1pl">Completar 1 Palete por SKU</option>
-                    <option value="completar_2pl">Completar 2 Paletes por SKU</option>
-                  </select>
                 </div>
 
                 <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer select-none">
@@ -2085,37 +3596,50 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
             </div>
 
-            {/* The Intelligent Table */}
+            {/* The Intelligent Table - Focused Columns: Picking Quantity & Replenishment Need */}
             <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-inner bg-slate-50">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-bold text-[8px] tracking-wider">
-                    <th className="p-3">SKU / Produto</th>
-                    <th className="p-3 text-center">Unidade</th>
-                    <th className="p-3 text-center bg-amber-50/30">Inicial (021101)</th>
-                    <th className="p-3 text-center bg-emerald-50/30">Abastecido (Diurno)</th>
-                    <th className="p-3 text-center">Estoque Total</th>
-                    <th className="p-3 text-center bg-blue-50/30">Venda do Dia (020304)</th>
-                    <th className="p-3 text-center">Saldo Picking</th>
-                    <th className="p-3 text-center bg-indigo-50/40 text-indigo-950 font-black">Necessidade Noturna</th>
-                    <th className="p-3 text-right">Status do SKU</th>
+                  <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase font-black text-[9px] tracking-wider">
+                    <th className="p-3.5 min-w-[220px]">Código & Descrição</th>
+                    <th className="p-3.5 text-center bg-amber-50/60 text-amber-950 font-black min-w-[180px]">
+                      Quantidade no Picking
+                    </th>
+                    <th className="p-3.5 text-center bg-blue-50/40 text-blue-950 min-w-[120px]">Saída (020304)</th>
+                    <th className="p-3.5 text-center bg-amber-50/40 text-amber-950 font-black min-w-[260px]">
+                      Necessidade de Reabastecer & Origem
+                    </th>
+                    <th className="p-3.5 text-right min-w-[100px]">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white text-slate-700">
                   {filteredSkus.map((item, idx) => {
                     const totalDisp = item.estoqueTotalDisponivel;
-                    const progressPct = item.vendaCaixas > 0 ? Math.min(100, Math.round((totalDisp / item.vendaCaixas) * 100)) : 100;
+                    const coveragePct = item.coberturaPickingPct;
                     
                     return (
-                      <tr key={idx} className="hover:bg-slate-50/80 transition-all text-[11px]">
-                        <td className="p-3">
-                          <div className="flex flex-col">
-                            <span className="font-mono text-[10px] text-amber-600 font-bold">#{item.sku}</span>
-                            <span className="font-sans font-black text-[10.5px] text-slate-800" title={item.descricao}>
+                      <tr key={idx} className="hover:bg-slate-50/90 transition-all text-[11px]">
+                        
+                        {/* 1. CÓDIGO & DESCRIÇÃO */}
+                        <td className="p-3.5">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] text-amber-600 font-bold">#{item.sku}</span>
+                              <span className={`px-1.5 py-0.2 rounded font-mono text-[8px] font-black uppercase border ${
+                                item.curvaAbc === 'A'
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : item.curvaAbc === 'B'
+                                    ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                    : 'bg-slate-100 text-slate-700 border-slate-300'
+                              }`}>
+                                Curva {item.curvaAbc || 'B'}
+                              </span>
+                            </div>
+                            <span className="font-sans font-black text-[11px] text-slate-800 leading-snug" title={item.descricao}>
                               {item.descricao}
                             </span>
-                            <span className="text-[8px] text-slate-400 uppercase font-semibold">
-                              Embalagem: {item.embalagem} • Palete: {item.qtdPallet} cx
+                            <span className="text-[8.5px] text-slate-400 uppercase font-semibold">
+                              {item.embalagem || item.unidade} • Palete: {item.qtdPallet} cx
                             </span>
                             {item.estoqueTotalDisponivel === 0 && item.vendaCaixas > 0 ? (
                               <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-800 border border-rose-300 w-fit">
@@ -2125,87 +3649,85 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                             ) : item.estoqueInicialCaixas === 0 && item.vendaCaixas > 0 ? (
                               <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded bg-amber-100 text-amber-900 border border-amber-300 w-fit">
                                 <AlertTriangle className="w-2.5 h-2.5 text-amber-600" />
-                                Venda sem Estoque Inicial
+                                Sem Estoque Inicial no Picking
                               </span>
                             ) : null}
                           </div>
                         </td>
-                        
-                        <td className="p-3 text-center">
-                          <span className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-500 rounded font-mono text-[9px] font-bold uppercase">
-                            {item.unidade}
-                          </span>
-                        </td>
 
-                        {/* INITIAL COUNT COLUMN - EDITABLE OPTION */}
-                        <td className="p-3 text-center font-mono font-bold bg-amber-50/10">
-                          <div className="flex flex-col items-center">
+                        {/* 2. QUANTIDADE NO PICKING (PALLET & SKU/CX) */}
+                        <td className="p-3.5 text-center font-mono bg-amber-50/15">
+                          <div className="flex flex-col items-center justify-center gap-1">
                             {isEditMode ? (
                               <div className="flex flex-col items-center gap-1">
-                                <input 
-                                  type="number"
-                                  value={item.estoqueInicialCaixas}
-                                  onChange={(e) => handleUpdateValue(item.sku, 'estoqueInicialCaixas', parseInt(e.target.value, 10))}
-                                  className="w-20 px-1 py-0.5 text-center text-[10.5px] font-black font-mono border border-amber-300 rounded focus:ring-1 focus:ring-amber-500 bg-amber-50 focus:outline-none"
-                                />
-                                <span className="text-[8px] text-slate-400 font-normal uppercase">
-                                  {Math.round(item.estoqueInicialCaixas / item.qtdPallet * 10) / 10} PL
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  <input 
+                                    type="number" 
+                                    value={item.estoqueInicialCaixas === 0 ? '' : item.estoqueInicialCaixas}
+                                    placeholder="0"
+                                    onChange={(e) => handleUpdateValue(item.sku, 'estoqueInicialCaixas', parseInt(e.target.value, 10) || 0)}
+                                    className="w-16 px-1 py-0.5 text-center text-[10.5px] font-black font-mono border border-amber-300 rounded focus:ring-1 focus:ring-amber-500 bg-amber-50 focus:outline-none"
+                                    title="Editar contagem inicial no picking"
+                                  />
+                                  <span className="text-[9px] text-slate-600 font-bold">cx</span>
+                                </div>
+                                {item.estoqueInicialCaixas > 0 && (
+                                  <span className="text-[8.5px] text-slate-400 font-medium uppercase">
+                                    {Math.round((item.estoqueInicialCaixas / item.qtdPallet) * 10) / 10} PL (Inic)
+                                  </span>
+                                )}
                               </div>
                             ) : (
                               <>
-                                <span className="text-slate-800">{item.estoqueInicialCaixas}</span>
-                                <span className="text-[8px] text-slate-400 font-normal uppercase">
-                                  {Math.round(item.estoqueInicialCaixas / item.qtdPallet * 10) / 10} PL
-                                </span>
+                                <div className="flex items-baseline justify-center gap-1">
+                                  <span className="text-sm font-black text-slate-900">
+                                    {item.pickingDisponivelPaletes} <span className="text-[9px] text-amber-700 font-bold">PL</span>
+                                  </span>
+                                  <span className="text-slate-400 text-[10px] font-bold">/</span>
+                                  <span className="text-[12px] font-black text-slate-800">
+                                    {item.pickingDisponivelCaixas} <span className="text-[9px] text-slate-400 font-normal">cx</span>
+                                  </span>
+                                </div>
+                                
+                                {(item.estoqueInicialCaixas > 0 || item.abastecimento > 0) && (
+                                  <div className="text-[8px] text-slate-400 flex items-center justify-center gap-1 font-semibold uppercase">
+                                    {item.estoqueInicialCaixas > 0 && <span>Inic: {item.estoqueInicialCaixas} cx</span>}
+                                    {item.abastecimento > 0 && (
+                                      <span className="text-emerald-600 font-bold">+{item.abastecimento} cx</span>
+                                    )}
+                                  </div>
+                                )}
                               </>
                             )}
                           </div>
                         </td>
 
-                        <td className="p-3 text-center font-mono bg-emerald-50/10">
-                          <div className="flex flex-col items-center">
-                            <span className={item.abastecimento > 0 ? 'text-emerald-600 font-black' : 'text-slate-400'}>
-                              {item.abastecimento || '—'}
-                            </span>
-                            {item.abastecimento > 0 && (
-                              <span className="text-[8px] text-emerald-500 font-bold uppercase">
-                                +{item.abastecimentoPaletes} PL
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="p-3 text-center font-mono font-bold">
-                          <div className="flex flex-col items-center">
-                            <span className="text-indigo-950">{totalDisp}</span>
-                            <span className="text-[8px] text-slate-400 font-normal uppercase">
-                              {Math.round(totalDisp / item.qtdPallet * 10) / 10} PL
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* DAILY SALES COLUMN - EDITABLE OPTION */}
-                        <td className="p-3 text-center font-mono font-bold bg-blue-50/10">
-                          <div className="flex flex-col items-center">
+                        {/* 3. SAÍDA (020304) */}
+                        <td className="p-3.5 text-center font-mono bg-blue-50/15">
+                          <div className="flex flex-col items-center justify-center">
                             {isEditMode ? (
                               <div className="flex flex-col items-center gap-1">
-                                <input 
-                                  type="number"
-                                  value={item.vendaCaixas}
-                                  onChange={(e) => handleUpdateValue(item.sku, 'vendaCaixas', parseInt(e.target.value, 10))}
-                                  className="w-20 px-1 py-0.5 text-center text-[10.5px] font-black font-mono border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 bg-blue-50 focus:outline-none"
-                                />
-                                <span className="text-[8px] text-slate-400 font-normal uppercase">
-                                  {Math.round(item.vendaCaixas / item.qtdPallet * 10) / 10} PL
+                                <div className="flex items-center gap-1">
+                                  <input 
+                                    type="number" 
+                                    value={item.vendaCaixas}
+                                    onChange={(e) => handleUpdateValue(item.sku, 'vendaCaixas', parseInt(e.target.value, 10) || 0)}
+                                    className="w-16 px-1 py-0.5 text-center text-[10.5px] font-black font-mono border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 bg-blue-50 focus:outline-none"
+                                  />
+                                  <span className="text-[9px] text-slate-600 font-bold">cx</span>
+                                </div>
+                                <span className="text-[8.5px] text-slate-400 font-medium uppercase">
+                                  {item.vendaPaletes} PL
                                 </span>
                               </div>
                             ) : (
                               <>
-                                <span className="text-blue-600">{item.vendaCaixas || '—'}</span>
+                                <span className="text-sm font-black text-blue-700">
+                                  {item.vendaCaixas ? item.vendaCaixas.toLocaleString() : '—'} <span className="text-[9px] font-normal text-slate-400">cx</span>
+                                </span>
                                 {item.vendaCaixas > 0 && (
-                                  <span className="text-[8px] text-slate-400 font-normal uppercase">
-                                    {Math.round(item.vendaCaixas / item.qtdPallet * 10) / 10} PL
+                                  <span className="text-[9px] text-slate-500 font-bold uppercase mt-0.5">
+                                    {item.vendaPaletes} PL • {item.vendaHecto.toFixed(1)} HL
                                   </span>
                                 )}
                               </>
@@ -2213,67 +3735,108 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                           </div>
                         </td>
 
-                        <td className="p-3 text-center font-mono">
-                          <div className="flex flex-col items-center">
-                            <span className={`font-black ${item.saldoPicking >= 0 ? 'text-slate-700' : 'text-red-600'}`}>
-                              {item.saldoPicking > 0 ? `+${item.saldoPicking}` : item.saldoPicking}
-                            </span>
-                            {item.vendaCaixas > 0 && (
-                              <div className="w-12 bg-slate-100 h-1 rounded-full overflow-hidden mt-1" title={`Cobertura de ${progressPct}%`}>
-                                <div 
-                                  className={`h-full rounded-full ${item.status === 'ok' ? 'bg-emerald-500' : item.status === 'attention' ? 'bg-amber-500' : 'bg-red-500'}`}
-                                  style={{ width: `${progressPct}%` }}
-                                ></div>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* NIGHT REPLENISHMENT COLUMN */}
-                        <td className="p-3 text-center font-mono bg-indigo-50/10 border-x border-indigo-100/30">
-                          <div className="flex flex-col items-center justify-center">
-                            {item.necessidadeNoturna > 0 ? (
-                              <div className="flex flex-col items-center bg-indigo-50 border border-indigo-200/50 px-2 py-1 rounded-lg shadow-sm">
-                                <span className="text-indigo-800 font-extrabold text-[11px]">
-                                  {item.necessidadeNoturna.toLocaleString()} cx
-                                </span>
-                                <span className="text-[8px] text-indigo-500 font-bold uppercase tracking-wide">
-                                  {item.necessidadeNoturnaPaletes} PL
-                                </span>
+                        {/* 4. NECESSIDADE DE REABASTECER & ORIGEM */}
+                        <td className="p-3.5 text-center font-mono bg-amber-50/15">
+                          <div className="flex flex-col items-center justify-center gap-1.5 min-w-[250px]">
+                            {item.vendaCaixas === 0 ? (
+                              <span className="text-[9.5px] text-slate-400 font-medium">Sem Saída de Venda</span>
+                            ) : item.statusMontagem === 'suficiente_picking' ? (
+                              <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg text-[9.5px] font-bold shadow-2xs w-full justify-center">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>Picking Suficiente (Sobra: +{item.saldoPicking} cx / +{Math.round((item.saldoPicking / item.qtdPallet) * 10) / 10} PL)</span>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50/50 border border-emerald-100/40 px-1.5 py-0.5 rounded-md text-[9px] font-bold">
-                                <Check className="w-3 h-3 text-emerald-500" />
-                                <span>ABASTECIDO</span>
+                              <div className="flex flex-col gap-1.5 w-full">
+                                <div className="text-[9px] text-rose-800 font-black bg-rose-100/90 border border-rose-300 rounded-lg px-2.5 py-1 flex items-center justify-between">
+                                  <span>Necessidade de Reabastecer:</span>
+                                  <span className="font-mono font-black">{Math.abs(item.saldoPicking)} cx ({Math.floor(Math.abs(item.saldoPicking) / item.qtdPallet)} PL + {Math.abs(item.saldoPicking) % item.qtdPallet} cx)</span>
+                                </div>
+
+                                {item.retiradasDetalhadas && item.retiradasDetalhadas.length > 0 ? (
+                                  item.retiradasDetalhadas.map((r, rIdx) => (
+                                    <div 
+                                      key={rIdx} 
+                                      className={`flex flex-col p-1.5 rounded-lg border text-[9.5px] ${
+                                        r.areaId === 4 
+                                          ? 'bg-purple-50 border-purple-300 text-purple-950' 
+                                          : r.areaId === 1 
+                                            ? 'bg-amber-50 border-amber-300 text-amber-950'
+                                            : r.areaId === 3
+                                              ? 'bg-orange-50 border-orange-300 text-orange-950'
+                                              : 'bg-cyan-50 border-cyan-300 text-cyan-950'
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between font-black">
+                                        <span className="flex items-center gap-1">
+                                          {r.areaId === 4 && '🟣'}
+                                          {r.areaId === 1 && '🟡'}
+                                          {r.areaId === 3 && '🟠'}
+                                          {r.areaId === 5 && '🔵'}
+                                          Retirar {r.areaCodigo} ({r.areaNome})
+                                        </span>
+                                        <span className="font-mono text-[9px] bg-white/80 px-1.5 py-0.5 rounded border border-black/10">
+                                          {r.caixas} cx total
+                                        </span>
+                                      </div>
+                                      <div className="text-[8.5px] font-bold mt-0.5 text-left pl-4">
+                                        {r.palletsFechados > 0 && (
+                                          <span className="underline decoration-black/20">
+                                            {r.palletsFechados} Palete(s) Fechado(s) ({r.palletsFechados * item.qtdPallet} cx)
+                                          </span>
+                                        )}
+                                        {r.palletsFechados > 0 && r.skuFracionado > 0 && <span> + </span>}
+                                        {r.skuFracionado > 0 && (
+                                          <span className="text-rose-800">
+                                            {r.skuFracionado} cx avulsas (SKU)
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : null}
+
+                                {item.rupturaCaixas > 0 && (
+                                  <div className="flex flex-col bg-rose-100/80 border border-rose-400 p-1.5 rounded-lg text-rose-950 text-[9px] font-black">
+                                    <div className="flex items-center gap-1">
+                                      <AlertOctagon className="w-3 h-3 text-rose-600 shrink-0" />
+                                      <span>Ruptura de Armazém: Faltam {item.rupturaCaixas} cx</span>
+                                    </div>
+                                    <span className="text-[8px] text-rose-800 font-bold pl-4">
+                                      ({Math.floor(item.rupturaCaixas / item.qtdPallet)} PL fechado + {item.rupturaCaixas % item.qtdPallet} cx avulsa)
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
                         </td>
 
-                        <td className="p-3 text-right">
+                        {/* 5. STATUS */}
+                        <td className="p-3.5 text-right">
                           {item.status === 'ok' ? (
-                            <div className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                            <div className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
                               <CheckCircle2 className="w-3 h-3" />
                               Estoque OK
                             </div>
                           ) : item.status === 'attention' ? (
-                            <div className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                            <div className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
                               <AlertCircle className="w-3 h-3" />
                               Atenção
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1 bg-rose-50 border border-rose-200 text-rose-700 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider animate-pulse">
-                              <AlertCircle className="w-3 h-3 animate-spin" />
+                            <div className="inline-flex items-center gap-1 bg-rose-50 border border-rose-200 text-rose-700 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
+                              <AlertCircle className="w-3 h-3 text-rose-600" />
                               Crítico
                             </div>
                           )}
                         </td>
+
                       </tr>
                     );
                   })}
                   {filteredSkus.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-slate-400 font-mono text-[10px] uppercase bg-white">
+                      <td colSpan={5} className="p-8 text-center text-slate-400 font-mono text-[10px] uppercase bg-white">
                         Nenhum produto atende aos filtros aplicados
                       </td>
                     </tr>
@@ -2287,13 +3850,14 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>
-                  <strong>Cálculo do Carregamento Noturno:</strong> Necessidade = Venda do Dia - (Contagem Inicial + Abastecimento Diurno). Se o estoque disponível for suficiente para o carregamento, a necessidade é zerada.
+                  <strong>Diretriz de Montagem:</strong> Paletes fechados devem ser carregados diretamente do Central (Área 1) ou Marketplace (Área 3) para evitar saturação do picking. Itens em déficit de montagem requerem reabastecimento imediato no picking.
                 </span>
               </div>
-              <div className="flex gap-4 font-bold uppercase text-[9px]">
-                <span className="flex items-center gap-1 text-emerald-600">🟢 OK: Estoque Suficiente</span>
-                <span className="flex items-center gap-1 text-amber-500">🟡 Atenção: Saldo Baixo (&lt; 20% da Venda)</span>
-                <span className="flex items-center gap-1 text-red-500">🔴 Crítico: Saldo Negativo (Falta para Carregar)</span>
+              <div className="flex flex-wrap gap-4 font-bold uppercase text-[9px]">
+                <span className="flex items-center gap-1 text-emerald-600">🟢 Picking Suficiente</span>
+                <span className="flex items-center gap-1 text-amber-600">🟡 Carregar do Central</span>
+                <span className="flex items-center gap-1 text-orange-600">🟠 Carregar do Marketplace</span>
+                <span className="flex items-center gap-1 text-rose-600">🔴 Reabastecer Picking</span>
               </div>
             </div>
 

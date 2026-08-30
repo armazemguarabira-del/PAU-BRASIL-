@@ -34,14 +34,31 @@ function isCriticalUserDataKey(key: string): boolean {
 export function initSafeLocalStorage() {
   if (typeof window === 'undefined' || !window.Storage) return;
 
+  // Patch window.alert to prevent iframe sandbox blocking
+  try {
+    const originalAlert = window.alert ? window.alert.bind(window) : null;
+    window.alert = (message?: any): void => {
+      try {
+        if (originalAlert) {
+          originalAlert(message);
+        } else {
+          console.info('[Alert Notice]:', message);
+        }
+      } catch (err) {
+        console.warn('[Iframe Sandbox Intercepted Alert]:', message);
+      }
+    };
+  } catch (err) {
+    console.warn('Failed to patch window.alert:', err);
+  }
+
   // Patch window.confirm to bypass browser iframe sandbox blocking on modal dialogs
   try {
     const originalConfirm = window.confirm ? window.confirm.bind(window) : null;
     window.confirm = (message?: string): boolean => {
       if (originalConfirm) {
         try {
-          const res = originalConfirm(message);
-          return true;
+          return originalConfirm(message);
         } catch (err) {
           return true;
         }
@@ -50,6 +67,41 @@ export function initSafeLocalStorage() {
     };
   } catch (err) {
     console.warn('Failed to patch window.confirm:', err);
+  }
+
+  // Patch window.prompt to bypass browser iframe sandbox blocking
+  try {
+    const originalPrompt = window.prompt ? window.prompt.bind(window) : null;
+    window.prompt = (message?: string, _default?: string): string | null => {
+      if (originalPrompt) {
+        try {
+          return originalPrompt(message, _default);
+        } catch (err) {
+          return _default || null;
+        }
+      }
+      return _default || null;
+    };
+  } catch (err) {
+    console.warn('Failed to patch window.prompt:', err);
+  }
+
+  // Patch window.open to avoid blocked iframe popup errors
+  try {
+    const originalOpen = window.open ? window.open.bind(window) : null;
+    window.open = (url?: string | URL, target?: string, features?: string): Window | null => {
+      if (originalOpen) {
+        try {
+          return originalOpen(url, target, features);
+        } catch (err) {
+          console.warn('[Iframe Sandbox Intercepted window.open]:', url);
+          return null;
+        }
+      }
+      return null;
+    };
+  } catch (err) {
+    console.warn('Failed to patch window.open:', err);
   }
 
   const originalSetItem = Storage.prototype.setItem;

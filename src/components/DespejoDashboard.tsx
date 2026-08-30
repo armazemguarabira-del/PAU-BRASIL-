@@ -55,7 +55,9 @@ import {
   Tag,
   Download,
   FileText,
-  ClipboardCheck
+  ClipboardCheck,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -68,6 +70,8 @@ import { getRetroactiveRecords } from '../utils/dadosRetroativosUtils';
 import CalendarFilter from './CalendarFilter';
 import { SimuladorAgilidadeMeta } from './SimuladorAgilidadeMeta';
 import { RepackMetasParametrosCard } from './RepackMetasParametrosCard';
+import { LicencasDescarteSection } from './LicencasDescarteSection';
+import { LicencasDescarteModal } from './LicencasDescarteModal';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import { QuadroAcoesDpo } from './QuadroAcoesDpo';
@@ -120,64 +124,49 @@ const extractDateISO = (val: any): string => {
 };
 
 const DEFAULT_EMBALAGENS_CONFIG: Record<string, { metaSec: number; label: string }> = {
-  'LATA 250': { metaSec: 50, label: 'Lata 250 (Meta: 00:50)' },
-  'LATA 269': { metaSec: 50, label: 'Lata 269 (Meta: 00:50)' },
-  'LATA 350': { metaSec: 50, label: 'Lata 350 (Meta: 00:50)' },
-  'LATA 473': { metaSec: 50, label: 'Lata 473 (Meta: 00:50)' },
-  'LONG NECK': { metaSec: 50, label: 'Long Neck (Meta: 00:50)' },
-  'PET 1L': { metaSec: 50, label: 'Pet 1L (Meta: 00:50)' },
+  'LATA 350ML': { metaSec: 50, label: 'Lata 350ml (Meta: 00:50)' },
   'PET 2L': { metaSec: 50, label: 'Pet 2L (Meta: 00:50)' },
-  'PET 500ml': { metaSec: 50, label: 'Pet 500ml (Meta: 00:50)' },
-  'PET 200ml': { metaSec: 50, label: 'Pet 200ml (Meta: 00:50)' },
-  'PET 2,5L': { metaSec: 50, label: 'Pet 2,5L (Meta: 00:50)' },
-  'PET 3,3L': { metaSec: 50, label: 'Pet 3,3L (Meta: 00:50)' },
-  '600 OW': { metaSec: 50, label: '600 OW (Meta: 00:50)' },
+  'PET 1L': { metaSec: 50, label: 'Pet 1L (Meta: 00:50)' },
   '300 OW': { metaSec: 50, label: '300 OW (Meta: 00:50)' },
-  'GARRAFA 600ml': { metaSec: 50, label: 'Garrafa 600ml (Meta: 00:50)' },
-  'GARRAFA 1L': { metaSec: 50, label: 'Garrafa 1L (Meta: 00:50)' }
+  '600 OW': { metaSec: 50, label: '600 OW (Meta: 00:50)' },
+  'LATA 473ML': { metaSec: 50, label: 'Lata 473ml (Meta: 00:50)' },
+  'PET 200ML': { metaSec: 50, label: 'Pet 200ml (Meta: 00:50)' },
+  'LATA 269ML': { metaSec: 50, label: 'Lata 269ml (Meta: 00:50)' },
+  'LONG NECK': { metaSec: 50, label: 'Long Neck (Meta: 00:50)' }
 };
 
 const DEFAULT_OPERADORES = [
-  'Carlos Silva',
-  'Fernanda Lima',
-  'Roberto Souza',
-  'Aline Mendes',
-  'Marcos Oliveira',
-  'Juliana Costa',
-  'Paulo Santos',
-  'Gilson Ferreira',
-  'Matheus Barbosa',
-  'Ronildo Paiva'
+  'OZENILDO SOUSA SILVA',
+  'GLADSON LISBOA DOS SANTOS'
 ];
 
 const EMBALAGENS_VOLUME_MAP: Record<string, number> = {
-  'LATA 250': 6.0,
-  'LATA 269': 6.456,
-  'LATA 350': 8.4,
-  'LATA 473': 11.352,
-  'LONG NECK': 8.52,
-  'PET 1L': 12.0,
-  'PET 2L': 12.0,
-  'PET 500ml': 6.0,
-  'PET 200ml': 4.8,
-  'PET 2,5L': 15.0,
-  'PET 3,3L': 19.8,
-  '600 OW': 7.2,
-  '300 OW': 7.2,
-  'GARRAFA 600ml': 7.2,
-  'GARRAFA 1L': 12.0
+  'LATA 350ML': 0.0035,
+  'LATA 350': 0.0035,
+  'LATA 355ML': 0.00355,
+  'PET 2L': 0.0200,
+  'PET 1L': 0.0100,
+  '300 OW': 0.0030,
+  '600 OW': 0.0060,
+  'LATA 473ML': 0.00473,
+  'LATA 473': 0.00473,
+  'PET 200ML': 0.0020,
+  'PET 200ml': 0.0020,
+  'LATA 269ML': 0.00269,
+  'LATA 269': 0.00269,
+  'LONG NECK': 0.00355
 };
 
 const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
   const list: DespejoRow[] = [];
-  const operators = ['Carlos Silva', 'Fernanda Lima', 'Roberto Souza', 'Aline Mendes', 'Marcos Oliveira', 'Gilson Ferreira'];
   const packages = [
-    { emb: 'LATA 350', cod: 1042, desc: 'CERVEJA LATA 350ML', factor: 8.4 },
-    { emb: 'LATA 473', cod: 1058, desc: 'CERVEJA LATA 473ML', factor: 11.352 },
-    { emb: 'LONG NECK', cod: 2011, desc: 'CERVEJA LONG NECK 355ML', factor: 8.52 },
-    { emb: 'PET 2L', cod: 3004, desc: 'REFRIGERANTE GUARANÁ 2L', factor: 12.0 },
-    { emb: 'GARRAFA 600ml', cod: 1010, desc: 'CERVEJA GARRAFA 600ML', factor: 7.2 },
-    { emb: 'LATA 269', cod: 1088, desc: 'CERVEJA LATA 269ML', factor: 6.456 }
+    { emb: 'LATA 350ML', cod: 1042, desc: 'LATA 350ML', factor: 0.0035 },
+    { emb: 'PET 2L', cod: 503, desc: 'PET 2L', factor: 0.0200 },
+    { emb: 'PET 1L', cod: 2319, desc: 'PET 1L', factor: 0.0100 },
+    { emb: '600 OW', cod: 1015, desc: '600 OW', factor: 0.0060 },
+    { emb: '300 OW', cod: 1012, desc: '300 OW', factor: 0.0030 },
+    { emb: 'LATA 473ML', cod: 1058, desc: 'LATA 473ML', factor: 0.00473 },
+    { emb: 'PET 200ML', cod: 520, desc: 'PET 200ML', factor: 0.0020 }
   ];
 
   for (let i = 14; i >= 0; i--) {
@@ -186,25 +175,31 @@ const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
     const dateISO = d.toISOString().split('T')[0];
     const dataBr = d.toLocaleDateString('pt-BR');
     const mes = d.toLocaleString('pt-BR', { month: 'long' }).toUpperCase();
+    const monthNum = d.getMonth() + 1;
+
+    // From June onwards, strictly Ozenildo and Gladson
+    const op = monthNum >= 6 
+      ? (i % 2 === 0 ? 'OZENILDO SOUSA SILVA' : 'GLADSON LISBOA DOS SANTOS')
+      : DEFAULT_OPERADORES[i % DEFAULT_OPERADORES.length];
 
     const count = i === 0 ? 2 : Math.floor(Math.random() * 2) + 2;
     for (let j = 0; j < count; j++) {
-      const op = operators[(i + j) % operators.length];
       const prod = packages[(i * 2 + j) % packages.length];
-      const qty = Math.floor(Math.random() * 12) + 8; // 8 to 19 units
+      const qty = Math.floor(Math.random() * 6) + 2; // 2 to 7 units (realistic single despejo)
       const config = DEFAULT_EMBALAGENS_CONFIG[prod.emb] || { metaSec: 50, label: prod.emb };
       const expectedSec = config.metaSec * qty;
-      const isWithin = Math.random() > 0.22;
-      const actualSec = isWithin
-        ? Math.round(expectedSec * (0.78 + Math.random() * 0.20))
-        : Math.round(expectedSec * (1.05 + Math.random() * 0.25));
+      const actualSec = Math.max(20, Math.round(expectedSec * (0.45 + (j % 3) * 0.1)));
+      const isWithin = actualSec <= expectedSec;
 
-      const hl = Math.round(((prod.factor * qty) / 100) * 10000) / 10000;
-      const startH = 8 + j * 3;
-      const startM = Math.floor(Math.random() * 50);
-      const startStr = `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}`;
-      const endD = new Date(d.getTime() + actualSec * 1000);
-      const endStr = `${String(endD.getHours()).padStart(2, '0')}:${String(endD.getMinutes()).padStart(2, '0')}`;
+      const hl = Math.round((prod.factor * qty) * 10000) / 10000;
+      const startH = 14 + j * 2;
+      const startM = (j * 17) % 60;
+      const startStr = `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00`;
+      const endSecTotal = startH * 3600 + startM * 60 + actualSec;
+      const endH = Math.floor(endSecTotal / 3600);
+      const endM = Math.floor((endSecTotal % 3600) / 60);
+      const endS = endSecTotal % 60;
+      const endStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:${String(endS).padStart(2, '0')}`;
 
       const secToStr = (tot: number) => {
         const h = Math.floor(tot / 3600);
@@ -243,9 +238,10 @@ const generateSeedDespejoRows = (empresaId: string): DespejoRow[] => {
 
 export default function DespejoDashboard({ user, empresa, onBack, theme = 'light' }: DespejoDashboardProps) {
   const { targets, updateTarget } = useSystemTargets(empresa?.id);
-  const metaProdutividadeCxH = targets.despejo_produtividade ?? 40;
+  const metaProdutividadeCxH = targets.despejo_produtividade ?? 30;
 
-  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3' | 'acoes'>('produtividade');
+  const [activeSubTab, setActiveSubTab] = useState<'produtividade' | 'shelf' | 'boarda3' | 'acoes' | 'licencas'>('produtividade');
+  const [isLicencasModalOpen, setIsLicencasModalOpen] = useState(false);
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);
   const [actualQuebras, setActualQuebras] = useState<QuebraRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -370,6 +366,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isPopModalOpen, setIsPopModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isSolicitarDespejoModalOpen, setIsSolicitarDespejoModalOpen] = useState(false);
 
   // Filter UI states
   const [filterColaborador, setFilterColaborador] = useState('todos');
@@ -425,15 +422,15 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     return () => clearInterval(interval);
   }, [isStopwatchRunning]);
 
-  // Comprehensive Data Loader (Strictly loads SAMPLE_DESPEJO_JSON 2.014 rows + live manual registrations)
+  // Comprehensive Data Loader (Strictly loads official Jan-Aug dataset + live manual registrations)
   const reloadData = React.useCallback(async () => {
     const companyId = empresa?.id || 'demo';
     setLoading(true);
     try {
-      // 1. Base oficial definitiva vinculada no código (SAMPLE_DESPEJO_JSON - 2.014 registros)
+      // 1. Base oficial definitiva vinculada no código (SAMPLE_DESPEJO_JSON cobrindo Jan a 28 de Agosto)
       const officialRows = buildOfficialDespejoRows(companyId);
 
-      // 2. Coleta novos registros manuais criados pelo operador nesta empresa
+      // 2. Coleta novos registros manuais criados pelo ajudante / operador nesta empresa
       let customManualRows: DespejoRow[] = [];
       const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
       if (savedManual) {
@@ -443,14 +440,46 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
             customManualRows = parsed;
           }
         } catch (e) {}
+      } else {
+        const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              customManualRows = parsed.filter(r => 
+                !String(r.id || '').startsWith('retro_despejo_') && 
+                !String(r.id || '').startsWith('seed-despejo-')
+              );
+            }
+          } catch (e) {}
+        }
       }
 
-      // Base total definitiva = Novos manuais + 2.014 oficiais do código
-      const rows: DespejoRow[] = customManualRows.length > 0 ? [...customManualRows, ...officialRows] : [...officialRows];
+      // Base total definitiva = Novos manuais + registros oficiais sem duplicatas
+      const seenIds = new Set<string>();
+      const combined: DespejoRow[] = [];
 
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-      setDespejoRows(rows);
-      localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(rows));
+      customManualRows.forEach(r => {
+        const idKey = String(r._docId || r.id || '');
+        if (idKey && !seenIds.has(idKey)) {
+          seenIds.add(idKey);
+          combined.push(r);
+        }
+      });
+
+      officialRows.forEach(r => {
+        const idKey = String(r._docId || r.id || '');
+        if (!seenIds.has(idKey)) {
+          seenIds.add(idKey);
+          combined.push(r);
+        }
+      });
+
+      combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setDespejoRows(combined);
+      try {
+        localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(combined));
+      } catch (e) {}
     } catch (err) {
       console.error('Erro ao carregar dados de despejo:', err);
     } finally {
@@ -459,17 +488,6 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
   }, [empresa?.id]);
 
   useEffect(() => {
-    // Auto-purga de cache antigo divergente (ex: 3.108 itens de versões anteriores)
-    const companyId = empresa?.id || 'demo';
-    const saved = localStorage.getItem(`despejo_rows_${companyId}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 2050) {
-          localStorage.removeItem(`despejo_rows_${companyId}`);
-        }
-      } catch (e) {}
-    }
     reloadData();
   }, [reloadData, empresa?.id]);
 
@@ -620,27 +638,28 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     return [h, m, s].map(pad2).join(':');
   };
 
-  // Distinct Lists for Selects
+  // Distinct Lists for Selects - Strictly the 2 authorized operators
   const distinctOperadores = useMemo(() => {
-    const ops = new Set<string>();
-    despejoRows.forEach(r => {
-      if (r.operador) {
-        const cleanName = r.operador.split('(')[0].trim();
-        if (cleanName) ops.add(cleanName);
-      }
-    });
-    DEFAULT_OPERADORES.forEach(op => ops.add(op));
-    return Array.from(ops).sort();
-  }, [despejoRows]);
+    return ['OZENILDO SOUSA SILVA', 'GLADSON LISBOA DOS SANTOS'];
+  }, []);
 
   const distinctMeses = useMemo(() => {
+    const monthOrder: Record<string, number> = {
+      'JANEIRO': 1, 'FEVEREIRO': 2, 'MARÇO': 3, 'ABRIL': 4,
+      'MAIO': 5, 'JUNHO': 6, 'JULHO': 7, 'AGOSTO': 8,
+      'SETEMBRO': 9, 'OUTUBRO': 10, 'NOVEMBRO': 11, 'DEZEMBRO': 12
+    };
     const meses = new Set<string>();
     despejoRows.forEach(r => {
       if (r.mes && typeof r.mes === 'string') {
-        meses.add(r.mes.trim());
+        meses.add(r.mes.trim().toUpperCase());
       }
     });
-    return Array.from(meses).sort();
+    return Array.from(meses).sort((a, b) => {
+      const orderA = monthOrder[a] || 99;
+      const orderB = monthOrder[b] || 99;
+      return orderA - orderB;
+    });
   }, [despejoRows]);
 
   const embalagensList = useMemo(() => {
@@ -760,6 +779,35 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     };
   }, []);
 
+  // Volume in Hectoliters (HL)
+  const EMBALAGENS_VOLUME: Record<string, number> = useMemo(() => ({
+    'LATA 250': 0.0025,
+    'LATA 269': 0.00269,
+    'LATA 350': 0.0035,
+    'LATA 350ML': 0.0035,
+    'LATA 355ML': 0.00355,
+    'LATA 473': 0.00473,
+    'LATA 473ML': 0.00473,
+    'LONG NECK': 0.00355,
+    'LONG NECK 355ML': 0.00355,
+    'PET 1L': 0.0100,
+    'PET 2L': 0.0200,
+    'PET 500ml': 0.0050,
+    'PET 500ML': 0.0050,
+    'PET 200ml': 0.0020,
+    'PET 200ML': 0.0020,
+    'PET 2,5L': 0.0250,
+    'PET 3,3L': 0.0330,
+    '600 OW': 0.0060,
+    '300 OW': 0.0030,
+    'GARRAFA 600ml': 0.0060,
+    'GARRAFA 600ML': 0.0060,
+    'GARRAFA 1L': 0.0100,
+    'INTEIRA': 0.0060,
+    'LITRÃO': 0.0100,
+    'NÃO IDENTIFICADA': 0.0035
+  }), []);
+
   // Core KPI Calculations
   const totalSkus = useMemo(() => {
     return filteredRows.reduce((sum, r) => sum + (Number(r.quantidade) || 0), 0);
@@ -769,48 +817,66 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     return filteredRows.reduce((sum, r) => sum + getRowDurationSec(r), 0);
   }, [filteredRows]);
 
-  // Tempo Médio por Registro de Operação (Média dos registros)
-  const tempoMedioPorRegistroSec = useMemo(() => {
-    return filteredRows.length > 0 ? Math.round(totalTempoGastoSec / filteredRows.length) : 0;
-  }, [totalTempoGastoSec, filteredRows]);
+  // Agrupamento diário cronológico para Tempo Médio Diário e Produtividade
+  const dailyStats = useMemo(() => {
+    const dayMap = new Map<string, { dataISO: string; dia: string; totalUn: number; totalSec: number; totalOps: number; hl: number }>();
+    filteredRows.forEach(r => {
+      const iso = extractDateISO(r.dataISO) || extractDateISO(r.data) || extractDateISO((r as any)['Data']) || '2026-08-01';
+      const diaStr = r.data || (iso ? iso.split('-').reverse().join('/') : 'Hoje');
+      const prev = dayMap.get(iso) || { dataISO: iso, dia: diaStr, totalUn: 0, totalSec: 0, totalOps: 0, hl: 0 };
+      const un = Number(r.quantidade) || 0;
+      const sec = getRowDurationSec(r);
+      const factor = EMBALAGENS_VOLUME[r.embalagem] || 0.0035;
+      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * un);
+      dayMap.set(iso, {
+        dataISO: iso,
+        dia: diaStr,
+        totalUn: prev.totalUn + un,
+        totalSec: prev.totalSec + sec,
+        totalOps: prev.totalOps + 1,
+        hl: prev.hl + Number(hl)
+      });
+    });
+    return Array.from(dayMap.values()).sort((a, b) => (a.dataISO < b.dataISO ? -1 : 1));
+  }, [filteredRows, EMBALAGENS_VOLUME]);
 
-  const tempoMedioPorRegistroStr = useMemo(() => toHMS(tempoMedioPorRegistroSec), [tempoMedioPorRegistroSec]);
+  // Tempo Médio Diário: Média dos tempos totais gastos por dia trabalhado (soma dos tempos / dias trabalhados)
+  const tempoMedioDiarioSec = useMemo(() => {
+    if (dailyStats.length === 0) return 0;
+    const totalSec = dailyStats.reduce((sum, d) => sum + d.totalSec, 0);
+    return Math.round(totalSec / dailyStats.length);
+  }, [dailyStats]);
 
-  // Produtividade por Registros por Hora (reg/h)
-  const produtividadeRegistrosHora = useMemo(() => {
+  const tempoMedioDiarioStr = useMemo(() => toHMS(tempoMedioDiarioSec), [tempoMedioDiarioSec]);
+
+  // Tempo Médio por Unidade Despejada (segundos) - Meta DPO: < 50s por unidade
+  const tempoMedioPorUnidadeSec = useMemo(() => {
+    if (totalSkus === 0) return 44;
+    return Math.round((totalTempoGastoSec / totalSkus) * 10) / 10;
+  }, [totalTempoGastoSec, totalSkus]);
+
+  const tempoMedioPorUnidadeStr = useMemo(() => {
+    if (tempoMedioPorUnidadeSec < 60) return `${Math.round(tempoMedioPorUnidadeSec)}s`;
+    return toHMS(Math.round(tempoMedioPorUnidadeSec));
+  }, [tempoMedioPorUnidadeSec]);
+
+  // Produtividade por Unidades por Hora (un/h) - Meta DPO: 30 un/h
+  const produtividadeUnidadesHora = useMemo(() => {
     if (totalTempoGastoSec === 0) return 0;
-    return Math.round((filteredRows.length / (totalTempoGastoSec / 3600)) * 10) / 10;
-  }, [filteredRows.length, totalTempoGastoSec]);
-
-  // Volume in Hectoliters (HL)
-  const EMBALAGENS_VOLUME: Record<string, number> = useMemo(() => ({
-    'LATA 250': 6.0,
-    'LATA 269': 6.456,
-    'LATA 350': 8.4,
-    'LATA 473': 11.352,
-    'LONG NECK': 8.52,
-    'PET 1L': 12.0,
-    'PET 2L': 12.0,
-    'PET 500ml': 6.0,
-    'PET 200ml': 4.8,
-    'PET 2,5L': 15.0,
-    'PET 3,3L': 19.8,
-    '600 OW': 7.2,
-    '300 OW': 7.2,
-    'GARRAFA 600ml': 7.2,
-    'GARRAFA 1L': 12.0
-  }), []);
+    const horas = totalTempoGastoSec / 3600;
+    return Math.round((totalSkus / horas) * 10) / 10;
+  }, [totalSkus, totalTempoGastoSec]);
 
   const totalHE = useMemo(() => {
     const total = filteredRows.reduce((sum, r) => {
       let hl = 0;
-      if (r.hlPerdido !== undefined && r.hlPerdido !== null && !isNaN(Number(r.hlPerdido))) {
+      if (r.hlPerdido !== undefined && r.hlPerdido !== null && !isNaN(Number(r.hlPerdido)) && Number(r.hlPerdido) > 0) {
         hl = Number(r.hlPerdido);
-      } else if (r.hectolitroPerdido !== undefined && r.hectolitroPerdido !== null && !isNaN(Number(r.hectolitroPerdido))) {
+      } else if (r.hectolitroPerdido !== undefined && r.hectolitroPerdido !== null && !isNaN(Number(r.hectolitroPerdido)) && Number(r.hectolitroPerdido) > 0) {
         hl = Number(r.hectolitroPerdido);
       } else {
-        const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
-        hl = (factor * (Number(r.quantidade) || 0)) / 100;
+        const factor = EMBALAGENS_VOLUME[r.embalagem] || 0.0035;
+        hl = factor * (Number(r.quantidade) || 0);
       }
       return sum + hl;
     }, 0);
@@ -824,10 +890,11 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     }, 0);
   }, [filteredRows, embalagensConfig]);
 
-  // Meta esperada média por registro
-  const tempoEsperadoMedioStr = useMemo(() => {
-    return filteredRows.length > 0 ? toHMS(Math.round(totalTempoEsperadoSec / filteredRows.length)) : '00:00:00';
-  }, [totalTempoEsperadoSec, filteredRows]);
+  // Meta esperada média diária
+  const tempoEsperadoDiarioStr = useMemo(() => {
+    if (dailyStats.length === 0) return '00:00:00';
+    return toHMS(Math.round(totalTempoEsperadoSec / dailyStats.length));
+  }, [totalTempoEsperadoSec, dailyStats]);
 
   const eficienciaGeral = useMemo(() => {
     if (totalTempoGastoSec === 0) return 0;
@@ -855,8 +922,8 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
       const key = `${cod}_${desc}`;
       const prev = map.get(key) || { cod, desc, emb: r.embalagem, registros: 0, caixas: 0, hl: 0 };
       const cx = Number(r.quantidade) || 0;
-      const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
-      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * cx / 100);
+      const factor = EMBALAGENS_VOLUME[r.embalagem] || 0.0035;
+      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * cx);
       map.set(key, {
         cod,
         desc,
@@ -869,7 +936,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     return Array.from(map.values()).sort((a, b) => b.registros - a.registros).slice(0, 6);
   }, [filteredRows, EMBALAGENS_VOLUME]);
 
-  // Performance por Operador (Base: Registros)
+  // Performance por Operador (Base: Registros e Unidades)
   const performanceOperadores = useMemo(() => {
     const map = new Map<string, { nome: string; totalRegistros: number; totalCx: number; totalSec: number; dentroMeta: number; totalOps: number }>();
     filteredRows.forEach(r => {
@@ -894,39 +961,29 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
         return {
           ...op,
           regHora: horas > 0 ? Math.round((op.totalRegistros / horas) * 10) / 10 : 0,
-          cxHora: horas > 0 ? Math.round((op.totalRegistros / horas) * 10) / 10 : 0,
+          cxHora: horas > 0 ? Math.round((op.totalCx / horas) * 10) / 10 : 0,
           pctMeta: op.totalOps > 0 ? Math.round((op.dentroMeta / op.totalOps) * 100) : 0
         };
       })
       .sort((a, b) => b.totalRegistros - a.totalRegistros);
   }, [filteredRows, embalagensConfig]);
 
-  // Chart 1: Daily Productivity vs Meta (Base: Registros/Hora)
+  // Chart 1: Daily Productivity vs Meta (Base: Unidades/Hora vs Meta 30 un/h)
   const chartProdutividadeDia = useMemo(() => {
-    const dayMap = new Map<string, { totalReg: number; totalSec: number }>();
-    filteredRows.forEach(r => {
-      const d = r.data || (r.dataISO ? r.dataISO.split('-').reverse().join('/') : 'Hoje');
-      const prev = dayMap.get(d) || { totalReg: 0, totalSec: 0 };
-      dayMap.set(d, {
-        totalReg: prev.totalReg + 1,
-        totalSec: prev.totalSec + getRowDurationSec(r)
-      });
-    });
-
-    const list = Array.from(dayMap.entries()).map(([dia, data]) => {
-      const horas = data.totalSec / 3600;
-      const realRegH = horas > 0 ? Math.round((data.totalReg / horas) * 10) / 10 : 0;
+    const list = dailyStats.map(d => {
+      const horas = d.totalSec / 3600;
+      const realUnH = horas > 0 ? Math.round((d.totalUn / horas) * 10) / 10 : 0;
       return {
-        dia,
-        realCxH: realRegH,
-        realRegH,
-        metaCxH: metaProdutividadeCxH,
-        metaRegH: metaProdutividadeCxH
+        dia: d.dia,
+        diaISO: d.dataISO,
+        realCxH: realUnH,
+        realRegH: realUnH,
+        metaCxH: 30,
+        metaRegH: 30
       };
     });
-
     return list.slice(-14);
-  }, [filteredRows, metaProdutividadeCxH]);
+  }, [dailyStats]);
 
   // Chart 2: Packaging Distribution (Base: Registros)
   const chartDistribuicaoEmbalagem = useMemo(() => {
@@ -945,41 +1002,42 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
 
   // Chart 3: Volume por Mês (Registros e HL)
   const chartVolumeMensal = useMemo(() => {
+    const monthOrder: Record<string, number> = {
+      'JANEIRO': 1, 'FEVEREIRO': 2, 'MARÇO': 3, 'ABRIL': 4,
+      'MAIO': 5, 'JUNHO': 6, 'JULHO': 7, 'AGOSTO': 8,
+      'SETEMBRO': 9, 'OUTUBRO': 10, 'NOVEMBRO': 11, 'DEZEMBRO': 12
+    };
     const map = new Map<string, { mes: string; registros: number; caixas: number; hl: number }>();
     filteredRows.forEach(r => {
       const m = r.mes || (r.dataISO ? r.dataISO.slice(0, 7) : 'Geral');
       const prev = map.get(m) || { mes: m, registros: 0, caixas: 0, hl: 0 };
       const cx = Number(r.quantidade) || 0;
-      const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
-      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * cx / 100);
+      const factor = EMBALAGENS_VOLUME[r.embalagem] || 0.0035;
+      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * cx);
       map.set(m, {
         mes: m,
         registros: prev.registros + 1,
         caixas: prev.caixas + cx,
-        hl: Math.round((prev.hl + Number(hl)) * 100) / 100
+        hl: Math.round((prev.hl + Number(hl)) * 10000) / 10000
       });
     });
-    return Array.from(map.values());
+    return Array.from(map.values()).sort((a, b) => {
+      const orderA = monthOrder[a.mes.toUpperCase()] || 99;
+      const orderB = monthOrder[b.mes.toUpperCase()] || 99;
+      return orderA - orderB;
+    });
   }, [filteredRows, EMBALAGENS_VOLUME]);
 
-  // Chart 4: Evolução Temporal Contínua (Registros e HL)
+  // Chart 4: Evolução Temporal Contínua (Unidades e HL)
   const chartVolumeEvolucao = useMemo(() => {
-    const dayMap = new Map<string, { dia: string; registros: number; un: number; hl: number }>();
-    filteredRows.forEach(r => {
-      const d = r.data || (r.dataISO ? r.dataISO.split('-').reverse().join('/') : 'Hoje');
-      const prev = dayMap.get(d) || { dia: d, registros: 0, un: 0, hl: 0 };
-      const un = Number(r.quantidade) || 0;
-      const factor = EMBALAGENS_VOLUME[r.embalagem] || 8.4;
-      const hl = r.hlPerdido || r.hectolitroPerdido || (factor * un / 100);
-      dayMap.set(d, {
-        dia: d,
-        registros: prev.registros + 1,
-        un: prev.un + un,
-        hl: Math.round((prev.hl + Number(hl)) * 100) / 100
-      });
-    });
-    return Array.from(dayMap.values()).slice(-14);
-  }, [filteredRows, EMBALAGENS_VOLUME]);
+    return dailyStats.map(d => ({
+      dia: d.dia,
+      diaISO: d.dataISO,
+      registros: d.totalUn,
+      un: d.totalUn,
+      hl: Math.round(d.hl * 10000) / 10000
+    })).slice(-14);
+  }, [dailyStats]);
 
   // Helper para identificar se uma quebra ocorreu especificamente por prazo de validade expirado / produto vencido
   const isQuebraMotivoVencido = (q: Partial<QuebraRow>): boolean => {
@@ -1346,9 +1404,30 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
     try {
       const companyId = empresa?.id || 'demo';
       const added = await DespejoRepository.create(newRecord as any, companyId);
-      const updated = [{ id: added._docId || added.id || `despejo-${Date.now()}`, ...newRecord } as DespejoRow, ...despejoRows];
+      const docId = added._docId || added.id || `despejo_manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const fullRecord: DespejoRow = {
+        _docId: docId,
+        id: docId,
+        ...newRecord
+      } as DespejoRow;
+
+      const updated = [fullRecord, ...despejoRows.filter(r => (r.id || r._docId) !== docId)];
       setDespejoRows(updated);
       localStorage.setItem(`despejo_rows_${companyId}`, JSON.stringify(updated));
+
+      // Persiste também em despejo_manual_entries_
+      try {
+        const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+        const manualList: DespejoRow[] = savedManual ? JSON.parse(savedManual) : [];
+        const updatedManual = [fullRecord, ...manualList.filter(m => (m.id || m._docId) !== docId)];
+        localStorage.setItem(`despejo_manual_entries_${companyId}`, JSON.stringify(updatedManual));
+      } catch (e) {}
+
+      // Dispara eventos em tempo real
+      window.dispatchEvent(new CustomEvent('despejo-updated', { detail: { record: fullRecord, companyId } }));
+      window.dispatchEvent(new CustomEvent('despejo-db-updated', { detail: { record: fullRecord, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload', { detail: { collection: 'despejo' } }));
+      window.dispatchEvent(new CustomEvent('storage'));
 
       setIsRegisterModalOpen(false);
       setStopwatchSeconds(0);
@@ -1415,12 +1494,12 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
       doc.setFont('helvetica', 'bold');
       doc.text(`Total de Registros: ${filteredRows.length.toLocaleString('pt-BR')} ops`, 20, 44);
       doc.text(`Volume Total: ${totalSkus.toLocaleString('pt-BR')} UN (${totalHE.toFixed(2)} HL)`, 80, 44);
-      doc.text(`Produtividade: ${produtividadeRegistrosHora.toFixed(1)} reg/h`, 145, 44);
+      doc.text(`Produtividade: ${produtividadeUnidadesHora.toFixed(1)} un/h`, 145, 44);
 
       doc.setFont('helvetica', 'normal');
       doc.text(`Tempo Total Gasto: ${toHMS(totalTempoGastoSec)}`, 20, 53);
       doc.text(`Conformidade DPO: ${conformidadeMetaPct}%`, 80, 53);
-      doc.text(`Meta DPO: ${metaProdutividadeCxH} reg/h`, 145, 53);
+      doc.text(`Meta DPO: ${metaProdutividadeCxH} un/h`, 145, 53);
 
       // Table Header
       let y = 68;
@@ -1554,6 +1633,20 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
             📋 Padrão Operacional (POP)
           </button>
 
+          {/* LICENÇAS E RECIBOS DE DESCARTE (SUDEMA) */}
+          <button
+            onClick={() => setActiveSubTab('licencas')}
+            className={`px-3.5 py-2 bg-gradient-to-r ${
+              activeSubTab === 'licencas'
+                ? 'from-emerald-600 to-teal-700 text-white ring-2 ring-emerald-400'
+                : 'from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 text-emerald-100'
+            } font-black text-xs rounded-xl shadow-sm uppercase tracking-wider flex items-center gap-1.5 transition-all border border-emerald-500/40 cursor-pointer hover:scale-[1.02] active:scale-95`}
+            title="Acessar Licenças de Despejo e Descarte (SUDEMA) e Recibos Pedro Cidelino"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-300" />
+            <span>Licenças SUDEMA</span>
+          </button>
+
           {/* DEDICATED ACTION BUTTON FILTERING DESPEJO */}
           <button
             onClick={() => setActiveSubTab('acoes')}
@@ -1592,6 +1685,17 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>SHELF</span>
+            </button>
+            <button 
+              onClick={() => setActiveSubTab('licencas')}
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeSubTab === 'licencas' 
+                  ? 'bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm' 
+                  : 'text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 font-black'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Licenças & Recibos</span>
             </button>
             <button 
               onClick={() => setActiveSubTab('acoes')}
@@ -1788,11 +1892,11 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
               </div>
             </div>
 
-            {/* KPI 2: TEMPO MÉDIO / REGISTRO VS META */}
+            {/* KPI 2: TEMPO MÉDIO DIÁRIO */}
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                  Tempo Médio / Registro
+                  Tempo Médio Diário
                 </span>
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                   <Clock className="w-4 h-4" />
@@ -1801,23 +1905,25 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
-                    {tempoMedioPorRegistroStr}
+                    {tempoMedioDiarioStr}
                   </span>
-                  <span className="text-xs font-bold text-gray-400 uppercase">MÉDIA / REGISTRO</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase">MÉDIA / DIA</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-slate-400 font-semibold">
-                  <span>Meta Esperada: <strong>{tempoEsperadoMedioStr}</strong></span>
+                  <span>Média/un: <strong>{tempoMedioPorUnidadeStr}</strong></span>
                   <span className="text-gray-300 dark:text-slate-700">•</span>
-                  <span>{filteredRows.length} registros</span>
+                  <span className={tempoMedioPorUnidadeSec <= 50 ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
+                    Meta: &lt; 50s
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* KPI 3: PRODUTIVIDADE REG/H VS META */}
+            {/* KPI 3: PRODUTIVIDADE UN/H VS META */}
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-500 tracking-wider">
-                  Produtividade REG/H
+                  Produtividade UN/H
                 </span>
                 <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
                   <Zap className="w-4 h-4" />
@@ -1826,16 +1932,16 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-black font-mono text-amber-500">
-                    {produtividadeRegistrosHora.toFixed(1)}
+                    {produtividadeUnidadesHora.toFixed(1)}
                   </span>
-                  <span className="text-xs font-bold text-gray-400 uppercase">REG / HORA</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase">UN / HORA</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-slate-400 font-semibold">
-                  <span>Meta DPO: <strong className="text-slate-900 dark:text-slate-100">{metaProdutividadeCxH} reg/h</strong></span>
+                  <span>Meta DPO: <strong className="text-slate-900 dark:text-slate-100">{metaProdutividadeCxH} un/h</strong></span>
                   <span className={`px-1.5 py-0.2 rounded text-[10px] font-black uppercase ${
-                    produtividadeRegistrosHora >= metaProdutividadeCxH ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'
+                    produtividadeUnidadesHora >= metaProdutividadeCxH ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'
                   }`}>
-                    {produtividadeRegistrosHora >= metaProdutividadeCxH ? 'ATINGIDA' : 'ABAIXO'}
+                    {produtividadeUnidadesHora >= metaProdutividadeCxH ? 'ATINGIDA' : 'ABAIXO'}
                   </span>
                 </div>
               </div>
@@ -1876,7 +1982,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
           <SimuladorAgilidadeMeta
             tipo="despejo"
             totalHectolitros={totalHE}
-            totalCaixasUnidades={filteredRows.length}
+            totalCaixasUnidades={totalSkus}
             tempoTotalMinutos={totalTempoGastoSec / 60}
             metaHectolitrosMensal={450}
             metaCxHora={metaProdutividadeCxH}
@@ -1887,13 +1993,13 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
           {/* BI CHARTS SECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* CHART 1: PRODUTIVIDADE DIÁRIA (REG/H REAL VS META) */}
+            {/* CHART 1: PRODUTIVIDADE DIÁRIA (UN/H REAL VS META) */}
             <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BarChart2 className="w-5 h-5 text-blue-600" />
                   <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Produtividade Diária de Despejo (reg/h Real vs Meta {metaProdutividadeCxH})
+                    Produtividade Diária de Despejo (un/h Real vs Meta {metaProdutividadeCxH} un/h)
                   </h3>
                 </div>
                 <span className="text-xs text-gray-400 font-semibold">Últimos dias</span>
@@ -1916,8 +2022,8 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
                       }}
                       formatter={(val: any, name: string) => [
-                        `${val} reg/h`, 
-                        name === 'realRegH' || name === 'realCxH' ? 'Produtividade Real' : 'Meta DPO'
+                        `${val} un/h`, 
+                        name === 'realRegH' || name === 'realCxH' ? 'Produtividade Real' : 'Meta DPO (30 un/h)'
                       ]}
                     />
                     <Bar dataKey="realRegH" fill="#3b82f6" radius={[4, 4, 0, 0]}>
@@ -2064,7 +2170,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Buscar código, produto, operador, mês..."
+                    placeholder="Buscar código, embalagem, operador, mês..."
                     value={tableSearch}
                     onChange={(e) => {
                       setTableSearch(e.target.value);
@@ -2081,10 +2187,10 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                     reloadData();
                   }}
                   className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
-                  title="Sincronizar com a Base Oficial do Código (2.014 registros de SAMPLE_DESPEJO_JSON)"
+                  title="Sincronizar com a Base Oficial do Código (2.035 registros)"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                  <span className="hidden sm:inline">Base Oficial (2.014)</span>
+                  <span className="hidden sm:inline">Base Oficial (2.035)</span>
                 </button>
 
                 <button
@@ -2120,7 +2226,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                 <thead className="bg-slate-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 uppercase font-black tracking-wider text-[10px] border-b border-gray-200 dark:border-slate-700">
                   <tr>
                     <th className="p-3.5">Data / Mês</th>
-                    <th className="p-3.5">Cód. / Produto</th>
+                    <th className="p-3.5">Cód. / Embalagem</th>
                     <th className="p-3.5">Operador</th>
                     <th className="p-3.5">Embalagem</th>
                     <th className="p-3.5 text-center">Quantidade</th>
@@ -2163,7 +2269,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                           </td>
                           <td className="p-3.5 whitespace-nowrap">
                             <div className="font-bold text-blue-600 dark:text-blue-400">
-                              {row.descricao || row.embalagem || '—'}
+                              {row.embalagem || row.descricao || '—'}
                             </div>
                             {(row.codProduto || row.codigoProduto) && (
                               <div className="text-[10px] text-gray-400 font-mono">
@@ -2269,9 +2375,9 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                 </div>
 
                 <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
-                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Produto & Embalagem</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Embalagem Oficial</span>
                   <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5 block">
-                    {selectedRowObj.descricao || selectedRowObj.embalagem} {selectedRowObj.codProduto ? `[${selectedRowObj.codProduto}]` : ''}
+                    {selectedRowObj.embalagem || selectedRowObj.descricao} {selectedRowObj.codProduto ? `[Cód: ${selectedRowObj.codProduto}]` : ''}
                   </span>
                 </div>
 
@@ -2920,6 +3026,20 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
           />
         </div>
       )}
+
+      {/* SUB TAB: LICENÇAS E RECIBOS DE DESCARTE (SUDEMA) */}
+      {activeSubTab === 'licencas' && (
+        <div className="animate-fadeIn">
+          <LicencasDescarteSection theme={theme} />
+        </div>
+      )}
+
+      {/* MODAL CENTRAL DE LICENÇAS E RECIBOS DE DESCARTE */}
+      <LicencasDescarteModal
+        isOpen={isLicencasModalOpen}
+        onClose={() => setIsLicencasModalOpen(false)}
+        theme={theme}
+      />
 
       {/* POP MODAL */}
       <PadraoOperacionalModal

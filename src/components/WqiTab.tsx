@@ -350,10 +350,6 @@ export const getItemHlInfo = (r: Partial<QuebraRow>) => {
         fator = 0.0021; // 210 ml = 0.0021 HL
       } else if (desc.includes('200ML') || desc.includes('200 ML') || desc.includes('200')) {
         fator = 0.002; // 200 ml = 0.002 HL
-      } else if (desc.includes('50L') || desc.includes('KEG 50')) {
-        fator = 0.5; // Keg 50L = 0.5 HL
-      } else if (desc.includes('30L') || desc.includes('KEG 30')) {
-        fator = 0.3; // Keg 30L = 0.3 HL
       } else {
         fator = 0.0035; // Standard default factor (~350ml)
       }

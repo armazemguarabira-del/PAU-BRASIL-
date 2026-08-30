@@ -34,16 +34,12 @@ import {
   ClipboardCheck,
   Sparkles,
   ArrowRight,
-  Download,
-  RefreshCw,
-  FileSpreadsheet,
-  Check
+  Users,
+  HardHat,
+  UserCheck
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
-import { QuebrasRepository } from '../db';
-import { getJsonTable } from '../utils/hybridJsonDatabase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
 import A3BoardComponent from './A3BoardComponent';
@@ -176,6 +172,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
   const [filterEmbalagem, setFilterEmbalagem] = useState<string>('TODAS');
   const [filterGrupo, setFilterGrupo] = useState<string>('TODOS');
   const [filterMotivo, setFilterMotivo] = useState<string>('TODOS');
+  const [filterColaborador, setFilterColaborador] = useState<string>('TODOS');
 
   const handleResetAllFilters = () => {
     clearAllFilters();
@@ -186,6 +183,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     setFilterEmbalagem('TODAS');
     setFilterGrupo('TODOS');
     setFilterMotivo('TODOS');
+    setFilterColaborador('TODOS');
   };
 
   const hasActiveHeaderFilters = filterArea !== 'TODAS' || 
@@ -193,6 +191,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     filterEmbalagem !== 'TODAS' || 
     filterGrupo !== 'TODOS' || 
     filterMotivo !== 'TODOS' || 
+    filterColaborador !== 'TODOS' ||
     Boolean(startDate) || 
     Boolean(endDate);
   const [secondChartMode, setSecondChartMode] = useState<'grupo' | 'embalagem'>('grupo');
@@ -238,79 +237,96 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return getItemValorReal(q);
   };
   
-  const empresaData = useEmpresaData(['quebras', 'produtos', 'colaboradores', 'acoes']);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const empresaData = useEmpresaData();
 
-  // Sync Quebras with memory cache, custom storage, Firestore repository and JSON database
-  const refreshQuebras = React.useCallback(async (extraItems?: QuebraRow[]) => {
+  // Sync Quebras with memory cache, Firestore, custom entries and DTOs in real-time
+  useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    const officialRows = buildOfficialQuebrasRows(companyId);
-    const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+    
+    const refreshQuebras = () => {
+      const officialRows = buildOfficialQuebrasRows(companyId);
+      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-    const customRows: QuebraRow[] = [];
-    const seenItemKeys = new Set<string>();
+      const customRows: QuebraRow[] = [];
+      const seenCustomKeys = new Set<string>();
 
-    const addCustomIfNew = (item: QuebraRow) => {
-      if (!item) return;
-      const idStr = String(item.id || item._docId || '');
-      if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+      const addCustomIfNew = (item: QuebraRow) => {
+        if (!item) return;
+        const idStr = String(item.id || item._docId || '');
+        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+        const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.colaborador || item.colaboradorQuebrou || item.responsavel || ''}_${item.area || ''}_${item.quantidade || 0}`;
+        if (seenCustomKeys.has(bizKey)) return;
+        seenCustomKeys.add(bizKey);
+        customRows.push(item);
+      };
 
-      // Unique key combines id when present, otherwise payload details
-      const uniqueKey = idStr 
-        ? `id_${idStr}`
-        : `biz_${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.area || ''}_${item.quantidade || 0}_${item.turno || ''}_${item.codQuebra || ''}_${item._criadoEm || item.colaboradorQuebrou || ''}`;
-      
-      if (seenItemKeys.has(uniqueKey)) return;
-      seenItemKeys.add(uniqueKey);
-      customRows.push(item);
-    };
+      // 1. From empresaData.quebras (Firestore / Context)
+      if (empresaData.quebras && empresaData.quebras.length > 0) {
+        empresaData.quebras.forEach(addCustomIfNew);
+      }
 
-    // 1. Check Extra items passed directly
-    if (extraItems && Array.isArray(extraItems)) {
-      extraItems.forEach(addCustomIfNew);
-    }
+      // 2. From LocalStorage custom keys
+      const lsKeys = [
+        `custom_quebras_${companyId}`,
+        `quebras_${companyId}`,
+        `quebras_records_${companyId}`,
+        `local_quebras_${companyId}`,
+        `quebras_manual_entries_${companyId}`
+      ];
+      lsKeys.forEach(k => {
+        const savedCustom = localStorage.getItem(k);
+        if (savedCustom) {
+          try {
+            const parsed = JSON.parse(savedCustom);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(addCustomIfNew);
+            }
+          } catch (_) {}
+        }
+      });
 
-    // 2. Check Context empresaData.quebras
-    if (empresaData.quebras && empresaData.quebras.length > 0) {
-      empresaData.quebras.forEach(addCustomIfNew);
-    }
-
-    // 3. Check Local storage layers
-    const storagesToCheck = [
-      `custom_quebras_${companyId}`,
-      `quebras_${companyId}`,
-      `local_quebras_${companyId}`,
-      `custom_quebras_demo`,
-      `quebras_demo`
-    ];
-
-    for (const key of storagesToCheck) {
-      const saved = localStorage.getItem(key);
-      if (saved) {
+      // 3. From DTO Diagnóstico Histórico (DTO de Quebras / Operações)
+      const rawDto = localStorage.getItem('armazem_dto_historico_registros_v1');
+      if (rawDto) {
         try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(addCustomIfNew);
+          const parsedDto = JSON.parse(rawDto);
+          if (Array.isArray(parsedDto)) {
+            parsedDto
+              .filter((d: any) => d.operacaoId === 'quebras' || d.modulo === 'quebras' || (d.tipo && String(d.tipo).toLowerCase().includes('quebra')))
+              .forEach((dto: any) => {
+                const colabName = dto.operadorNome || dto.colaborador || dto.usuarioNome || dto.auditorNome || 'NÃO IDENTIFICADO';
+                const qtd = Number(dto.itensContados || dto.quantidade || 1);
+                const desc = dto.produtoDescricao || dto.descricao || 'PRODUTO NÃO ESPECIFICADO';
+                const cod = dto.codProduto || dto.codigo || '539';
+                const dataRaw = dto.dataHoraISO || dto.dataISO || new Date().toISOString();
+                const dFormatted = dataRaw.includes('T') ? dataRaw.split('T')[0].split('-').reverse().join('/') : dataRaw;
+
+                addCustomIfNew({
+                  id: `dto-qb-${dto.id || Math.random().toString(36).substring(7)}`,
+                  data: dFormatted,
+                  dataISO: dataRaw,
+                  codProduto: cod,
+                  descricao: desc,
+                  quantidade: qtd,
+                  motivo: dto.motivo || 'QUEBRA COM MOVIMENTAÇÃO',
+                  codQuebra: dto.codQuebra || '539',
+                  area: (dto.area && ['ARMAZEM', 'ENTREGA', 'MERCADO', 'PUXADA'].includes(dto.area)) ? dto.area : 'ARMAZEM',
+                  turno: dto.turno || 'MANHÃ',
+                  colaborador: colabName,
+                  colaboradorQuebrou: colabName,
+                  responsavel: colabName,
+                  origem: 'DTO_DIAGNOSTICO'
+                });
+              });
           }
         } catch (_) {}
       }
-    }
 
-    // 4. Try async repository and json table if needed
-    try {
-      const dbRows = await getJsonTable<QuebraRow>(companyId, 'quebras');
-      if (Array.isArray(dbRows)) {
-        dbRows.forEach(addCustomIfNew);
-      }
-    } catch (_) {}
+      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setActualQuebras(rows);
+    };
 
-    const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
-    rows.sort((a, b) => (b.dataISO || b.data || '').localeCompare(a.dataISO || a.data || ''));
-    setActualQuebras(rows);
-  }, [empresa?.id, empresaData.quebras]);
-
-  useEffect(() => {
     refreshQuebras();
 
     const handleUpdated = () => {
@@ -318,68 +334,25 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     };
 
     window.addEventListener('quebras-db-updated', handleUpdated);
+    window.addEventListener('quebras-updated', handleUpdated);
+    window.addEventListener('repack-db-updated', handleUpdated);
+    window.addEventListener('despejo-db-updated', handleUpdated);
+    window.addEventListener('dto_historico_updated', handleUpdated);
     window.addEventListener('retroactive-data-updated', handleUpdated);
-    window.addEventListener('app_data_updated', handleUpdated);
-    window.addEventListener('local_data_changed', handleUpdated);
+    window.addEventListener('empresa-data-reload', handleUpdated);
     window.addEventListener('storage', handleUpdated);
 
     return () => {
       window.removeEventListener('quebras-db-updated', handleUpdated);
+      window.removeEventListener('quebras-updated', handleUpdated);
+      window.removeEventListener('repack-db-updated', handleUpdated);
+      window.removeEventListener('despejo-db-updated', handleUpdated);
+      window.removeEventListener('dto_historico_updated', handleUpdated);
       window.removeEventListener('retroactive-data-updated', handleUpdated);
-      window.removeEventListener('app_data_updated', handleUpdated);
-      window.removeEventListener('local_data_changed', handleUpdated);
+      window.removeEventListener('empresa-data-reload', handleUpdated);
       window.removeEventListener('storage', handleUpdated);
     };
-  }, [refreshQuebras]);
-
-  const handleManualSync = async () => {
-    setIsSyncing(true);
-    setSyncFeedback(null);
-    try {
-      const companyId = empresa?.id || 'demo';
-      const repoRows = await QuebrasRepository.getAll(companyId);
-      const jsonRows = await getJsonTable<QuebraRow>(companyId, 'quebras');
-      await refreshQuebras([...repoRows, ...jsonRows]);
-
-      setSyncFeedback(`Sincronizado! ${quebras.length} registros atualizados.`);
-      setTimeout(() => setSyncFeedback(null), 4000);
-    } catch (e: any) {
-      console.error(e);
-      setSyncFeedback('Erro ao sincronizar informações.');
-      setTimeout(() => setSyncFeedback(null), 4000);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleExportExcel = () => {
-    const list = crossFilteredData && crossFilteredData.length > 0 ? crossFilteredData : quebras;
-    if (!list || list.length === 0) {
-      alert('Nenhum dado disponível para descarregar.');
-      return;
-    }
-
-    const exportRows = list.map(q => ({
-      'DATA': q.data || q.dataISO,
-      'CÓDIGO SKU': q.codProduto,
-      'DESCRIÇÃO DO PRODUTO': q.descricao,
-      'QUANTIDADE (UN)': q.quantidade,
-      'SETOR / ÁREA': q.area,
-      'TURNO': q.turno,
-      'CÓDIGO MOTIVO': q.codQuebra,
-      'MOTIVO DA QUEBRA': q.motivo,
-      'COLABORADOR RESPONSÁVEL': q.colaboradorQuebrou || q.responsavel || '—',
-      'FISCAL / LANÇADOR': q.fiscal || '—',
-      'VALOR TOTAL (R$)': getItemValorReal(q),
-      'VOLUME HL': convertCxToHE(q.quantidade, q.descricao, q.codProduto)
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(exportRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Quebras');
-    const filename = `relatorio_dashboard_quebras_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, filename);
-  };
+  }, [empresaData.quebras, empresa?.id]);
 
   const availableMotivos = useMemo(() => {
     const map = new Map<string, string>();
@@ -404,6 +377,23 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return Array.from(map.entries())
       .map(([value, label]) => ({ value, label }))
       .sort((a, b) => a.label.localeCompare(b.label));
+  }, [quebras]);
+
+  const availableColaboradores = useMemo(() => {
+    const set = new Set<string>();
+    quebras.forEach(q => {
+      const name = String(q.colaborador || q.colaboradorQuebrou || q.responsavel || q.operador || '').trim();
+      if (name && name !== 'NÃO IDENTIFICADO' && name !== 'SISTEMA' && name !== '-') {
+        set.add(name.toUpperCase());
+      }
+    });
+    // Ensure active collaborators are always present
+    set.add('OZENILDO');
+    set.add('JOSE RONILDO DA SILVA');
+    set.add('GLADSON LISBOA DOS SANTOS');
+    set.add('DEJEAN SILVA DE OLIVEIRA');
+    set.add('ELDENKLEBER MAURICIO DA SILVA');
+    return Array.from(set).sort();
   }, [quebras]);
 
   // Header Dropdown Filter Logic
@@ -432,6 +422,16 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
         if (!match) return false;
       }
       
+      if (filterColaborador !== 'TODOS') {
+        const colab = String(q.colaborador || q.colaboradorQuebrou || q.responsavel || q.operador || '').trim().toUpperCase();
+        const tgt = filterColaborador.trim().toUpperCase();
+        if (tgt === 'NÃO IDENTIFICADO' || tgt === 'NAO IDENTIFICADO') {
+          if (colab && !colab.includes('NÃO IDENTIFICADO') && !colab.includes('NAO IDENTIFICADO')) return false;
+        } else {
+          if (!colab || (!colab.includes(tgt) && !tgt.includes(colab))) return false;
+        }
+      }
+
       if (startDate || endDate) {
         let rowISO = '';
         if (q.dataISO) {
@@ -454,7 +454,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
       }
       return true;
     });
-  }, [quebras, filterArea, filterTurno, filterEmbalagem, filterGrupo, filterMotivo, startDate, endDate]);
+  }, [quebras, filterArea, filterTurno, filterEmbalagem, filterGrupo, filterMotivo, filterColaborador, startDate, endDate]);
 
   // Full Cross-Filtered Data for KPIs and Tables
   const crossFilteredData = useMemo(() => {
@@ -486,12 +486,93 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return filterData(baseFilteredData, undefined, 'turno');
   }, [baseFilteredData, filterData]);
 
+  const colaboradorData = useMemo(() => {
+    return filterData(baseFilteredData, undefined, 'colaborador');
+  }, [baseFilteredData, filterData]);
+
   // Filter status flags for cross-filter opacity highlighting
   const isMotivoFiltered = isFiltered('motivo') || isFiltered('codQuebra');
   const isGrupoFiltered = isFiltered('grupo');
   const isEmbalagemFiltered = isFiltered('embalagem');
   const isAreaFiltered = isFiltered('area');
   const isTurnoFiltered = isFiltered('turno');
+  const isColaboradorFiltered = isFiltered('colaborador') || isFiltered('colaboradorQuebrou') || isFiltered('operador');
+
+  // Colaborador Chart & Table Data calculation
+  const { colaboradorChartData, colaboradorTableData } = useMemo(() => {
+    const map: Record<string, {
+      nome: string;
+      funcao: string;
+      totalQtd: number;
+      totalValor: number;
+      totalHl: number;
+      quebrasMovimentacao: number;
+      motivos: Record<string, number>;
+    }> = {};
+
+    colaboradorData.forEach(q => {
+      const rawName = q.colaborador || q.colaboradorQuebrou || q.responsavel || q.operador || 'NÃO IDENTIFICADO';
+      const nome = String(rawName).trim().toUpperCase();
+      if (!map[nome]) {
+        map[nome] = {
+          nome,
+          funcao: q.funcao || (nome.includes('OZENILDO') ? 'AJUDANTE' : 'OPERADOR'),
+          totalQtd: 0,
+          totalValor: 0,
+          totalHl: 0,
+          quebrasMovimentacao: 0,
+          motivos: {}
+        };
+      }
+      const val = getItemValorReal(q);
+      const hl = convertCxToHE(q.quantidade, q.descricao, q.codProduto);
+      map[nome].totalQtd += q.quantidade;
+      map[nome].totalValor += val;
+      map[nome].totalHl += hl;
+
+      const mot = String(q.motivo || '').toUpperCase();
+      const cod = String(q.codQuebra || '');
+      if (cod === '539' || cod === '557' || cod === '589' || mot.includes('MOVIMENTAÇÃO') || mot.includes('MOVIMENTACAO')) {
+        map[nome].quebrasMovimentacao += q.quantidade;
+      }
+      map[nome].motivos[mot || 'OUTROS'] = (map[nome].motivos[mot || 'OUTROS'] || 0) + q.quantidade;
+    });
+
+    const list = Object.values(map).map(item => {
+      let topMotivo = 'QUEBRA OPERACIONAL';
+      let maxM = 0;
+      Object.entries(item.motivos).forEach(([m, count]) => {
+        if (count > maxM) {
+          maxM = count;
+          topMotivo = m;
+        }
+      });
+
+      const displayVal = viewUnit === 'rs' ? item.totalValor : viewUnit === 'hl' ? item.totalHl : item.totalQtd;
+
+      return {
+        ...item,
+        totalValor: Math.round(item.totalValor * 100) / 100,
+        totalHl: Math.round(item.totalHl * 1000) / 1000,
+        displayVal: Math.round(displayVal * 100) / 100,
+        topMotivo
+      };
+    }).sort((a, b) => b.displayVal - a.displayVal);
+
+    const chart = list.filter(item => item.nome !== 'NÃO IDENTIFICADO' && item.nome !== 'SISTEMA').slice(0, 8).map(item => ({
+      name: item.nome.length > 18 ? item.nome.slice(0, 16) + '...' : item.nome,
+      fullName: item.nome,
+      value: item.displayVal,
+      totalQtd: item.totalQtd,
+      totalValor: item.totalValor,
+      totalHl: item.totalHl,
+      quebrasMovimentacao: item.quebrasMovimentacao,
+      funcao: item.funcao,
+      topMotivo: item.topMotivo
+    }));
+
+    return { colaboradorChartData: chart, colaboradorTableData: list };
+  }, [colaboradorData, viewUnit]);
 
   // Metric Calculation from crossFilteredData
   const totalQuantCx = crossFilteredData.reduce((acc, curr) => acc + curr.quantidade, 0);
@@ -822,33 +903,6 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" /> Gerar Ações
           </button>
 
-          {/* SINCRONIZAR E DESCARREGAR INFORMAÇÕES */}
-          <button
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            className="px-3.5 py-1.5 bg-sky-600/10 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/30 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider disabled:opacity-50"
-            title="Sincronizar lançamentos recentes e atualizar dashboard"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-white' : 'text-sky-300'}`} />
-            <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
-          </button>
-
-          <button
-            onClick={handleExportExcel}
-            className="px-3.5 py-1.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider"
-            title="Descarregar dados e relatório consolidado em Excel (.xlsx)"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Descarregar Excel</span>
-          </button>
-
-          {syncFeedback && (
-            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-600/40 px-2.5 py-1 rounded-lg animate-fadeIn">
-              <Check className="w-3.5 h-3.5" />
-              <span>{syncFeedback}</span>
-            </div>
-          )}
-
           {/* REQUISITO 23: 3 SELETORES LADO A LADO: R$, HL, SKU */}
           <div className={`flex items-center p-1 rounded-xl border ${
             theme === 'dark' ? 'bg-[#131d38] border-slate-700/80' : 'bg-gray-100 border-gray-200/80'
@@ -1048,6 +1102,25 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                   <option value="TODOS">Todos os Motivos</option>
                   {availableMotivos.map(m => (
                     <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Colaborador filter */}
+              <div className="flex flex-col gap-1 w-[180px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Colaborador / Operador</span>
+                <select 
+                  value={filterColaborador} 
+                  onChange={e => setFilterColaborador(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODOS">Todos Colaboradores</option>
+                  {availableColaboradores.map(c => (
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
@@ -1917,6 +1990,177 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
             </div>
           </div>
 
+          {/* COLABORADOR / OPERADOR QUEBRAS & OFENSORES SECTION */}
+          <div className="w-full mt-4">
+            <div className={`p-5 rounded-xl border shadow-sm transition-colors ${
+              theme === 'dark' ? 'bg-[#131d38] border-slate-700/80 text-slate-100' : 'bg-white border-gray-200'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 shrink-0">
+                    <Users className="w-5 h-5 text-indigo-500" />
+                  </div>
+                  <div>
+                    <h3 className={`font-sans font-black text-xs uppercase tracking-wider flex items-center gap-2 ${
+                      theme === 'dark' ? 'text-indigo-300' : 'text-[#032b5e]'
+                    }`}>
+                      👷‍♂️ REGISTROS & OFENSORES POR COLABORADOR / OPERADOR ({colaboradorTableData.length})
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                      Auditoria de apontamentos de quebras por movimentação, armazém e rotas em tempo real. Clique em um operador para filtrar o dashboard.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-indigo-500 font-bold bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+                    {colaboradorTableData.reduce((acc, c) => acc + c.totalQtd, 0).toLocaleString('pt-BR')} unidades registradas
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid with Chart and Fast Ranking Table */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {/* Mini Bar Chart - Top Colaboradores */}
+                <div className={`lg:col-span-5 p-3.5 rounded-lg border flex flex-col justify-between ${
+                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700/60' : 'bg-slate-50/70 border-slate-200/70'
+                }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Top Ofensores Operacionais
+                    </span>
+                    <span className="text-[9px] font-mono text-indigo-400 font-bold">
+                      {viewUnit === 'rs' ? 'Valor (R$)' : viewUnit === 'hl' ? 'Volume (HL)' : 'Qtd (UN)'}
+                    </span>
+                  </div>
+
+                  <div className="h-[220px] w-full">
+                    {colaboradorChartData.length === 0 ? (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                        Nenhum colaborador com quebra registrada no filtro ativo
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={colaboradorChartData} layout="vertical" margin={{ top: 5, right: 25, left: 10, bottom: 5 }}>
+                          <CartesianGrid stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} horizontal={false} />
+                          <XAxis type="number" stroke={theme === 'dark' ? '#64748b' : '#94a3b8'} fontSize={8} tickLine={false} axisLine={false} />
+                          <YAxis type="category" dataKey="name" stroke={theme === 'dark' ? '#64748b' : '#94a3b8'} fontSize={8.5} tickLine={false} axisLine={false} width={85} />
+                          <Tooltip
+                            contentStyle={{ 
+                              backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', 
+                              border: theme === 'dark' ? '2px solid #334155' : '2px solid #cbd5e1', 
+                              borderRadius: '10px', 
+                              padding: '8px 12px',
+                              fontSize: 12, 
+                              color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                            }}
+                            formatter={(val: any, name: string, item: any) => [
+                              viewUnit === 'rs' 
+                                ? `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                                : `${Number(val).toLocaleString('pt-BR')} ${viewUnit === 'hl' ? 'HL' : 'UN'}`,
+                              `Total (${item?.payload?.funcao || 'Operador'})`
+                            ]}
+                          />
+                          <Bar 
+                            dataKey="value" 
+                            radius={[0, 4, 4, 0]} 
+                            barSize={16}
+                            onClick={(entry: any) => {
+                              if (entry && (entry.fullName || entry.name)) {
+                                toggleFilter('colaborador', entry.fullName || entry.name, 'Colaborador');
+                              }
+                            }}
+                          >
+                            <LabelList 
+                              dataKey="value" 
+                              position="right" 
+                              fontSize={8} 
+                              fontWeight={800} 
+                              fill={theme === 'dark' ? '#a5b4fc' : '#4338ca'} 
+                              formatter={(val: number) => viewUnit === 'rs' ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : val.toLocaleString('pt-BR')} 
+                            />
+                            {colaboradorChartData.map((entry, index) => {
+                              const isSelected = isFiltered('colaborador', entry.fullName);
+                              const opacity = isColaboradorFiltered ? (isSelected ? 1.0 : 0.3) : 1.0;
+                              return (
+                                <Cell 
+                                  key={`cell-colab-${index}`} 
+                                  fill={index === 0 ? '#ef4444' : index === 1 ? '#f59e0b' : '#6366f1'} 
+                                  fillOpacity={opacity}
+                                  stroke={isSelected ? '#f59e0b' : undefined}
+                                  strokeWidth={isSelected ? 2 : 0}
+                                />
+                              );
+                            })}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* Detailed Table */}
+                <div className="lg:col-span-7 overflow-x-auto max-h-[260px] overflow-y-auto">
+                  <table className="w-full border-collapse font-sans text-xs min-w-[550px]">
+                    <thead>
+                      <tr className={`border-b sticky top-0 z-10 ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-gray-200 text-gray-500'}`}>
+                        <th className="p-2 text-left uppercase tracking-wider text-[9px]">Colaborador</th>
+                        <th className="p-2 text-left uppercase tracking-wider text-[9px]">Função</th>
+                        <th className="p-2 text-right uppercase tracking-wider text-[9px]">Movimentação (UN)</th>
+                        <th className="p-2 text-right uppercase tracking-wider text-[9px]">Total (UN)</th>
+                        <th className="p-2 text-right uppercase tracking-wider text-[9px]">Impacto R$</th>
+                        <th className="p-2 text-left uppercase tracking-wider text-[9px]">Principal Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-slate-800' : 'divide-gray-100'}`}>
+                      {colaboradorTableData.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center text-gray-400 font-bold uppercase text-[10px]">
+                            Nenhum registro encontrado para os filtros selecionados
+                          </td>
+                        </tr>
+                      ) : (
+                        colaboradorTableData.map((item, idx) => {
+                          const isSelected = isFiltered('colaborador', item.nome);
+                          return (
+                            <tr 
+                              key={`colab-row-${item.nome}-${idx}`}
+                              onClick={() => toggleFilter('colaborador', item.nome, 'Colaborador')}
+                              title={`Filtrar por ${item.nome}`}
+                              className={`cursor-pointer transition-colors ${
+                                isSelected
+                                  ? (theme === 'dark' ? 'bg-indigo-500/20 text-indigo-200 font-bold border-l-4 border-indigo-400' : 'bg-indigo-100/80 font-bold border-l-4 border-indigo-500')
+                                  : (theme === 'dark' ? 'hover:bg-slate-800/60' : 'hover:bg-indigo-50/50')
+                              }`}
+                            >
+                              <td className="p-2">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-bold text-slate-400 font-mono">#{idx + 1}</span>
+                                  <span className={`font-black uppercase text-[11px] ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
+                                    {item.nome}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-2 text-[10px] text-slate-400 font-medium">{item.funcao}</td>
+                              <td className="p-2 text-right font-mono font-bold text-amber-500">{item.quebrasMovimentacao.toLocaleString('pt-BR')} un</td>
+                              <td className="p-2 text-right font-mono font-black text-rose-500">{item.totalQtd.toLocaleString('pt-BR')} un</td>
+                              <td className="p-2 text-right font-mono font-bold text-emerald-500">
+                                {item.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                              </td>
+                              <td className="p-2 text-[10px] text-slate-400 truncate max-w-[140px]" title={item.topMotivo}>
+                                {item.topMotivo}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* DETAILED SKU RANKING TABLE (PAGINATED & HIGH PERFORMANCE) */}
           <div className="w-full mt-4">
             <div className={`p-5 rounded-xl border shadow-sm transition-colors ${
@@ -2123,7 +2367,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
               </div>
 
               {/* Motivo filter */}
-              <div className="flex flex-col gap-1 min-w-[200px] flex-1">
+              <div className="flex flex-col gap-1 w-[160px]">
                 <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Motivo</span>
                 <select 
                   value={filterMotivo} 
@@ -2137,6 +2381,25 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                   <option value="TODOS">Todos os Motivos</option>
                   {availableMotivos.map(mot => (
                     <option key={mot.value} value={mot.value}>{mot.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Colaborador filter */}
+              <div className="flex flex-col gap-1 w-[170px]">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-gray-400'}`}>Colaborador</span>
+                <select 
+                  value={filterColaborador} 
+                  onChange={e => setFilterColaborador(e.target.value)} 
+                  className={`w-full font-sans font-bold rounded-lg outline-none px-2.5 py-1 text-[10px] h-[28px] cursor-pointer transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-[#1e2942] border border-slate-600 text-slate-100 hover:border-blue-400' 
+                      : 'bg-white border border-gray-200 text-[#032b5e] hover:border-blue-400 focus:border-[#032b5e]'
+                  }`}
+                >
+                  <option value="TODOS">Todos Colaboradores</option>
+                  {availableColaboradores.map(colab => (
+                    <option key={colab} value={colab}>{colab}</option>
                   ))}
                 </select>
               </div>

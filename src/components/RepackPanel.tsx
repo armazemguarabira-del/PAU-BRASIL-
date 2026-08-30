@@ -206,6 +206,17 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
         empresaData.repack.forEach(addCustomIfNew);
       }
 
+      // Carrega de repack_manual_entries_
+      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+      if (savedManual) {
+        try {
+          const parsed = JSON.parse(savedManual);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
+          }
+        } catch (e) {}
+      }
+
       const saved = localStorage.getItem(`repack_rows_${companyId}`);
       if (saved) {
         try {
@@ -232,9 +243,16 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
       refreshFromStorageOrBase();
     };
 
+    window.addEventListener('repack-updated', handleRepackUpdated);
     window.addEventListener('repack-db-updated', handleRepackUpdated);
+    window.addEventListener('empresa-data-reload', handleRepackUpdated);
+    window.addEventListener('storage', handleRepackUpdated);
+
     return () => {
+      window.removeEventListener('repack-updated', handleRepackUpdated);
       window.removeEventListener('repack-db-updated', handleRepackUpdated);
+      window.removeEventListener('empresa-data-reload', handleRepackUpdated);
+      window.removeEventListener('storage', handleRepackUpdated);
     };
   }, [empresaData.repack, empresa?.id]);
 
@@ -314,8 +332,35 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
       motivoNaoBaterMeta: isAboveMeta ? motivoNaoBaterMeta.trim() : "",
     };
 
+    const companyId = empresa?.id || 'demo';
+    const newDocId = `repack_manual_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const fullCreatedRow: RepackRow = {
+      ...newRow,
+      _docId: newDocId,
+      id: newDocId,
+      _criadoEm: new Date().toISOString()
+    };
+
     try {
-      await RepackRepository.create(newRow, empresa?.id || 'demo');
+      await RepackRepository.create(fullCreatedRow, companyId);
+
+      // 1. Atualiza estado local imediatamente
+      const nextRows = [fullCreatedRow, ...repackRows];
+      setRepackRows(nextRows);
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(nextRows));
+
+      // 2. Persiste em repack_manual_entries_ para sincronização em tempo real
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        const manualList = savedManual ? JSON.parse(savedManual) : [];
+        manualList.unshift(fullCreatedRow);
+        localStorage.setItem(`repack_manual_entries_${companyId}`, JSON.stringify(manualList));
+      } catch (_) {}
+
+      // 3. Dispara eventos globais para atualizar Painel do Ajudante e Dashboard de Repack
+      window.dispatchEvent(new CustomEvent('repack-updated', { detail: { record: fullCreatedRow, companyId } }));
+      window.dispatchEvent(new CustomEvent('repack-db-updated', { detail: { record: fullCreatedRow, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
 
       // Reset fields
       setQuantidade('');
@@ -336,14 +381,28 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
 
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
+    const companyId = empresa?.id || 'demo';
     try {
-      await RepackRepository.delete(docId, empresa?.id || 'demo');
+      await RepackRepository.delete(docId, companyId);
     } catch (e) {
       console.error(e);
     } finally {
       const remaining = repackRows.filter(r => r._docId !== docId && (r as any).id !== docId);
       setRepackRows(remaining);
-      localStorage.setItem(`repack_rows_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(remaining));
+
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        if (savedManual) {
+          const manualList = JSON.parse(savedManual);
+          const filteredManual = manualList.filter((r: any) => r._docId !== docId && r.id !== docId);
+          localStorage.setItem(`repack_manual_entries_${companyId}`, JSON.stringify(filteredManual));
+        }
+      } catch (_) {}
+
+      window.dispatchEvent(new CustomEvent('repack-updated', { detail: { deletedId: docId, companyId } }));
+      window.dispatchEvent(new CustomEvent('repack-db-updated', { detail: { deletedId: docId, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
     }
   };
 
@@ -368,6 +427,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     }
 
     setSavingRepackEdit(true);
+    const companyId = empresa?.id || 'demo';
     const updatedFields: Partial<RepackRow> = {
       embalagem: editRepackEmbalagem,
       quantidade: Number(editRepackQtd),
@@ -377,11 +437,25 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     try {
       const idToUpdate = editingRepack._docId || editingRepack.id;
       if (idToUpdate) {
-        await RepackRepository.update(idToUpdate, updatedFields, empresa?.id || 'demo');
+        await RepackRepository.update(idToUpdate, updatedFields, companyId);
       }
       const nextRows = repackRows.map(r => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
       setRepackRows(nextRows);
-      localStorage.setItem(`repack_rows_${empresa?.id || 'demo'}`, JSON.stringify(nextRows));
+      localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(nextRows));
+
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        if (savedManual) {
+          const manualList = JSON.parse(savedManual);
+          const updatedManual = manualList.map((r: any) => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
+          localStorage.setItem(`repack_manual_entries_${companyId}`, JSON.stringify(updatedManual));
+        }
+      } catch (_) {}
+
+      window.dispatchEvent(new CustomEvent('repack-updated', { detail: { updatedId: idToUpdate, companyId } }));
+      window.dispatchEvent(new CustomEvent('repack-db-updated', { detail: { updatedId: idToUpdate, companyId } }));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+
       setEditingRepack(null);
     } catch (e) {
       alert('Erro ao atualizar repack: ' + e);
@@ -1002,9 +1076,9 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
                   />
                   {vShowDropdown && vProdutoBusca && vFilteredProducts.length > 0 && (
                     <div className="absolute top-[103%] left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-xl z-50 max-h-48 overflow-y-auto">
-                      {vFilteredProducts.map(p => (
+                      {vFilteredProducts.map((p, pIdx) => (
                         <div 
-                          key={p.codigo}
+                          key={`repack-prod-${p.codigo}-${pIdx}`}
                           onClick={() => handleVSelectProd(p)}
                           className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer text-xs flex justify-between"
                         >

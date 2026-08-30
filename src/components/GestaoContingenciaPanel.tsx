@@ -467,8 +467,8 @@ export default function GestaoContingenciaPanel({ user, onDataUpdated }: GestaoC
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#1e56f0]"
                   >
                     <option value="">-- Escolher produto cadastrado --</option>
-                    {PRODUCTS.map(p => (
-                      <option key={p.codigo} value={p.codigo}>
+                    {PRODUCTS.map((p, pIdx) => (
+                      <option key={`ctg-opt-${p.codigo}-${pIdx}`} value={p.codigo}>
                         [{p.codigo}] {p.descricao}
                       </option>
                     ))}

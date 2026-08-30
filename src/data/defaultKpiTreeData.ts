@@ -1095,7 +1095,7 @@ export const DEFAULT_OFFICIAL_KPI_TREE: CustomKpiTree = {
       'op-picking-zona-a': [
         {
           id: 'sku-op-04',
-          label: 'BRAHMA DUPLO MALTE 350ML',
+          label: 'BRAHMA CHOPP 350ML',
           skuCode: '78904',
           value: 0,
           volume: 0,
@@ -1175,7 +1175,7 @@ export const DEFAULT_OFFICIAL_KPI_TREE: CustomKpiTree = {
       'op-est-cobertura-lata': [
         {
           id: 'sku-est-07',
-          label: 'BRAHMA DUPLO MALTE 269ML',
+          label: 'BRAHMA CHOPP 269ML',
           skuCode: '78912',
           value: 0,
           volume: 0,

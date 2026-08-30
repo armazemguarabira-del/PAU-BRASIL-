@@ -1,5 +1,8 @@
 import { VendaMediaItem } from '../types/estoque';
 import { getVendaMediaItens, saveVendaMediaItens } from './estoqueStorage';
+import { getStored030519Quarters, STORAGE_KEY_TRIMESTRES_030519, Item030519Data } from './vendaMedia030519';
+import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
+import { PRODUCTS } from '../planosData';
 
 export interface CurvaAbcItem {
   codigo: number;
@@ -77,9 +80,9 @@ export function getAbcParams(): AbcParams {
   return {
     diasUteis3Meses: 66,
     criterioCalculo: 'volume',
-    cortePctA: 80,
-    cortePctB: 15,
-    cortePctC: 5
+    cortePctA: 60,
+    cortePctB: 25,
+    cortePctC: 15
   };
 }
 
@@ -113,6 +116,299 @@ export function setAbcOverride(codigo: number, classe: 'A' | 'B' | 'C' | null): 
   } catch (e) {
     console.error('Erro ao salvar override ABC:', e);
   }
+}
+
+export type QuarterKey = 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'ANUAL';
+
+/**
+ * Resolves target Quarter based on explicit quarter or date range / single date
+ * e.g., Janeiro (month 01) -> Q1
+ * e.g., Junho (month 06) -> Q2
+ * e.g., Agosto (month 08) -> Q3
+ * e.g., Outubro (month 10) -> Q4
+ * e.g., Full year / multiple quarters / no dates -> ANUAL
+ */
+export function resolveQuarterFromFilters(options?: {
+  quarter?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+}): QuarterKey {
+  if (!options) return 'ANUAL';
+
+  const { quarter, startDate, endDate, date } = options;
+
+  // 1. Explicit Quarter passed
+  if (quarter && quarter !== 'all' && quarter !== 'ANUAL') {
+    const qUpper = quarter.toUpperCase().trim();
+    if (qUpper === 'Q1' || qUpper === '1' || qUpper === '1T' || qUpper === '1TRI') return 'Q1';
+    if (qUpper === 'Q2' || qUpper === '2' || qUpper === '2T' || qUpper === '2TRI') return 'Q2';
+    if (qUpper === 'Q3' || qUpper === '3' || qUpper === '3T' || qUpper === '3TRI') return 'Q3';
+    if (qUpper === 'Q4' || qUpper === '4' || qUpper === '4T' || qUpper === '4TRI') return 'Q4';
+  }
+
+  // 2. Single specific date passed (e.g. from daily analysis '2026-06-15' or '2026-01-20')
+  if (date) {
+    const parts = date.split('-');
+    if (parts.length >= 2) {
+      const month = parseInt(parts[1], 10);
+      if (month >= 1 && month <= 3) return 'Q1';
+      if (month >= 4 && month <= 6) return 'Q2';
+      if (month >= 7 && month <= 9) return 'Q3';
+      if (month >= 10 && month <= 12) return 'Q4';
+    }
+  }
+
+  // 3. Date range passed (startDate and/or endDate)
+  if (startDate || endDate) {
+    const startM = startDate ? parseInt(startDate.split('-')[1], 10) : undefined;
+    const endM = endDate ? parseInt(endDate.split('-')[1], 10) : undefined;
+
+    const getQuarterForMonth = (m: number): QuarterKey => {
+      if (m <= 3) return 'Q1';
+      if (m <= 6) return 'Q2';
+      if (m <= 9) return 'Q3';
+      return 'Q4';
+    };
+
+    if (startM && endM) {
+      const qStart = getQuarterForMonth(startM);
+      const qEnd = getQuarterForMonth(endM);
+      if (qStart === qEnd) return qStart;
+      return 'ANUAL';
+    } else if (startM) {
+      return getQuarterForMonth(startM);
+    } else if (endM) {
+      return getQuarterForMonth(endM);
+    }
+  }
+
+  return 'ANUAL';
+}
+
+/**
+ * Calculates Pareto ABC classes for all SKUs according to the Commercial Dashboard (03.05.19)
+ * for a specific Quarter (Q1, Q2, Q3, Q4) or Annual (all quarters combined).
+ */
+export function getQuarterAbcData(
+  targetQuarter: QuarterKey = 'ANUAL',
+  customCriterio: 'volume' | 'faturamento' | 'caixas' | 'hectolitros' = 'volume'
+): {
+  map: Map<number, 'A' | 'B' | 'C'>;
+  quarter: QuarterKey;
+  items: Array<{
+    codigo: number;
+    produto: string;
+    volumeTotal: number;
+    faturamentoTotal: number;
+    classeABC: 'A' | 'B' | 'C';
+    rank: number;
+    pctAcumulado: number;
+  }>;
+} {
+  const quarters = getStored030519Quarters();
+  const rawItemsMap = new Map<number, {
+    codigo: number;
+    produto: string;
+    volumeTotal: number;
+    precoUnitario: number;
+    fatorHecto: number;
+    faturamentoTotal: number;
+  }>();
+
+  const globalOverrides = getAbcOverrides();
+
+  if (targetQuarter === 'ANUAL') {
+    // Sum across all quarters Q1, Q2, Q3, Q4
+    (['Q1', 'Q2', 'Q3', 'Q4'] as const).forEach(qKey => {
+      const qStore = quarters[qKey];
+      if (qStore && qStore.itemsMap) {
+        Object.values(qStore.itemsMap).forEach((item: any) => {
+          const code = Number(item.codigo);
+          if (!code || isNaN(code)) return;
+          const vol = Number(item.volumeTotalTrimestre || item.volumeTotal || 0);
+          const price = Number(item.precoUnitario || 50);
+          const fHecto = Number(item.fatorHecto || 0.072);
+
+          const existing = rawItemsMap.get(code);
+          if (existing) {
+            existing.volumeTotal += vol;
+            existing.faturamentoTotal += vol * price;
+          } else {
+            rawItemsMap.set(code, {
+              codigo: code,
+              produto: item.produto || item.descricao || `PRODUTO ${code}`,
+              volumeTotal: vol,
+              precoUnitario: price,
+              fatorHecto: fHecto,
+              faturamentoTotal: vol * price
+            });
+          }
+        });
+      }
+    });
+  } else {
+    // Single specific quarter (Q1, Q2, Q3, or Q4)
+    const qStore = quarters[targetQuarter];
+    if (qStore && qStore.itemsMap && Object.keys(qStore.itemsMap).length > 0) {
+      Object.values(qStore.itemsMap).forEach((item: any) => {
+        const code = Number(item.codigo);
+        if (!code || isNaN(code)) return;
+        const vol = Number(item.volumeTotalTrimestre || item.volumeTotal || 0);
+        const price = Number(item.precoUnitario || 50);
+        const fHecto = Number(item.fatorHecto || 0.072);
+
+        rawItemsMap.set(code, {
+          codigo: code,
+          produto: item.produto || item.descricao || `PRODUTO ${code}`,
+          volumeTotal: vol,
+          precoUnitario: price,
+          fatorHecto: fHecto,
+          faturamentoTotal: vol * price
+        });
+      });
+    }
+  }
+
+  // Fallback: If 03.05.19 has no imported data for this quarter yet, fallback to Venda Média / Products Master
+  if (rawItemsMap.size === 0) {
+    const vmList = getVendaMediaItens();
+    if (vmList && vmList.length > 0) {
+      vmList.forEach(vm => {
+        const code = Number(vm.codigo);
+        const vol = (vm.vendaMediaDiaria || 0) * 66;
+        const price = vm.precoUnitario || 50;
+        rawItemsMap.set(code, {
+          codigo: code,
+          produto: vm.produto || `PRODUTO ${code}`,
+          volumeTotal: vol,
+          precoUnitario: price,
+          fatorHecto: 0.072,
+          faturamentoTotal: vol * price
+        });
+      });
+    } else {
+      PRODUCT_MASTER_DATA.forEach((p, idx) => {
+        const code = Number(p.cod);
+        const vol = 1000 - idx * 25;
+        rawItemsMap.set(code, {
+          codigo: code,
+          produto: p.descricao,
+          volumeTotal: Math.max(10, vol),
+          precoUnitario: 50,
+          fatorHecto: p.fatorHecto || 0.072,
+          faturamentoTotal: Math.max(10, vol) * 50
+        });
+      });
+    }
+  }
+
+  const rawArray = Array.from(rawItemsMap.values());
+
+  // Sort descending based on chosen criterion (Volume or Faturamento)
+  if (customCriterio === 'faturamento') {
+    rawArray.sort((a, b) => b.faturamentoTotal - a.faturamentoTotal);
+  } else {
+    rawArray.sort((a, b) => b.volumeTotal - a.volumeTotal);
+  }
+
+  const totalMetric = customCriterio === 'faturamento'
+    ? (rawArray.reduce((acc, i) => acc + i.faturamentoTotal, 0) || 1)
+    : (rawArray.reduce((acc, i) => acc + i.volumeTotal, 0) || 1);
+
+  let accum = 0;
+  const resultMap = new Map<number, 'A' | 'B' | 'C'>();
+  const quarterStore = targetQuarter !== 'ANUAL' ? quarters[targetQuarter] : null;
+
+  const items = rawArray.map((item, idx) => {
+    const metricVal = customCriterio === 'faturamento' ? item.faturamentoTotal : item.volumeTotal;
+    accum += metricVal;
+    const pctAcumulado = (accum / totalMetric) * 100;
+
+    let classeABC: 'A' | 'B' | 'C' = 'C';
+    // Distribuição Balanceada das Faixas ABC: 60% A / 25% B / 15% C (expandindo e equilibrando a Curva C)
+    if (pctAcumulado <= 60.01 || idx === 0) {
+      classeABC = 'A';
+    } else if (pctAcumulado <= 85.01) {
+      classeABC = 'B';
+    } else {
+      classeABC = 'C';
+    }
+
+    // Check specific quarter override first, then global overrides
+    if (quarterStore?.overridesABC?.[item.codigo]) {
+      classeABC = quarterStore.overridesABC[item.codigo];
+    } else if (globalOverrides[item.codigo]) {
+      classeABC = globalOverrides[item.codigo];
+    }
+
+    resultMap.set(item.codigo, classeABC);
+
+    return {
+      codigo: item.codigo,
+      produto: item.produto,
+      volumeTotal: item.volumeTotal,
+      faturamentoTotal: item.faturamentoTotal,
+      classeABC,
+      rank: idx + 1,
+      pctAcumulado
+    };
+  });
+
+  return {
+    map: resultMap,
+    quarter: targetQuarter,
+    items
+  };
+}
+
+/**
+ * Returns dynamic ABC Map and lookup helper for any period / dashboard filter
+ */
+export function getAbcMapForPeriod(options?: {
+  quarter?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+  criterio?: 'volume' | 'faturamento' | 'caixas' | 'hectolitros';
+}): {
+  map: Map<number, 'A' | 'B' | 'C'>;
+  quarter: QuarterKey;
+  getCurva: (sku: number | string, fallback?: string) => 'A' | 'B' | 'C';
+} {
+  const resolvedQuarter = resolveQuarterFromFilters(options);
+  const data = getQuarterAbcData(resolvedQuarter, options?.criterio || 'volume');
+
+  const getCurva = (sku: number | string, fallback?: string): 'A' | 'B' | 'C' => {
+    const skuNum = typeof sku === 'string' ? parseInt(sku.replace(/\D/g, ''), 10) : Number(sku);
+    if (!skuNum || isNaN(skuNum)) return (fallback as any) || 'B';
+
+    if (data.map.has(skuNum)) {
+      return data.map.get(skuNum)!;
+    }
+
+    // Fallback to Master Catalog
+    const master = PRODUCT_MASTER_DATA.find(p => p.cod === skuNum);
+    if (master && (master.curva === 'A' || master.curva === 'B' || master.curva === 'C')) {
+      return master.curva;
+    }
+    const plano = PRODUCTS.find(p => p.codigo === skuNum);
+    if (plano && (plano.curva === 'A' || plano.curva === 'B' || plano.curva === 'C')) {
+      return plano.curva;
+    }
+
+    if (fallback === 'A' || fallback === 'B' || fallback === 'C') {
+      return fallback;
+    }
+
+    return 'B';
+  };
+
+  return {
+    map: data.map,
+    quarter: resolvedQuarter,
+    getCurva
+  };
 }
 
 // Engine calculating Pareto 80/20 ABC Curve from 3 Months Faturado Venda Média
@@ -299,9 +595,7 @@ export function calculateCurvaAbc(
 
 // Quick map getter for other panels (e.g., PickingDashboard, Layout, Fefo, StockPolicy)
 export function getAbcMap(): Map<number, 'A' | 'B' | 'C'> {
-  const { items } = calculateCurvaAbc();
-  const map = new Map<number, 'A' | 'B' | 'C'>();
-  items.forEach(i => map.set(i.codigo, i.classeABC));
+  const { map } = getAbcMapForPeriod({ quarter: 'ANUAL' });
   return map;
 }
 
@@ -319,3 +613,4 @@ export function syncAbcClassesToStorage(): void {
 
   saveVendaMediaItens(updated);
 }
+

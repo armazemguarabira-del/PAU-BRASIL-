@@ -1,59 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import LandingPage from './components/LandingPage';
 import LoginAuth from './components/LoginAuth';
 import Sidebar from './components/Sidebar';
 import { BrandLogo } from './components/BrandLogo';
+import CircularLoader from './components/CircularLoader';
 import { isPanelAllowedForUser, getUserOperationPanel, getUserRoleType } from './utils/permissions';
+import { isExternalDashboard, openExternalDashboard } from './utils/externalDashboards';
 import DashboardOverview from './components/DashboardOverview';
-import AjudantePanel from './components/AjudantePanel';
-import RepackPanel from './components/RepackPanel';
-import DespejoPanel from './components/DespejoPanel';
-import ArmazemPanel from './components/ArmazemPanel';
-import QuebrasPanel from './components/QuebrasPanel';
-import ValidadesPanel from './components/ValidadesPanel';
-import RefugoPanel from './components/RefugoPanel';
-import EmpilhadorPanel from './components/EmpilhadorPanel';
-import ConferentePanel from './components/ConferentePanel';
-import ControlePanel from './components/ControlePanel';
-import ExportarPanel from './components/ExportarPanel';
-import FirebasePanel from './components/FirebasePanel';
-import RepackDashboard from './components/RepackDashboard';
-import DespejoDashboard from './components/DespejoDashboard';
-import LogisticaDashboard from './components/LogisticaDashboard';
-import QuebrasDashboard from './components/QuebrasDashboard';
-import FefoDashboard from './components/FefoDashboard';
-import PickingDashboard from './components/PickingDashboard';
-import GestaoCapacidadeDashboard from './components/GestaoCapacidadeDashboard';
-import TmrDashboard from './components/TmrDashboard';
-import RegistrosPanel from './components/RegistrosPanel';
-import AcessosPanel from './components/AcessosPanel';
-import EstoqueHub from './components/EstoqueHub';
-import PadraoOperacionalPanel from './components/PadraoOperacionalPanel';
-import SimulacaoAcoesPanel from './components/SimulacaoAcoesPanel';
-import DadosRetroativosPanel from './components/DadosRetroativosPanel';
-import SimuladorRessuprimentoPanel from './components/SimuladorRessuprimentoPanel';
-import RankingModule from './components/RankingModule';
-import TreeKpiViewer from './components/TreeKpiViewer';
-import LossHierarchyTree from './components/LossHierarchyTree';
-import CadastrosPanel from './components/CadastrosPanel';
-import QualidadePanel from './components/QualidadePanel';
-import SemanaQualidadePanel from './components/SemanaQualidadePanel';
-import DnSwotPanel from './components/DnSwotPanel';
-import AuditoriaDpoPanel from './components/AuditoriaDpoPanel';
-import CategoryIndexPanel from './components/CategoryIndexPanel';
-import PlataformasExternasPanel from './components/PlataformasExternasPanel';
-import ArmazemFacilPadrao02 from './components/ArmazemFacilPadrao02';
-import DtoDiagnosticoPanel from './components/DtoDiagnosticoPanel';
-import GuiaMontagemPanel from './components/GuiaMontagemPanel';
-import { TreinamentosQualidadePanel, 
-  BloqueioArmazemPanel, 
-  DevolucaoPanel, 
-  ContagemInventarioPanel, 
-  GestaoAtivosPanel, 
-  QualidadePuxadaPanel, 
-  GestaoWlpPanel, 
-  CicloCarretasPanel 
-} from './components/NovosProcessosDpoPanels';
+
+// Dynamic Lazy Imports for optimal initial bundle size and instant page loading
+const AjudantePanel = lazy(() => import('./components/AjudantePanel'));
+const RepackPanel = lazy(() => import('./components/RepackPanel'));
+const DespejoPanel = lazy(() => import('./components/DespejoPanel'));
+const ArmazemPanel = lazy(() => import('./components/ArmazemPanel'));
+const QuebrasPanel = lazy(() => import('./components/QuebrasPanel'));
+const ValidadesPanel = lazy(() => import('./components/ValidadesPanel'));
+const RefugoPanel = lazy(() => import('./components/RefugoPanel'));
+const EmpilhadorPanel = lazy(() => import('./components/EmpilhadorPanel'));
+const ConferentePanel = lazy(() => import('./components/ConferentePanel'));
+const ControlePanel = lazy(() => import('./components/ControlePanel'));
+const ExportarPanel = lazy(() => import('./components/ExportarPanel'));
+const FirebasePanel = lazy(() => import('./components/FirebasePanel'));
+const RepackDashboard = lazy(() => import('./components/RepackDashboard'));
+const DespejoDashboard = lazy(() => import('./components/DespejoDashboard'));
+const QuebrasDashboard = lazy(() => import('./components/QuebrasDashboard'));
+const FefoDashboard = lazy(() => import('./components/FefoDashboard'));
+const PickingDashboard = lazy(() => import('./components/PickingDashboard'));
+const GestaoCapacidadeDashboard = lazy(() => import('./components/GestaoCapacidadeDashboard'));
+const RegistrosPanel = lazy(() => import('./components/RegistrosPanel'));
+const AcessosPanel = lazy(() => import('./components/AcessosPanel'));
+const EstoqueHub = lazy(() => import('./components/EstoqueHub'));
+const PadraoOperacionalPanel = lazy(() => import('./components/PadraoOperacionalPanel'));
+const SimulacaoAcoesPanel = lazy(() => import('./components/SimulacaoAcoesPanel'));
+const DadosRetroativosPanel = lazy(() => import('./components/DadosRetroativosPanel'));
+const SimuladorRessuprimentoPanel = lazy(() => import('./components/SimuladorRessuprimentoPanel'));
+const RankingModule = lazy(() => import('./components/RankingModule'));
+const TreeKpiViewer = lazy(() => import('./components/TreeKpiViewer'));
+const PacotePrejuizoDashboard = lazy(() => import('./components/PacotePrejuizoDashboard'));
+const TrocasEReposicoesDashboard = lazy(() => import('./components/TrocasEReposicoesDashboard'));
+const RetornoDeRotaDashboard = lazy(() => import('./components/RetornoDeRotaDashboard'));
+const BlitzDePuxadaDashboard = lazy(() => import('./components/BlitzDePuxadaDashboard'));
+const LossHierarchyTree = lazy(() => import('./components/LossHierarchyTree'));
+const CadastrosPanel = lazy(() => import('./components/CadastrosPanel'));
+const QualidadePanel = lazy(() => import('./components/QualidadePanel'));
+const SemanaQualidadePanel = lazy(() => import('./components/SemanaQualidadePanel'));
+const DnSwotPanel = lazy(() => import('./components/DnSwotPanel'));
+const AuditoriaDpoPanel = lazy(() => import('./components/AuditoriaDpoPanel'));
+const CategoryIndexPanel = lazy(() => import('./components/CategoryIndexPanel'));
+const PlataformasExternasPanel = lazy(() => import('./components/PlataformasExternasPanel'));
+const ArmazemFacilPadrao02 = lazy(() => import('./components/ArmazemFacilPadrao02'));
+const DtoDiagnosticoPanel = lazy(() => import('./components/DtoDiagnosticoPanel'));
+const GuiaMontagemPanel = lazy(() => import('./components/GuiaMontagemPanel'));
+
+const TreinamentosQualidadePanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.TreinamentosQualidadePanel })));
+const BloqueioArmazemPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.BloqueioArmazemPanel })));
+const DevolucaoPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.DevolucaoPanel })));
+const ContagemInventarioPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.ContagemInventarioPanel })));
+const GestaoAtivosPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.GestaoAtivosPanel })));
+const QualidadePuxadaPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.QualidadePuxadaPanel })));
+const GestaoWlpPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.GestaoWlpPanel })));
+const CicloCarretasPanel = lazy(() => import('./components/NovosProcessosDpoPanels').then(m => ({ default: m.CicloCarretasPanel })));
+const WlpDashboard = lazy(() => import('./components/WlpDashboard').then(m => ({ default: m.WlpDashboard })));
+
 import { ModalAcaoDesvio } from './components/ModalAcaoDesvio';
 import { ModalAcaoMelhoria } from './components/ModalAcaoMelhoria';
 import { openModalAcaoDesvio, openModalAcaoMelhoria } from './utils/actionsEvents';
@@ -61,7 +69,6 @@ import { AgenteDpoModal } from './components/AgenteDpoModal';
 import { AgendaExecutivoComponent } from './components/AgendaExecutivoComponent';
 import { DiarioBordoComponent } from './components/DiarioBordoComponent';
 import { ReunioesComponent } from './components/ReunioesComponent';
-import { WlpDashboard } from './components/WlpDashboard';
 import { OperationalNotificationBell } from './components/OperationalNotificationBell';
 import { EmpresaDataProvider, useEmpresaData, useViewUnitMode } from './context/EmpresaDataContext';
 import { safeSetLocalStorage, safeGetLocalStorage } from './utils/safeLocalStorage';
@@ -176,10 +183,15 @@ export default function App() {
     return ['landing'];
   });
   const [historyIndex, setHistoryIndex] = useState<number>(0);
-  const [dashInitialTab, setDashInitialTab] = useState<'operacao' | '5s' | 'matriz' | 'desvios' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp' | undefined>(undefined);
+  const [dashInitialTab, setDashInitialTab] = useState<'operacao' | '5s' | 'matriz' | 'desvios' | 'gatilhos' | 'agenda' | 'diario_bordo' | 'reunioes' | 'fluxograma' | 'wlp' | undefined>(undefined);
 
   const navigateToPanel = (panel: string) => {
-    if (!panel || panel === activePanel) return;
+    if (!panel) return;
+    if (isExternalDashboard(panel)) {
+      openExternalDashboard(panel);
+      return;
+    }
+    if (panel === activePanel) return;
     setHistory(prev => {
       const nextHistory = prev.slice(0, historyIndex + 1);
       nextHistory.push(panel);
@@ -231,6 +243,8 @@ export default function App() {
   const [isMelhoriaModalOpen, setIsMelhoriaModalOpen] = useState(false);
   const [melhoriaModalData, setMelhoriaModalData] = useState<any>(null);
   const [dtoInitialOperacao, setDtoInitialOperacao] = useState<string>('repack');
+  const [fefoInitialTab, setFefoInitialTab] = useState<any>('validades');
+  const [fefoInitialSubTab, setFefoInitialSubTab] = useState<any>(undefined);
 
   // Listeners globais para abertura dos modais de qualquer ponto do sistema e navegação
   useEffect(() => {
@@ -248,6 +262,12 @@ export default function App() {
       } else if (e.detail && typeof e.detail === 'object') {
         if (e.detail.operacao) {
           setDtoInitialOperacao(e.detail.operacao);
+        }
+        if (e.detail.fefoTab || e.detail.tab) {
+          setFefoInitialTab(e.detail.fefoTab || e.detail.tab);
+        }
+        if (e.detail.fefoSubTab || e.detail.subTab) {
+          setFefoInitialSubTab(e.detail.fefoSubTab || e.detail.subTab);
         }
         if (e.detail.panel) {
           navigateToPanel(e.detail.panel);
@@ -763,11 +783,20 @@ export default function App() {
       case 'quebras-dashboard':
         return <QuebrasDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'fefo-dashboard':
-        return <FefoDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return (
+          <FefoDashboard 
+            user={user} 
+            empresa={empresa} 
+            theme={theme} 
+            initialTab={fefoInitialTab} 
+            initialSubTab={fefoInitialSubTab} 
+            onBack={() => setActivePanel('visao-geral')} 
+          />
+        );
       case 'picking-dashboard':
         return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="operadores" onBack={() => setActivePanel('visao-geral')} />;
       case 'gestao-capacidade':
-        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} onNavigate={setActivePanel} />;
       case 'tmr-dashboard':
         return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="tmr" onBack={() => setActivePanel('visao-geral')} />;
       case 'despejo':
@@ -789,7 +818,7 @@ export default function App() {
       case 'acessos':
         return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={setActivePanel} initialTab="acoes" />;
       case 'cadastros':
-        return <CadastrosPanel user={user} empresa={empresa} theme={theme} />;
+        return <CadastrosPanel user={user} empresa={empresa} theme={theme} initialSubTab="produtos" />;
       case 'controle':
         return <ControlePanel user={user} empresa={empresa} theme={theme} />;
       case 'acoes':
@@ -799,7 +828,7 @@ export default function App() {
       case 'exportar':
         return <ExportarPanel user={user} empresa={empresa} theme={theme} />;
       case 'politica-estoque':
-        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} initialTab="politica-estoque" onBack={() => setActivePanel('visao-geral')} />;
+        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} initialTab="politica-estoque" onBack={() => setActivePanel('visao-geral')} onNavigate={setActivePanel} />;
       case 'importacao-contagens':
         return <EstoqueHub user={user} initialTab="importacao-contagens" />;
       case 'area-contingencia':
@@ -857,6 +886,26 @@ export default function App() {
         return <ArmazemFacilPadrao02 user={user} empresa={empresa} theme={theme} />;
       case 'kpi-arvore':
         return <TreeKpiViewer user={user} />;
+      case 'pacote-prejuizo':
+        return (
+          <PacotePrejuizoDashboard 
+            user={user} 
+            empresa={empresa} 
+            theme={theme} 
+            onBack={() => setActivePanel('visao-geral')} 
+            onNavigate={(panel, tab, subTab) => {
+              if (tab) setFefoInitialTab(tab);
+              if (subTab) setFefoInitialSubTab(subTab);
+              navigateToPanel(panel);
+            }}
+          />
+        );
+      case 'trocas-reposicoes':
+        return <TrocasEReposicoesDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+      case 'retorno-de-rota':
+        return <RetornoDeRotaDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+      case 'blitz-de-puxada':
+        return <BlitzDePuxadaDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
       case 'agenda-executiva':
         return (
           <DashboardOverview 
@@ -905,13 +954,50 @@ export default function App() {
             }}
           />
         );
-      default:
+      case 'gatilhos':
+      case 'workstation-gatilhos':
+      case 'desvios-operacionais':
         return (
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
             onNavigate={setActivePanel} 
             theme={theme}
+            initialTab="gatilhos"
+            kpiStats={{
+              usuarios: 3,
+              modulos: empresa?.modulos ? empresa.modulos.length : 6,
+              docsHoje: 12,
+              alertasFefo: 4
+            }}
+          />
+        );
+      case 'desvios-acoes':
+      case 'desvios':
+        return (
+          <DashboardOverview 
+            user={user} 
+            empresa={empresa} 
+            onNavigate={setActivePanel} 
+            theme={theme}
+            initialTab="desvios"
+            kpiStats={{
+              usuarios: 3,
+              modulos: empresa?.modulos ? empresa.modulos.length : 6,
+              docsHoje: 12,
+              alertasFefo: 4
+            }}
+          />
+        );
+      case 'fluxograma-demandas':
+      case 'fluxograma':
+        return (
+          <DashboardOverview 
+            user={user} 
+            empresa={empresa} 
+            onNavigate={setActivePanel} 
+            theme={theme}
+            initialTab="fluxograma"
             kpiStats={{
               usuarios: 3,
               modulos: empresa?.modulos ? empresa.modulos.length : 6,
@@ -929,6 +1015,21 @@ export default function App() {
             onBack={() => setActivePanel('visao-geral')} 
             theme={theme}
             initialSubTab="arvore"
+          />
+        );
+      default:
+        return (
+          <DashboardOverview 
+            user={user} 
+            empresa={empresa} 
+            onNavigate={setActivePanel} 
+            theme={theme}
+            kpiStats={{
+              usuarios: 3,
+              modulos: empresa?.modulos ? empresa.modulos.length : 6,
+              docsHoje: 12,
+              alertasFefo: 4
+            }}
           />
         );
     }
@@ -1211,6 +1312,13 @@ export default function App() {
           subtitle: 'Carga dos dados de saída diária para cálculo do estoque ideal.',
           color: 'from-teal-500/10 to-transparent'
         };
+      case 'pacote-prejuizo':
+        return {
+          breadcrumbs: ['Dashboard', 'Pacote Prejuízo'],
+          title: 'Pacote Prejuízo',
+          subtitle: 'Dedução de perdas do Faturamento (R$ 77,3M) e Volume (110k HL) com apuração do custo e receita líquida do hectolitro para a revenda.',
+          color: 'from-rose-500/10 to-transparent'
+        };
       case 'plataformas-externas':
         return {
           breadcrumbs: ['Ferramentas de Gestão', 'Plataformas Externas'],
@@ -1234,9 +1342,9 @@ export default function App() {
         };
       case 'reunioes':
         return {
-          breadcrumbs: ['Ferramentas de Gestão', 'Reuniões e Treinamentos'],
-          title: 'Reuniões e Treinamentos',
-          subtitle: 'Frequência, materiais, atas em PDF, alertas diários, Team Room e troca de turno.',
+          breadcrumbs: ['Ferramentas de Gestão', 'Reuniões & Treinamentos DPO'],
+          title: 'Reuniões & Treinamentos DPO',
+          subtitle: 'Frequência, materiais, atas em PDF, alertas diários, Team Room, troca de turno e capacitações.',
           color: 'from-indigo-500/10 to-transparent'
         };
       case 'firebase':
@@ -1246,6 +1354,23 @@ export default function App() {
           subtitle: 'Configuração e teste de latência do banco de dados na nuvem corporativa.',
           color: 'from-sky-500/10 to-transparent'
         };
+      case 'gatilhos':
+      case 'workstation-gatilhos':
+      case 'desvios-operacionais':
+        return {
+          breadcrumbs: ['Workstation', 'Gatilhos & Desvios'],
+          title: 'Quadro de Gatilhos & Desvios Operacionais',
+          subtitle: 'Monitoramento de desvios reais (Média Acumulada / Dias Úteis + 10% Tolerância) correlacionados aos dashboards.',
+          color: 'from-amber-500/10 to-transparent'
+        };
+      case 'desvios':
+      case 'desvios-acoes':
+        return {
+          breadcrumbs: ['Workstation', 'Desvios & Ações'],
+          title: 'Tratativa de Desvios & Planos de Ação DPO',
+          subtitle: 'Registro de anomalias, análise de 5 porquês, dono e status de execução.',
+          color: 'from-rose-500/10 to-transparent'
+        };
       default:
         return defaultInfo;
     }
@@ -1253,17 +1378,23 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center text-[#1f2937] dark:text-[#f8fafc]">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-100 p-4">
         <motion.div 
-          initial={{ scale: 0.85, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="flex flex-col items-center select-none"
+          className="flex flex-col items-center select-none w-full max-w-md"
         >
           <BrandLogo size="xl" variant="icon-only" className="mb-6 animate-bounce" />
-          <div className="w-8 h-8 border-3 border-t-transparent border-[#1e56f0] rounded-full animate-spin mb-4"></div>
-          <span className="text-xs font-black tracking-[3px] text-[#1e56f0] uppercase">PAU BRASIL DISTRIBUIDORA</span>
-          <span className="text-[10px] text-[#6b7280] dark:text-[#94a3b8] uppercase tracking-[2px] mt-1.5 font-bold">Carregando Unidade Guarabira...</span>
+          <CircularLoader
+            label="INICIALIZANDO PLATAFORMA..."
+            subtitle="Carregando Unidade Guarabira & Sincronizando dados..."
+            expectedDurationMs={1500}
+            size="lg"
+          />
+          <span className="text-xs font-black tracking-[3px] text-blue-500 uppercase mt-4">
+            PAU BRASIL DISTRIBUIDORA
+          </span>
         </motion.div>
       </div>
     );
@@ -1580,7 +1711,18 @@ export default function App() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
                 >
-                  {renderActivePanel()}
+                  <Suspense
+                    fallback={
+                      <CircularLoader
+                        label="CARREGANDO MÓDULO..."
+                        subtitle="Preparando painel e otimizando dados operacionais..."
+                        expectedDurationMs={1100}
+                        size="md"
+                      />
+                    }
+                  >
+                    {renderActivePanel()}
+                  </Suspense>
                 </motion.div>
               </AnimatePresence>
             </div>

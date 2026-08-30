@@ -1,9 +1,10 @@
 import { PRODUCTS } from '../planosData';
-import { getProductMeta } from './productCatalogData';
+import { getProductMeta, isProdutoCadastrado, isBarrilChopp } from './productCatalogData';
 import { categorizeFamilia } from './estoqueParsers';
 import { setMediaItem } from './idbStorage';
 import { calculateCurvaAbc } from './curvaAbcUtils';
 import { firestoreDb } from '../database/firestoreDatabase';
+import { POSICAO_ESTOQUE_OFICIAL } from '../data/posicaoEstoqueOficial';
 import {
   ContagemRecord,
   ImportLog,
@@ -70,6 +71,46 @@ function generateInitialContagens(): ContagemRecord[] {
   const records: ContagemRecord[] = [];
   const now = new Date().toISOString();
   
+  if (POSICAO_ESTOQUE_OFICIAL && POSICAO_ESTOQUE_OFICIAL.length > 0) {
+    POSICAO_ESTOQUE_OFICIAL.forEach((item) => {
+      const disp = item.disponivelCx;
+      let pickingQty = 0;
+      let centralQty = 0;
+
+      if (item.curva === 'A') {
+        pickingQty = Math.min(disp, Math.round(item.fatorPallet * 1.5));
+        centralQty = Math.max(0, disp - pickingQty);
+      } else if (item.curva === 'B') {
+        pickingQty = Math.min(disp, Math.round(item.fatorPallet * 1.0));
+        centralQty = Math.max(0, disp - pickingQty);
+      } else {
+        pickingQty = Math.min(disp, Math.round(item.fatorPallet * 0.5));
+        centralQty = Math.max(0, disp - pickingQty);
+      }
+
+      records.push({
+        id: `cnt-c-${item.codigo}`,
+        codigo: item.codigo,
+        produto: item.descricao,
+        quantidade: centralQty,
+        area: 'central',
+        importadoEm: now,
+        importId: 'imp-init-posicao-estoque'
+      });
+
+      records.push({
+        id: `cnt-p-${item.codigo}`,
+        codigo: item.codigo,
+        produto: item.descricao,
+        quantidade: pickingQty,
+        area: 'picking',
+        importadoEm: now,
+        importId: 'imp-init-posicao-estoque'
+      });
+    });
+    return records;
+  }
+
   PRODUCTS.forEach((p, idx) => {
     // Central counts (usually larger volume)
     const centralQty = Math.floor(100 + (idx * 37) % 600);
@@ -94,20 +135,6 @@ function generateInitialContagens(): ContagemRecord[] {
       importadoEm: now,
       importId: 'imp-init-picking'
     });
-
-    // Marketplace counts (selective items)
-    if (idx % 2 === 0) {
-      const mpQty = Math.floor(10 + (idx * 11) % 80);
-      records.push({
-        id: `cnt-m-${p.codigo}`,
-        codigo: p.codigo,
-        produto: p.descricao,
-        quantidade: mpQty,
-        area: 'marketplace',
-        importadoEm: now,
-        importId: 'imp-init-mp'
-      });
-    }
   });
 
   return records;
@@ -243,13 +270,11 @@ export function getVendaMediaItens(): VendaMediaItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.VENDA_MEDIA);
     if (!raw) {
-      const init = generateInitialVendaMedia();
-      localStorage.setItem(STORAGE_KEYS.VENDA_MEDIA, JSON.stringify(init));
-      return init;
+      return [];
     }
     return JSON.parse(raw);
   } catch (e) {
-    return generateInitialVendaMedia();
+    return [];
   }
 }
 
@@ -267,21 +292,7 @@ export function getVendaMediaLogs(): ImportVendaMediaLog[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.VENDA_MEDIA_LOGS);
     if (!raw) {
-      const now = new Date();
-      const dStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour12: false });
-      const init: ImportVendaMediaLog[] = [
-        {
-          id: 'vm-init-log',
-          dataHora: dStr,
-          nomeArquivo: 'venda_media_30dias_ambev.csv',
-          totalLinhas: PRODUCTS.length,
-          aceitos: PRODUCTS.length,
-          rejeitados: 0,
-          usuario: 'Sistema AMBEV'
-        }
-      ];
-      localStorage.setItem(STORAGE_KEYS.VENDA_MEDIA_LOGS, JSON.stringify(init));
-      return init;
+      return [];
     }
     return JSON.parse(raw);
   } catch (e) {
@@ -377,6 +388,9 @@ export function calcularPoliticaEstoque(): PoliticaEstoqueCalculada[] {
   const result: PoliticaEstoqueCalculada[] = [];
 
   allProductCodes.forEach(code => {
+    // Se não houver cadastro do produto na plataforma na guia de cadastro de produtos, não considerar o item
+    if (!isProdutoCadastrado(code)) return;
+
     const catalogItem = PRODUCTS.find(p => Number(p.codigo) === code);
     const meta = getProductMeta(code);
     const vm = vmMap.get(code);
@@ -457,6 +471,18 @@ export function calcularPoliticaEstoque(): PoliticaEstoqueCalculada[] {
     const faltaValor = Math.round(faltaQtd * unitPrice * 100) / 100;
     const faltaDias = coverageDays < 6 ? parseFloat((6 - coverageDays).toFixed(1)) : 0;
 
+    // Aderência ao Estoque Ideal (%): Proximidade ao estoque ideal (0 a 100%, penalizando desvios para mais ou para menos)
+    let aderenciaPct = 100;
+    if (idealStock > 0) {
+      const desvio = Math.abs(totalStock - idealStock);
+      const ratio = 1 - (desvio / idealStock);
+      aderenciaPct = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    } else if (totalStock > 0) {
+      aderenciaPct = 0;
+    } else {
+      aderenciaPct = 100;
+    }
+
     // Smart Recommendations (Requirement 19)
     let recomendacao = 'Estoque alinhado com a política de 6 dias.';
     let acaoRecomendada: PoliticaEstoqueCalculada['acaoRecomendada'] = 'manter';
@@ -505,6 +531,7 @@ export function calcularPoliticaEstoque(): PoliticaEstoqueCalculada[] {
       faltaDias: faltaDias,
       precoUnitario: unitPrice,
       hectoTotal,
+      aderenciaPct,
       grupo: meta.grupo,
       curvaABC: abcMap.get(code) || meta.curva,
       recomendacao,
@@ -525,7 +552,9 @@ const CAPACITY_METAS_KEY = 'af_capacity_area_metas_v1';
 export function getPosicaoPallet021101Itens(): import('../types/estoque').PosicaoPallet021101Item[] {
   try {
     const data = localStorage.getItem(POSICAO_PALLET_021101_ITEMS_KEY);
-    return data ? JSON.parse(data) : [];
+    const parsed: import('../types/estoque').PosicaoPallet021101Item[] = data ? JSON.parse(data) : [];
+    // Ensure barril de chopp is strictly excluded
+    return parsed.filter(item => !isBarrilChopp(item.codigo, item.produto));
   } catch (e) {
     console.error('Error reading Posicao Pallet 02.11.01 items:', e);
     return [];
@@ -533,12 +562,19 @@ export function getPosicaoPallet021101Itens(): import('../types/estoque').Posica
 }
 
 export function savePosicaoPallet021101Itens(itens: import('../types/estoque').PosicaoPallet021101Item[]) {
+  const sanitized = (itens || []).filter(item => !isBarrilChopp(item.codigo, item.produto));
   try {
-    localStorage.setItem(POSICAO_PALLET_021101_ITEMS_KEY, JSON.stringify(itens));
+    localStorage.setItem(POSICAO_PALLET_021101_ITEMS_KEY, JSON.stringify(sanitized));
   } catch (e) {
     console.error('Error saving Posicao Pallet 02.11.01 items:', e);
   }
-  firestoreDb.batchUpsert('af_estoque_posicao_pallet', itens, getCompanyId()).catch(() => {});
+  firestoreDb.batchUpsert('af_estoque_posicao_pallet', sanitized, getCompanyId()).catch(() => {});
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('posicao_pallet_updated', { detail: sanitized }));
+    window.dispatchEvent(new CustomEvent('app_data_updated'));
+    window.dispatchEvent(new CustomEvent('local_data_changed'));
+  }
 }
 
 export function getPosicaoPallet021101Logs(): import('../types/estoque').ImportPosicaoPalletLog[] {
@@ -567,6 +603,7 @@ export interface AreaMetasConfig {
   4: { palletsMeta: number; hectolitrosMeta: number }; // Contingência
   5: { palletsMeta: number; hectolitrosMeta: number }; // Pulmão
   6: { palletsMeta: number; hectolitrosMeta: number }; // PNC
+  7?: { palletsMeta: number; hectolitrosMeta: number }; // Produtos de Limpeza
 }
 
 export const DEFAULT_AREA_FACTORS: Record<number, number> = {
@@ -575,7 +612,8 @@ export const DEFAULT_AREA_FACTORS: Record<number, number> = {
   3: 2.5, // Marketplace: ~2.5 HL/pallet
   4: 7.5, // Contingência: ~7.5 HL/pallet
   5: 8.5, // Pulmão: ~8.5 HL/pallet
-  6: 6.0  // PNC: ~6.0 HL/pallet
+  6: 6.0, // PNC: ~6.0 HL/pallet
+  7: 1.5  // Limpeza: ~1.5 HL/pallet
 };
 
 export const HECTO_PER_PALLET_FACTOR = 8.5;
@@ -586,7 +624,8 @@ export const DEFAULT_AREA_METAS: AreaMetasConfig = {
   3: { palletsMeta: 84, hectolitrosMeta: Math.round(84 * 2.5 * 10) / 10 },
   4: { palletsMeta: 108, hectolitrosMeta: Math.round(108 * 7.5 * 10) / 10 },
   5: { palletsMeta: 140, hectolitrosMeta: Math.round(140 * 8.5 * 10) / 10 },
-  6: { palletsMeta: 9, hectolitrosMeta: Math.round(9 * 6.0 * 10) / 10 }
+  6: { palletsMeta: 9, hectolitrosMeta: Math.round(9 * 6.0 * 10) / 10 },
+  7: { palletsMeta: 35, hectolitrosMeta: Math.round(35 * 1.5 * 10) / 10 }
 };
 
 export function getCapacityAreaMetas(): AreaMetasConfig {
@@ -594,14 +633,17 @@ export function getCapacityAreaMetas(): AreaMetasConfig {
     const data = localStorage.getItem(CAPACITY_METAS_KEY);
     const parsed = data ? JSON.parse(data) : null;
     const metas: AreaMetasConfig = parsed ? { ...DEFAULT_AREA_METAS, ...parsed } : { ...DEFAULT_AREA_METAS };
+    if (!metas[7]) {
+      metas[7] = { palletsMeta: 35, hectolitrosMeta: Math.round(35 * 1.5 * 10) / 10 };
+    }
 
     // Auto-fix outdated Meta HL if using the old 1.076 factor (ratio < 2.5 for Central/Picking)
-    (Object.keys(metas) as unknown as (1 | 2 | 3 | 4 | 5 | 6)[]).forEach((areaId) => {
-      const id = Number(areaId) as 1 | 2 | 3 | 4 | 5 | 6;
+    (Object.keys(metas) as unknown as (1 | 2 | 3 | 4 | 5 | 6 | 7)[]).forEach((areaId) => {
+      const id = Number(areaId) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
       const m = metas[id];
       if (m && m.palletsMeta > 0) {
         const ratio = m.hectolitrosMeta / m.palletsMeta;
-        if (ratio < 2.0) {
+        if (ratio < 1.0 && id !== 7) {
           const factor = DEFAULT_AREA_FACTORS[id] || 7.5;
           m.hectolitrosMeta = Math.round(m.palletsMeta * factor * 10) / 10;
         }

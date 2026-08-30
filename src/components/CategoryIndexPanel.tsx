@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Usuario } from '../types';
 import { isPanelAllowedForUser } from '../utils/permissions';
+import { isExternalDashboard, openExternalDashboard } from '../utils/externalDashboards';
 import { 
   Users,
   RefreshCw, 
@@ -34,7 +35,8 @@ import {
   Shield,
   Target,
   ExternalLink,
-  FileCode
+  FileCode,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface CategoryIndexPanelProps {
@@ -182,6 +184,38 @@ export const CATEGORY_DEFINITIONS: Record<
         color: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60'
       },
       {
+        id: 'pacote-prejuizo',
+        label: 'Pacote Prejuízo (R$ & HL)',
+        description: 'Dashboard unificado de perdas: Quebras, Shelf Life/Despejo, Trocas, Inventário, Refugo e Vales com importação JSON.',
+        icon: <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400" />,
+        badge: 'Prejuízo & Perdas',
+        color: 'border-rose-500/40 bg-rose-500/10 hover:border-rose-500/70 shadow-sm'
+      },
+      {
+        id: 'trocas-reposicoes',
+        label: 'Trocas e Reposições',
+        description: 'Gestão de trocas comerciais, substituição física, reposição de rota e acesso ao portal oficial de Armazém.',
+        icon: <ArrowRightLeft className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />,
+        badge: 'Trocas & Reposições',
+        color: 'border-cyan-500/40 bg-cyan-500/10 hover:border-cyan-500/70 shadow-sm'
+      },
+      {
+        id: 'retorno-de-rota',
+        label: 'Retorno de Rota',
+        description: 'Auditoria de devoluções comerciais, avarias de trânsito, conferência em doca e aplicativo oficial de retorno.',
+        icon: <Truck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
+        badge: 'Retorno de Rota',
+        color: 'border-indigo-500/40 bg-indigo-500/10 hover:border-indigo-500/70 shadow-sm'
+      },
+      {
+        id: 'blitz-de-puxada',
+        label: 'Blitz de Puxada',
+        description: 'Auditoria de carretas de transferência, amarração, conferência de paletes e acesso à ferramenta oficial.',
+        icon: <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
+        badge: 'Blitz & Transferência',
+        color: 'border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 shadow-sm'
+      },
+      {
         id: 'kpi-arvore',
         label: 'KPI em Árvore',
         description: 'Visão em árvore hierárquica para desdobramento de metas DPO.',
@@ -197,6 +231,22 @@ export const CATEGORY_DEFINITIONS: Record<
     icon: <Sliders className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
     color: 'from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-500/20 dark:via-blue-500/5 dark:to-transparent',
     items: [
+      {
+        id: 'gatilhos',
+        label: 'Gatilhos & Desvios Operacionais (DPO)',
+        description: 'Painel de gatilhos calculados (Média Diária + 10%), correlacionados aos dashboards, monitoramento de desvios reais e exportação mensal.',
+        icon: <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
+        badge: 'Gatilhos DPO',
+        color: 'border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 shadow-sm'
+      },
+      {
+        id: 'desvios',
+        label: 'Tratativa de Desvios & Planos de Ação',
+        description: 'Quadro executivo de anomalias, plano de 5 Porquês, donos de ação e status de conclusão.',
+        icon: <Target className="w-5 h-5 text-rose-600 dark:text-rose-400" />,
+        badge: 'Tratativas',
+        color: 'border-rose-500/40 bg-rose-500/10 hover:border-rose-500/70 shadow-sm'
+      },
       {
         id: 'dto-diagnostico',
         label: 'DTO (Diagnóstico do Trabalho Operacional)',
@@ -518,10 +568,20 @@ export default function CategoryIndexPanel({
         ) : (
           visibleItems.map((item) => {
             const style = getItemStyle(item.id);
+            const isExternal = isExternalDashboard(item.id);
+
+            const handleCardClick = () => {
+              if (isExternal) {
+                openExternalDashboard(item.id);
+              } else {
+                onNavigate(item.id);
+              }
+            };
+
             return (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                onClick={handleCardClick}
                 className={`text-left bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800/90 rounded-2xl p-5 sm:p-6 relative group transition-all duration-300 cursor-pointer shadow-md hover:shadow-2xl hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden min-h-[220px] ${style.hoverBorder}`}
               >
                 {/* Top decorative gradient bar */}
@@ -535,21 +595,30 @@ export default function CategoryIndexPanel({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {item.badge && (
+                      {isExternal ? (
+                        <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-lg border shadow-xs bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-300 dark:border-amber-500/30 flex items-center gap-1">
+                          <ExternalLink className="w-3 h-3 text-amber-500" /> Link Direto
+                        </span>
+                      ) : item.badge ? (
                         <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-lg border shadow-xs ${style.badgeClass}`}>
                           {item.badge}
                         </span>
-                      )}
+                      ) : null}
                       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-[#0b1222] border border-slate-200/80 dark:border-slate-800 flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-200 shadow-xs">
-                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        {isExternal ? (
+                          <ExternalLink className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        ) : (
+                          <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Title and Description */}
                   <div className="mt-4">
-                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">
-                      {item.label}
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-1.5">
+                      <span>{item.label}</span>
+                      {isExternal && <ExternalLink className="w-4 h-4 text-amber-400 shrink-0 inline" />}
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed mt-1.5 line-clamp-3">
                       {item.description}
@@ -561,12 +630,16 @@ export default function CategoryIndexPanel({
                 <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Disponível</span>
+                    <span>{isExternal ? 'Portal Externo' : 'Disponível'}</span>
                   </div>
                   
                   <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all duration-200 ${style.btnBg} ${style.btnText} ${style.btnHover} group-hover:text-white`}>
-                    <span>Acessar Módulo</span>
-                    <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                    <span>{isExternal ? 'Abrir Plataforma' : 'Acessar Módulo'}</span>
+                    {isExternal ? (
+                      <ExternalLink className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                    )}
                   </div>
                 </div>
               </button>

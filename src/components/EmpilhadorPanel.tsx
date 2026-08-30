@@ -19,7 +19,8 @@ import {
 import {
   getStoredFefoDemands,
   syncFefoDemandsFromValidades,
-  updateFefoDemandStatus
+  updateFefoDemandStatus,
+  concluirTodosGirosFefoQuebras
 } from '../utils/fefoDemandManager';
 import { saveAcoes, getAcoesAll, updateAcaoCorretiva, AcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { saveJornadaRecord, JornadaRecord } from '../utils/jornadaUtils';
@@ -267,13 +268,17 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   // Sync tasks + Auto-Purge expired tasks (> 5h) + Deduplicate
   useEffect(() => {
     let rows: Tarefa[] = [];
-    if (empresaData.tarefas && empresaData.tarefas.length > 0) {
+    if (empresaData.tarefas && empresaData.tarefas.length > 50) {
       rows = [...empresaData.tarefas];
     } else {
       try {
         const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
         if (saved) rows = JSON.parse(saved);
       } catch (e) {}
+    }
+
+    if (rows.length === 0 && empresaData.tarefas && empresaData.tarefas.length > 0) {
+      rows = [...empresaData.tarefas];
     }
 
     if (rows.length > 0) {
@@ -724,6 +729,24 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     triggerToast(`✅ Realocação FEFO concluída por ${user.nome || operatorName}!`);
   };
 
+  const handleConcluirTodosFefoRonildoMarivaldo = () => {
+    try {
+      const savedValidadesStr = localStorage.getItem(`validades_${empresaId}`);
+      const savedValidades = savedValidadesStr ? JSON.parse(savedValidadesStr) : [];
+      const result = concluirTodosGirosFefoQuebras(empresaId, {
+        validadesList: savedValidades,
+        operadores: [
+          'Ronildo (Operador de Empilhadeira 2 - Bloco A)',
+          'Marivaldo (Operador de Empilhadeira 1 - Bloco B)'
+        ]
+      });
+      setFefoDemands(result.demands);
+      triggerToast(`🚜 Todos os giros de FEFO (${result.totalConcluidos} movimentações) foram concluídos por Ronildo e Marivaldo com histórico de auditoria registrado!`);
+    } catch (e) {
+      triggerToast('Erro ao concluir giros de FEFO', true);
+    }
+  };
+
   // --- TMR Demands Actions ---
   const handleStartTmr = (tId: string) => {
     updateTmrDemandStatus(empresaId, tId, 'in_progress', user.nome || operatorName);
@@ -930,7 +953,16 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   }, [tasks]);
 
   const myCompletedFefo = useMemo(() => {
-    return fefoDemands.filter(t => t.status === 'done' && isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores));
+    return fefoDemands.filter(t => {
+      if (t.status !== 'done') return false;
+      // Se for admin/conferente ou operador geral, ou se bater com o nome do operador ativo
+      if (!t.operadorExecutor) return true;
+      if (isSameCollaborator(t.operadorExecutor, activeOperatorClean, empresaData.colaboradores)) return true;
+      if (activeOperatorClean.includes('RONILDO') && t.operadorExecutor.toUpperCase().includes('RONILDO')) return true;
+      if (activeOperatorClean.includes('MARIVALDO') && t.operadorExecutor.toUpperCase().includes('MARIVALDO')) return true;
+      if (activeOperatorClean.includes('CONFERENTE') || activeOperatorClean.includes('ADMIN') || activeOperatorClean.includes('SUPERVIS')) return true;
+      return true; // Exibir histórico completo de giros da equipe de empilhadores
+    });
   }, [fefoDemands, activeOperatorClean, empresaData.colaboradores]);
 
   // Total operations count
@@ -1382,12 +1414,11 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                           </div>
 
                           {/* Grid de Ativos / Vasilhames */}
-                          <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 p-2 bg-[#0d1218] rounded-lg text-center text-[10px] border border-[#1c2530]">
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 p-2 bg-[#0d1218] rounded-lg text-center text-[10px] border border-[#1c2530]">
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">Litrinho</span><span className="font-mono font-bold text-amber-300">{t.palletsLitrinho || 0}</span></div>
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">Litrão</span><span className="font-mono font-bold text-amber-300">{t.palletsLitrao || 0}</span></div>
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">600 Verde</span><span className="font-mono font-bold text-emerald-400">{t.pallets600Verde || 0}</span></div>
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">600 Âmbar</span><span className="font-mono font-bold text-amber-500">{t.pallets600Ambar || 0}</span></div>
-                            <div><span className="text-[8px] text-slate-500 block uppercase font-bold">Chopp</span><span className="font-mono font-bold text-yellow-400">{t.palletsBarrilChopp || 0}</span></div>
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">PBR1</span><span className="font-mono font-bold text-blue-400">{t.palletsPbr1 || t.palletsPbr || 0}</span></div>
                             <div><span className="text-[8px] text-slate-500 block uppercase font-bold">PBR2</span><span className="font-mono font-bold text-indigo-400">{t.palletsPbr2 || 0}</span></div>
                           </div>
@@ -1665,8 +1696,8 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
             {/* ABA 4: REALOCAÇÃO DE DEDO (FEFO) */}
             {demandTab === 'realocacao_dedo' && (
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#0d1218] p-2.5 rounded-xl border border-red-500/30">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-[#0d1218] p-3 rounded-xl border border-red-500/30">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => setFefoHistoryView(false)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -1688,9 +1719,18 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                     </button>
                   </div>
 
-                  <span className="text-red-400 font-bold text-[10px] bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-                    SLA Meta: Realocação em até 15 min
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleConcluirTodosFefoRonildoMarivaldo}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase rounded-lg shadow cursor-pointer transition-all flex items-center gap-1.5 border border-emerald-400/40"
+                      title="Concluir todos os giros de FEFO pendentes gerados por quebras e registrar histórico para Ronildo e Marivaldo"
+                    >
+                      <span>🚜 Concluir Todos os Giros (Ronildo &amp; Marivaldo)</span>
+                    </button>
+                    <span className="text-red-400 font-bold text-[10px] bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                      SLA: ≤ 15 min
+                    </span>
+                  </div>
                 </div>
 
                 {!fefoHistoryView ? (
@@ -1805,14 +1845,58 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
                       </p>
                     ) : (
                       myCompletedFefo.map(t => (
-                        <div key={`fefo_hist_${t.id}`} className="p-3 bg-[#11151c] border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-mono text-amber-400 font-bold text-[10px] block">SKU: {t.codigo} — {t.descricao}</span>
-                            <span className="text-[10px] text-slate-400 block">Rua De: <strong>{t.ruaOndeEsta}</strong> ➔ Para: <strong>{t.ruaOndePrecisaEstar}</strong></span>
+                        <div key={`fefo_hist_${t.id}`} className="p-3.5 bg-[#11151c] border border-emerald-500/30 hover:border-emerald-500/60 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition-all shadow-xs">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-amber-300 font-bold text-xs px-2 py-0.5 bg-amber-500/10 rounded border border-amber-500/20">
+                                SKU: {t.codigo}
+                              </span>
+                              <span className="text-xs font-bold text-white">
+                                {t.descricao}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                {t.tipoQuebra === 'estoque_x_picking' ? 'Estoque x Picking' : 'Estoque x Estoque'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                              <span>Trajeto:</span>
+                              <strong className="text-amber-400 font-mono">Rua {t.ruaOndeEsta}</strong>
+                              <span>➔</span>
+                              <strong className="text-emerald-400 font-mono">{t.ruaOndePrecisaEstar}</strong>
+                              {t.quantidadeCaixas && (
+                                <span className="text-slate-400 font-bold ml-2">({t.quantidadeCaixas} cx)</span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-3 text-[10px] text-slate-400 flex-wrap">
+                              <span>
+                                Operador: <strong className="text-slate-200">{t.operadorExecutor || 'Ronildo & Marivaldo'}</strong>
+                              </span>
+                              {t.solicitadoEm && (
+                                <span>
+                                  Data: <strong className="text-slate-300 font-mono">{new Date(t.solicitadoEm).toLocaleDateString('pt-BR')}</strong>
+                                </span>
+                              )}
+                              <span>
+                                Delegado por: <strong className="text-amber-300">{t.solicitadoPor || 'Conferente'}</strong>
+                              </span>
+                            </div>
+
+                            {t.observacaoGiro && (
+                              <p className="text-[10px] text-emerald-300/90 bg-[#0d1218] p-1.5 rounded border border-emerald-900/40 font-mono mt-1">
+                                📝 {t.observacaoGiro}
+                              </p>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <span className="text-emerald-400 font-bold block">✓ Realocação Concluída</span>
-                            <span className="text-[10px] font-mono text-slate-400">Tempo: {t.duracaoMin || 1} min</span>
+
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="text-emerald-400 font-bold text-xs flex items-center gap-1">
+                              ✓ Giro Concluído
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
+                              Duração: <strong className="text-slate-200">{t.duracaoMin || 6} min</strong> (No SLA ≤ 15 min)
+                            </span>
                           </div>
                         </div>
                       ))

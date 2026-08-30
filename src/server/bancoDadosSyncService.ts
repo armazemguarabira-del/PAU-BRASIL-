@@ -688,7 +688,7 @@ async function inicializarNovoDiaOperacional(proximaData: string): Promise<void>
         diasRestantes: 119,
         quantidade: 340,
         unidade: "CX",
-        localizacao: "RUA-B-03-N1",
+        localizacao: "RUA-B-05-N1",
         status: "alerta",
         acaoRecomendada: "Priorizar montagem nas rotas matinais"
       },
@@ -741,7 +741,7 @@ async function inicializarNovoDiaOperacional(proximaData: string): Promise<void>
       },
       {
         id: "TEMP-02",
-        local: "Câmara Fria 02 (Barril Chopp Brahma)",
+        local: "Câmara Fria 02 (Bebidas Especiais e Vinhos)",
         temperaturaAtualC: 1.8,
         temperaturaMinC: 0.0,
         temperaturaMaxC: 4.0,

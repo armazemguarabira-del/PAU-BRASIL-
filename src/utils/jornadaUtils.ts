@@ -81,11 +81,6 @@ export function isColaboradorExcluidoWlp(colaboradorNome: string, mesNum: number
     return { excluido: true, motivo: 'Perfil Administrativo (não entra no WLP)' };
   }
 
-  // Exceções retroativas oficiais
-  if (mesNum === 2 && norm.includes('MARIVALDO')) {
-    return { excluido: true, motivo: 'Férias em Fevereiro (Marivaldo Empilhador)' };
-  }
-
   return { excluido: false };
 }
 
@@ -143,11 +138,20 @@ export function isDisallowedSaturday(dataISO: string, dataStr?: string): boolean
   return false;
 }
 
-// Seed retroativo automático gerado a partir do dataset do usuário
+// Seed retroativo automático gerado a partir do dataset do usuário (Memoized Singleton)
+let cachedSeed: {
+  jornadas: JornadaRecord[];
+  faturados: WlpDailyFaturadoRecord[];
+} | null = null;
+
 function buildRetroactiveSeedJornadas(empresaId: string = 'demo'): {
   jornadas: JornadaRecord[];
   faturados: WlpDailyFaturadoRecord[];
 } {
+  if (cachedSeed) {
+    return cachedSeed;
+  }
+
   const rawList = parseRetroactiveText();
   const jornadas: JornadaRecord[] = [];
   const faturadosMap = new Map<string, number>();
@@ -213,7 +217,8 @@ function buildRetroactiveSeedJornadas(empresaId: string = 'demo'): {
     });
   });
 
-  return { jornadas, faturados };
+  cachedSeed = { jornadas, faturados };
+  return cachedSeed;
 }
 
 const SEED_TAG_V9 = 'colaboradores_jornadas_seed_v2026_08_v11_abril_complete';
@@ -256,6 +261,7 @@ export function clearAllWlpData(empresaId: string = 'demo'): void {
 
     keysToRemove.forEach(k => localStorage.removeItem(k));
     localStorage.setItem(`wlp_user_cleared_${empresaId}`, 'true');
+    invalidateJornadaMemoryCache(empresaId);
 
     if (db) {
       try {
@@ -379,6 +385,8 @@ export function clearWlpMonthData(empresaId: string = 'demo', targetMesAno: stri
     } catch (e) {}
   }
 
+  invalidateJornadaMemoryCache(empresaId);
+
   window.dispatchEvent(new Event('jornadas_updated'));
   window.dispatchEvent(new CustomEvent('jornadas_updated'));
   window.dispatchEvent(new Event('wlp_faturado_updated'));
@@ -426,9 +434,26 @@ export function calcularDuracaoHorasComIntervalo(horaInicio: string, horaFim: st
   return parseFloat(netHours.toFixed(2));
 }
 
+const memoryJornadasStore = new Map<string, JornadaRecord[]>();
+const memoryFaturadosStore = new Map<string, WlpDailyFaturadoRecord[]>();
+
+export function invalidateJornadaMemoryCache(empresaId?: string): void {
+  if (empresaId) {
+    memoryJornadasStore.delete(empresaId);
+    memoryFaturadosStore.delete(empresaId);
+  } else {
+    memoryJornadasStore.clear();
+    memoryFaturadosStore.clear();
+  }
+}
+
 export function getStoredJornadas(empresaId: string = 'demo'): JornadaRecord[] {
+  if (memoryJornadasStore.has(empresaId)) {
+    return memoryJornadasStore.get(empresaId)!;
+  }
+
   const key = `colaboradores_jornadas_${empresaId}`;
-  const isUserCleared = typeof localStorage !== 'undefined' && localStorage.getItem(`wlp_user_cleared_${empresaId}`) === 'true';
+  const isUserCleared = localStorage.getItem(`wlp_user_cleared_${empresaId}`) === 'true';
   let baseJornadas: JornadaRecord[] = [];
 
   try {
@@ -439,21 +464,22 @@ export function getStoredJornadas(empresaId: string = 'demo'): JornadaRecord[] {
   } catch (e) {}
 
   if (isUserCleared && baseJornadas.length === 0) {
+    memoryJornadasStore.set(empresaId, []);
     return [];
   }
 
-  // Self-healing & continuous sync: Always ensure official seed dataset (January through August 2026) is merged
+  // Self-healing: Merge with the official retroactive seed dataset (January through August 2026)
   if (!isUserCleared) {
     const seed = buildRetroactiveSeedJornadas(empresaId);
     const existingMap = new Map<string, JornadaRecord>();
 
-    // 1. Seed official journeys first
+    // Seed first
     seed.jornadas.forEach(sj => {
       const norm = normalizeCollaboratorName(sj.colaboradorNome);
       existingMap.set(`${sj.dataISO}__${norm}`, sj);
     });
 
-    // 2. Overlay user stored journeys
+    // Existing / local modifications augment or override seed
     baseJornadas.forEach(j => {
       const norm = normalizeCollaboratorName(j.colaboradorNome);
       existingMap.set(`${j.dataISO}__${norm}`, j);
@@ -501,7 +527,9 @@ export function getStoredJornadas(empresaId: string = 'demo'): JornadaRecord[] {
   } catch (e) {}
 
   // Excluir rigorosamente todos os sábados que não foram expressamente autorizados
-  return baseJornadas.filter(j => !isDisallowedSaturday(j.dataISO, j.dataStr));
+  const finalJornadas = baseJornadas.filter(j => !isDisallowedSaturday(j.dataISO, j.dataStr));
+  memoryJornadasStore.set(empresaId, finalJornadas);
+  return finalJornadas;
 }
 
 export function saveJornadaRecord(record: JornadaRecord): void {
@@ -518,6 +546,7 @@ export function saveJornadaRecord(record: JornadaRecord): void {
     updated = [record, ...list];
   }
 
+  memoryJornadasStore.set(empresaId, updated);
   setCachedLocalStorage(key, updated);
 
   // Sync to Firestore if available
@@ -543,7 +572,8 @@ export function saveMultipleJornadas(records: JornadaRecord[], empresaId: string
   const updated = Array.from(mergedMap.values());
   updated.sort((a, b) => new Date(b.dataISO + 'T' + b.horaInicio).getTime() - new Date(a.dataISO + 'T' + a.horaInicio).getTime());
 
-  localStorage.setItem(key, JSON.stringify(updated));
+  memoryJornadasStore.set(empresaId, updated);
+  setCachedLocalStorage(key, updated);
 
   window.dispatchEvent(new Event('jornadas_updated'));
   window.dispatchEvent(new Event('storage'));
@@ -553,7 +583,8 @@ export function deleteJornadaRecord(id: string, empresaId: string = 'demo'): voi
   const key = `colaboradores_jornadas_${empresaId}`;
   const current = getStoredJornadas(empresaId);
   const updated = current.filter(r => r.id !== id);
-  localStorage.setItem(key, JSON.stringify(updated));
+  memoryJornadasStore.set(empresaId, updated);
+  setCachedLocalStorage(key, updated);
 
   if (db) {
     try {
@@ -768,9 +799,13 @@ const DEFAULT_DAILY_FATURADO_SEED: WlpDailyFaturadoRecord[] = [
 ];
 
 export function getStoredDailyFaturado(empresaId: string = 'demo'): WlpDailyFaturadoRecord[] {
+  if (memoryFaturadosStore.has(empresaId)) {
+    return memoryFaturadosStore.get(empresaId)!;
+  }
+
   const key1 = `wlp_daily_faturados_${empresaId}`;
   const key2 = `wlp_daily_faturado_${empresaId}`;
-  const isUserCleared = typeof localStorage !== 'undefined' && localStorage.getItem(`wlp_user_cleared_${empresaId}`) === 'true';
+  const isUserCleared = localStorage.getItem(`wlp_user_cleared_${empresaId}`) === 'true';
   let baseFaturados: WlpDailyFaturadoRecord[] = [];
 
   try {
@@ -789,30 +824,26 @@ export function getStoredDailyFaturado(empresaId: string = 'demo'): WlpDailyFatu
   } catch (e) {}
 
   if (isUserCleared && baseFaturados.length === 0) {
+    memoryFaturadosStore.set(empresaId, []);
     return [];
   }
 
-  // Self-healing & continuous sync: Merge with the official seed faturados (January through August 2026)
+  // Self-healing: Merge with the official seed faturados (January through August 2026)
   if (!isUserCleared) {
     const seed = buildRetroactiveSeedJornadas(empresaId);
     const fatMap = new Map<string, WlpDailyFaturadoRecord>();
 
-    // 1. Seed official faturados first
+    // Seed first
     seed.faturados.forEach(sf => {
       if (!isDisallowedSaturday(sf.dataISO, sf.dataStr)) {
         fatMap.set(sf.dataISO, sf);
       }
     });
 
-    // 2. Overlay user stored records
+    // Existing / local records augment or override seed
     baseFaturados.forEach(f => {
-      if (f.dataISO && !isDisallowedSaturday(f.dataISO, f.dataStr)) {
-        const official = fatMap.get(f.dataISO);
-        if (official && (!f.volumeHL || f.volumeHL <= 0)) {
-          // preserve official positive volume
-        } else {
-          fatMap.set(f.dataISO, f);
-        }
+      if (!isDisallowedSaturday(f.dataISO, f.dataStr)) {
+        fatMap.set(f.dataISO, f);
       }
     });
 
@@ -823,6 +854,7 @@ export function getStoredDailyFaturado(empresaId: string = 'demo'): WlpDailyFatu
     } catch (e) {}
   }
 
+  memoryFaturadosStore.set(empresaId, baseFaturados);
   return baseFaturados;
 }
 
@@ -841,6 +873,7 @@ export function saveDailyFaturadoRecord(record: WlpDailyFaturadoRecord): void {
     updated = [record, ...current];
   }
 
+  memoryFaturadosStore.set(empresaId, updated);
   localStorage.setItem(key1, JSON.stringify(updated));
   localStorage.setItem(key2, JSON.stringify(updated));
 
@@ -861,6 +894,7 @@ export function deleteDailyFaturadoRecord(id: string, empresaId: string = 'demo'
   const current = getStoredDailyFaturado(empresaId);
   const updated = current.filter(r => r.id !== id);
 
+  memoryFaturadosStore.set(empresaId, updated);
   localStorage.setItem(key1, JSON.stringify(updated));
   localStorage.setItem(key2, JSON.stringify(updated));
 
@@ -2077,8 +2111,9 @@ export function commitWlpImport(
   const updatedJornadasList = Array.from(updatedMap.values());
   updatedJornadasList.sort((a, b) => new Date(b.dataISO + 'T' + (b.horaInicio || '00:00')).getTime() - new Date(a.dataISO + 'T' + (a.horaInicio || '00:00')).getTime());
 
-  localStorage.setItem(`colaboradores_jornadas_${empresaId}`, JSON.stringify(updatedJornadasList));
-  localStorage.setItem(`jornadas_colaboradores_${empresaId}`, JSON.stringify(updatedJornadasList));
+  memoryJornadasStore.set(empresaId, updatedJornadasList);
+  setCachedLocalStorage(`colaboradores_jornadas_${empresaId}`, updatedJornadasList);
+  setCachedLocalStorage(`jornadas_colaboradores_${empresaId}`, updatedJornadasList);
 
   // Permanently store in user imported dataset registry
   try {

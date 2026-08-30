@@ -225,7 +225,11 @@ export function isPanelAllowedForUser(
     panelId === 'semana-qualidade' ||
     panelId === 'armazem-facil-padrao-02' ||
     panelId === 'dto-diagnostico' ||
-    panelId === 'dto'
+    panelId === 'dto' ||
+    panelId === 'pacote-prejuizo' ||
+    panelId === 'trocas-reposicoes' ||
+    panelId === 'retorno-de-rota' ||
+    panelId === 'blitz-de-puxada'
   ) {
     return true;
   }

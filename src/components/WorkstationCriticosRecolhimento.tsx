@@ -23,13 +23,20 @@ import {
   Calendar,
   Layers,
   MapPin,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  Factory,
+  FileCheck,
+  ExternalLink
 } from 'lucide-react';
 import { PRODUCTS } from '../planosData';
 import { syncFefoDemandsFromValidades, getStoredFefoDemands, updateFefoDemandStatus } from '../utils/fefoDemandManager';
 import { calculateStockAgeIndex } from '../utils/calculateStockAgeIndex';
 import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
+import { savePncItem, saveDespejoTask, PncItem } from '../utils/pncManager';
+import { PncRecord, getStoredPncRecords, savePncRecords } from '../utils/gestaoPncManager';
+import { useVendaMedia030519, get030519DataForSku } from '../utils/vendaMedia030519';
 
 interface WorkstationCriticosProps {
   validadesList: ValidadeRow[];
@@ -37,6 +44,30 @@ interface WorkstationCriticosProps {
   empresa?: Empresa | null;
   onRefresh?: () => void;
 }
+
+const FABRICAS_AMBEV = [
+  'ITAPISSUMA',
+  'AGUDOS',
+  'JACAREI',
+  'ANAPOLIS',
+  'AQUIDAUANA',
+  'BRASILIA',
+  'CAMACARI',
+  'CURITIBA',
+  'JAGUARIUNA',
+  'JUNDIAI',
+  'LAGES',
+  'MANAUS',
+  'PASSO FUNDO',
+  'PERNAMBUCO',
+  'PIRACICABA',
+  'PONTAL',
+  'RIO DE JANEIRO',
+  'SETE LAGOAS',
+  'TERESINA',
+  'UBERLANDIA',
+  'VIAMAO'
+];
 
 export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps> = ({
   validadesList,
@@ -67,6 +98,35 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     onConfirm: () => Promise<void> | void;
   } | null>(null);
 
+  // PNC Information Modal State
+  const [pncModalItem, setPncModalItem] = useState<{
+    codigo: string;
+    descricao: string;
+    validade: string;
+    quantidade: number;
+    fatorHecto: number;
+    volumeHl: number;
+    valorTotal: number;
+    lote: string;
+    localizacao: string;
+    bloco: string;
+    diasParaVencer: number;
+    nBloqueio: string;
+    fabOrigem: string;
+    nfEntrada: string;
+    nfSaida: string;
+    dataChegada: string;
+    dataBloqueio: string;
+    motivo: string;
+    origemBloqueio: string;
+    emissor: string;
+    responsavel: string;
+    acao: string;
+    status: string;
+    pallets: number;
+    observacao: string;
+  } | null>(null);
+
   const showToast = (text: string, type: 'success' | 'warning' | 'info' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 3800);
@@ -83,8 +143,22 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     }
   });
 
+  // Custom NF mappings
+  const [customNfs, setCustomNfs] = useState<Record<string, { nfEntrada?: string; nfSaida?: string }>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`workstation_nfs_${companyId}`) || '{}');
+    } catch {
+      return {};
+    }
+  });
+
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingQtyVal, setEditingQtyVal] = useState<string>('');
+
+  const [editingNfKey, setEditingNfKey] = useState<string | null>(null);
+  const [editingNfSaidaVal, setEditingNfSaidaVal] = useState<string>('');
+
+  const { getItem: get030519Item } = useVendaMedia030519();
 
   const criticosUnificados = useMemo(() => {
     const today = new Date();
@@ -208,9 +282,14 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
       const qty = customQuantities[itemKey] ? customQuantities[itemKey].qty : item.quantidade;
       const fatorHecto = item.fatorHecto || 0.072;
       const volumeHl = qty * fatorHecto;
-      // Venda média calculada com base na saída estimada de estoque ou consumo histórico por SKU
-      const vendaMedia = Math.max(5, Math.round(qty / Math.max(4, item.diasParaVencer > 0 ? item.diasParaVencer : 10)));
-      const diasEstoque = (qty / vendaMedia).toFixed(1);
+      
+      // Venda média prioritariamente extraída do relatório oficial 03.05.19
+      const item030519 = get030519Item(item.codigo) || get030519DataForSku(item.codigo);
+      const isFrom030519 = !!(item030519 && item030519.vendaMediaDiaria > 0);
+      const vendaMedia = isFrom030519
+        ? Math.round(item030519.vendaMediaDiaria * 10) / 10
+        : Math.max(1, Math.round(qty / Math.max(4, item.diasParaVencer > 0 ? item.diasParaVencer : 10)));
+      const diasEstoque = (qty / Math.max(0.1, vendaMedia)).toFixed(1);
 
       if (customQuantities[itemKey]) {
         const custom = customQuantities[itemKey];
@@ -220,6 +299,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
           valorTotal: custom.qty * item.precoUnitario,
           volumeHl,
           vendaMedia,
+          isFrom030519,
           diasEstoque,
           qtdAtualizadaLog: custom
         };
@@ -228,6 +308,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         ...item,
         volumeHl,
         vendaMedia,
+        isFrom030519,
         diasEstoque
       };
     });
@@ -235,7 +316,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     // Return unifies items without generating mock fallback items
     list.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
     return list;
-  }, [validadesList, customQuantities]);
+  }, [validadesList, customQuantities, get030519Item]);
 
   // Active FEFO demands from storage
   const activeDemands = useMemo(() => {
@@ -290,6 +371,143 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     });
   };
 
+  const handleSaveNf = (key: string) => {
+    setCustomNfs(prev => {
+      const next = {
+        ...prev,
+        [key]: {
+          ...prev[key],
+          nfSaida: editingNfSaidaVal.trim() || undefined
+        }
+      };
+      localStorage.setItem(`workstation_nfs_${companyId}`, JSON.stringify(next));
+      return next;
+    });
+    setEditingNfKey(null);
+    showToast('Nota Fiscal atualizada com sucesso!', 'success');
+  };
+
+  const handleOpenPncModal = (item: any) => {
+    const itemKey = `${item.codigo}_${item.validade}`;
+    const nfs = customNfs[itemKey] || {};
+    const nfSaida = nfs.nfSaida || (item as any).nfSaida || (item as any).nf || '';
+    const nBloq = `BLQ-${item.codigo}-${Date.now().toString().slice(-5)}`;
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const hl = item.volumeHl ? Number(item.volumeHl) : Number((item.quantidade * (item.fatorHecto || 0.072)).toFixed(2));
+    const plts = Math.max(1, Math.ceil(item.quantidade / 72));
+
+    setPncModalItem({
+      codigo: item.codigo,
+      descricao: item.descricao,
+      validade: item.validade,
+      quantidade: item.quantidade,
+      fatorHecto: item.fatorHecto || 0.072,
+      volumeHl: hl,
+      valorTotal: item.valorTotal || (item.quantidade * 85),
+      lote: item.lote || 'LOTE-PADRAO',
+      localizacao: item.localizacao || 'Armazém Central',
+      bloco: item.bloco || 'Bloco A',
+      diasParaVencer: item.diasParaVencer,
+      nBloqueio: nBloq,
+      fabOrigem: 'ITAPISSUMA',
+      nfEntrada: '',
+      nfSaida: String(nfSaida),
+      dataChegada: todayStr,
+      dataBloqueio: todayStr,
+      motivo: 'VALIDADE CRÍTICA (<30D) - RISCO DE PERDA DPO',
+      origemBloqueio: 'WORKSTATION CCO / PATIO',
+      emissor: user?.nome || 'Conferente CCO',
+      responsavel: user?.nome || 'LOGÍSTICA / PNC',
+      acao: 'DEVOLUÇÃO ORIGEM',
+      status: 'BLOQUEADO',
+      pallets: plts,
+      observacao: 'Item recolhido na janela crítica via Workstation de Críticos para quarentena e devolução imediata.'
+    });
+  };
+
+  const handleConfirmPncModal = async () => {
+    if (!pncModalItem) return;
+    setIsSubmittingBulk(true);
+
+    try {
+      const key = `${pncModalItem.codigo}_${pncModalItem.validade}`;
+      setTratadosSet(prev => new Set(prev).add(key));
+
+      // 1. Save in official GestaoPnc dataset (appears in GestaoPncPlatform charts & tables)
+      const newPncRecord: PncRecord = {
+        n_bloqueio: pncModalItem.nBloqueio,
+        opera_o: 'GUARABIRA',
+        m_s: new Date().toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', ''),
+        produto: isNaN(Number(pncModalItem.codigo)) ? pncModalItem.codigo : Number(pncModalItem.codigo),
+        descri_o: pncModalItem.descricao,
+        fab_origem: pncModalItem.fabOrigem,
+        nf: pncModalItem.nfSaida || '-',
+        data_da_chegada: pncModalItem.dataChegada,
+        data_do_bloqueio: pncModalItem.dataBloqueio,
+        motivo: pncModalItem.motivo,
+        emissor: pncModalItem.emissor,
+        origem_do_bloqueio: pncModalItem.origemBloqueio,
+        qtde_bloq_cx: pncModalItem.quantidade,
+        qtde_bloq_hl: pncModalItem.volumeHl,
+        valor: pncModalItem.valorTotal,
+        a_o: pncModalItem.acao,
+        respons_vel: pncModalItem.responsavel,
+        status: pncModalItem.status,
+        qtde_retida: pncModalItem.status === 'BLOQUEADO' ? pncModalItem.quantidade : null,
+        qtd_em_plts: pncModalItem.pallets,
+        qtde_liberada: null,
+        data_da_libera_o: null,
+        dias_no_pnc: 0,
+        observa_o: pncModalItem.observacao
+      };
+
+      const currentPncRecords = getStoredPncRecords(companyId);
+      savePncRecords([newPncRecord, ...currentPncRecords], companyId);
+
+      // 2. Save in ShelfLifePncTab item store
+      savePncItem({
+        codigo: pncModalItem.codigo,
+        descricao: pncModalItem.descricao,
+        validade: pncModalItem.validade,
+        lote: pncModalItem.lote,
+        quantidade: pncModalItem.quantidade,
+        hectolitros: pncModalItem.volumeHl,
+        valorTotal: pncModalItem.valorTotal,
+        localizacaoAnterior: `${pncModalItem.localizacao} (${pncModalItem.bloco})`,
+        dataEntradaPnc: pncModalItem.dataBloqueio,
+        motivo: pncModalItem.motivo,
+        registradoPor: pncModalItem.emissor,
+        status: 'Em Quarentena / PNC',
+        observacoes: pncModalItem.observacao
+      }, companyId);
+
+      // 3. Save NF mapping for cards
+      if (pncModalItem.nfEntrada || pncModalItem.nfSaida) {
+        setCustomNfs(prev => {
+          const next = { ...prev, [key]: { nfEntrada: pncModalItem.nfEntrada, nfSaida: pncModalItem.nfSaida } };
+          localStorage.setItem(`workstation_nfs_${companyId}`, JSON.stringify(next));
+          return next;
+        });
+      }
+
+      // 4. Update treated list in storage
+      const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
+      list.push({ ...pncModalItem, data: new Date().toISOString(), user: user?.nome || 'Operador' });
+      localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
+
+      // 5. Fire global events for real-time reactivity
+      window.dispatchEvent(new CustomEvent('pnc_updated'));
+      window.dispatchEvent(new CustomEvent('validades_updated'));
+      window.dispatchEvent(new CustomEvent('local_data_changed'));
+
+      showToast(`⚠️ SKU ${pncModalItem.codigo} (${pncModalItem.nBloqueio}) registrado com sucesso no PNC e na Guia Shelf-Life & PNC!`, 'success');
+      setPncModalItem(null);
+      if (onRefresh) onRefresh();
+    } finally {
+      setIsSubmittingBulk(false);
+    }
+  };
+
   const handleEncaminharDespejo = async (codigo: string, descricao: string, validade?: string) => {
     const key = validade ? `${codigo}_${validade}` : codigo;
     if (submittingActionKey === key) return;
@@ -297,10 +515,60 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     setSubmittingActionKey(key);
     try {
       setTratadosSet(prev => new Set(prev).add(key));
+      const targetItem = criticosUnificados.find(i => i.codigo === codigo && (!validade || i.validade === validade));
+      const qty = targetItem ? targetItem.quantidade : 1;
+      const lote = targetItem ? targetItem.lote : 'LOTE-CCO';
+
+      // 1. Create official Despejo task for Ajudante de Armazém (appears in Produtividade Ajudante)
+      saveDespejoTask({
+        origem: 'Workstation',
+        codigo,
+        descricao,
+        lote,
+        validade: validade || new Date().toISOString().substring(0, 10),
+        quantidade: qty,
+        motivo: 'Recolhimento Crítico via Workstation CCO',
+        solicitadoPor: user?.nome || 'Operador Workstation',
+        prioridade: 'Alta',
+        status: 'Pendente'
+      }, companyId);
+
+      // 2. Add to despejados list so it immediately disappears from Gestão de Escoamento
+      const despejadosKey = `armazem_escoamento_despejados_${companyId}`;
+      let despejadosList: string[] = [];
+      try {
+        despejadosList = JSON.parse(localStorage.getItem(despejadosKey) || '[]');
+      } catch (e) {}
+      if (!despejadosList.includes(key)) despejadosList.push(key);
+      if (!despejadosList.includes(codigo)) despejadosList.push(codigo);
+      localStorage.setItem(despejadosKey, JSON.stringify(despejadosList));
+
+      // 3. Mark as despejo in armazem_validades
+      const validadesKey = `armazem_validades_${companyId}`;
+      try {
+        const rawList: ValidadeRow[] = JSON.parse(localStorage.getItem(validadesKey) || '[]');
+        const updatedList = rawList.map(v => {
+          const vCode = String(v.codigo || '').trim();
+          const vVal = v.validade || new Date().toISOString().substring(0, 10);
+          if (vCode === codigo && (!validade || vVal === validade)) {
+            return { ...v, caixa: 0, quantidade: 0, palhete: 0, lastro: 0, localizacao: 'despejo' };
+          }
+          return v;
+        });
+        localStorage.setItem(validadesKey, JSON.stringify(updatedList));
+      } catch (e) {}
+
       const list = JSON.parse(localStorage.getItem(`despejo_encaminhados_${companyId}`) || '[]');
       list.push({ codigo, descricao, validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
       localStorage.setItem(`despejo_encaminhados_${companyId}`, JSON.stringify(list));
-      showToast(`🗑️ SKU ${codigo} - ${descricao} encaminhado para Despejo!`, 'warning');
+
+      // 4. Fire global events
+      window.dispatchEvent(new CustomEvent('despejo_tasks_updated'));
+      window.dispatchEvent(new CustomEvent('validades_updated'));
+      window.dispatchEvent(new CustomEvent('local_data_changed'));
+      window.dispatchEvent(new CustomEvent('pnc_updated'));
+
+      showToast(`🗑️ SKU ${codigo} encaminhado para Despejo! Tarefa gerada na Guia Produtividade Ajudante e item removido do Escoamento.`, 'warning');
       if (onRefresh) onRefresh();
     } finally {
       setSubmittingActionKey(null);
@@ -308,19 +576,21 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
   };
 
   const handleEncaminharPNC = async (codigo: string, descricao: string, validade?: string) => {
-    const key = validade ? `${codigo}_${validade}` : codigo;
-    if (submittingActionKey === key) return;
-
-    setSubmittingActionKey(key);
-    try {
-      setTratadosSet(prev => new Set(prev).add(key));
-      const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
-      list.push({ codigo, descricao, validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
-      localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
-      showToast(`⚠️ SKU ${codigo} - ${descricao} encaminhado para PNC!`, 'warning');
-      if (onRefresh) onRefresh();
-    } finally {
-      setSubmittingActionKey(null);
+    const targetItem = criticosUnificados.find(i => i.codigo === codigo && (!validade || i.validade === validade));
+    if (targetItem) {
+      handleOpenPncModal(targetItem);
+    } else {
+      handleOpenPncModal({
+        codigo,
+        descricao,
+        validade: validade || new Date().toISOString().substring(0, 10),
+        quantidade: 1,
+        valorTotal: 85,
+        lote: 'LOTE-CCO',
+        localizacao: 'Workstation CCO',
+        bloco: 'Bloco A',
+        diasParaVencer: 30
+      });
     }
   };
 
@@ -333,7 +603,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     setConfirmModal({
       isOpen: true,
       title: 'Confirmar Encaminhamento para Despejo',
-      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para o setor de DESPEJO? Esta ação atualizará o status de todos os itens.`,
+      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para o setor de DESPEJO? Serão geradas tarefas operacionais para a equipe de Ajudantes.`,
       confirmText: 'Sim, Encaminhar Despejo',
       variant: 'danger',
       onConfirm: async () => {
@@ -341,13 +611,25 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         try {
           criticosUnificados.forEach(i => {
             setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+            saveDespejoTask({
+              origem: 'Workstation',
+              codigo: i.codigo,
+              descricao: i.descricao,
+              lote: i.lote,
+              validade: i.validade,
+              quantidade: i.quantidade,
+              motivo: 'Recolhimento Crítico em Massa via Workstation CCO',
+              solicitadoPor: user?.nome || 'Operador Workstation',
+              prioridade: 'Alta',
+              status: 'Pendente'
+            }, companyId);
           });
           const list = JSON.parse(localStorage.getItem(`despejo_encaminhados_${companyId}`) || '[]');
           criticosUnificados.forEach(i => {
             list.push({ codigo: i.codigo, descricao: i.descricao, validade: i.validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
           });
           localStorage.setItem(`despejo_encaminhados_${companyId}`, JSON.stringify(list));
-          showToast(`🗑️ Lista completa (${criticosUnificados.length} SKUs) encaminhada para DESPEJO!`, 'success');
+          showToast(`🗑️ Lista completa (${criticosUnificados.length} SKUs) enviada para DESPEJO! Tarefas geradas para os Ajudantes.`, 'success');
           if (onRefresh) onRefresh();
         } finally {
           setIsSubmittingBulk(false);
@@ -366,7 +648,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     setConfirmModal({
       isOpen: true,
       title: 'Confirmar Encaminhamento para PNC',
-      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para PRODUTOS NÃO CONFORMES (PNC)?`,
+      description: `Deseja realmente encaminhar todos os ${criticosUnificados.length} itens críticos (≤ 45 dias) da lista para PRODUTOS NÃO CONFORMES (PNC)? Todos ficarão registrados na Guia Shelf-Life & PNC.`,
       confirmText: 'Sim, Encaminhar PNC',
       variant: 'warning',
       onConfirm: async () => {
@@ -374,13 +656,25 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         try {
           criticosUnificados.forEach(i => {
             setTratadosSet(prev => new Set(prev).add(`${i.codigo}_${i.validade}`));
+            savePncItem({
+              codigo: i.codigo,
+              descricao: i.descricao,
+              validade: i.validade,
+              lote: i.lote,
+              quantidade: i.quantidade,
+              localizacaoAnterior: `${i.localizacao} (${i.bloco})`,
+              dataEntradaPnc: new Date().toISOString().substring(0, 10),
+              motivo: 'Recolhimento em Massa via Workstation CCO (Validade Crítica)',
+              registradoPor: user?.nome || 'Operador Workstation',
+              status: 'Em Quarentena / PNC'
+            }, companyId);
           });
           const list = JSON.parse(localStorage.getItem(`pnc_encaminhados_${companyId}`) || '[]');
           criticosUnificados.forEach(i => {
             list.push({ codigo: i.codigo, descricao: i.descricao, validade: i.validade, data: new Date().toISOString(), user: user?.nome || 'Operador' });
           });
           localStorage.setItem(`pnc_encaminhados_${companyId}`, JSON.stringify(list));
-          showToast(`⚠️ Lista completa (${criticosUnificados.length} SKUs) encaminhada para PNC!`, 'success');
+          showToast(`⚠️ Lista completa (${criticosUnificados.length} SKUs) registrada na Área de PNC!`, 'success');
           if (onRefresh) onRefresh();
         } finally {
           setIsSubmittingBulk(false);
@@ -494,6 +788,321 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
               >
                 {isSubmittingBulk && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {confirmModal.confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL OFICIAL: ENCAMINHAMENTO PARA PNC & SHELF-LIFE */}
+      {pncModalItem && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0f172a] border border-amber-500/40 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]">
+            
+            {/* Header */}
+            <div className="bg-linear-to-r from-amber-600 to-amber-700 px-5 py-4 text-white flex items-center justify-between shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <ShieldAlert className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2">
+                    Encaminhamento para PNC & Shelf-Life
+                  </h3>
+                  <p className="text-xs text-amber-100 font-medium">
+                    Preencha as informações necessárias para registrar na Tabela de PNC e Shelf-Life
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPncModalItem(null)}
+                className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content / Form */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs">
+              
+              {/* Resumo do Produto */}
+              <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] uppercase font-black tracking-wider text-amber-800 dark:text-amber-400">
+                    Produto Selecionado
+                  </div>
+                  <div className="text-sm font-black text-slate-900 dark:text-white">
+                    #{pncModalItem.codigo} - {pncModalItem.descricao}
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-mono mt-0.5">
+                    Lote: <strong>{pncModalItem.lote}</strong> | Validade: <strong>{pncModalItem.validade}</strong> ({pncModalItem.diasParaVencer} dias restantes)
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-500 uppercase block font-bold">Estoque Físico</span>
+                  <span className="text-sm font-mono font-black text-amber-700 dark:text-amber-400">
+                    {pncModalItem.quantidade} cx ({pncModalItem.volumeHl} HL)
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid de Campos Oficiais */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                
+                {/* Nº Bloqueio */}
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Nº do Bloqueio *
+                  </label>
+                  <input
+                    type="text"
+                    value={pncModalItem.nBloqueio}
+                    onChange={e => setPncModalItem({ ...pncModalItem, nBloqueio: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                    placeholder="Ex: BLQ-038291"
+                  />
+                </div>
+
+                {/* Fábrica / Fornecedor Origem */}
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Fábrica / Origem (Fornecedor) *
+                  </label>
+                  <input
+                    type="text"
+                    list="fabricas-list"
+                    value={pncModalItem.fabOrigem}
+                    onChange={e => setPncModalItem({ ...pncModalItem, fabOrigem: e.target.value.toUpperCase() })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                    placeholder="Ex: ITAPISSUMA, AGUDOS..."
+                  />
+                  <datalist id="fabricas-list">
+                    {FABRICAS_AMBEV.map(fab => (
+                      <option key={fab} value={fab} />
+                    ))}
+                  </datalist>
+                </div>
+
+                {/* NF Saída / Tratativa */}
+                <div className="col-span-2">
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Nota Fiscal (Saída / Devolução)
+                  </label>
+                  <input
+                    type="text"
+                    value={pncModalItem.nfSaida}
+                    onChange={e => setPncModalItem({ ...pncModalItem, nfSaida: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                    placeholder="Ex: 489201 (Opcional se ainda não faturada)"
+                  />
+                </div>
+
+                {/* Quantidade Bloqueada (cx) & Pallets */}
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Quantidade Bloqueada (Caixas) *
+                  </label>
+                  <input
+                    type="number"
+                    value={pncModalItem.quantidade}
+                    onChange={e => {
+                      const q = Number(e.target.value) || 0;
+                      const hl = Number((q * pncModalItem.fatorHecto).toFixed(2));
+                      const pl = Math.max(1, Math.ceil(q / 72));
+                      setPncModalItem({
+                        ...pncModalItem,
+                        quantidade: q,
+                        volumeHl: hl,
+                        pallets: pl,
+                        valorTotal: q * 85
+                      });
+                    }}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Qtd em Pallets (PLTS) *
+                  </label>
+                  <input
+                    type="number"
+                    value={pncModalItem.pallets}
+                    onChange={e => setPncModalItem({ ...pncModalItem, pallets: Number(e.target.value) || 1 })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Motivo do Bloqueio */}
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Motivo do Bloqueio *
+                  </label>
+                  <select
+                    value={pncModalItem.motivo}
+                    onChange={e => setPncModalItem({ ...pncModalItem, motivo: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  >
+                    <option value="VALIDADE CRÍTICA (<30D) - RISCO DE PERDA DPO">VALIDADE CRÍTICA (&lt;30D) - RISCO DE PERDA DPO</option>
+                    <option value="AVARIA EM PALETE / DEFORMAÇÃO">AVARIA EM PALETE / DEFORMAÇÃO</option>
+                    <option value="LOTE VENCIDO NA ROTA">LOTE VENCIDO NA ROTA</option>
+                    <option value="BLOQUEIO QUALIDADE AMBEV / REANÁLISE">BLOQUEIO QUALIDADE AMBEV / REANÁLISE</option>
+                    <option value="NÃO CONFORMIDADE DE EMBALAGEM / VAZAMENTO">NÃO CONFORMIDADE DE EMBALAGEM / VAZAMENTO</option>
+                    <option value="DESVIO DE TEMPERATURA / ARMAZENAGEM">DESVIO DE TEMPERATURA / ARMAZENAGEM</option>
+                  </select>
+                </div>
+
+                {/* Ação Proposta & Status */}
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Ação Proposta *
+                  </label>
+                  <select
+                    value={pncModalItem.acao}
+                    onChange={e => setPncModalItem({ ...pncModalItem, acao: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  >
+                    <option value="DEVOLUÇÃO ORIGEM">DEVOLUÇÃO ORIGEM</option>
+                    <option value="DESPEJO AUTORIZADO">DESPEJO AUTORIZADO</option>
+                    <option value="REANÁLISE QUALIDADE">REANÁLISE QUALIDADE</option>
+                    <option value="REPACK / SEPARAÇÃO">REPACK / SEPARAÇÃO</option>
+                    <option value="QUARENTENA PREVENTIVA">QUARENTENA PREVENTIVA</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Status do Item *
+                  </label>
+                  <select
+                    value={pncModalItem.status}
+                    onChange={e => setPncModalItem({ ...pncModalItem, status: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  >
+                    <option value="BLOQUEADO">BLOQUEADO</option>
+                    <option value="EM QUARENTENA">EM QUARENTENA</option>
+                    <option value="DEVOLUÇÃO ORIGEM">DEVOLUÇÃO ORIGEM (Devolvido)</option>
+                    <option value="LIBERADO">LIBERADO</option>
+                  </select>
+                </div>
+
+                {/* Emissor & Responsável */}
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Emissor (Conferente / CCO)
+                  </label>
+                  <input
+                    type="text"
+                    value={pncModalItem.emissor}
+                    onChange={e => setPncModalItem({ ...pncModalItem, emissor: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Responsável Acompanhamento
+                  </label>
+                  <input
+                    type="text"
+                    value={pncModalItem.responsavel}
+                    onChange={e => setPncModalItem({ ...pncModalItem, responsavel: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Observações */}
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Observações Operacionais
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={pncModalItem.observacao}
+                    onChange={e => setPncModalItem({ ...pncModalItem, observacao: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                    placeholder="Informações adicionais para a equipe de qualidade e logística..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 px-5 py-3.5 flex items-center justify-between gap-3">
+              <span className="text-[11px] text-slate-500 font-medium">
+                Será adicionado instantaneamente às tabelas de PNC e Shelf-Life.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPncModalItem(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingBulk}
+                  onClick={handleConfirmPncModal}
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-amber-600/30 transition-all cursor-pointer"
+                >
+                  {isSubmittingBulk && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Confirmar e Enviar para PNC
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK EDIT MODAL DE NOTA FISCAL */}
+      {editingNfKey && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" /> Editar Nota Fiscal
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingNfKey(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Nota Fiscal (Saída / Tratativa):
+                </label>
+                <input
+                  type="text"
+                  value={editingNfSaidaVal}
+                  onChange={e => setEditingNfSaidaVal(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
+                  placeholder="Ex: 489201"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingNfKey(null)}
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveNf(editingNfKey)}
+                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase tracking-wider"
+              >
+                Salvar NF
               </button>
             </div>
           </div>
@@ -769,6 +1378,32 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                   )}
                 </div>
 
+                {/* NOTA FISCAL (SAÍDA / TRATATIVA) BADGE */}
+                {(() => {
+                  const nfs = customNfs[itemKey] || {};
+                  const nfSaidaDisplay = nfs.nfSaida || (item as any).nfSaida || (item as any).nf || '-';
+
+                  return (
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 text-[10px]">
+                      <div className="flex items-center gap-1.5 font-mono font-bold text-slate-700 dark:text-slate-300">
+                        <FileText className="w-3.5 h-3.5 text-[#1e56f0] shrink-0" />
+                        <span>NF: <strong className="text-slate-900 dark:text-white font-black">{nfSaidaDisplay}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingNfKey(itemKey);
+                          setEditingNfSaidaVal(nfSaidaDisplay === '-' ? '' : nfSaidaDisplay);
+                        }}
+                        className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 rounded-md cursor-pointer transition-colors ml-0.5"
+                        title="Editar Nota Fiscal"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 {/* KEY DATA METRICS (2-COLUMN GRID WITH CRISP HIGH CONTRAST) */}
                 <div className="grid grid-cols-2 gap-2 bg-slate-100/90 dark:bg-slate-950/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                   {/* Vencimento & Dias */}
@@ -847,6 +1482,11 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                   <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-0.5">
                     <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider flex items-center gap-1">
                       <TrendingUp className="w-3 h-3 text-slate-500" /> Venda Média
+                      {(item as any).isFrom030519 && (
+                        <span className="text-[8px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 px-1 py-0.2 rounded font-bold">
+                          03.05.19
+                        </span>
+                      )}
                     </span>
                     <div className="font-mono font-black text-slate-900 dark:text-slate-100 text-xs">
                       {vendaMediaVal} <span className="text-[9px] text-slate-500 font-normal">cx/dia</span>
@@ -923,6 +1563,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                   <th className="py-3 px-3 text-center">Farol</th>
                   <th className="py-3 px-3 text-center">Código</th>
                   <th className="py-3 px-4 text-center">Produto / Descrição</th>
+                  <th className="py-3 px-3 text-center">Nota Fiscal (Ent / Saí)</th>
                   <th className="py-3 px-3 text-center">Qtd Total (cx / HL)</th>
                   <th className="py-3 px-3 text-center">Venda Média (cx/dia)</th>
                   <th className="py-3 px-3 text-center">Vencimento</th>
@@ -942,6 +1583,9 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                   const volumeHlStr = (item as any).volumeHl ? (item as any).volumeHl.toFixed(2) : (item.quantidade * 0.072).toFixed(2);
                   const vendaMediaVal = (item as any).vendaMedia || Math.max(5, Math.round(item.quantidade / 6));
                   const diasEstoqueVal = (item as any).diasEstoque || (item.quantidade / vendaMediaVal).toFixed(1);
+                  const nfs = customNfs[itemKey] || {};
+                  const nfEntradaDisplay = nfs.nfEntrada || (item as any).nfEntrada || (item as any).nf || '1083968';
+                  const nfSaidaDisplay = nfs.nfSaida || (item as any).nfSaida || '-';
 
                   return (
                     <tr 
@@ -977,6 +1621,24 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                         <span className="truncate max-w-[240px] mx-auto block" title={item.descricao}>
                           {item.descricao}
                         </span>
+                      </td>
+
+                      {/* NOTA FISCAL */}
+                      <td className="py-3 px-3 text-center font-mono">
+                        <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                          <span>{nfSaidaDisplay}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNfKey(itemKey);
+                              setEditingNfSaidaVal(nfSaidaDisplay === '-' ? '' : nfSaidaDisplay);
+                            }}
+                            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                            title="Editar NF"
+                          >
+                            <Edit2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
                       </td>
 
                       {/* QUANTIDADE UNIFICADA (CX & HL) */}
@@ -1038,7 +1700,14 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                       {/* VENDA MÉDIA DIÁRIA */}
                       <td className="py-3 px-3 text-center font-mono">
                         <span className="text-slate-900 dark:text-white font-bold text-sm block">{vendaMediaVal}</span>
-                        <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase block">cx / dia</span>
+                        <div className="flex items-center justify-center gap-1 mt-0.5">
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 uppercase">cx / dia</span>
+                          {(item as any).isFrom030519 && (
+                            <span className="text-[8px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 px-1 py-0.2 rounded font-bold">
+                              03.05.19
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* VENCIMENTO */}

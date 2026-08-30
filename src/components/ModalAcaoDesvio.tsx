@@ -466,7 +466,7 @@ export const ModalAcaoDesvio: React.FC<ModalAcaoDesvioProps> = ({
                       type="text"
                       value={setor}
                       onChange={(e) => setSetor(e.target.value)}
-                      placeholder="Ex: Armazém Central - Rua A4 (ou B2, C1)"
+                      placeholder="Ex: Armazém Central - Rua 04"
                       className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white focus:border-red-500 focus:outline-none"
                       required
                     />

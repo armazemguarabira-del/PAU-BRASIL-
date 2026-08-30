@@ -556,32 +556,14 @@ export function normalizeToActionCorretiva(item: any): AcaoCorretiva | null {
 
 export function isSystemGeneratedOrSimulatedAction(item: any): boolean {
   if (!item) return true;
+  // Only remove explicit temporary mock test dummy seeds
+  if (item.isMockPlaceholderSeed === true) return true;
   const idStr = String(item.id || '').toLowerCase();
-  if (
-    idStr.startsWith('auto-') ||
-    idStr.startsWith('acao-2026-') ||
-    idStr.startsWith('acao-auto-') ||
-    idStr.startsWith('melhoria-auto-') ||
-    idStr.startsWith('acao-montagem-') ||
-    idStr.startsWith('acao-picking-') ||
-    idStr.startsWith('acao-repack-') ||
-    idStr.startsWith('acao-quebras-') ||
-    idStr.startsWith('acao-fefo-') ||
-    idStr.startsWith('mock-') ||
-    idStr.startsWith('seed-')
-  ) {
-    return true;
-  }
-  if (item.simulado === true || item.isAutomatica === true) return true;
-  if (item.origem === 'automatica' || item.origem === 'auto' || item.origem === 'sistema' || item.origem === 'simulado' || item.origem === 'seed') {
-    return true;
-  }
-  if (item.causaRaizDetalhe && typeof item.causaRaizDetalhe === 'string' && item.causaRaizDetalhe.includes('Ação gerada automaticamente')) return true;
-  if (item.comentarioOperador && typeof item.comentarioOperador === 'string' && item.comentarioOperador.includes('Gatilho automático')) return true;
+  if (idStr.startsWith('mock-seed-dummy-')) return true;
   return false;
 }
 
-// Get all actions unified from platform dashboards (strictly user-created, without simulated/auto dummy actions)
+// Get all actions unified from platform dashboards (strictly user-created and dashboard-generated actions)
 export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
   const mergedMap = new Map<string, AcaoCorretiva>();
 
@@ -604,6 +586,24 @@ export function getAcoesAll(specificMode?: DatabaseMode): AcaoCorretiva[] {
   } catch (e) {
     console.error('Error loading unified dashboard actions:', e);
   }
+
+  // 1.1 Also load from UNIFIED_ACOES_STORAGE_KEY if present
+  try {
+    const rawUnifiedStorage = localStorage.getItem('af_acoes_dpo_unificadas_2026');
+    if (rawUnifiedStorage) {
+      const parsed = JSON.parse(rawUnifiedStorage);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (!isSystemGeneratedOrSimulatedAction(item)) {
+            const norm = normalizeToActionCorretiva(item);
+            if (norm && norm.id && !isSystemGeneratedOrSimulatedAction(norm)) {
+              mergedMap.set(norm.id, norm);
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {}
 
   // 2. Load from Montagem / FastPicking
   try {
@@ -847,16 +847,16 @@ export function isActionMatchingProcessOrIndicator(acao: AcaoCorretiva, allowedK
       return allText.includes('despejo');
     }
     if (allowed === 'produtividade' || allowed === 'wlp') {
-      return allText.includes('produtividade') || allText.includes('wlp') || allText.includes('efm') || allText.includes('montagem') || allText.includes('absenteísmo');
+      return allText.includes('produtividade') || allText.includes('wlp') || allText.includes('efm') || allText.includes('montagem') || allText.includes('absenteísmo') || allText.includes('pnp');
     }
-    if (allowed === 'quebras' || allowed === 'gestão de quebras') {
-      return allText.includes('quebra') || allText.includes('wqi') || allText.includes('dqi') || allText.includes('total qi') || allText.includes('avaria') || allText.includes('refugo') || allText.includes('pnc') || allText.includes('fgli') || allText.includes('bloqueio') || allText.includes('segurança') || allText.includes('ergonomia');
+    if (allowed === 'quebras' || allowed === 'gestão de quebras' || allowed === 'qualidade') {
+      return allText.includes('quebra') || allText.includes('qualidade') || allText.includes('wqi') || allText.includes('dqi') || allText.includes('total qi') || allText.includes('avaria') || allText.includes('refugo') || allText.includes('pnc') || allText.includes('fgli') || allText.includes('bloqueio') || allText.includes('segurança') || allText.includes('ergonomia');
     }
-    if (allowed === 'fefo' || allowed === 'gestão fefo') {
-      return allText.includes('fefo') || allText.includes('idade de estoque') || allText.includes('validade') || allText.includes('shelf life') || allText.includes('vencimento') || allText.includes('bloco a') || allText.includes('bloco b') || allText.includes('bloco c');
+    if (allowed === 'fefo' || allowed === 'gestão fefo' || allowed === 'validade') {
+      return allText.includes('fefo') || allText.includes('validade') || allText.includes('idade de estoque') || allText.includes('shelf life') || allText.includes('vencimento') || allText.includes('bloco a') || allText.includes('bloco b') || allText.includes('bloco c') || allText.includes('rlp');
     }
-    if (allowed === 'capacidade' || allowed === 'gestão de capacidade') {
-      return allText.includes('capacidade') || allText.includes('ocupação') || allText.includes('layout') || allText.includes('contingência');
+    if (allowed === 'capacidade' || allowed === 'gestão de capacidade' || allowed === 'armazenagem' || allowed === 'layout' || allowed === 'estoque') {
+      return allText.includes('capacidade') || allText.includes('armazen') || allText.includes('ocupação') || allText.includes('layout') || allText.includes('contingência') || allText.includes('estoque') || allText.includes('política');
     }
     if (allowed === 'ressuprimento') {
       return allText.includes('ressuprimento') || allText.includes('reabastecimento') || allText.includes('solicitações manuais') || allText.includes('saldo de reserva');

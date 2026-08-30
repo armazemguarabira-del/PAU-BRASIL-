@@ -41,23 +41,19 @@ export interface TemposIlustrativosOperacao {
 
 // Configuração de tempos padrão e fatores por embalagem (Meta unificada de 50 segundos por embalagem)
 const EMBALAGENS_FACTOR: Record<string, { factorHl: number; metaUnitSec: number }> = {
-  'LATA 250': { factorHl: 0.06, metaUnitSec: 50 },
-  'LATA 269': { factorHl: 0.06456, metaUnitSec: 50 },
+  'LATA 350ML': { factorHl: 0.084, metaUnitSec: 50 },
   'LATA 350': { factorHl: 0.084, metaUnitSec: 50 },
-  'LATA 473': { factorHl: 0.11352, metaUnitSec: 50 },
-  'LONG NECK': { factorHl: 0.0852, metaUnitSec: 50 },
-  'PET 1L': { factorHl: 0.12, metaUnitSec: 50 },
   'PET 2L': { factorHl: 0.12, metaUnitSec: 50 },
-  'PET 500': { factorHl: 0.06, metaUnitSec: 50 },
-  'PET 500ml': { factorHl: 0.06, metaUnitSec: 50 },
-  'PET 200ml': { factorHl: 0.048, metaUnitSec: 50 },
-  'PET 2,5L': { factorHl: 0.15, metaUnitSec: 50 },
-  'PET 3,3L': { factorHl: 0.198, metaUnitSec: 50 },
-  '600 OW': { factorHl: 0.072, metaUnitSec: 50 },
+  'PET 1L': { factorHl: 0.12, metaUnitSec: 50 },
   '300 OW': { factorHl: 0.072, metaUnitSec: 50 },
-  '300OW': { factorHl: 0.072, metaUnitSec: 50 },
-  'GARRAFA 600ml': { factorHl: 0.072, metaUnitSec: 50 },
-  'GARRAFA 1L': { factorHl: 0.12, metaUnitSec: 50 },
+  '600 OW': { factorHl: 0.072, metaUnitSec: 50 },
+  'LATA 473ML': { factorHl: 0.11352, metaUnitSec: 50 },
+  'LATA 473': { factorHl: 0.11352, metaUnitSec: 50 },
+  'PET 200ML': { factorHl: 0.048, metaUnitSec: 50 },
+  'PET 200ml': { factorHl: 0.048, metaUnitSec: 50 },
+  'LATA 269ML': { factorHl: 0.06456, metaUnitSec: 50 },
+  'LATA 269': { factorHl: 0.06456, metaUnitSec: 50 },
+  'LONG NECK': { factorHl: 0.0852, metaUnitSec: 50 }
 };
 
 /**

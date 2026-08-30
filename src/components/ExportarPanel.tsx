@@ -3,6 +3,9 @@ import { isCustomFirebaseConnected } from '../firebase';
 import { getRepository } from '../db';
 import { Usuario, Empresa, RepackRow, DespejoRow, QuebraRow, ValidadeRow, ArmazemRow, BlitzRefugoRow, Tarefa, ProdutoMaster, ColaboradorMaster } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
+import { useSystemTargets } from '../utils/useSystemTargets';
+import { calcularGatilhosOperacionaisCompletos } from '../utils/workstationGatilhosAnalytics';
+import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import * as XLSX from 'xlsx';
 import { 
   exportWlpModelExcel, 
@@ -80,6 +83,7 @@ const PROCESSOS_LIST = [
 export default function ExportarPanel({ user, empresa, theme = 'light', onNavigate }: ExportarPanelProps) {
   const empresaId = empresa?.id || 'demo';
   const empresaData = useEmpresaData();
+  const { targets } = useSystemTargets(empresaId);
 
   // ── SUB-TABS STATE ──
   const [activeMainSubTab, setActiveMainSubTab] = useState<'zerar-importar' | 'importar-retroativos-json' | 'exportar-relatorios'>('zerar-importar');
@@ -774,6 +778,180 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
     })));
     XLSX.utils.book_append_sheet(wb, ws, 'Armazem');
     XLSX.writeFile(wb, `Armazem_${startDate}_ate_${endDate}.xlsx`);
+  };
+
+  const exportGatilhosMensalExcel = () => {
+    try {
+      const indicadores = calcularGatilhosOperacionaisCompletos(empresaId, empresaData, targets, 26);
+      const wb = XLSX.utils.book_new();
+
+      const resumoData = [
+        ['PAU BRASIL DISTRIBUIDORA - UNIDADE GUARABIRA'],
+        ['RELATÓRIO MENSAL DE GATILHOS E DESVIOS OPERACIONAIS (DPO)'],
+        ['Data da Emissão:', new Date().toLocaleString('pt-BR')],
+        ['Regra do Gatilho:', 'Limite = Média Diária + 10% Tolerância (Acumulado Mês ÷ 26 Dias Úteis)'],
+        [],
+        ['Total de Indicadores:', indicadores.length],
+        ['Sob Controle (Verde):', indicadores.filter(i => i.status === 'NORMAL').length],
+        ['Em Alerta (Amarelo):', indicadores.filter(i => i.status === 'ALERTA').length],
+        ['Gatilhos Disparados (Desvio Real - Vermelho):', indicadores.filter(i => i.status === 'DISPARADO').length]
+      ];
+      const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+      XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo_Gatilhos');
+
+      const matrizRows = indicadores.map(ind => ({
+        'Código': ind.codigo,
+        'Indicador': ind.nome,
+        'Categoria': ind.categoria,
+        'Diretriz': ind.isMenorMelhor ? 'Minimizar (Menor Melhor)' : 'Maximizar (Maior Melhor)',
+        'Acumulado no Mês': ind.detalhes.acumuladoMesFormatado,
+        'Dias Úteis': ind.detalhes.diasUteis,
+        'Média Diária Base': ind.detalhes.mediaDiariaFormatada,
+        'Limite Gatilho (+10%)': `${ind.limiteGatilho} ${ind.unidade}`,
+        'Apurado Hoje': `${ind.valorHoje} ${ind.unidade}`,
+        'Delta % vs Gatilho': ind.detalhes.deltaPctFormatado,
+        'Status': ind.status === 'DISPARADO' ? '🚨 DISPARADO (DESVIO REAL)' : ind.status === 'ALERTA' ? '⚠️ ALERTA' : '✅ NORMAL',
+        'Responsável': ind.responsavelArea,
+        'Fonte dos Dados': ind.detalhes.fonteDados,
+        'Diagnóstico Sênior': ind.detalhes.diagnosticoAnalista
+      }));
+      const wsMatriz = XLSX.utils.json_to_sheet(matrizRows);
+      XLSX.utils.book_append_sheet(wb, wsMatriz, 'Matriz_Gatilhos');
+
+      XLSX.writeFile(wb, `Relatorio_Gatilhos_Desvios_Mensal_DPO_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      console.error('Erro ao exportar gatilhos:', err);
+      alert('Erro ao exportar relatório mensal de gatilhos.');
+    }
+  };
+
+  const exportGatilhosMensalCSV = () => {
+    try {
+      const indicadores = calcularGatilhosOperacionaisCompletos(empresaId, empresaData, targets, 26);
+      let csv = '\uFEFF';
+      csv += 'PAU BRASIL DISTRIBUIDORA - RELATORIO MENSAL DE GATILHOS E DESVIOS OPERACIONAIS (DPO)\n';
+      csv += `Data de Emissao:;${new Date().toLocaleString('pt-BR')}\n`;
+      csv += 'Regra:;Limite = Media Diaria + 10% Tolerancia (Acumulado Mes / 26 Dias Uteis)\n\n';
+      csv += 'CODIGO;INDICADOR;CATEGORIA;DIRECAO_META;ACUMULADO_MES;DIAS_UTEIS;MEDIA_DIARIA;LIMITE_GATILHO_10PCT;APURADO_HOJE;DELTA_PCT;STATUS;RESPONSAVEL;FONTE;DIAGNOSTICO\n';
+      
+      indicadores.forEach(ind => {
+        const row = [
+          `"${ind.codigo}"`,
+          `"${ind.nome.replace(/"/g, '""')}"`,
+          `"${ind.categoria}"`,
+          `"${ind.isMenorMelhor ? 'Minimizar' : 'Maximizar'}"`,
+          `"${ind.detalhes.acumuladoMesFormatado}"`,
+          ind.detalhes.diasUteis,
+          `"${ind.detalhes.mediaDiariaFormatada}"`,
+          `"${ind.limiteGatilho} ${ind.unidade}"`,
+          `"${ind.valorHoje} ${ind.unidade}"`,
+          `"${ind.detalhes.deltaPctFormatado}"`,
+          `"${ind.status}"`,
+          `"${ind.responsavelArea}"`,
+          `"${ind.detalhes.fonteDados}"`,
+          `"${ind.detalhes.diagnosticoAnalista.replace(/"/g, '""')}"`
+        ];
+        csv += row.join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Relatorio_Gatilhos_Desvios_Mensal_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Erro ao exportar CSV:', err);
+    }
+  };
+
+  const exportFullBackupJSON = () => {
+    try {
+      const localStorageDump: Record<string, any> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k) {
+          try {
+            localStorageDump[k] = JSON.parse(localStorage.getItem(k) || 'null');
+          } catch (e) {
+            localStorageDump[k] = localStorage.getItem(k);
+          }
+        }
+      }
+
+      const fullBackupData = {
+        app: 'PAU_BRASIL_GUARABIRA_SISTEMA_INTEGRADO',
+        versao: '2.5.0',
+        geradoEm: new Date().toISOString(),
+        empresaId,
+        colaboradoresOficiais: LISTA_COLABORADORES_OFICIAIS,
+        empresaData: {
+          produtos: empresaData.produtos,
+          colaboradores: empresaData.colaboradores,
+          repack: empresaData.repack,
+          despejo: empresaData.despejo,
+          quebras: empresaData.quebras,
+          validades: empresaData.validades,
+          armazem: empresaData.armazem,
+          tarefas: empresaData.tarefas,
+          acessos: empresaData.acessos,
+          blitz: empresaData.blitz
+        },
+        localStorageSnapshot: localStorageDump
+      };
+
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(fullBackupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `backup_geral_paubrasil_guarabira_${dateStr}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      const newLog: BackupLog = {
+        id: `BK-${Date.now().toString().slice(-5)}`,
+        data: new Date().toLocaleDateString('pt-BR'),
+        dataISO: new Date().toISOString(),
+        tipo: 'Completo (Exportação Geral JSON)',
+        tamanhoKb: Math.round(dataStr.length / 1024),
+        totalLinhas: (empresaData.produtos?.length || 0) + (empresaData.colaboradores?.length || 0) + (empresaData.repack?.length || 0) + (empresaData.despejo?.length || 0),
+        operador: user?.nome || 'Administrador'
+      };
+      const updatedLogs = [newLog, ...backups];
+      setBackups(updatedLogs);
+      localStorage.setItem(`backups_${empresaId}`, JSON.stringify(updatedLogs));
+
+      alert('✅ Backup Completo exportado com sucesso em JSON! Todas as informações estão salvas.');
+    } catch (err: any) {
+      console.error('Erro ao gerar backup completo:', err);
+      alert('Erro ao gerar backup: ' + err.message);
+    }
+  };
+
+  const importFullBackupJSON = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const backup = JSON.parse(text);
+        if (!backup.app || !backup.localStorageSnapshot) {
+          throw new Error('Formato de arquivo de backup inválido ou incompatível.');
+        }
+
+        Object.entries(backup.localStorageSnapshot).forEach(([k, v]) => {
+          localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
+        });
+
+        alert('✅ Backup Completo restaurado com sucesso! O sistema será recarregado agora.');
+        window.location.reload();
+      } catch (err: any) {
+        alert('Erro ao restaurar backup: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -1487,6 +1665,41 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
           {/* EXPORT BUTTONS GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             
+            {/* GATILHOS & DESVIOS OPERACIONAIS (DPO) CARD */}
+            <div className="bg-white dark:bg-[#111a30] border-2 border-amber-400 dark:border-amber-500/50 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden sm:col-span-2 lg:col-span-3 bg-gradient-to-r from-amber-500/5 via-transparent to-transparent">
+              <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[9px] font-black uppercase px-3 py-0.5 rounded-bl-lg tracking-wider">
+                Média Diária + 10% Tolerância
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <Target className="w-5 h-5 text-amber-500" />
+                    Relatório Mensal de Gatilhos & Desvios Operacionais (DPO)
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+                    Exporta a matriz completa de indicadores auditados com metas dinâmicas, desvios reais disparados, médias diárias calculadas pelo acumulado do mês e plano de ação D0.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  <button
+                    onClick={exportGatilhosMensalExcel}
+                    className="py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-1.5"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Excel Completo (.xlsx)
+                  </button>
+                  <button
+                    onClick={exportGatilhosMensalCSV}
+                    className="py-2.5 px-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs uppercase rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-1.5"
+                  >
+                    <Download className="w-4 h-4" />
+                    CSV (.csv)
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* VALIDADES (FEFO) CARD */}
             <div className="bg-white dark:bg-[#111a30] border-2 border-purple-300 dark:border-purple-500/40 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-purple-600 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg tracking-wider">
@@ -1590,6 +1803,52 @@ export default function ExportarPanel({ user, empresa, theme = 'light', onNaviga
               >
                 Baixar Excel
               </button>
+            </div>
+
+            {/* BACKUP GERAL CONSOLIDADO JSON (GARANTIA DE DADOS) */}
+            <div className="bg-[#111a30] border-2 border-emerald-500/50 rounded-2xl p-5 space-y-4 shadow-lg sm:col-span-2 lg:col-span-3 bg-gradient-to-r from-emerald-950/20 via-transparent to-transparent">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                    <Database className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                      Backup Geral & Restauração Completa da Plataforma (.JSON)
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-mono">Segurança Total</span>
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+                      Exporta o snapshot 100% integral de todos os módulos (Colaboradores, Turnos, Jornadas WLP, Produtos, Despejo, Repack, Quebras, Validades, Matriz de Acessos). Use para guardar seus dados e restaurar a qualquer momento ao exportar o ZIP do projeto.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto shrink-0">
+                  <button
+                    onClick={exportFullBackupJSON}
+                    className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase rounded-xl cursor-pointer shadow-lg shadow-emerald-950 flex items-center gap-2 transition-all"
+                  >
+                    <Download className="w-4 h-4" />
+                    Exportar Backup JSON
+                  </button>
+
+                  <label className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-black text-xs uppercase rounded-xl cursor-pointer shadow-sm flex items-center gap-2 transition-all">
+                    <Upload className="w-4 h-4 text-amber-400" />
+                    Restaurar Backup JSON
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f && confirm('Deseja restaurar todos os dados deste arquivo de backup JSON?')) {
+                          importFullBackupJSON(f);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
 
           </div>

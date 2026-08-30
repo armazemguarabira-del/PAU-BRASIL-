@@ -7,9 +7,12 @@ export interface SystemTargets {
   fefo: number; // 98%
   stock_age_meta: number; // 80% (Saúde do Stock Age Index >= 80%)
   wqi: number; // 95%
-  repack_produtividade: number; // 10 cx/h
+  repack_produtividade: number; // 30 cx/h (ou unid/h)
+  repack_tempo_segundos: number; // 50s por embalagem
   picking_produtividade: number; // 130 cx/h
-  despejo_produtividade: number; // 40 cx/h
+  despejo_produtividade: number; // 30 cx/h (igual ao repack)
+  despejo_tempo_segundos: number; // 50s por embalagem (igual ao repack)
+  pnp_conferente: number; // 6.23 HL/HH (Produtividade Hectolitro Homem Hora igual a empilhadores e ajudantes)
   quebras_limite: number; // 0.15%
   saude_estoque: number; // 80% (Saúde do estoque >= 80% considerando divergências físicas vs fiscais)
   acuracidade_inventario: number; // 99.5%
@@ -18,6 +21,7 @@ export interface SystemTargets {
   tmr_carreta: number; // 150 min (2h30)
   tmr_recarga: number; // 50 min
   tmr_terceiros: number; // 150 min (2h30)
+  wlp: number; // 6.23 HL/HH
   [key: string]: number;
 }
 
@@ -28,9 +32,12 @@ export const DEFAULT_TARGETS: SystemTargets = {
   fefo: 98,
   stock_age_meta: 80,
   wqi: 95,
-  repack_produtividade: 10,
+  repack_produtividade: 30,
+  repack_tempo_segundos: 50,
   picking_produtividade: 130,
-  despejo_produtividade: 40,
+  despejo_produtividade: 30,
+  despejo_tempo_segundos: 50,
+  pnp_conferente: 6.23,
   quebras_limite: 0.15,
   saude_estoque: 80,
   acuracidade_inventario: 99.5,
@@ -38,7 +45,8 @@ export const DEFAULT_TARGETS: SystemTargets = {
   montagem_produtividade: 100,
   tmr_carreta: 150,
   tmr_recarga: 50,
-  tmr_terceiros: 150
+  tmr_terceiros: 150,
+  wlp: 6.23
 };
 
 const TARGETS_STORAGE_KEY = 'dpo_system_targets_v1';

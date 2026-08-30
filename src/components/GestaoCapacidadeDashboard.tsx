@@ -10,6 +10,7 @@ import {
   TrendingUp, 
   TrendingDown, 
   Sparkles, 
+  Sparkle,
   ArrowRight, 
   BarChart3, 
   PieChart, 
@@ -37,7 +38,13 @@ import {
   X,
   Info,
   Eye,
-  Truck
+  Truck,
+  ExternalLink,
+  Tag,
+  Database,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { Usuario, Empresa } from '../types';
 import { PosicaoPallet021101Item } from '../types/estoque';
@@ -49,9 +56,24 @@ import {
   AreaMetasConfig,
   DEFAULT_AREA_FACTORS
 } from '../utils/estoqueStorage';
-import { processPosicaoPallet021101Import } from '../utils/estoqueParsers';
+import { processPosicaoPallet021101Import, isCleaningProduct } from '../utils/estoqueParsers';
 import { PRODUCTS } from '../planosData';
-import { getProductMeta, PRODUCT_CATALOG_DETAILS } from '../utils/productCatalogData';
+import { 
+  getProductMeta, 
+  getProductUnit, 
+  PRODUCT_CATALOG_DETAILS, 
+  recalculatePosicaoPalletItem,
+  calculateOccupiedPalletPositions,
+  isSmallFractionalOrConfectioneryProduct,
+  getProductOfficialDescription,
+  getMarketplaceGroup,
+  calculateMarketplaceConsolidatedPositions,
+  MarketplaceGroupSummary,
+  isMarketplaceProduct,
+  isBarrilChopp,
+  saveCustomSkuOverride,
+  getCustomSkuOverrides
+} from '../utils/productCatalogData';
 import { PadraoOperacionalModal } from './PadraoOperacionalModal';
 import { IndicatorActionModal } from './IndicatorActionModal';
 import PoliticaEstoqueDashboard from './PoliticaEstoqueDashboard';
@@ -60,6 +82,7 @@ import MatrizAbcLogisticaPanel from './MatrizAbcLogisticaPanel';
 import { LayoutPanZoomViewer } from './LayoutPanZoomViewer';
 import { getMediaItem, setMediaItem, removeMediaItem } from '../utils/idbStorage';
 import { QuadroAcoesDpo } from './QuadroAcoesDpo';
+import { gerarRelatorioCompletoLogisticaPDF } from '../utils/pdfExportUtils';
 
 
 // Storage Area Capacity Limits from specifications
@@ -69,7 +92,8 @@ export const AREA_CAPACITIES = {
   MARKETPLACE: 84,
   CONTINGENCIA: 108,
   PULMAO: 140,
-  PNC: 9
+  PNC: 9,
+  LIMPEZA: 35
 };
 
 export interface InventoryItem {
@@ -90,7 +114,6 @@ const INITIAL_INVENTORY_ITEMS: InventoryItem[] = [
   { cod: '503', descricao: 'SUKITA PET 2L CAIXA C/6', fator: 6, valor: 19.45, fatorHecto: 0.12, quantCentral: 35, quantPicking: 10, quantMarketplace: 5, quantContingencia: 0 },
   { cod: '504', descricao: 'PEPSI COLA PET 2L CAIXA C/6', fator: 6, valor: 26.97, fatorHecto: 0.12, quantCentral: 50, quantPicking: 18, quantMarketplace: 12, quantContingencia: 0 },
   { cod: '620', descricao: 'CARACU LONG NECK 355ML SIX-PACK BANDEJA C/4', fator: 24, valor: 78.20, fatorHecto: 0.09, quantCentral: 15, quantPicking: 5, quantMarketplace: 4, quantContingencia: 0 },
-  { cod: '838', descricao: 'CHOPP BRAHMA CLARO BARRIL KEG 50L', fator: 1, valor: 13.40, fatorHecto: 0.01, quantCentral: 10, quantPicking: 3, quantMarketplace: 2, quantContingencia: 0 },
   { cod: '982', descricao: 'SKOL 600ML', fator: 12, valor: 53.35, fatorHecto: 0.07, quantCentral: 65, quantPicking: 22, quantMarketplace: 10, quantContingencia: 0 },
   { cod: '988', descricao: 'BRAHMA CHOPP 600ML', fator: 12, valor: 52.23, fatorHecto: 0.07, quantCentral: 70, quantPicking: 25, quantMarketplace: 12, quantContingencia: 0 },
   { cod: '1114', descricao: 'GUARANA CHP ANTARCTICA PET 3,3 L SH C/04', fator: 4, valor: 27.55, fatorHecto: 0.13, quantCentral: 20, quantPicking: 8, quantMarketplace: 4, quantContingencia: 0 },
@@ -101,7 +124,7 @@ const INITIAL_INVENTORY_ITEMS: InventoryItem[] = [
   { cod: '9068', descricao: 'SKOL LATA 350ML SH C/12 NPAL', fator: 12, valor: 28.52, fatorHecto: 0.04, quantCentral: 90, quantPicking: 30, quantMarketplace: 15, quantContingencia: 0 },
   { cod: '9069', descricao: 'BRAHMA CHOPP LATA 350ML SH C/12 NPAL', fator: 12, valor: 28.51, fatorHecto: 0.04, quantCentral: 85, quantPicking: 26, quantMarketplace: 12, quantContingencia: 0 },
   { cod: '18836', descricao: 'CORONA EXTRA N LONG NECK 330ML CX C/24 NPAL', fator: 24, valor: 118.01, fatorHecto: 0.08, quantCentral: 40, quantPicking: 12, quantMarketplace: 8, quantContingencia: 0 },
-  { cod: '20329', descricao: 'BRAHMA DUPLO MALTE 600ML', fator: 12, valor: 54.69, fatorHecto: 0.07, quantCentral: 60, quantPicking: 18, quantMarketplace: 9, quantContingencia: 0 },
+  { cod: '20329', descricao: 'BRAHMA CHOPP 600ML', fator: 12, valor: 54.69, fatorHecto: 0.07, quantCentral: 60, quantPicking: 18, quantMarketplace: 9, quantContingencia: 0 },
   { cod: '23186', descricao: 'SPATEN N 600ML', fator: 12, valor: 60.57, fatorHecto: 0.07, quantCentral: 50, quantPicking: 16, quantMarketplace: 7, quantContingencia: 0 },
   { cod: '35331', descricao: 'BUDWEISER GFA VD 1L', fator: 12, valor: 65.61, fatorHecto: 0.12, quantCentral: 30, quantPicking: 10, quantMarketplace: 5, quantContingencia: 0 }
 ];
@@ -160,6 +183,7 @@ interface GestaoCapacidadeProps {
   theme?: 'light' | 'dark';
   initialTab?: 'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519' | 'matriz-abc-logistica' | 'acoes';
   onBack?: () => void;
+  onNavigate?: (panel: string, options?: any) => void;
 }
 
 export default function GestaoCapacidadeDashboard({
@@ -167,7 +191,8 @@ export default function GestaoCapacidadeDashboard({
   empresa,
   theme = 'light',
   initialTab = 'governanca-visual',
-  onBack
+  onBack,
+  onNavigate
 }: GestaoCapacidadeProps) {
   // Master Tab State for ETAPA 15 Unification + Curva ABC + Matriz ABC Logistica + Ações DPO
   const [activeMasterTab, setActiveMasterTab] = useState<'governanca-visual' | 'capacidade-instalada' | 'politica-estoque' | 'curva-abc-030519' | 'matriz-abc-logistica' | 'acoes'>(initialTab as any);
@@ -225,40 +250,358 @@ export default function GestaoCapacidadeDashboard({
       { id: '6', rua: 'RUA 05', bloco: 'BLOCO E', nivel: 'NIVEL 1', pos: 'POS 01', zona: 'Zona de Ativos', cap: 10, ocup: 8, sku: 'Paletes PBR Madeira', status: 'Normal' },
       { id: '7', rua: 'RUA 06', bloco: 'BLOCO F', nivel: 'NIVEL 1', pos: 'POS 01', zona: 'PNC', cap: 2, ocup: 1, sku: 'Avaria Segregada', status: 'Segregado' },
       { id: '8', rua: 'RUA 07', bloco: 'BLOCO G', nivel: 'NIVEL 1', pos: 'POS 01', zona: 'Repack', cap: 2, ocup: 2, sku: 'Recuperação de Pack', status: 'Em Processo' },
+      { id: '9', rua: 'RUA 08', bloco: 'BLOCO H', nivel: 'NIVEL 1', pos: 'POS 01', zona: 'Limpeza', cap: 2, ocup: 1, sku: '33061 - YPÊ TIXAN LAVA ROUPAS', status: 'Ocupado' },
     ];
   });
 
   const [displayMode, setDisplayMode] = useState<'paletes' | 'hectolitros'>('paletes');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTargetArea, setSelectedTargetArea] = useState<'ALL' | 'CENTRAL' | 'PICKING' | 'MARKETPLACE' | 'CONTINGENCIA' | 'PULMAO' | 'PNC'>('ALL');
+  const [selectedTargetArea, setSelectedTargetArea] = useState<'ALL' | 'CENTRAL' | 'PICKING' | 'MARKETPLACE' | 'CONTINGENCIA' | 'PULMAO' | 'PNC' | 'LIMPEZA'>('ALL');
+  const [skuSortField, setSkuSortField] = useState<'posicoes' | 'caixas' | 'pallets' | 'lastros' | 'hectolitros' | 'codigo' | 'produto' | 'area'>('posicoes');
+  const [skuSortDirection, setSkuSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isPopOpen, setIsPopOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [showOfficialLayoutModal, setShowOfficialLayoutModal] = useState(false);
   const [lastUploadInfo, setLastUploadInfo] = useState<string | null>(null);
 
   // 02.11.01 Posição Pallet State & Area Metas
-  const [posicaoPalletItems, setPosicaoPalletItems] = useState<PosicaoPallet021101Item[]>(() => getPosicaoPallet021101Itens());
+  const [posicaoPalletItems, setPosicaoPalletItems] = useState<PosicaoPallet021101Item[]>(() => {
+    const raw = getPosicaoPallet021101Itens();
+    const companyId = empresa?.id || 'demo';
+    return raw.map(item => recalculatePosicaoPalletItem(item, companyId));
+  });
   const [areaMetas, setAreaMetas] = useState<AreaMetasConfig>(() => getCapacityAreaMetas());
   const [editingMetas, setEditingMetas] = useState(false);
   const [tempMetas, setTempMetas] = useState<AreaMetasConfig>(() => getCapacityAreaMetas());
   const [showUnmappedModal, setShowUnmappedModal] = useState(false);
 
-  const handlePosicaoPalletImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Sync listener: whenever products or capacity data are updated anywhere, recalculate and update smoothly (debounced)
+  useEffect(() => {
+    let timeoutId: any = null;
+
+    const handleProductRefresh = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const currentItems = getPosicaoPallet021101Itens();
+        const companyId = empresa?.id || 'demo';
+        const recalculated = (currentItems || [])
+          .filter(item => !isBarrilChopp(item.codigo, item.produto))
+          .map(item => recalculatePosicaoPalletItem(item, companyId));
+        setPosicaoPalletItems(recalculated);
+        setAreaMetas(getCapacityAreaMetas());
+      }, 120);
+    };
+
+    const events = [
+      'local_data_changed',
+      'produtos_updated',
+      'posicao_pallet_updated',
+      'estoque_updated',
+      'app_data_updated',
+      'venda_media_imported',
+      'vendaMedia030519Updated',
+      'storage'
+    ];
+
+    events.forEach(evt => window.addEventListener(evt, handleProductRefresh));
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(evt => window.removeEventListener(evt, handleProductRefresh));
+    };
+  }, [empresa?.id]);
+
+  // Quick SKU Edit & Palletization Modal State
+  const [showSkuEditModal, setShowSkuEditModal] = useState(false);
+  const [editingSkuData, setEditingSkuData] = useState<{
+    codigo: number;
+    produto: string;
+    fatorCx: number;
+    caixasPallet: number;
+    lastro: number;
+    camadas: number;
+    fatorHecto: number;
+    grupo: string;
+    valorUnitario: number;
+    areaId: number;
+  }>({
+    codigo: 0,
+    produto: '',
+    fatorCx: 1,
+    caixasPallet: 50,
+    lastro: 10,
+    camadas: 5,
+    fatorHecto: 0,
+    grupo: 'Cervejas',
+    valorUnitario: 0,
+    areaId: 1
+  });
+
+  const handleOpenQuickEdit = (item: PosicaoPallet021101Item | { codigo: number | string; produto?: string; areaId?: number }) => {
+    const codeNum = Number(item.codigo);
+    const companyId = empresa?.id || 'demo';
+    const meta = getProductMeta(codeNum, companyId);
+    const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum) as any;
+    const officialDesc = getProductOfficialDescription(codeNum, item.produto || catalogItem?.descricao || `SKU ${codeNum}`, companyId);
+
+    const fatorCx = meta.fator || 1;
+    const caixasPallet = meta.fatorPallet || 50;
+    const lastro = meta.lastro || Math.max(1, Math.round(caixasPallet / (meta.camadas || 5)));
+    const camadas = meta.camadas || Math.max(1, Math.round(caixasPallet / (lastro || 1)));
+    const rawFatorHecto = (item as PosicaoPallet021101Item).fatorHecto ?? meta.fatorHecto ?? 0;
+    const grupo = meta.grupo || (isCleaningProduct(codeNum, officialDesc) ? 'Produtos de Limpeza' : (isMarketplaceProduct(codeNum, officialDesc) ? 'MARKETPLACE' : 'CERVEJA'));
+    const valor = meta.preco || 0;
+    
+    let areaId = item.areaId || 1;
+    if (isCleaningProduct(codeNum, officialDesc, grupo)) {
+      areaId = 7;
+    } else if (isMarketplaceProduct(codeNum, officialDesc, grupo)) {
+      areaId = 3;
+    }
+
+    setEditingSkuData({
+      codigo: codeNum,
+      produto: officialDesc,
+      fatorCx,
+      caixasPallet,
+      lastro,
+      camadas,
+      fatorHecto: rawFatorHecto,
+      grupo,
+      valorUnitario: valor,
+      areaId
+    });
+    setShowSkuEditModal(true);
+  };
+
+  const handleOpenCadastro = (skuCodigo?: number | string) => {
+    if (skuCodigo) {
+      sessionStorage.setItem('filtro_produto_codigo', String(skuCodigo));
+    }
+    if (onNavigate) {
+      onNavigate('cadastros', { subTab: 'produtos' });
+    } else {
+      window.dispatchEvent(new CustomEvent('navigate_panel', { detail: { panel: 'cadastros', subTab: 'produtos' } }));
+    }
+  };
+
+  const handleSaveSkuQuickEdit = (formData: typeof editingSkuData) => {
+    const codeNum = formData.codigo;
+    const companyId = empresa?.id || 'demo';
+    
+    // 1. Permanently save to Custom SKU Overrides (Never lost on refresh, remix or re-import)
+    saveCustomSkuOverride({
+      codigo: codeNum,
+      produto: formData.produto,
+      fatorCx: Number(formData.fatorCx) || 1,
+      caixasPallet: Number(formData.caixasPallet) || 50,
+      fatorPallet: Number(formData.caixasPallet) || 50,
+      lastro: Number(formData.lastro) || 10,
+      camadas: Number(formData.camadas) || 5,
+      fatorHecto: Number(formData.fatorHecto) || 0,
+      grupo: formData.grupo,
+      valorUnitario: Number(formData.valorUnitario) || 0,
+      preco: Number(formData.valorUnitario) || 0,
+      areaId: formData.areaId,
+      areaNome: formData.areaId === 1 ? 'Armazém Central' :
+                formData.areaId === 2 ? 'Picking' :
+                formData.areaId === 3 ? 'Marketplace' :
+                formData.areaId === 4 ? 'Contingência' :
+                formData.areaId === 5 ? 'Pulmão' :
+                formData.areaId === 6 ? 'PNC' : 'Produtos de Limpeza'
+    });
+
+    // 2. Update in-memory product details
+    if (PRODUCT_CATALOG_DETAILS[codeNum]) {
+      PRODUCT_CATALOG_DETAILS[codeNum].fator = Number(formData.fatorCx) || 1;
+      PRODUCT_CATALOG_DETAILS[codeNum].fatorPallet = Number(formData.caixasPallet) || 50;
+      PRODUCT_CATALOG_DETAILS[codeNum].caixasPallet = Number(formData.caixasPallet) || 50;
+      PRODUCT_CATALOG_DETAILS[codeNum].fatorHecto = Number(formData.fatorHecto) || 0;
+      PRODUCT_CATALOG_DETAILS[codeNum].lastro = Number(formData.lastro) || 10;
+      PRODUCT_CATALOG_DETAILS[codeNum].camadas = Number(formData.camadas) || 5;
+      PRODUCT_CATALOG_DETAILS[codeNum].preco = Number(formData.valorUnitario) || 0;
+      PRODUCT_CATALOG_DETAILS[codeNum].grupo = formData.grupo;
+    } else {
+      PRODUCT_CATALOG_DETAILS[codeNum] = {
+        preco: Number(formData.valorUnitario) || 0,
+        fator: Number(formData.fatorCx) || 1,
+        fatorPallet: Number(formData.caixasPallet) || 50,
+        caixasPallet: Number(formData.caixasPallet) || 50,
+        fatorHecto: Number(formData.fatorHecto) || 0,
+        lastro: Number(formData.lastro) || 10,
+        camadas: Number(formData.camadas) || 5,
+        grupo: formData.grupo,
+        curva: 'B'
+      };
+    }
+    
+    const prodIndex = PRODUCTS.findIndex(p => Number(p.codigo) === codeNum);
+    if (prodIndex >= 0) {
+      const targetProd = PRODUCTS[prodIndex] as any;
+      targetProd.descricao = formData.produto;
+      targetProd.fator = Number(formData.fatorCx) || 1;
+      targetProd.fatorHecto = Number(formData.fatorHecto) || 0;
+      targetProd.fatorPallet = Number(formData.caixasPallet) || 50;
+      targetProd.caixasPallet = Number(formData.caixasPallet) || 50;
+      targetProd.lastro = Number(formData.lastro) || 10;
+      targetProd.camadas = Number(formData.camadas) || 5;
+      targetProd.preco = Number(formData.valorUnitario) || 0;
+      targetProd.valor = Number(formData.valorUnitario) || 0;
+      targetProd.grupo = formData.grupo;
+    }
+
+    // 3. Persist to localStorage for products collection (Cadastro de Produtos) for active and demo
+    ['produtos_' + companyId, 'produtos_demo'].forEach(prodKey => {
+      try {
+        const saved = localStorage.getItem(prodKey);
+        let prodList: any[] = saved ? JSON.parse(saved) : [];
+        if (prodList.length === 0) {
+          prodList = PRODUCTS.map((p: any) => ({
+            id: `prod-${p.codigo}`,
+            codigo: String(p.codigo),
+            descricao: p.descricao,
+            fator: Number(p.fator) || 1,
+            fatorPallet: Number(p.fatorPallet) || Number(p.caixasPallet) || 50,
+            caixasPallet: Number(p.caixasPallet) || Number(p.fatorPallet) || 50,
+            lastro: Number(p.lastro) || 10,
+            camadas: Number(p.camadas) || 5,
+            fatorHecto: Number(p.fatorHecto) || 0,
+            valor: Number(p.preco) || Number(p.valor) || 0,
+            preco: Number(p.preco) || Number(p.valor) || 0,
+            grupo: p.grupo || 'CERVEJA',
+            curva: p.curva || 'B',
+            empresaId: companyId
+          }));
+        }
+
+        const idx = prodList.findIndex((p: any) => Number(p.codigo) === codeNum);
+        const updatedProd = {
+          id: idx >= 0 ? prodList[idx].id : `prod-${codeNum}`,
+          codigo: String(codeNum),
+          descricao: formData.produto,
+          fator: Number(formData.fatorCx) || 1,
+          fatorPallet: Number(formData.caixasPallet) || 50,
+          caixasPallet: Number(formData.caixasPallet) || 50,
+          lastro: Number(formData.lastro) || 10,
+          camadas: Number(formData.camadas) || 5,
+          fatorHecto: Number(formData.fatorHecto) || 0,
+          valor: Number(formData.valorUnitario) || 0,
+          preco: Number(formData.valorUnitario) || 0,
+          grupo: formData.grupo,
+          empresaId: companyId,
+          atualizadoEm: new Date().toISOString()
+        };
+        if (idx >= 0) {
+          prodList[idx] = { ...prodList[idx], ...updatedProd };
+        } else {
+          prodList.unshift(updatedProd);
+        }
+        localStorage.setItem(prodKey, JSON.stringify(prodList));
+        localStorage.removeItem(`produtos_cleared_${companyId}`);
+      } catch (e) {
+        console.error('Erro ao salvar produto no localStorage:', e);
+      }
+    });
+
+    // 4. Update active 02.11.01 items and recalculate Pallets, Lastros, and HL
+    setPosicaoPalletItems(prevItems => {
+      const updated = prevItems.map(item => {
+        if (Number(item.codigo) === codeNum) {
+          const fatorPallet = Number(formData.caixasPallet) || 50;
+          const totalCaixas = Number(item.qtdFisicaCaixas || (item.qtdPallet * fatorPallet));
+          const lastro = Number(formData.lastro) || Math.max(1, Math.round(fatorPallet / (Number(formData.camadas) || 5)));
+          
+          let newAreaId = item.areaId;
+          let newAreaNome = item.areaNome;
+          
+          if (formData.areaId) {
+            newAreaId = formData.areaId;
+            newAreaNome = formData.areaId === 1 ? 'Armazém Central' :
+                          formData.areaId === 2 ? 'Picking' :
+                          formData.areaId === 3 ? 'Marketplace' :
+                          formData.areaId === 4 ? 'Contingência' :
+                          formData.areaId === 5 ? 'Pulmão' :
+                          formData.areaId === 6 ? 'PNC' : 'Produtos de Limpeza';
+          } else if (isCleaningProduct(codeNum, formData.produto, formData.grupo)) {
+            newAreaId = 7;
+            newAreaNome = 'Produtos de Limpeza';
+          }
+
+          const calc = calculateOccupiedPalletPositions(
+            totalCaixas,
+            fatorPallet,
+            lastro,
+            codeNum,
+            formData.produto,
+            formData.grupo || '',
+            newAreaId
+          );
+          const newHl = Math.round((totalCaixas * Number(formData.fatorHecto)) * 1000) / 1000;
+
+          return {
+            ...item,
+            produto: formData.produto,
+            qtdFisicaCaixas: totalCaixas,
+            qtdPallet: calc.palletsCompletos,
+            qtdLastro: calc.lastrosCalculados,
+            posicoesPalletOcupadas: calc.posicoesOcupadas,
+            isFracionadoSemPosicao: calc.isFracionadoSemPosicao,
+            fatorHecto: Number(formData.fatorHecto) || 0,
+            temFatorHecto: Number(formData.fatorHecto) > 0,
+            hectolitros: newHl,
+            areaId: newAreaId,
+            areaNome: newAreaNome
+          };
+        }
+        return item;
+      });
+      savePosicaoPallet021101Itens(updated);
+      return updated;
+    });
+
+    // 5. Update inventory state if present
+    setInventory(prevInv => {
+      return prevInv.map(inv => {
+        if (Number(inv.cod) === codeNum) {
+          return {
+            ...inv,
+            descricao: formData.produto,
+            fator: Number(formData.fatorCx) || 1,
+            fatorHecto: Number(formData.fatorHecto) || 0,
+            valor: Number(formData.valorUnitario) || 0
+          };
+        }
+        return inv;
+      });
+    });
+
+    window.dispatchEvent(new CustomEvent('produtos_updated', { detail: { codigo: codeNum } }));
+    window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('storage'));
+    setLastUploadInfo(`✅ SKU ${codeNum} configurado permanentemente! Palletização: ${formData.caixasPallet} cx, Lastro: ${formData.lastro} cx, Fator HE: ${formData.fatorHecto}.`);
+    setShowSkuEditModal(false);
+  };
+
+  const handlePosicaoPalletImport = (e: React.ChangeEvent<HTMLInputElement>, isMerge: boolean = false) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result as string;
         if (!text) return;
-        const res = processPosicaoPallet021101Import(text, file.name, user.nome || 'Operador');
+        const companyId = empresa?.id || 'demo';
+        const res = processPosicaoPallet021101Import(text, file.name, user.nome || 'Operador', companyId, isMerge);
         if (res.success && res.parsedItems) {
           setPosicaoPalletItems(res.parsedItems);
           setLastUploadInfo(res.message);
+          setAreaMetas(getCapacityAreaMetas());
         } else {
-          alert(res.message || 'Erro ao importar relatório 02.11.01.');
+          alert(res.message || 'Erro ao processar relatório 02.11.01.');
         }
       };
       reader.readAsText(file, 'ISO-8859-1');
+      // Reset input value to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -505,35 +848,64 @@ export default function GestaoCapacidadeDashboard({
     };
   }, [rawTotals]);
 
+  // Marketplace consolidated grouping logic (Halls, Trident, Azeite, Doces Vieira, Tang, etc.)
+  // As required: Items of same group are summed together; if < 1 lastro = 0 pos; if >= 1 lastro = 1 shared pos
+  const marketplaceConsolidation = useMemo(() => {
+    const companyId = empresa?.id || 'demo';
+    return calculateMarketplaceConsolidatedPositions(posicaoPalletItems, companyId);
+  }, [posicaoPalletItems, empresa?.id]);
+
   // Calculate operational HL/pallet ratio per area from current 02.11.01 import
   const areaRealFactors = useMemo(() => {
     let centralPallets = 0, centralHl = 0;
     let pickingPallets = 0, pickingHl = 0;
-    let mpPallets = 0, mpHl = 0;
+    let mpPallets = marketplaceConsolidation.totalMarketplacePallets;
+    let mpHl = marketplaceConsolidation.totalMarketplaceHl;
     let contingenciaPallets = 0, contingenciaHl = 0;
     let pulmaoPallets = 0, pulmaoHl = 0;
     let pncPallets = 0, pncHl = 0;
+    let limpezaPallets = 0, limpezaHl = 0;
+
+    const companyId = empresa?.id || 'demo';
 
     posicaoPalletItems.forEach(item => {
       const codeNum = Number(item.codigo);
+      const meta = getProductMeta(codeNum, companyId);
       const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
-      const catalogDetail = PRODUCT_CATALOG_DETAILS[codeNum];
-      const rawFatorHecto = catalogItem?.fatorHecto ?? catalogDetail?.fatorHecto;
-      const temFatorHecto = rawFatorHecto !== undefined && rawFatorHecto > 0;
-      const fatorHecto = temFatorHecto ? rawFatorHecto : 0;
+      const fatorPallet = meta.fatorPallet && meta.fatorPallet > 0 ? meta.fatorPallet : 50;
+      const lastro = meta.lastro && meta.lastro > 0 ? meta.lastro : Math.max(1, Math.round(fatorPallet / (meta.camadas || 5)));
+      const temFatorHecto = meta.fatorHecto !== undefined && meta.fatorHecto > 0;
+      const fatorHecto = temFatorHecto ? meta.fatorHecto : 0;
 
       let totalQtd = Number(item.qtdFisicaCaixas || 0);
       if (totalQtd === 0 && item.qtdPallet > 0) {
-        totalQtd = item.qtdPallet * (catalogItem?.caixasPallet || catalogDetail?.fator || 50);
+        totalQtd = item.qtdPallet * fatorPallet;
       }
+      
+      const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo);
+      const effectiveAreaId = isLimpeza ? 7 : item.areaId;
+
+      // Area 3 (Marketplace) is handled via marketplaceConsolidation
+      if (effectiveAreaId === 3) return;
+
+      const calc = calculateOccupiedPalletPositions(
+        totalQtd,
+        fatorPallet,
+        lastro,
+        codeNum,
+        item.produto,
+        meta.grupo || catalogItem?.grupo,
+        effectiveAreaId
+      );
+      const posicoesPallet = calc.posicoesOcupadas;
       const itemHl = temFatorHecto ? Math.round((totalQtd * fatorHecto) * 1000) / 1000 : 0;
 
-      if (item.areaId === 1) { centralPallets += item.posicoesPalletOcupadas; centralHl += itemHl; }
-      else if (item.areaId === 2) { pickingPallets += item.posicoesPalletOcupadas; pickingHl += itemHl; }
-      else if (item.areaId === 3) { mpPallets += item.posicoesPalletOcupadas; mpHl += itemHl; }
-      else if (item.areaId === 4) { contingenciaPallets += item.posicoesPalletOcupadas; contingenciaHl += itemHl; }
-      else if (item.areaId === 5) { pulmaoPallets += item.posicoesPalletOcupadas; pulmaoHl += itemHl; }
-      else if (item.areaId === 6) { pncPallets += item.posicoesPalletOcupadas; pncHl += itemHl; }
+      if (effectiveAreaId === 1) { centralPallets += posicoesPallet; centralHl += itemHl; }
+      else if (effectiveAreaId === 2) { pickingPallets += posicoesPallet; pickingHl += itemHl; }
+      else if (effectiveAreaId === 4) { contingenciaPallets += posicoesPallet; contingenciaHl += itemHl; }
+      else if (effectiveAreaId === 5) { pulmaoPallets += posicoesPallet; pulmaoHl += itemHl; }
+      else if (effectiveAreaId === 6) { pncPallets += posicoesPallet; pncHl += itemHl; }
+      else if (effectiveAreaId === 7) { limpezaPallets += posicoesPallet; limpezaHl += itemHl; }
     });
 
     return {
@@ -543,28 +915,29 @@ export default function GestaoCapacidadeDashboard({
       4: contingenciaPallets > 0 ? (contingenciaHl / contingenciaPallets) : DEFAULT_AREA_FACTORS[4],
       5: pulmaoPallets > 0 ? (pulmaoHl / pulmaoPallets) : DEFAULT_AREA_FACTORS[5],
       6: pncPallets > 0 ? (pncHl / pncPallets) : DEFAULT_AREA_FACTORS[6],
+      7: limpezaPallets > 0 ? (limpezaHl / limpezaPallets) : (DEFAULT_AREA_FACTORS[7] || 1.5),
     };
-  }, [posicaoPalletItems]);
+  }, [posicaoPalletItems, empresa?.id, marketplaceConsolidation]);
 
   // Track items in 02.11.01 that do not have Fator Hecto in catalog
   const unmappedFatorHectoItems = useMemo(() => {
+    const companyId = empresa?.id || 'demo';
     return posicaoPalletItems.filter(item => {
       const codeNum = Number(item.codigo);
-      const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
-      const catalogDetail = PRODUCT_CATALOG_DETAILS[codeNum];
-      const rawFatorHecto = catalogItem?.fatorHecto ?? catalogDetail?.fatorHecto;
-      return rawFatorHecto === undefined || rawFatorHecto <= 0;
+      const meta = getProductMeta(codeNum, companyId);
+      return meta.fatorHecto === undefined || meta.fatorHecto <= 0;
     });
-  }, [posicaoPalletItems]);
+  }, [posicaoPalletItems, empresa?.id]);
 
   const handleSyncMetasHlWithReal = () => {
     const newMetas: AreaMetasConfig = {
-      1: { ...areaMetas[1], hectolitrosMeta: Math.round((areaMetas[1]?.palletsMeta || 615) * areaRealFactors[1] * 10) / 10 },
-      2: { ...areaMetas[2], hectolitrosMeta: Math.round((areaMetas[2]?.palletsMeta || 160) * areaRealFactors[2] * 10) / 10 },
-      3: { ...areaMetas[3], hectolitrosMeta: Math.round((areaMetas[3]?.palletsMeta || 84) * areaRealFactors[3] * 10) / 10 },
-      4: { ...areaMetas[4], hectolitrosMeta: Math.round((areaMetas[4]?.palletsMeta || 108) * areaRealFactors[4] * 10) / 10 },
-      5: { ...areaMetas[5], hectolitrosMeta: Math.round((areaMetas[5]?.palletsMeta || 140) * areaRealFactors[5] * 10) / 10 },
-      6: { ...areaMetas[6], hectolitrosMeta: Math.round((areaMetas[6]?.palletsMeta || 9) * areaRealFactors[6] * 10) / 10 },
+      1: { ...areaMetas[1], hectolitrosMeta: Math.round((areaMetas[1]?.palletsMeta || 615) * (areaRealFactors[1] || 8.5) * 10) / 10 },
+      2: { ...areaMetas[2], hectolitrosMeta: Math.round((areaMetas[2]?.palletsMeta || 160) * (areaRealFactors[2] || 5.8) * 10) / 10 },
+      3: { ...areaMetas[3], hectolitrosMeta: Math.round((areaMetas[3]?.palletsMeta || 84) * (areaRealFactors[3] || 2.5) * 10) / 10 },
+      4: { ...areaMetas[4], hectolitrosMeta: Math.round((areaMetas[4]?.palletsMeta || 108) * (areaRealFactors[4] || 7.5) * 10) / 10 },
+      5: { ...areaMetas[5], hectolitrosMeta: Math.round((areaMetas[5]?.palletsMeta || 140) * (areaRealFactors[5] || 8.5) * 10) / 10 },
+      6: { ...areaMetas[6], hectolitrosMeta: Math.round((areaMetas[6]?.palletsMeta || 9) * (areaRealFactors[6] || 6.0) * 10) / 10 },
+      7: { ...(areaMetas[7] || { palletsMeta: 35, hectolitrosMeta: 0 }), hectolitrosMeta: Math.round((areaMetas[7]?.palletsMeta || 35) * (areaRealFactors[7] || 1.5) * 10) / 10 },
     };
     setAreaMetas(newMetas);
     setTempMetas(newMetas);
@@ -576,45 +949,66 @@ export default function GestaoCapacidadeDashboard({
   const posMetricsByArea = useMemo(() => {
     let centralPallets = 0, centralHl = 0;
     let pickingPallets = 0, pickingHl = 0;
-    let mpPallets = 0, mpHl = 0;
+    let mpPallets = marketplaceConsolidation.totalMarketplacePallets;
+    let mpHl = marketplaceConsolidation.totalMarketplaceHl;
     let contingenciaPallets = 0, contingenciaHl = 0;
     let pulmaoPallets = 0, pulmaoHl = 0;
     let pncPallets = 0, pncHl = 0;
+    let limpezaPallets = 0, limpezaHl = 0;
+
+    const companyId = empresa?.id || 'demo';
 
     if (posicaoPalletItems.length > 0) {
       posicaoPalletItems.forEach(item => {
         const codeNum = Number(item.codigo);
+        const meta = getProductMeta(codeNum, companyId);
         const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
-        const catalogDetail = PRODUCT_CATALOG_DETAILS[codeNum];
-        const rawFatorHecto = catalogItem?.fatorHecto ?? catalogDetail?.fatorHecto;
-        const temFatorHecto = rawFatorHecto !== undefined && rawFatorHecto > 0;
-        const fatorHecto = temFatorHecto ? rawFatorHecto : 0;
+        const fatorPallet = meta.fatorPallet && meta.fatorPallet > 0 ? meta.fatorPallet : 50;
+        const lastro = meta.lastro && meta.lastro > 0 ? meta.lastro : Math.max(1, Math.round(fatorPallet / (meta.camadas || 5)));
+        const temFatorHecto = meta.fatorHecto !== undefined && meta.fatorHecto > 0;
+        const fatorHecto = temFatorHecto ? meta.fatorHecto : 0;
 
         let totalQtd = Number(item.qtdFisicaCaixas || 0);
         if (totalQtd === 0 && item.qtdPallet > 0) {
-          totalQtd = item.qtdPallet * (catalogItem?.caixasPallet || catalogDetail?.fator || 50);
+          totalQtd = item.qtdPallet * fatorPallet;
         }
 
+        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo);
+        const effectiveAreaId = isLimpeza ? 7 : item.areaId;
+
+        // Area 3 (Marketplace) is handled via marketplaceConsolidation
+        if (effectiveAreaId === 3) return;
+
+        const calc = calculateOccupiedPalletPositions(
+          totalQtd,
+          fatorPallet,
+          lastro,
+          codeNum,
+          item.produto,
+          meta.grupo || catalogItem?.grupo,
+          effectiveAreaId
+        );
+        const posicoesPallet = calc.posicoesOcupadas;
         const itemHl = temFatorHecto ? Math.round((totalQtd * fatorHecto) * 1000) / 1000 : 0;
 
-        if (item.areaId === 1) {
-          centralPallets += item.posicoesPalletOcupadas;
+        if (effectiveAreaId === 1) {
+          centralPallets += posicoesPallet;
           centralHl += itemHl;
-        } else if (item.areaId === 2) {
-          pickingPallets += item.posicoesPalletOcupadas;
+        } else if (effectiveAreaId === 2) {
+          pickingPallets += posicoesPallet;
           pickingHl += itemHl;
-        } else if (item.areaId === 3) {
-          mpPallets += item.posicoesPalletOcupadas;
-          mpHl += itemHl;
-        } else if (item.areaId === 4) {
-          contingenciaPallets += item.posicoesPalletOcupadas;
+        } else if (effectiveAreaId === 4) {
+          contingenciaPallets += posicoesPallet;
           contingenciaHl += itemHl;
-        } else if (item.areaId === 5) {
-          pulmaoPallets += item.posicoesPalletOcupadas;
+        } else if (effectiveAreaId === 5) {
+          pulmaoPallets += posicoesPallet;
           pulmaoHl += itemHl;
-        } else if (item.areaId === 6) {
-          pncPallets += item.posicoesPalletOcupadas;
+        } else if (effectiveAreaId === 6) {
+          pncPallets += posicoesPallet;
           pncHl += itemHl;
+        } else if (effectiveAreaId === 7) {
+          limpezaPallets += posicoesPallet;
+          limpezaHl += itemHl;
         }
       });
     } else {
@@ -630,13 +1024,15 @@ export default function GestaoCapacidadeDashboard({
       pulmaoHl = 0;
       pncPallets = 0;
       pncHl = 0;
+      limpezaPallets = 0;
+      limpezaHl = 0;
     }
 
-    const areas = [1, 2, 3, 4, 5, 6].map(id => {
-      const areaKey = id as 1 | 2 | 3 | 4 | 5 | 6;
-      const palletsReal = id === 1 ? centralPallets : id === 2 ? pickingPallets : id === 3 ? mpPallets : id === 4 ? contingenciaPallets : id === 5 ? pulmaoPallets : pncPallets;
-      const hlReal = id === 1 ? centralHl : id === 2 ? pickingHl : id === 3 ? mpHl : id === 4 ? contingenciaHl : id === 5 ? pulmaoHl : pncHl;
-      const palletsMeta = areaMetas[areaKey]?.palletsMeta ?? (id === 5 ? 140 : id === 6 ? 9 : 100);
+    const areas = [1, 2, 3, 4, 5, 6, 7].map(id => {
+      const areaKey = id as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+      const palletsReal = id === 1 ? centralPallets : id === 2 ? pickingPallets : id === 3 ? mpPallets : id === 4 ? contingenciaPallets : id === 5 ? pulmaoPallets : id === 6 ? pncPallets : limpezaPallets;
+      const hlReal = id === 1 ? centralHl : id === 2 ? pickingHl : id === 3 ? mpHl : id === 4 ? contingenciaHl : id === 5 ? pulmaoHl : id === 6 ? pncHl : limpezaHl;
+      const palletsMeta = areaMetas[areaKey]?.palletsMeta ?? (id === 5 ? 140 : id === 6 ? 9 : id === 7 ? 35 : 100);
       const hlMeta = areaMetas[areaKey]?.hectolitrosMeta ?? (palletsMeta * (DEFAULT_AREA_FACTORS[areaKey] || 7.5));
 
       const palletsPct = palletsMeta > 0 ? (palletsReal / palletsMeta) * 100 : 0;
@@ -644,9 +1040,9 @@ export default function GestaoCapacidadeDashboard({
 
       // Consistency validation between Meta HL/Pallet and Real HL/Pallet
       const razaoMeta = palletsMeta > 0 ? hlMeta / palletsMeta : 0;
-      const razaoReal = palletsReal > 0 ? hlReal / palletsReal : (areaRealFactors[areaKey] || DEFAULT_AREA_FACTORS[areaKey]);
+      const razaoReal = palletsReal > 0 ? hlReal / palletsReal : (areaRealFactors[areaKey] || DEFAULT_AREA_FACTORS[areaKey] || 7.5);
       const desvioPct = (razaoReal > 0 && razaoMeta > 0) ? (Math.abs(razaoMeta - razaoReal) / razaoReal) * 100 : 0;
-      const isMetaDesatualizada = desvioPct > 30;
+      const isMetaDesatualizada = desvioPct > 30 && id !== 7;
 
       const areaInfo: Record<number, { nome: string; shortName: string }> = {
         1: { nome: '1 - Armazém Central', shortName: 'Central' },
@@ -654,7 +1050,8 @@ export default function GestaoCapacidadeDashboard({
         3: { nome: '3 - Marketplace', shortName: 'Marketplace' },
         4: { nome: '4 - Contingência', shortName: 'Contingência' },
         5: { nome: '5 - Pulmão', shortName: 'Pulmão' },
-        6: { nome: '6 - PNC', shortName: 'PNC' }
+        6: { nome: '6 - PNC', shortName: 'PNC' },
+        7: { nome: '7 - Produtos de Limpeza', shortName: 'Limpeza' }
       };
 
       return {
@@ -674,10 +1071,10 @@ export default function GestaoCapacidadeDashboard({
       };
     });
 
-    const totalPalletsMeta = (areaMetas[1]?.palletsMeta || 615) + (areaMetas[2]?.palletsMeta || 160) + (areaMetas[3]?.palletsMeta || 84) + (areaMetas[4]?.palletsMeta || 108) + (areaMetas[5]?.palletsMeta || 140) + (areaMetas[6]?.palletsMeta || 9);
-    const totalPalletsReal = centralPallets + pickingPallets + mpPallets + contingenciaPallets + pulmaoPallets + pncPallets;
-    const totalHlMeta = (areaMetas[1]?.hectolitrosMeta || 0) + (areaMetas[2]?.hectolitrosMeta || 0) + (areaMetas[3]?.hectolitrosMeta || 0) + (areaMetas[4]?.hectolitrosMeta || 0) + (areaMetas[5]?.hectolitrosMeta || 0) + (areaMetas[6]?.hectolitrosMeta || 0);
-    const totalHlReal = centralHl + pickingHl + mpHl + contingenciaHl + pulmaoHl + pncHl;
+    const totalPalletsMeta = (areaMetas[1]?.palletsMeta || 615) + (areaMetas[2]?.palletsMeta || 160) + (areaMetas[3]?.palletsMeta || 84) + (areaMetas[4]?.palletsMeta || 108) + (areaMetas[5]?.palletsMeta || 140) + (areaMetas[6]?.palletsMeta || 9) + (areaMetas[7]?.palletsMeta || 35);
+    const totalPalletsReal = centralPallets + pickingPallets + mpPallets + contingenciaPallets + pulmaoPallets + pncPallets + limpezaPallets;
+    const totalHlMeta = (areaMetas[1]?.hectolitrosMeta || 0) + (areaMetas[2]?.hectolitrosMeta || 0) + (areaMetas[3]?.hectolitrosMeta || 0) + (areaMetas[4]?.hectolitrosMeta || 0) + (areaMetas[5]?.hectolitrosMeta || 0) + (areaMetas[6]?.hectolitrosMeta || 0) + (areaMetas[7]?.hectolitrosMeta || 0);
+    const totalHlReal = centralHl + pickingHl + mpHl + contingenciaHl + pulmaoHl + pncHl + limpezaHl;
 
     return {
       hasImport: posicaoPalletItems.length > 0,
@@ -694,6 +1091,123 @@ export default function GestaoCapacidadeDashboard({
     };
   }, [posicaoPalletItems, areaMetas, rawTotals, areaRealFactors]);
 
+  // Pre-calculated & Sorted 02.11.01 SKU List (Default: Highest Pallet Occupancy First -> Decrescente)
+  const sortedPosicaoPalletItems = useMemo(() => {
+    const companyId = empresa?.id || 'demo';
+
+    const processed = posicaoPalletItems
+      .filter(item => {
+        const codeNum = Number(item.codigo);
+        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto);
+        const effectiveAreaId = isLimpeza ? 7 : item.areaId;
+
+        if (selectedTargetArea === 'CENTRAL' && effectiveAreaId !== 1) return false;
+        if (selectedTargetArea === 'PICKING' && effectiveAreaId !== 2) return false;
+        if (selectedTargetArea === 'MARKETPLACE' && effectiveAreaId !== 3) return false;
+        if (selectedTargetArea === 'CONTINGENCIA' && effectiveAreaId !== 4) return false;
+        if (selectedTargetArea === 'PULMAO' && effectiveAreaId !== 5) return false;
+        if (selectedTargetArea === 'PNC' && effectiveAreaId !== 6) return false;
+        if (selectedTargetArea === 'LIMPEZA' && effectiveAreaId !== 7) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const codStr = String(item.codigo || '');
+          const prodStr = (item.produto || '').toLowerCase();
+          return codStr.includes(q) || prodStr.includes(q);
+        }
+        return true;
+      })
+      .map((item, idx) => {
+        const codeNum = Number(item.codigo);
+        const meta = getProductMeta(codeNum, companyId);
+        const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
+        const fatorPallet = meta.fatorPallet && meta.fatorPallet > 0 ? meta.fatorPallet : 50;
+        const lastro = meta.lastro && meta.lastro > 0 ? meta.lastro : Math.max(1, Math.round(fatorPallet / (meta.camadas || 5)));
+        const temFatorHecto = meta.fatorHecto !== undefined && meta.fatorHecto > 0;
+        const fator = temFatorHecto ? meta.fatorHecto : 0;
+        const officialDesc = getProductOfficialDescription(codeNum, item.produto, companyId);
+
+        let totalQtd = Number(item.qtdFisicaCaixas || 0);
+        if (totalQtd === 0 && item.qtdPallet > 0) {
+          totalQtd = item.qtdPallet * fatorPallet;
+        }
+
+        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, officialDesc, meta.grupo || catalogItem?.grupo);
+        const effectiveAreaId = isLimpeza ? 7 : item.areaId;
+        const isMarketplace = effectiveAreaId === 3 || isMarketplaceProduct(codeNum, officialDesc, meta.grupo || catalogItem?.grupo);
+        const mpGroup = isMarketplace ? getMarketplaceGroup(codeNum, officialDesc, meta.grupo || catalogItem?.grupo) : undefined;
+
+        const calc = calculateOccupiedPalletPositions(
+          totalQtd,
+          fatorPallet,
+          lastro,
+          codeNum,
+          officialDesc,
+          meta.grupo || catalogItem?.grupo,
+          effectiveAreaId
+        );
+
+        const palletsCompletos = calc.palletsCompletos;
+        const lastrosCalculados = calc.lastrosCalculados;
+        const posicoesOcupadas = calc.posicoesOcupadas;
+        const isFracionadoSemPos = calc.isFracionadoSemPosicao;
+        const itemHl = temFatorHecto ? Math.round((totalQtd * fator) * 1000) / 1000 : 0;
+
+        return {
+          rawItem: item,
+          idx,
+          codigo: codeNum,
+          officialDesc,
+          meta,
+          fatorPallet,
+          lastro,
+          temFatorHecto,
+          fator,
+          totalQtd,
+          isLimpeza,
+          effectiveAreaId,
+          isMarketplace,
+          mpGroup,
+          palletsCompletos,
+          lastrosCalculados,
+          posicoesOcupadas,
+          isFracionadoSemPos,
+          itemHl
+        };
+      });
+
+    // Ordenação (Padrão: Maior Ocupação de Posições Pallet Primeiro -> Decrescente)
+    processed.sort((a, b) => {
+      let comparison = 0;
+      if (skuSortField === 'posicoes') {
+        comparison = (b.posicoesOcupadas - a.posicoesOcupadas) || (b.totalQtd - a.totalQtd) || (b.itemHl - a.itemHl);
+        return skuSortDirection === 'asc' ? -comparison : comparison;
+      } else if (skuSortField === 'caixas') {
+        comparison = (b.totalQtd - a.totalQtd);
+        return skuSortDirection === 'asc' ? -comparison : comparison;
+      } else if (skuSortField === 'pallets') {
+        comparison = (b.palletsCompletos - a.palletsCompletos);
+        return skuSortDirection === 'asc' ? -comparison : comparison;
+      } else if (skuSortField === 'lastros') {
+        comparison = (b.lastrosCalculados - a.lastrosCalculados);
+        return skuSortDirection === 'asc' ? -comparison : comparison;
+      } else if (skuSortField === 'hectolitros') {
+        comparison = (b.itemHl - a.itemHl);
+        return skuSortDirection === 'asc' ? -comparison : comparison;
+      } else if (skuSortField === 'codigo') {
+        comparison = a.codigo - b.codigo;
+        return skuSortDirection === 'desc' ? -comparison : comparison;
+      } else if (skuSortField === 'produto') {
+        comparison = a.officialDesc.localeCompare(b.officialDesc);
+        return skuSortDirection === 'desc' ? -comparison : comparison;
+      } else if (skuSortField === 'area') {
+        comparison = a.effectiveAreaId - b.effectiveAreaId;
+        return skuSortDirection === 'desc' ? -comparison : comparison;
+      }
+      return (b.posicoesOcupadas - a.posicoesOcupadas) || (b.totalQtd - a.totalQtd);
+    });
+
+    return processed;
+  }, [posicaoPalletItems, selectedTargetArea, searchQuery, skuSortField, skuSortDirection, empresa?.id]);
 
   // Item calculations
   const itemsCalculated = useMemo(() => {
@@ -823,6 +1337,22 @@ export default function GestaoCapacidadeDashboard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            id="btn-exportar-relatorio-pdf-completo"
+            onClick={() => {
+              gerarRelatorioCompletoLogisticaPDF(
+                empresa?.id || 'demo',
+                empresa?.nome || 'CDD Guarabira',
+                user?.nome || 'Gestor Logístico'
+              );
+            }}
+            className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
+            title="Exportar Relatório Executivo Integrado em PDF (Capacidade, Política de Estoque e Matriz Logística)"
+          >
+            <Download className="w-4 h-4 text-emerald-200" />
+            Exportar Relatório (PDF)
+          </button>
+
           <button
             onClick={() => setIsPopOpen(true)}
             className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer"
@@ -1133,11 +1663,15 @@ export default function GestaoCapacidadeDashboard({
                             <span className="text-[10px] font-black uppercase text-emerald-400">ESTOQUE CENTRAL - BLOCO A</span>
                             <span className="text-[9px] font-mono text-emerald-300 font-bold">Curva A</span>
                           </div>
-                          <div className="grid grid-cols-2 gap-1.5 text-[9px] text-center font-bold">
-                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-2 rounded text-emerald-200">A4</div>
-                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-2 rounded text-emerald-200">A2</div>
-                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-2 rounded text-emerald-200">A1</div>
-                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-2 rounded text-emerald-200">A3</div>
+                          <div className="grid grid-cols-4 gap-1 text-[8px] text-center font-bold">
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A1</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A2</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A3</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A4</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A5</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A6</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A7</div>
+                            <div className="bg-emerald-500/20 border border-emerald-500/40 py-1.5 rounded text-emerald-200">A8</div>
                           </div>
                           <span className="text-[8px] text-slate-400 block text-center">Próximo ao Picking (Maior Giro)</span>
                         </div>
@@ -1624,7 +2158,7 @@ export default function GestaoCapacidadeDashboard({
           />
 
           {/* 02.11.01 IMPORT & TEMPLATE DOWNLOAD CARD */}
-          <div className="bg-[#032b5e] text-white rounded-2xl p-5 shadow-lg border border-blue-900/60 relative overflow-hidden">
+          <div className="bg-[#032b5e] text-white rounded-2xl p-5 shadow-lg border border-blue-900/60 relative overflow-hidden space-y-4">
             <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
               <Warehouse className="w-56 h-56 text-white" />
             </div>
@@ -1635,43 +2169,67 @@ export default function GestaoCapacidadeDashboard({
                   <span className="text-[10px] font-black uppercase tracking-widest bg-amber-400 text-slate-900 px-2.5 py-0.5 rounded-full">
                     Relatório 02.11.01
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-blue-800 text-blue-200 px-2.5 py-0.5 rounded-full border border-blue-700">
-                    Contagem de Posição Pallet
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full border border-emerald-400 font-mono">
+                    Suporte a Mesclagem / Recontagem
                   </span>
                 </div>
                 <h3 className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
                   <Boxes className="w-5 h-5 text-amber-400" />
-                  Importar Relatório Posição Pallet (02.11.01) & Verificar Capacidades
+                  Importação & Mesclagem de Recontagens (02.11.01)
                 </h3>
                 <p className="text-xs text-blue-100/90 leading-relaxed">
                   Carregue a planilha oficial <strong>02.11.01</strong> contendo a contagem por áreas.
-                  Mapeamento: <strong>Área 1 = Armazém Central</strong> | <strong>Área 2 = Picking</strong> (Lastro &gt; 0 ocupa 1 posição pallet) | <strong>Área 3 = Marketplace</strong> | <strong>Área 4 = Contingência</strong>.
+                  Mapeamento: <strong>Área 1 = Armazém Central</strong> | <strong>Área 2 = Picking</strong> (Lastro &gt; 0 ocupa 1 posição) | <strong>Área 3 = Marketplace</strong> | <strong>Área 4 = Contingência</strong>.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                {/* BAIXAR MODELO */}
                 <button
                   onClick={handleDownload021101Template}
-                  className="px-3.5 py-2 bg-blue-900/80 hover:bg-blue-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors border border-blue-700/80 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 bg-blue-900/80 hover:bg-blue-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors border border-blue-700/80 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-amber-300" /> Baixar Modelo (02.11.01)
+                  <Download className="w-3.5 h-3.5 text-amber-300" /> Baixar Modelo
                 </button>
 
-                <label className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2">
-                  <Upload className="w-4 h-4" /> Importar Arquivo 02.11.01
-                  <input type="file" accept=".csv, .txt" onChange={handlePosicaoPalletImport} className="hidden" />
+                {/* MESCLAR RECONTAGEM (PATCH) */}
+                <label 
+                  className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2 border border-emerald-300 ring-2 ring-emerald-400/30"
+                  title="Importa uma nova planilha 02.11.01 de recontagem, atualizando/corrigindo apenas os itens recontados e mantendo todos os outros SKUs intactos"
+                >
+                  <RefreshCw className="w-4 h-4 text-slate-950" /> 
+                  <span>Mesclar Recontagem (02.11.01)</span>
+                  <input type="file" accept=".csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, true)} className="hidden" />
                 </label>
+
+                {/* CARGA GERAL / SUBSTITUIR TUDO */}
+                <label 
+                  className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2"
+                  title="Substitui 100% da base ativa com todos os produtos do arquivo enviado"
+                >
+                  <Upload className="w-4 h-4" /> 
+                  <span>Carga Geral / Substituir</span>
+                  <input type="file" accept=".csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, false)} className="hidden" />
+                </label>
+              </div>
+            </div>
+
+            {/* CAIXA DE DINÂMICA DE RECONTAGEM EXPLICATIVA */}
+            <div className="bg-blue-950/70 border border-blue-800/80 rounded-xl p-3 text-[11px] text-blue-200/90 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="text-white uppercase font-bold tracking-wider">Dinâmica de Recontagem:</strong> Carregue a primeira planilha <strong>02.11.01</strong> via <em>"Carga Geral"</em> com todos os produtos. Se solicitar recontagens ao conferente, suba a 2ª ou 3ª planilha clicando em <strong className="text-emerald-300">"Mesclar Recontagem"</strong> — o sistema corrigirá apenas os itens recontados, preservará os demais produtos intactos e atualizará instantaneamente a Gestão de Capacidade, Ocupação e Hectolitros.
               </div>
             </div>
 
             {/* STATUS DA ÚLTIMA IMPORTAÇÃO 02.11.01 */}
             {lastUploadInfo && (
-              <div className="mt-3.5 pt-3 border-t border-blue-800/80 flex items-center justify-between text-xs text-amber-200 font-medium">
+              <div className="pt-2 border-t border-blue-800/80 flex items-center justify-between text-xs text-amber-200 font-medium">
                 <span className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  {lastUploadInfo}
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lastUploadInfo}</span>
                 </span>
-                <span className="text-[10px] uppercase font-bold text-blue-300">
+                <span className="text-[10px] uppercase font-bold text-blue-300 bg-blue-900/80 px-2.5 py-1 rounded-md border border-blue-700 shrink-0">
                   {posicaoPalletItems.length} registros ativos
                 </span>
               </div>
@@ -1750,8 +2308,10 @@ export default function GestaoCapacidadeDashboard({
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                   {posMetricsByArea.areas.map((a) => {
+                    const isPicking = a.id === 2;
+                    // Regra: Para Picking (área 2), até 100% é Conforme e acima de 100% é Crítico (sem alerta intermediário de 90%)
                     const isExceeded = a.palletsPct > 100 || a.hlPct > 100;
-                    const isHighCapacity = !isExceeded && (a.palletsPct >= 90 || a.hlPct >= 90);
+                    const isHighCapacity = !isPicking && !isExceeded && (a.palletsPct >= 90 || a.hlPct >= 90);
 
                     return (
                       <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
@@ -1764,10 +2324,10 @@ export default function GestaoCapacidadeDashboard({
                           {editingMetas ? (
                             <input
                               type="number"
-                              value={tempMetas[a.id as 1 | 2 | 3 | 4 | 5 | 6]?.palletsMeta || 0}
+                              value={tempMetas[a.id as 1 | 2 | 3 | 4 | 5 | 6 | 7]?.palletsMeta || 0}
                               onChange={(e) => {
                                 const v = Number(e.target.value) || 0;
-                                const areaKey = a.id as 1 | 2 | 3 | 4 | 5 | 6;
+                                const areaKey = a.id as 1 | 2 | 3 | 4 | 5 | 6 | 7;
                                 const areaFactor = areaRealFactors[areaKey] || DEFAULT_AREA_FACTORS[areaKey] || 7.5;
                                 setTempMetas({
                                   ...tempMetas,
@@ -1790,7 +2350,7 @@ export default function GestaoCapacidadeDashboard({
                           <span className={`px-2 py-0.5 rounded-md text-[11px] ${
                             a.palletsPct > 100
                               ? 'bg-rose-600 text-white font-black'
-                              : a.palletsPct >= 90
+                              : (!isPicking && a.palletsPct >= 90)
                               ? 'bg-amber-500 text-slate-950 font-bold'
                               : 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'
                           }`}>
@@ -1804,10 +2364,10 @@ export default function GestaoCapacidadeDashboard({
                             <input
                               type="number"
                               step="10"
-                              value={tempMetas[a.id as 1 | 2 | 3 | 4 | 5 | 6]?.hectolitrosMeta || 0}
+                              value={tempMetas[a.id as 1 | 2 | 3 | 4 | 5 | 6 | 7]?.hectolitrosMeta || 0}
                               onChange={(e) => {
                                 const v = Number(e.target.value) || 0;
-                                const areaKey = a.id as 1 | 2 | 3 | 4 | 5 | 6;
+                                const areaKey = a.id as 1 | 2 | 3 | 4 | 5 | 6 | 7;
                                 setTempMetas({
                                   ...tempMetas,
                                   [areaKey]: { ...(tempMetas[areaKey] || { palletsMeta: a.palletsMeta, hectolitrosMeta: 0 }), hectolitrosMeta: v }
@@ -1833,7 +2393,7 @@ export default function GestaoCapacidadeDashboard({
                           <span className={`px-2 py-0.5 rounded-md text-[11px] ${
                             a.hlPct > 100
                               ? 'bg-rose-600 text-white font-black'
-                              : a.hlPct >= 90
+                              : (!isPicking && a.hlPct >= 90)
                               ? 'bg-amber-500 text-slate-950 font-bold'
                               : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
                           }`}>
@@ -1901,7 +2461,7 @@ export default function GestaoCapacidadeDashboard({
           {/* CAPACITY GAUGES VISUAL CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {posMetricsByArea.areas.map((area) => {
-              const isOver = area.palletsPct >= 100;
+              const isOver = area.palletsPct > 100;
               return (
                 <div
                   key={area.id}
@@ -1920,7 +2480,7 @@ export default function GestaoCapacidadeDashboard({
                         ? 'bg-rose-600 text-white'
                         : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
                     }`}>
-                      {isOver ? '100% LOTADO' : `${area.palletsPct.toFixed(1)}%`}
+                      {isOver ? `${area.palletsPct.toFixed(1)}% CRÍTICO` : `${area.palletsPct.toFixed(1)}%`}
                     </span>
                   </div>
 
@@ -1960,12 +2520,23 @@ export default function GestaoCapacidadeDashboard({
                   <FileText className="w-4 h-4 text-amber-500" /> Relatório Detalhado de Contagem Posição Pallet (02.11.01)
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Exibição de todos os itens contados com posições de pallets fechados, lastros e hectolitros calculados.
+                  Exibição de todos os itens contados com posições de pallets fechados, lastros e hectolitros calculados. Clique em <strong>Editar</strong> para ajustar a palletização ou Fator HE.
                 </p>
               </div>
 
-              {/* FILTROS E PESQUISA */}
+              {/* ACTIONS & GUIA DE CADASTRO */}
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => handleOpenCadastro()}
+                  className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Abrir a tela de Cadastro de Produtos para editar palletização ou Fator HE dos 377 SKUs"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Guia de Cadastro de Produtos</span>
+                  <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
+                </button>
+
+                {/* PESQUISA */}
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
                   <input
@@ -1977,7 +2548,8 @@ export default function GestaoCapacidadeDashboard({
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                {/* FILTROS DE ÁREA */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex-wrap">
                   <button
                     onClick={() => setSelectedTargetArea('ALL')}
                     className={`px-2.5 py-1 text-[10px] font-black rounded-lg uppercase transition-all ${
@@ -2048,8 +2620,31 @@ export default function GestaoCapacidadeDashboard({
                   >
                     6-PNC
                   </button>
+                  <button
+                    onClick={() => setSelectedTargetArea('LIMPEZA')}
+                    className={`px-2.5 py-1 text-[10px] font-black rounded-lg uppercase transition-all ${
+                      selectedTargetArea === 'LIMPEZA'
+                        ? 'bg-teal-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-teal-600 dark:hover:text-teal-300'
+                    }`}
+                  >
+                    7-Limpeza
+                  </button>
                 </div>
               </div>
+            </div>
+
+            {/* INFO BAR ABOUT FRACTIONAL & CONFECTIONERY PALLET POSITION LOGIC */}
+            <div className="px-5 py-2.5 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-500 shrink-0" />
+                <span>
+                  <strong>Regra de Ocupação de Posições Pallet:</strong> Produtos classificados como <strong>Marketplace</strong> (<em>Halls, Trident, Azeites, Doces Vieira, Tang, etc.</em>) são agrupados por família. Caso a soma do grupo não atinja 1 lastro mínimo, <strong>não ocupa posição porta-paletes (0 pos)</strong>. Ao atingir ou superar 1 lastro, o grupo <strong>ocupa 1 posição compartilhada</strong>. A descrição é padronizada pelo Cadastro Oficial de Produtos.
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 whitespace-nowrap">
+                Fator Pallet &amp; Lastro Ativos
+              </span>
             </div>
 
             {/* DETAILED TABLE 02.11.01 OR FALLBACK INVENTORY */}
@@ -2057,114 +2652,308 @@ export default function GestaoCapacidadeDashboard({
               {posicaoPalletItems.length > 0 ? (
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-slate-700 text-[10px] font-black text-gray-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/60">
-                      <th className="p-3 whitespace-nowrap">Área</th>
-                      <th className="p-3 whitespace-nowrap">Código</th>
-                      <th className="p-3">Descrição do Produto</th>
-                      <th className="p-3 text-right whitespace-nowrap">Caixas</th>
-                      <th className="p-3 text-right whitespace-nowrap">Pallets</th>
-                      <th className="p-3 text-right whitespace-nowrap">Lastro</th>
-                      <th className="p-3 text-right whitespace-nowrap">Pos. Ocupadas</th>
+                    <tr className="border-b border-gray-200 dark:border-slate-700 text-[10px] font-black text-gray-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/60 select-none">
+                      <th className="p-3 whitespace-nowrap text-center"># Rank</th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'area') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('area'); setSkuSortDirection('asc'); }
+                        }}
+                        className="p-3 whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Área"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Área</span>
+                          {skuSortField === 'area' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'codigo') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('codigo'); setSkuSortDirection('asc'); }
+                        }}
+                        className="p-3 whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Código"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Código</span>
+                          {skuSortField === 'codigo' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'produto') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('produto'); setSkuSortDirection('asc'); }
+                        }}
+                        className="p-3 min-w-[280px] sm:min-w-[340px] lg:min-w-[400px] cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Descrição Oficial"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Descrição Oficial do Produto</span>
+                          {skuSortField === 'produto' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'caixas') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('caixas'); setSkuSortDirection('desc'); }
+                        }}
+                        className="p-3 text-right whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Volume Físico de Caixas"
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <span>Caixas</span>
+                          {skuSortField === 'caixas' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'pallets') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('pallets'); setSkuSortDirection('desc'); }
+                        }}
+                        className="p-3 text-right whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Paletes Completos"
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <span>Pallets</span>
+                          {skuSortField === 'pallets' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'lastros') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('lastros'); setSkuSortDirection('desc'); }
+                        }}
+                        className="p-3 text-right whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Lastros"
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <span>Lastro</span>
+                          {skuSortField === 'lastros' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'posicoes') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('posicoes'); setSkuSortDirection('desc'); }
+                        }}
+                        className="p-3 text-right whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors bg-amber-500/10 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 font-black rounded-t"
+                        title="Clique para ordenar por Posições Pallet Ocupadas (Maior para Menor)"
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <span>Pos. Ocupadas</span>
+                          {skuSortField === 'posicoes' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-600 dark:text-amber-400" /> : <ArrowDown className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
                       <th className="p-3 text-right whitespace-nowrap">Fator HE</th>
-                      <th className="p-3 text-right whitespace-nowrap">Total HE</th>
+                      <th 
+                        onClick={() => {
+                          if (skuSortField === 'hectolitros') setSkuSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+                          else { setSkuSortField('hectolitros'); setSkuSortDirection('desc'); }
+                        }}
+                        className="p-3 text-right whitespace-nowrap cursor-pointer hover:text-amber-500 transition-colors"
+                        title="Clique para ordenar por Total de Hectolitros"
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <span>Total HE</span>
+                          {skuSortField === 'hectolitros' ? (
+                            skuSortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-amber-500" /> : <ArrowDown className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 opacity-40" />
+                          )}
+                        </div>
+                      </th>
+                      <th className="p-3 text-center whitespace-nowrap">Ações / Cadastro</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800 font-medium">
-                    {posicaoPalletItems
-                      .filter(item => {
-                        if (selectedTargetArea === 'CENTRAL' && item.areaId !== 1) return false;
-                        if (selectedTargetArea === 'PICKING' && item.areaId !== 2) return false;
-                        if (selectedTargetArea === 'MARKETPLACE' && item.areaId !== 3) return false;
-                        if (selectedTargetArea === 'CONTINGENCIA' && item.areaId !== 4) return false;
-                        if (selectedTargetArea === 'PULMAO' && item.areaId !== 5) return false;
-                        if (selectedTargetArea === 'PNC' && item.areaId !== 6) return false;
-                        if (searchQuery) {
-                          const q = searchQuery.toLowerCase();
-                          const codStr = String(item.codigo || '');
-                          const prodStr = (item.produto || '').toLowerCase();
-                          return codStr.includes(q) || prodStr.includes(q);
-                        }
-                        return true;
-                      })
-                      .map((item, idx) => {
-                        const codeNum = Number(item.codigo);
-                        const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
-                        const catalogDetail = PRODUCT_CATALOG_DETAILS[codeNum];
-                        const rawFatorHecto = item.fatorHecto ?? catalogItem?.fatorHecto ?? catalogDetail?.fatorHecto;
-                        const temFatorHecto = rawFatorHecto !== undefined && rawFatorHecto > 0;
-                        const fator = temFatorHecto ? rawFatorHecto : 0;
+                    {sortedPosicaoPalletItems.map((item, rankIdx) => {
+                      const {
+                        rawItem,
+                        codigo,
+                        officialDesc,
+                        meta,
+                        effectiveAreaId,
+                        isLimpeza,
+                        isMarketplace,
+                        mpGroup,
+                        totalQtd,
+                        palletsCompletos,
+                        lastrosCalculados,
+                        posicoesOcupadas,
+                        isFracionadoSemPos,
+                        temFatorHecto,
+                        fator,
+                        itemHl
+                      } = item;
 
-                        let totalQtd = Number(item.qtdFisicaCaixas || 0);
-                        if (totalQtd === 0 && item.qtdPallet > 0) {
-                          totalQtd = item.qtdPallet * (catalogItem?.caixasPallet || catalogDetail?.fator || 50);
-                        }
-                        const itemHl = temFatorHecto ? Math.round((totalQtd * fator) * 1000) / 1000 : 0;
-
-                        return (
-                          <tr key={`${item.areaId}-${item.codigo}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                            <td className="p-3">
-                              <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider border ${
-                                item.areaId === 1 ? 'bg-blue-500/10 text-blue-700 border-blue-300/60 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700/50' :
-                                item.areaId === 2 ? 'bg-amber-500/10 text-amber-800 border-amber-300/60 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700/50' :
-                                item.areaId === 3 ? 'bg-emerald-500/10 text-emerald-800 border-emerald-300/60 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700/50' :
-                                item.areaId === 4 ? 'bg-purple-500/10 text-purple-800 border-purple-300/60 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700/50' :
-                                item.areaId === 5 ? 'bg-cyan-500/10 text-cyan-800 border-cyan-300/60 dark:bg-cyan-900/40 dark:text-cyan-300 dark:border-cyan-700/50' :
-                                'bg-rose-500/10 text-rose-800 border-rose-300/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-700/50'
-                              }`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                  item.areaId === 1 ? 'bg-blue-500' :
-                                  item.areaId === 2 ? 'bg-amber-500' :
-                                  item.areaId === 3 ? 'bg-emerald-500' :
-                                  item.areaId === 4 ? 'bg-purple-500' :
-                                  item.areaId === 5 ? 'bg-cyan-500' :
-                                  'bg-rose-500'
-                                }`} />
-                                {item.areaId === 1 ? 'Armazém Central' :
-                                 item.areaId === 2 ? 'Picking' :
-                                 item.areaId === 3 ? 'Marketplace' :
-                                 item.areaId === 4 ? 'Contingência' :
-                                 item.areaId === 5 ? 'Pulmão' :
-                                 'PNC'}
+                      return (
+                        <tr key={`${effectiveAreaId}-${codigo}-${rankIdx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3 text-center">
+                            <span className={`inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded text-[10px] font-black font-mono ${
+                              rankIdx < 3 && posicoesOcupadas > 0
+                                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                                : rankIdx < 10 && posicoesOcupadas > 0
+                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                                : 'text-slate-400 dark:text-slate-500'
+                            }`}>
+                              #{rankIdx + 1}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider border ${
+                              effectiveAreaId === 1 ? 'bg-blue-500/10 text-blue-700 border-blue-300/60 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700/50' :
+                              effectiveAreaId === 2 ? 'bg-amber-500/10 text-amber-800 border-amber-300/60 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700/50' :
+                              effectiveAreaId === 3 ? 'bg-emerald-500/10 text-emerald-800 border-emerald-300/60 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700/50' :
+                              effectiveAreaId === 4 ? 'bg-purple-500/10 text-purple-800 border-purple-300/60 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700/50' :
+                              effectiveAreaId === 5 ? 'bg-cyan-500/10 text-cyan-800 border-cyan-300/60 dark:bg-cyan-900/40 dark:text-cyan-300 dark:border-cyan-700/50' :
+                              effectiveAreaId === 6 ? 'bg-rose-500/10 text-rose-800 border-rose-300/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-700/50' :
+                              'bg-teal-500/10 text-teal-800 border-teal-300/60 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-700/50'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                effectiveAreaId === 1 ? 'bg-blue-500' :
+                                effectiveAreaId === 2 ? 'bg-amber-500' :
+                                effectiveAreaId === 3 ? 'bg-emerald-500' :
+                                effectiveAreaId === 4 ? 'bg-purple-500' :
+                                effectiveAreaId === 5 ? 'bg-cyan-500' :
+                                effectiveAreaId === 6 ? 'bg-rose-500' :
+                                'bg-teal-500'
+                              }`} />
+                              {effectiveAreaId === 1 ? 'Armazém Central' :
+                               effectiveAreaId === 2 ? 'Picking' :
+                               effectiveAreaId === 3 ? 'Marketplace' :
+                               effectiveAreaId === 4 ? 'Contingência' :
+                               effectiveAreaId === 5 ? 'Pulmão' :
+                               effectiveAreaId === 6 ? 'PNC' :
+                               'Produtos de Limpeza'}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-amber-600">{codigo}</td>
+                          <td className="p-3 min-w-[280px] sm:min-w-[340px] lg:min-w-[400px]">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[11.5px] font-bold uppercase tracking-tight text-slate-900 dark:text-slate-100">
+                                {officialDesc}
                               </span>
-                            </td>
-                            <td className="p-3 font-mono font-bold text-amber-600">{item.codigo}</td>
-                            <td className="p-3 font-bold uppercase text-slate-900 dark:text-slate-100">{item.produto}</td>
-                            <td className="p-3 text-right font-mono font-bold">{totalQtd} cx</td>
-                            <td className="p-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{item.qtdPallet}</td>
-                            <td className="p-3 text-right font-mono font-bold text-amber-600 dark:text-amber-400">{item.qtdLastro}</td>
-                            <td className="p-3 text-right font-mono font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 rounded">
-                              {item.posicoesPalletOcupadas} pos
-                            </td>
-                            <td className="p-3 text-right font-mono text-slate-400">{fator.toFixed(4)}</td>
-                            <td className="p-3 text-right font-black font-mono text-amber-600 dark:text-amber-400">{itemHl.toFixed(2)} HE</td>
-                          </tr>
-                        );
-                      })}
+                              {isLimpeza ? (
+                                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[8.5px] font-extrabold rounded border border-teal-500/20 uppercase tracking-tight whitespace-nowrap">
+                                  Limpeza
+                                </span>
+                              ) : mpGroup ? (
+                                <span className="inline-flex items-center px-1.5 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[8.5px] font-extrabold rounded border border-emerald-500/20 uppercase tracking-tight whitespace-nowrap">
+                                  {mpGroup}
+                                </span>
+                              ) : null}
+                              {isFracionadoSemPos && totalQtd > 0 && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[8px] font-bold rounded border border-amber-500/20 uppercase tracking-tight whitespace-nowrap" title="Volume menor que 1 lastro: alocado em prateleira/flow-rack sem ocupar posição porta-paletes">
+                                  &lt; 1 Lastro (0 pos)
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold">{totalQtd} {getProductUnit(meta)}</td>
+                          <td className="p-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
+                            {palletsCompletos}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-amber-600 dark:text-amber-400">
+                            {lastrosCalculados}
+                          </td>
+                          <td className="p-3 text-right font-mono bg-amber-500/5 dark:bg-amber-500/10">
+                            {posicoesOcupadas > 0 ? (
+                              <span className="font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                {posicoesOcupadas} pos
+                              </span>
+                            ) : (
+                              <span className="font-bold text-slate-400 dark:text-slate-500 text-[11px]">
+                                0 pos
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right font-mono text-slate-400">
+                            {temFatorHecto ? (
+                              <span>{fator.toFixed(4)}</span>
+                            ) : (
+                              <span className="text-rose-500 font-bold text-[10px]">Sem Fator</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right font-black font-mono text-amber-600 dark:text-amber-400">
+                            {itemHl.toFixed(2)} HE
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleOpenQuickEdit(rawItem)}
+                                title="Editar Palletização e Fator Hecto deste SKU"
+                                className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg font-bold text-[10px] flex items-center gap-1 transition-all cursor-pointer"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                                <span>Editar</span>
+                              </button>
+                              <button
+                                onClick={() => handleOpenCadastro(codigo)}
+                                title="Abrir no Cadastro de Produtos Geral"
+                                className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all cursor-pointer"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-slate-700 text-[10px] font-black text-gray-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/60">
-                      <th className="p-3">Código</th>
-                      <th className="p-3">Descrição do Produto</th>
-                      <th className="p-3 text-right">Fator Cx</th>
-                      <th className="p-3 text-right">Valor un.</th>
-                      <th className="p-3 text-right">Central (615)</th>
-                      <th className="p-3 text-right">Picking (160)</th>
-                      <th className="p-3 text-right">Marketplace (84)</th>
-                      <th className="p-3 text-right">Contingência (108)</th>
-                      <th className="p-3 text-right">Pulmão (140)</th>
-                      <th className="p-3 text-right">PNC (9)</th>
-                      <th className="p-3 text-right">Total Est.</th>
-                      <th className="p-3 text-right">Total HE</th>
+                      <th className="p-3 whitespace-nowrap">Código</th>
+                      <th className="p-3 min-w-[260px] sm:min-w-[320px]">Descrição do Produto</th>
+                      <th className="p-3 text-right whitespace-nowrap">Fator Cx</th>
+                      <th className="p-3 text-right whitespace-nowrap">Valor un.</th>
+                      <th className="p-3 text-right whitespace-nowrap">Central (615)</th>
+                      <th className="p-3 text-right whitespace-nowrap">Picking (160)</th>
+                      <th className="p-3 text-right whitespace-nowrap">Marketplace (84)</th>
+                      <th className="p-3 text-right whitespace-nowrap">Contingência (108)</th>
+                      <th className="p-3 text-right whitespace-nowrap">Pulmão (140)</th>
+                      <th className="p-3 text-right whitespace-nowrap">PNC (9)</th>
+                      <th className="p-3 text-right whitespace-nowrap">Total Est.</th>
+                      <th className="p-3 text-right whitespace-nowrap">Total HE</th>
+                      <th className="p-3 text-center whitespace-nowrap">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800 font-medium">
                     {filteredItems.map((item, idx) => (
                       <tr key={`cap-item-${item.cod}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 font-mono font-bold text-amber-600">{item.cod}</td>
-                        <td className="p-3 font-bold uppercase text-slate-900 dark:text-slate-100">{item.descricao}</td>
+                        <td className="p-3 font-mono font-bold text-amber-600 whitespace-nowrap">{item.cod}</td>
+                        <td className="p-3 min-w-[260px] sm:min-w-[320px] font-bold uppercase text-slate-900 dark:text-slate-100 text-xs">{item.descricao}</td>
                         <td className="p-3 text-right font-mono">{item.fator}</td>
                         <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                           {item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -2175,6 +2964,15 @@ export default function GestaoCapacidadeDashboard({
                         <td className="p-3 text-right font-bold text-purple-600 dark:text-purple-400">{item.quantContingencia}</td>
                         <td className="p-3 text-right font-black text-slate-900 dark:text-white">{item.totalQuant}</td>
                         <td className="p-3 text-right font-black font-mono text-amber-600 dark:text-amber-400">{item.totalHl.toFixed(2)} HE</td>
+                        <td className="p-3 text-center">
+                          <button
+                            onClick={() => handleOpenQuickEdit({ codigo: item.cod, produto: item.descricao })}
+                            className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg font-bold text-[10px] flex items-center gap-1 transition-all mx-auto cursor-pointer"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            <span>Editar</span>
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -2497,11 +3295,15 @@ export default function GestaoCapacidadeDashboard({
                             <span className="font-black text-emerald-400 text-xs uppercase">Bloco A (Curva A)</span>
                             <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-mono px-1.5 py-0.5 rounded font-bold">Próx. Doca</span>
                           </div>
-                          <div className="grid grid-cols-2 gap-1.5 font-mono text-[10px] text-center font-bold">
-                            <div className="bg-emerald-900/40 text-emerald-200 p-2 rounded border border-emerald-700/40">A1 (Ruas 01-02)</div>
-                            <div className="bg-emerald-900/40 text-emerald-200 p-2 rounded border border-emerald-700/40">A2 (Ruas 03-04)</div>
-                            <div className="bg-emerald-900/40 text-emerald-200 p-2 rounded border border-emerald-700/40">A3 (Ruas 01-02)</div>
-                            <div className="bg-emerald-900/40 text-emerald-200 p-2 rounded border border-emerald-700/40">A4 (Ruas 03-04)</div>
+                          <div className="grid grid-cols-4 gap-1.5 font-mono text-[9px] text-center font-bold">
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A1</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A2</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A3</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A4</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A5</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A6</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A7</div>
+                            <div className="bg-emerald-900/40 text-emerald-200 p-1.5 rounded border border-emerald-700/40">A8</div>
                           </div>
                         </div>
                       </div>
@@ -2593,6 +3395,258 @@ export default function GestaoCapacidadeDashboard({
         defaultMeta="≤ 85% de Ocupação / 100% Curva ABC"
         user={user}
       />
+
+      {/* MODAL DE EDIÇÃO RÁPIDA DE SKU & CADASTRO DE PRODUTOS */}
+      {showSkuEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* MODAL HEADER */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-sans font-black text-sm uppercase text-slate-900 dark:text-white flex items-center gap-2">
+                    Editar Cadastro &amp; Palletização do SKU
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                      #{editingSkuData.codigo}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Ajuste os parâmetros de pallet, lastro, hectolitros e descrição oficial sincronizados com o Cadastro Geral.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSkuEditModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* MODAL BODY */}
+            <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+              {/* DESCRIÇÃO OFICIAL */}
+              <div>
+                <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                  Descrição Oficial do Produto
+                </label>
+                <input
+                  type="text"
+                  value={editingSkuData.produto}
+                  onChange={(e) => setEditingSkuData(prev => ({ ...prev, produto: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  placeholder="Ex: SKOL PURO MALTE 350ML CX 12UN"
+                />
+              </div>
+
+              {/* GRUPO / FAMÍLIA & ÁREA NO ARMAZÉM */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                    Grupo / Categoria
+                  </label>
+                  <select
+                    value={editingSkuData.grupo}
+                    onChange={(e) => setEditingSkuData(prev => ({ ...prev, grupo: e.target.value }))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="CERVEJA">CERVEJA</option>
+                    <option value="NAB">NAB (Refrigerantes / Sucos / Águas)</option>
+                    <option value="MARKETPLACE">MARKETPLACE (Alimentos, Azeites, Doces)</option>
+                    <option value="HALLS">HALLS</option>
+                    <option value="TRIDENT">TRIDENT</option>
+                    <option value="AZEITE">AZEITE</option>
+                    <option value="DOCES VIEIRA">DOCES VIEIRA</option>
+                    <option value="TANG">TANG</option>
+                    <option value="CONFEITOS & BALAS">CONFEITOS & BALAS</option>
+                    <option value="DESTILADOS">DESTILADOS</option>
+                    <option value="VINHOS">VINHOS</option>
+                    <option value="Produtos de Limpeza">PRODUTOS DE LIMPEZA</option>
+                    <option value="OUTROS">OUTROS</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                    Área Designada no Armazém
+                  </label>
+                  <select
+                    value={editingSkuData.areaId}
+                    onChange={(e) => setEditingSkuData(prev => ({ ...prev, areaId: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value={1}>1 - Armazém Central</option>
+                    <option value={2}>2 - Picking</option>
+                    <option value={3}>3 - Marketplace</option>
+                    <option value={4}>4 - Contingência</option>
+                    <option value={5}>5 - Pulmão</option>
+                    <option value={6}>6 - PNC (Não Conformes)</option>
+                    <option value={7}>7 - Produtos de Limpeza</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* PALLETIZAÇÃO, LASTRO & CAMADAS */}
+              <div className="p-4 rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Boxes className="w-4 h-4 text-amber-500" />
+                    Regras de Palletização &amp; Lastro
+                  </span>
+                  <span className="text-[10px] font-bold font-mono text-amber-700 dark:text-amber-400">
+                    {editingSkuData.lastro} cx/lastro × {editingSkuData.camadas} camadas = {editingSkuData.caixasPallet} cx/pal
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
+                      Caixas / Pallet (Fator Pallet)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingSkuData.caixasPallet}
+                      onChange={(e) => {
+                        const val = Math.max(1, Number(e.target.value) || 1);
+                        setEditingSkuData(prev => {
+                          const currentLastro = prev.lastro || 10;
+                          const camadas = Math.max(1, Math.round(val / currentLastro));
+                          return { ...prev, caixasPallet: val, camadas };
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-black text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
+                      Caixas / Lastro
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingSkuData.lastro}
+                      onChange={(e) => {
+                        const val = Math.max(1, Number(e.target.value) || 1);
+                        setEditingSkuData(prev => {
+                          const camadas = Math.max(1, Math.round(prev.caixasPallet / val));
+                          return { ...prev, lastro: val, camadas };
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-black text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
+                      Camadas (Alturas)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingSkuData.camadas}
+                      onChange={(e) => {
+                        const val = Math.max(1, Number(e.target.value) || 1);
+                        setEditingSkuData(prev => {
+                          const caixasPallet = prev.lastro * val;
+                          return { ...prev, camadas: val, caixasPallet };
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-black text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* FATOR CAIXA, FATOR HECTO & VALOR UNITÁRIO */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                    Fator Caixa (un/cx)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editingSkuData.fatorCx}
+                    onChange={(e) => setEditingSkuData(prev => ({ ...prev, fatorCx: Math.max(1, Number(e.target.value) || 1) }))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                    Fator Hectolitro (HE/cx)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    value={editingSkuData.fatorHecto}
+                    onChange={(e) => setEditingSkuData(prev => ({ ...prev, fatorHecto: Math.max(0, parseFloat(e.target.value) || 0) }))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 mb-1">
+                    Preço Unitário (R$)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editingSkuData.valorUnitario}
+                    onChange={(e) => setEditingSkuData(prev => ({ ...prev, valorUnitario: Math.max(0, parseFloat(e.target.value) || 0) }))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/20 rounded-xl flex items-start gap-2 text-xs text-blue-800 dark:text-blue-300">
+                <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <span>
+                  Ao salvar, as alterações serão atualizadas imediatamente no <strong>Cadastro Oficial de Produtos</strong> e os cálculos de posições pallet e volumes HE serão recalculados automaticamente em toda a aplicação.
+                </span>
+              </div>
+            </div>
+
+            {/* MODAL FOOTER */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => handleOpenCadastro(editingSkuData.codigo)}
+                className="px-3 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Abrir no Cadastro Completo</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSkuEditModal(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveSkuQuickEdit(editingSkuData)}
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Salvar &amp; Recalcular</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

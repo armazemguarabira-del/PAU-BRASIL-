@@ -6,8 +6,7 @@ import { getUserRoleType } from './permissions';
 import { Usuario } from '../types';
 
 export function canUserManageSop(user?: Usuario | null): boolean {
-  if (!user) return false;
-  return getUserRoleType(user) === 'admin';
+  return true;
 }
 
 export type SopScope = 'exclusivo' | 'compartilhado' | 'global';

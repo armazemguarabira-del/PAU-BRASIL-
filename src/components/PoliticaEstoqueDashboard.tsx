@@ -23,7 +23,8 @@ import {
   Grid,
   Trash2,
   Upload,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -59,6 +60,7 @@ import {
   categorizeFamilia 
 } from '../utils/estoqueParsers';
 import { getProductMeta } from '../utils/productCatalogData';
+import { gerarRelatorioCompletoLogisticaPDF } from '../utils/pdfExportUtils';
 import { PRODUCTS } from '../planosData';
 import { Usuario } from '../types';
 
@@ -274,9 +276,17 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
 
     const coberturaMedia = vendaMediaTotal > 0 ? (estoqueAtualTotal / vendaMediaTotal) : 0;
 
-    // Adherence rate: items where status is adequate or overstock within reasonable limit
-    const aderentes = filteredData.filter(d => d.coberturaDias >= 5.5 && d.coberturaDias <= 8.5).length;
-    const percentAderencia = totalItens > 0 ? Math.round((aderentes / totalItens) * 100) : 0;
+    // Aderência à Política de Estoque Ideal (Proximidade ao estoque ideal para mais ou para menos, máx 100%)
+    let percentAderencia = 100;
+    if (estoqueIdealTotal > 0) {
+      const desvioAbsoluto = Math.abs(estoqueAtualTotal - estoqueIdealTotal);
+      const ratio = 1 - (desvioAbsoluto / estoqueIdealTotal);
+      percentAderencia = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    } else if (estoqueAtualTotal > 0) {
+      percentAderencia = 0;
+    } else {
+      percentAderencia = 100;
+    }
 
     return {
       totalItens,
@@ -519,6 +529,17 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            id="btn-politica-exportar-relatorio-pdf"
+            onClick={() => {
+              gerarRelatorioCompletoLogisticaPDF('demo', 'CDD Guarabira', user?.nome || 'Gestor Logístico');
+            }}
+            className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 border border-emerald-400/40"
+            title="Exportar Relatório Integrado em PDF com Capacidade, Política e Matriz"
+          >
+            <FileText className="w-4 h-4 text-emerald-200" /> Exportar Relatório (PDF)
+          </button>
+
           {onNavigateToImport && (
             <button
               onClick={() => onNavigateToImport('importacao-contagens')}
@@ -874,18 +895,36 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
         </div>
 
         {/* KPI 6: Percentual de Aderência */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between border-l-4 border-l-emerald-500">
+        <div className={`bg-white border rounded-2xl p-4 shadow-xs flex flex-col justify-between border-l-4 ${
+          kpis.percentAderencia >= 80 
+            ? 'border-slate-200 border-l-emerald-500' 
+            : kpis.percentAderencia >= 50 
+            ? 'border-slate-200 border-l-amber-500' 
+            : 'border-slate-200 border-l-rose-500'
+        }`}>
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">Aderência à Política</span>
-            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">Aderência à Política</span>
+            <span className={`p-1.5 rounded-lg ${
+              kpis.percentAderencia >= 80 
+                ? 'bg-emerald-50 text-emerald-600' 
+                : kpis.percentAderencia >= 50 
+                ? 'bg-amber-50 text-amber-600' 
+                : 'bg-rose-50 text-rose-600'
+            }`}>
               <CheckCircle2 className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-black font-mono text-emerald-950">
+            <span className={`text-2xl font-black font-mono ${
+              kpis.percentAderencia >= 80 
+                ? 'text-emerald-950' 
+                : kpis.percentAderencia >= 50 
+                ? 'text-amber-950' 
+                : 'text-rose-950'
+            }`}>
               {kpis.percentAderencia}%
             </span>
-            <span className="text-[10px] font-extrabold text-slate-400 block mt-0.5">
+            <span className="text-[10px] font-extrabold text-slate-500 block mt-0.5">
               Estoque Fechado: {kpis.estoqueAtualTotal.toLocaleString('pt-BR')} / Ideal: {kpis.estoqueIdealTotal.toLocaleString('pt-BR')}
             </span>
           </div>
@@ -1280,6 +1319,7 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
                   <th className="py-3 px-4 text-right">Venda Média (d)</th>
                   <th className="py-3 px-4 text-right">Estoque Ideal (6d)</th>
                   <th className="py-3 px-4 text-right">Estoque Atual</th>
+                  <th className="py-3 px-4 text-center">Aderência</th>
                   <th className="py-3 px-4 text-center">Cobertura</th>
                   <th className="py-3 px-4">Grupo</th>
                   <th className="py-3 px-4 text-center">Curva ABC</th>
@@ -1289,7 +1329,7 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {displayedBucketData.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400 font-semibold">
+                    <td colSpan={10} className="py-8 text-center text-slate-400 font-semibold">
                       Nenhum produto nesta categoria.
                     </td>
                   </tr>
@@ -1298,6 +1338,11 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
                     const meta = getProductMeta(row.codigo);
                     const grupo = meta.grupo || row.grupo || row.familia;
                     const curva = meta.curva || row.curvaABC || 'C';
+                    const itemAderencia = row.aderenciaPct ?? (
+                      row.estoqueIdeal > 0
+                        ? Math.max(0, Math.min(100, Math.round((1 - Math.abs(row.estoqueAtualTotal - row.estoqueIdeal) / row.estoqueIdeal) * 100)))
+                        : (row.estoqueAtualTotal === 0 ? 100 : 0)
+                    );
 
                     return (
                       <tr key={row.codigo} className="hover:bg-slate-50 transition-all">
@@ -1314,6 +1359,19 @@ export default function PoliticaEstoqueDashboard({ user, onNavigateToImport }: P
                         </td>
                         <td className="py-3 px-4 text-right font-mono font-black text-slate-950 text-sm">
                           {row.estoqueAtualTotal.toLocaleString('pt-BR')} cx
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-black">
+                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-black border ${
+                            itemAderencia >= 80
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : itemAderencia >= 50
+                              ? 'bg-amber-50 text-amber-800 border-amber-300'
+                              : 'bg-rose-50 text-rose-800 border-rose-300'
+                          }`}
+                          title={`Estoque Atual: ${row.estoqueAtualTotal} cx | Estoque Ideal: ${row.estoqueIdeal} cx (${itemAderencia}% de aderência à política)`}
+                          >
+                            {itemAderencia}%
+                          </span>
                         </td>
                         <td className="py-3 px-4 text-center font-mono font-black">
                           <span className={`px-2.5 py-0.5 rounded-full text-[11px] ${

@@ -124,6 +124,7 @@ export interface PoliticaEstoqueCalculada {
   faltaDias: number;
   precoUnitario: number;
   hectoTotal?: number;
+  aderenciaPct?: number;
   grupo?: string;
   curvaABC?: string;
   recomendacao: string;
@@ -140,17 +141,21 @@ export interface EstoqueInicial021101Record {
 
 export interface PosicaoPallet021101Item {
   id: string;
-  areaId: number; // 1 = Armazém Central, 2 = Picking, 3 = Marketplace, 4 = Contingência, 5 = Pulmão, 6 = PNC
-  areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC';
+  areaId: number; // 1 = Armazém Central, 2 = Picking, 3 = Marketplace, 4 = Contingência, 5 = Pulmão, 6 = PNC, 7 = Limpeza
+  areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' | 'Produtos de Limpeza' | 'Limpeza';
   codigo: number; // Coluna C
-  produto: string; // Descrição
-  qtdFisicaCaixas: number; // Coluna J (quantidade de caixas)
+  produto: string; // Descrição Oficial Completa
+  qtdFisicaCaixas: number; // Coluna H/J (quantidade de caixas)
   qtdPallet: number; // Coluna K (pallets fechados)
   qtdLastro: number; // Coluna L / Ç (quantidade de lastro)
-  posicoesPalletOcupadas: number; // Posicios de pallet (no picking lastro > 0 ocupa 1 posicao)
+  posicoesPalletOcupadas: number; // Posicoes de pallet ocupadas
+  isFracionadoSemPosicao?: boolean; // Itens < 1 lastro que não ocupam posicao pallet
+  marketplaceGrupo?: string; // Grupo da família marketplace (ex: HALLS, TRIDENT, AZEITE, DOCES VIEIRA, TANG)
   hectolitros: number; // Coluna J * Fator Hectolitro do SKU (0 se sem fator)
   fatorHecto?: number;
   temFatorHecto?: boolean;
+  fatorPallet?: number;
+  lastro?: number;
   importadoEm: string;
 }
 
@@ -170,7 +175,7 @@ export interface ImportPosicaoPalletLog {
 
 export interface CapacidadeAreaMetrica {
   areaId: number;
-  areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' | 'Total Armazém';
+  areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' | 'Produtos de Limpeza' | 'Limpeza' | 'Total Armazém';
   palletsMeta: number;
   palletsReal: number;
   palletsAtingimentoPct: number;

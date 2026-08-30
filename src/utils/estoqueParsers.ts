@@ -1,5 +1,13 @@
 import { PRODUCTS } from '../planosData';
-import { getProductMeta, PRODUCT_CATALOG_DETAILS } from './productCatalogData';
+import { 
+  getProductMeta, 
+  PRODUCT_CATALOG_DETAILS, 
+  calculateOccupiedPalletPositions,
+  getProductOfficialDescription,
+  getMarketplaceGroup,
+  isBarrilChopp,
+  getCustomSkuOverrides
+} from './productCatalogData';
 import { 
   EstoqueDisponivel0205Item, 
   ImportEstoqueDisponivelLog, 
@@ -16,9 +24,14 @@ import {
   getEstoqueDisponivel0205Logs,
   saveEstoqueDisponivel0205Itens,
   saveEstoqueDisponivel0205Logs,
+  getPosicaoPallet021101Itens,
   savePosicaoPallet021101Itens,
   getPosicaoPallet021101Logs,
-  savePosicaoPallet021101Logs
+  savePosicaoPallet021101Logs,
+  getCapacityAreaMetas,
+  saveCapacityAreaMetas,
+  DEFAULT_AREA_FACTORS,
+  DEFAULT_AREA_METAS
 } from './estoqueStorage';
 
 
@@ -608,19 +621,46 @@ export function parsePtBrFloat(valStr: string): number {
   return parseFloat(s) || 0;
 }
 
+export function isCleaningProduct(code: number | string, description: string = '', grupo: string = ''): boolean {
+  const g = String(grupo || '').toUpperCase();
+  if (g.includes('LIMPEZA') || g.includes('HIGIENE') || g.includes('QUIMICO') || g.includes('QUÍMICO')) {
+    return true;
+  }
+  const text = (String(description || '') + ' ' + String(code || '')).toUpperCase();
+  const cleaningKeywords = [
+    'CERVEGELA', 'TIXAN', 'ASSOLAN', 'YPE', 'YPÊ', 'LIMPEZA', 'DETERGENTE', 'DESINFETANTE',
+    'SABAO', 'SABÃO', 'AMACIANTE', 'LAVA ROUPA', 'LAVA-ROUPA', 'LAVA ROUPAS',
+    'LAVA LOUCA', 'LAVA-LOUCA', 'LAVA LOUÇAS', 'CLORO', 'AGUA SANITARIA', 'ÁGUA SANITÁRIA',
+    'ESPONJA', 'BOMBRIL', 'MULTIUSO', 'MULTI USO', 'SAPOLIO', 'SAPÓLIO', 'LUSTRA MOVEIS',
+    'LUSTRA MÓVEIS', 'ALVEJANTE', 'SANITIZANTE', 'VEJA', 'AJAX', 'PINHO', 'OMO',
+    'BRILHANTE', 'DOWNY', 'COMFORT', 'URCA', 'MINUANO', 'PALHA DE ACO', 'PALHA DE AÇO',
+    'DESENGORDURANTE', 'AGUA RAZ', 'QUEROSENE', 'LIMPADOR', 'ACIDO MURIATICO', 'SODA CAUSTICA',
+    'INSETICIDA', 'BAYGON', 'SBP', 'RAID', 'RODO', 'VASSOURA', 'SACO DE LIXO', 'SACO LIXO'
+  ];
+  return cleaningKeywords.some(kw => text.includes(kw));
+}
+
 /**
  * Parser for report 02.11.01 (Posição Pallet)
- * Coluna B: Número da Área (1 = Armazém Central, 2 = Picking, 3 = Marketplace, 4 = Contingência)
+ * Coluna B: Número da Área (1 = Armazém Central, 2 = Picking, 3 = Marketplace, 4 = Contingência, 5 = Pulmão, 6 = PNC, 7 = Limpeza)
  * Coluna C: Código do SKU
  * Coluna J: Quantidade física (caixas no local) -> multiplicada pelo Fator Hectolitro
  * Coluna K: Quantidade de Pallets
  * Coluna L / Ç: Quantidade de Lastro (no picking, qualquer lastro > 0 ocupa 1 posição de pallet)
  */
-export function processPosicaoPallet021101Import(text: string, fileName: string, usuarioName: string) {
+export function processPosicaoPallet021101Import(
+  text: string, 
+  fileName: string = 'posicao_pallet_021101.csv', 
+  usuarioName: string = 'Sistema',
+  companyId?: string,
+  isMerge: boolean = false
+) {
   const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
   if (lines.length === 0) {
     return { success: false, message: 'O arquivo enviado está vazio.' };
   }
+
+  const customOverrides = getCustomSkuOverrides();
 
   let aceitosCount = 0;
   let rejeitadosCount = 0;
@@ -648,16 +688,19 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
     // Coluna B (Index 1 or 0)
     let rawArea = cols.length > 1 ? cols[1] : cols[0];
     let areaId = 1;
-    let areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' = 'Armazém Central';
+    let areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' | 'Produtos de Limpeza' | 'Limpeza' = 'Armazém Central';
 
-    const rawAreaClean = rawArea.toLowerCase();
-    if (rawAreaClean === '2' || rawAreaClean.includes('picking')) {
+    const rawAreaClean = rawArea.toLowerCase().trim();
+    if (rawAreaClean === '1' || rawAreaClean.includes('central') || rawAreaClean.includes('armazem')) {
+      areaId = 1;
+      areaNome = 'Armazém Central';
+    } else if (rawAreaClean === '2' || rawAreaClean.includes('picking')) {
       areaId = 2;
       areaNome = 'Picking';
-    } else if (rawAreaClean === '3' || rawAreaClean.includes('marketplace') || rawAreaClean.includes('market')) {
+    } else if (rawAreaClean === '3' || rawAreaClean.includes('marketplace') || rawAreaClean.includes('market') || rawAreaClean.includes('mkt')) {
       areaId = 3;
       areaNome = 'Marketplace';
-    } else if (rawAreaClean === '4' || rawAreaClean.includes('contingencia') || rawAreaClean.includes('contingência')) {
+    } else if (rawAreaClean === '4' || rawAreaClean.includes('contingencia') || rawAreaClean.includes('contingência') || rawAreaClean.includes('reserva')) {
       areaId = 4;
       areaNome = 'Contingência';
     } else if (rawAreaClean === '5' || rawAreaClean.includes('pulmão') || rawAreaClean.includes('pulmao')) {
@@ -666,6 +709,9 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
     } else if (rawAreaClean === '6' || rawAreaClean.includes('pnc')) {
       areaId = 6;
       areaNome = 'PNC';
+    } else if (rawAreaClean === '7' || rawAreaClean.includes('limpeza') || rawAreaClean.includes('limp')) {
+      areaId = 7;
+      areaNome = 'Produtos de Limpeza';
     } else {
       areaId = 1;
       areaNome = 'Armazém Central';
@@ -692,47 +738,83 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
     }
 
     const codeNum = Number(code);
+    const meta = getProductMeta(codeNum, companyId);
     const catalogItem = PRODUCTS.find(p => Number(p.codigo) === codeNum);
-    const catalogDetail = PRODUCT_CATALOG_DETAILS[codeNum];
 
-    // Check if product is in catalog with explicit Fator Hecto
-    const rawFatorHecto = catalogItem?.fatorHecto ?? catalogDetail?.fatorHecto;
-    const temFatorHecto = rawFatorHecto !== undefined && rawFatorHecto > 0;
-    const fatorHecto = temFatorHecto ? rawFatorHecto : 0;
+    // Ensure full official description from Cadastros / Master Catalog / Custom Overrides
+    const rawDescInFile = cols.length > 3 && isNaN(parseFloat(cols[3])) ? cols[3] : '';
+    const produtoDesc = getProductOfficialDescription(codeNum, rawDescInFile, companyId);
 
-    const produtoDesc = cols.length > 3 && isNaN(parseFloat(cols[3]))
-      ? cols[3]
-      : (catalogItem?.descricao || `SKU ${codeNum}`);
+    const grupoProd = meta.grupo || catalogItem?.grupo;
 
-    // Coluna J: physical boxes (Index 9)
-    let qtdJ = 0;
-    if (cols.length > 9) {
-      qtdJ = parsePtBrFloat(cols[9]);
-    } else if (cols.length > 3) {
-      qtdJ = parsePtBrFloat(cols[3]);
+    // Se for barril de chopp / keg, descarta conforme diretriz
+    if (isBarrilChopp(codeNum, produtoDesc)) {
+      return;
     }
 
-    // Coluna K: pallets (Index 10)
+    // Check custom overrides for explicit manual area override
+    const customOverride = customOverrides[codeNum];
+    if (customOverride?.areaId) {
+      areaId = customOverride.areaId;
+      areaNome = areaId === 1 ? 'Armazém Central' :
+                 areaId === 2 ? 'Picking' :
+                 areaId === 3 ? 'Marketplace' :
+                 areaId === 4 ? 'Contingência' :
+                 areaId === 5 ? 'Pulmão' :
+                 areaId === 6 ? 'PNC' : 'Produtos de Limpeza';
+    } else if (isCleaningProduct(codeNum, produtoDesc, grupoProd)) {
+      // Se for material de limpeza, direciona para Área 7 (Limpeza)
+      areaId = 7;
+      areaNome = 'Produtos de Limpeza';
+    }
+
+    // Check if product is in catalog with explicit Fator Hecto
+    const temFatorHecto = meta.fatorHecto !== undefined && meta.fatorHecto > 0;
+    const fatorHecto = temFatorHecto ? meta.fatorHecto : 0;
+    const fatorPallet = meta.fatorPallet && meta.fatorPallet > 0 ? meta.fatorPallet : (meta.caixasPallet || 50);
+    const lastro = meta.lastro && meta.lastro > 0 ? meta.lastro : Math.max(1, Math.round(fatorPallet / (meta.camadas || 5)));
+
+    // Coluna H (Index 7) or Coluna J (Index 9): physical boxes count / SKU
+    let qtdHOrJ = 0;
+    if (cols.length > 9 && !isNaN(parsePtBrFloat(cols[9])) && parsePtBrFloat(cols[9]) > 0) {
+      qtdHOrJ = parsePtBrFloat(cols[9]);
+    } else if (cols.length > 7 && !isNaN(parsePtBrFloat(cols[7])) && parsePtBrFloat(cols[7]) > 0) {
+      qtdHOrJ = parsePtBrFloat(cols[7]);
+    } else if (cols.length > 3 && !isNaN(parsePtBrFloat(cols[3])) && parsePtBrFloat(cols[3]) > 0) {
+      qtdHOrJ = parsePtBrFloat(cols[3]);
+    }
+
+    // Coluna K (Index 10): pallets
     let qtdPalletK = 0;
     if (cols.length > 10) {
       qtdPalletK = parsePtBrFloat(cols[10]);
     }
 
-    // Coluna L / Ç: lastro (Index 11)
+    // Coluna L / Ç (Index 11): lastro
     let qtdLastroL = 0;
     if (cols.length > 11) {
       qtdLastroL = parsePtBrFloat(cols[11]);
     }
 
-    let posicoesPallet = qtdPalletK;
-    if (qtdLastroL > 0) {
-      posicoesPallet = qtdPalletK + 1;
+    let totalCaixas = qtdHOrJ;
+    if (totalCaixas === 0 && (qtdPalletK > 0 || qtdLastroL > 0)) {
+      totalCaixas = (qtdPalletK * fatorPallet) + (qtdLastroL * lastro);
     }
 
-    let totalCaixas = qtdJ;
-    if (totalCaixas === 0 && qtdPalletK > 0) {
-      totalCaixas = qtdPalletK * (catalogItem?.caixasPallet || catalogDetail?.fator || 50);
-    }
+    // Calculate pallets, lastros and occupied pallet positions
+    const posCalc = calculateOccupiedPalletPositions(
+      totalCaixas,
+      fatorPallet,
+      lastro,
+      codeNum,
+      produtoDesc,
+      meta.grupo || '',
+      areaId
+    );
+
+    const palletsCompletos = qtdPalletK > 0 ? qtdPalletK : posCalc.palletsCompletos;
+    const lastrosCalculados = qtdLastroL > 0 ? qtdLastroL : posCalc.lastrosCalculados;
+    const posicoesPallet = posCalc.posicoesOcupadas;
 
     // HL is 0 if product is not in catalog / has no Fator Hecto
     const hl = temFatorHecto ? Math.round((totalCaixas * fatorHecto) * 1000) / 1000 : 0;
@@ -749,15 +831,19 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
       id: `pos-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
       areaId,
       areaNome,
-      codigo: code,
+      codigo: codeNum,
       produto: produtoDesc,
       qtdFisicaCaixas: totalCaixas,
-      qtdPallet: qtdPalletK,
-      qtdLastro: qtdLastroL,
+      qtdPallet: palletsCompletos,
+      qtdLastro: lastrosCalculados,
       posicoesPalletOcupadas: posicoesPallet,
+      isFracionadoSemPosicao: posCalc.isFracionadoSemPosicao,
+      marketplaceGrupo: posCalc.marketplaceGrupo,
       hectolitros: hl,
       fatorHecto: fatorHecto,
       temFatorHecto: temFatorHecto,
+      fatorPallet,
+      lastro,
       importadoEm: nowISO
     });
   });
@@ -770,20 +856,87 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
     };
   }
 
-  savePosicaoPallet021101Itens(parsedItems);
+  // Handle Merging vs Full Overwrite
+  let finalItems: PosicaoPallet021101Item[] = parsedItems;
+  let itensCorrigidosCount = 0;
+  let itensAdicionadosCount = 0;
+
+  if (isMerge) {
+    const existingItems = getPosicaoPallet021101Itens();
+    if (existingItems.length > 0) {
+      const itemsMap = new Map<string, PosicaoPallet021101Item>();
+      existingItems.forEach(item => {
+        const key = `${item.areaId}_${item.codigo}`;
+        itemsMap.set(key, item);
+      });
+
+      parsedItems.forEach(newItem => {
+        const key = `${newItem.areaId}_${newItem.codigo}`;
+        if (itemsMap.has(key)) {
+          itensCorrigidosCount++;
+        } else {
+          itensAdicionadosCount++;
+        }
+        // Patch / overwrite with new recount data
+        itemsMap.set(key, newItem);
+      });
+
+      finalItems = Array.from(itemsMap.values());
+    } else {
+      finalItems = parsedItems;
+      itensAdicionadosCount = parsedItems.length;
+    }
+  }
+
+  savePosicaoPallet021101Itens(finalItems);
+
+  // Auto-sync Metas HL with real mix of finalItems immediately!
+  try {
+    const currentMetas = getCapacityAreaMetas();
+    const areaHlMap: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
+    const areaPalletMap: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
+
+    finalItems.forEach(item => {
+      const aId = item.areaId || 1;
+      areaHlMap[aId] = (areaHlMap[aId] || 0) + (item.hectolitros || 0);
+      areaPalletMap[aId] = (areaPalletMap[aId] || 0) + (item.posicoesPalletOcupadas || 0);
+    });
+
+    const updatedMetas: typeof currentMetas = { ...currentMetas };
+    ([1, 2, 3, 4, 5, 6, 7] as const).forEach(aId => {
+      const palReal = areaPalletMap[aId] || 0;
+      const hlReal = areaHlMap[aId] || 0;
+      const currentMetaPallets = currentMetas[aId]?.palletsMeta || DEFAULT_AREA_METAS[aId].palletsMeta;
+      let factor = DEFAULT_AREA_FACTORS[aId] || 7.5;
+      if (palReal > 0 && hlReal > 0) {
+        factor = hlReal / palReal;
+      }
+      updatedMetas[aId] = {
+        palletsMeta: currentMetaPallets,
+        hectolitrosMeta: Math.round(currentMetaPallets * factor * 10) / 10
+      };
+    });
+    saveCapacityAreaMetas(updatedMetas);
+  } catch (e) {
+    console.error('Erro ao sincronizar metas HL com mix real na importação:', e);
+  }
+
+  // Calculate final total pallets and HL
+  const finalTotalPallets = finalItems.reduce((acc, item) => acc + (item.posicoesPalletOcupadas || 0), 0);
+  const finalTotalHl = finalItems.reduce((acc, item) => acc + (item.hectolitros || 0), 0);
 
   const now = new Date();
   const dStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour12: false });
   const log: ImportPosicaoPalletLog = {
     id: `log-pos-${Date.now()}`,
     dataHora: dStr,
-    nomeArquivo: fileName,
+    nomeArquivo: isMerge ? `[MESCLAGEM / RECONTAGEM] ${fileName}` : fileName,
     totalLinhas: dataLines.length,
     aceitos: aceitosCount,
     rejeitados: rejeitadosCount,
     usuario: usuarioName,
-    totalPalletsCalculado: Math.round(totalPalletsSum),
-    totalHectolitrosCalculado: Math.round(totalHectolitrosSum * 100) / 100,
+    totalPalletsCalculado: Math.round(finalTotalPallets),
+    totalHectolitrosCalculado: Math.round(finalTotalHl * 100) / 100,
     produtosSemFatorCount: semFatorCount,
     erros: errorDetails
   };
@@ -791,11 +944,18 @@ export function processPosicaoPallet021101Import(text: string, fileName: string,
   const existingLogs = getPosicaoPallet021101Logs();
   savePosicaoPallet021101Logs([log, ...existingLogs]);
 
+  const successMessage = isMerge
+    ? `✅ Recontagem 02.11.01 mesclada com sucesso! ${itensCorrigidosCount} itens existentes foram corrigidos/atualizados e ${itensAdicionadosCount} novos itens foram adicionados. Total atual no armazém: ${finalItems.length} registros (${Math.round(finalTotalPallets)} pallets / ${finalTotalHl.toFixed(2)} HL).`
+    : `✅ Relatório 02.11.01 importado e sincronizado com sucesso! ${aceitosCount} itens processados (${Math.round(finalTotalPallets)} pallets / ${finalTotalHl.toFixed(2)} HL). Metas HL atualizadas conforme mix real.`;
+
   return {
     success: true,
     log,
-    parsedItems,
-    message: `Relatório 02.11.01 importado com sucesso! ${aceitosCount} linhas processadas (${Math.round(totalPalletsSum)} pallets / ${totalHectolitrosSum.toFixed(2)} HL).`
+    parsedItems: finalItems,
+    itensCorrigidosCount,
+    itensAdicionadosCount,
+    totalItensAposMesclagem: finalItems.length,
+    message: successMessage
   };
 }
 

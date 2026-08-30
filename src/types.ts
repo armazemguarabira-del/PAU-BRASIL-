@@ -138,16 +138,17 @@ export interface QuebraRow {
   tipoMarca?: string;
   embalagem?: string;
   area: string;
-  rua?: string;
-  localizacao?: string;
   turno: string;
   codQuebra: string;
   motivo: string;
   valor?: number;
   valorUnitario?: number;
   valorTotal?: number;
+  colaborador?: string;
   colaboradorQuebrou?: string;
   responsavel?: string;
+  operador?: string;
+  origem?: string;
   funcao?: string;
   fiscal?: string;
   wqi?: string;
@@ -171,11 +172,15 @@ export interface ValidadeRow {
   lote?: string;
   responsavel?: string;
   dataColeta?: string;
+  semanaNumero?: number;
+  mesReferencia?: string;
   dataTransferenciaPnc?: string;
   totalUnities?: number;
   totalUnitiesRaw?: number;
   valorTotal?: number;
   hlTotal?: number;
+  vidaUtil?: number;
+  cadastradoPor?: string;
   cadastradoEm?: string;
   recontadoEm?: string;
   _criadoEm?: string;
@@ -214,10 +219,12 @@ export interface Tarefa {
   empresaId?: string;
   id: number | string;
   codigo: number;
+  sku?: number;
   descricao: string;
   quantidade: number;
   quantidadePaletes?: number;
   caixas?: number;
+  hectolitros?: number;
   conferente: string;
   operador: string;
   operadoresAtribuidos?: string[];
@@ -319,6 +326,9 @@ export interface ProdutoMaster {
   curva: 'A' | 'B' | 'C' | string;
   idade?: number;
   fatorPallet?: number;
+  caixasPallet?: number;
+  lastro?: number;
+  camadas?: number;
   embalagem?: string;
   _criadoEm?: string;
 }
@@ -379,7 +389,6 @@ export interface TmrDemand {
   palletsLitrao: number;
   pallets600Verde: number;
   pallets600Ambar: number;
-  palletsBarrilChopp?: number;
   palletsPbr1?: number;
   palletsPbr2?: number;
   palletsPbr: number;
@@ -415,6 +424,7 @@ export interface FefoRelocationDemand {
   diasInversao: number;
   mensagem: string;
   sugestaoAcao: string;
+  quantidadeCaixas?: number;
   status: 'pending' | 'in_progress' | 'done';
   solicitadoPorConferente?: boolean;
   solicitadoPor?: string;
@@ -422,6 +432,7 @@ export interface FefoRelocationDemand {
   operadorDesignado?: string;
   operadoresAtribuidos?: string[];
   operadorExecutor?: string;
+  observacaoGiro?: string;
   criadoEm: string;
   iniciadoEm?: string | null;
   finalizadoEm?: string | null;

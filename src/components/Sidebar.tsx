@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Usuario, Empresa } from '../types';
 import { BrandLogo } from './BrandLogo';
 import { isPanelAllowedForUser, getUserRoleType, getUserOperationPanel } from '../utils/permissions';
+import { isExternalDashboard, openExternalDashboard } from '../utils/externalDashboards';
 import { CATEGORY_DEFINITIONS } from './CategoryIndexPanel';
 import { 
   Zap, 
@@ -112,7 +113,7 @@ export default function Sidebar({
       subItems: [
         'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
         'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 
-        'qualidade', 'kpi-arvore'
+        'qualidade', 'pacote-prejuizo', 'trocas-reposicoes', 'retorno-de-rota', 'blitz-de-puxada', 'kpi-arvore'
       ]
     },
     {
@@ -121,7 +122,7 @@ export default function Sidebar({
       subtitle: 'Governança, DPO & Inventários',
       icon: <Sliders className="w-5 h-5 text-blue-400" />,
       subItems: [
-        'dto-diagnostico', 'dto', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
+        'gatilhos', 'desvios', 'dto-diagnostico', 'dto', 'auditoria-dpo', 'treinamentos-qualidade', 'bloqueio-armazem', 'devolucao', 
         'contagem-inventario', 'gestao-ativos', 'qualidade-puxada', 
         'ciclo-carretas', 'politica-estoque', 'simulador-ressuprimento', 'importacao-contagens', 
         'venda-media', 'area-contingencia', 'padronizacao-processos', 'simulacao-acoes', 
@@ -341,7 +342,11 @@ export default function Sidebar({
                 <button
                   key={m.id}
                   onClick={() => {
-                    onSelectTab(m.id);
+                    if (isExternalDashboard(m.id)) {
+                      openExternalDashboard(m.id);
+                    } else {
+                      onSelectTab(m.id);
+                    }
                     handleCloseMobile();
                   }}
                   className="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-[#11151c] hover:bg-sky-600/20 border border-blue-200/80 dark:border-slate-800 hover:border-sky-500/40 text-xs font-bold text-slate-800 dark:text-white flex items-center justify-between cursor-pointer shadow-2xs"

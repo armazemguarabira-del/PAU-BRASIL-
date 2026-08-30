@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -27,910 +27,754 @@ import {
   FolderOpen,
   FileSpreadsheet,
   ExternalLink,
-  Trash2
+  Trash2,
+  TrendingUp,
+  AlertOctagon,
+  Sparkles,
+  RefreshCw,
+  User,
+  Zap,
+  Target,
+  Layers,
+  ArrowUpRight,
+  Clock,
+  Printer,
+  ChevronRight,
+  SlidersHorizontal,
+  Truck
 } from 'lucide-react';
-import { exportRondaGsaManualPdf } from '../utils/exportRondaGsaPdf';
+import { 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  BarChart, 
+  Bar, 
+  Cell, 
+  ReferenceLine 
+} from 'recharts';
 import * as XLSX from 'xlsx';
-import { RondaGsaRepository } from '../db';
+import { RondaGsaRepository, AcoesGeraisRepository } from '../db';
 import { firestoreDb } from '../database/firestoreDatabase';
+import { 
+  QUESTOES_GSA_OFICIAIS, 
+  RONDA_GSA_HISTORICO_OFICIAL, 
+  CATEGORIAS_GSA,
+  DOCUMENTO_DSPD_GUARABIRA,
+  PLANO_DE_ACAO_PRIORITARIO_GSA,
+  ItemVerificacaoGSA, 
+  RondaInspecaoCompleta,
+  ItemPlanoAcaoPrioritario,
+  gerarLaudoTecnicoConformidade,
+  LaudoTecnicoConformidade
+} from '../data/rondaGsaOfficialDataset';
+import { LaudoConformidadeArmazemModal } from './LaudoConformidadeArmazemModal';
+import { LicencasDescarteSection } from './LicencasDescarteSection';
+import { LicencasDescarteModal } from './LicencasDescarteModal';
 
-export type NivelAvaliacao = 'excelente' | 'bom' | 'razoavel' | 'ruim';
+export type NivelAvaliacao = 'excelente' | 'bom' | 'ruim' | 'na';
 
-export interface PerguntasRondaGSA {
-  id: number;
-  pergunta: string;
-}
-
-export const QUESTOES_RONDA_GSA: PerguntasRondaGSA[] = [
-  { id: 1, pergunta: 'Piso está limpo e seco?' },
-  { id: 2, pergunta: 'Piso uniforme, sem ondulações que ofereçam risco de acidente?' },
-  { id: 3, pergunta: 'Empilhamento de produtos segue o manual de segurança (sem ruas com lotes inclinados)?' },
-  { id: 4, pergunta: 'Extintores e hidrantes desobstruídos, com inspeção mensal feita e em boas condições?' },
-  { id: 5, pergunta: 'Plataformas, escadas e guarda-corpo em boas condições e identificados (sem amassados/soldas quebradas/rodas danificadas)?' },
-  { id: 6, pergunta: 'Equipamentos de elevação (racks, prateleiras, paleteiras) inspecionados e com etiqueta de liberação/segregação?' },
-  { id: 7, pergunta: 'Painéis elétricos sinalizados, portas fechadas, sem gambiarras?' },
-  { id: 8, pergunta: 'Produtos químicos armazenados corretamente, com bacia de contenção e respeitando incompatibilidade?' },
-  { id: 9, pergunta: 'Sinalização de circulação de pedestres adequada e visível?' },
-  { id: 10, pergunta: 'Sistema de trava-quedas (linha de vida, monovias, troles) em perfeitas condições?' },
-  { id: 11, pergunta: 'Trava-rodas em uso no carregamento/retorno de rota/puxada, em bom estado e no padrão correto?' },
-  { id: 12, pergunta: 'Paleteiras em uso correto e bom estado?' },
-  { id: 13, pergunta: 'Espelhos convexos em boas condições e na quantidade necessária?' },
-  { id: 14, pergunta: 'Iluminação das áreas (Logística, Amarração, Repack, Of. Empilhadeira, Pit Stop) adequada?' },
-  { id: 15, pergunta: 'Empilhadeiras em boas condições (ré sonora e luminosa, faróis, giroflex, buzina, grade de proteção, freios, pneus, retrovisores, extintor válido, cinto de segurança)?' },
-  { id: 16, pergunta: 'Ferramentas/estiletes de segurança em bom estado?' },
-  { id: 17, pergunta: 'Abastecimento feito por colaborador treinado, com gradil de GLP fechado com corrente e cadeado?' },
-  { id: 18, pergunta: 'Funcionários sem adornos nas áreas produtivas?' },
-  { id: 19, pergunta: 'Todos usando EPIs (capacete com jugular, bota, óculos, colete/uniforme refletivo) em bom estado?' },
-  { id: 20, pergunta: 'Seguem procedimento correto de movimentação manual (postura correta)?' },
-  { id: 21, pergunta: 'Conhecem rota de fuga e ponto de encontro/apoio (guarita)?' },
-  { id: 22, pergunta: 'Mantêm 5 metros de distância de empilhadeiras em operação?' },
-  { id: 23, pergunta: 'Objetos na área são realmente necessários (5S)? Área organizada e limpa?' },
-  { id: 24, pergunta: 'Coleta seletiva feita corretamente?' },
-  { id: 25, pergunta: 'Aproxima o corpo da carga abaixando-se com ergonomia correta?' },
-  { id: 26, pergunta: 'Empurra a paleteira em vez de puxar?' },
-  { id: 27, pergunta: 'Utiliza travas do picking e segregação homem-máquina?' },
-  { id: 28, pergunta: 'Usa luvas na operação de empilhadeira?' },
-  { id: 29, pergunta: 'Desliga a empilhadeira e abaixa os garfos quando alguém se aproxima?' },
-  { id: 30, pergunta: 'Realiza a troca de GLP com duas pessoas?' },
-  { id: 31, pergunta: 'Faz o giro de 360° em carretas/caminhões antes de carregar/descarregar?' },
-  { id: 32, pergunta: 'Usa cinto de segurança?' },
-  { id: 33, pergunta: 'Retira a chave da ignição durante carregamento/descarregamento?' },
-  { id: 34, pergunta: 'Desce do caminhão usando os três pontos de apoio?' }
-];
-
-export interface RondaGSARecord {
-  id: string;
-  dataISO: string;
-  dataFormatted: string;
-  mesAno: string; // e.g. "08/2026"
-  localAuditado: string; // Ex: "Armazém Principal - Guarabira"
-  colaboradorAuditado: string;
-  auditorNome: string;
-  respostasAvaliacao: Record<number, NivelAvaliacao>; // id 1..34 -> 'excelente' | 'bom' | 'razoavel' | 'ruim'
-  observacoesItem: Record<number, string>;
-  respostaTreinamento: string; // questao 35
-  pontos: number; // 0 to 10 scale
-  pontosPercentual: number; // 0 to 100% Qualidade da Ronda
-  countExcelente: number;
-  countBom: number;
-  countRazoavel: number;
-  countRuim: number;
-  statusPontuacao: 'EXCELENTE' | 'BOM' | 'RAZOÁVEL' | 'RUIM';
-  criadoEm: string;
+export interface RondaGSARecord extends RondaInspecaoCompleta {
+  // Extensão compatível com a interface
 }
 
 interface RondaGsaComponentProps {
   user: any;
   empresaId?: string;
+  theme?: 'light' | 'dark';
 }
 
 export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
   user,
-  empresaId = 'demo'
+  empresaId = 'demo',
+  theme = 'dark'
 }) => {
+  // Estado principal de rondas (35 rondas oficiais de Jan a Ago / 2026)
   const [records, setRecords] = useState<RondaGSARecord[]>(() => {
     try {
-      const saved = localStorage.getItem('ronda_gsa_audits_history');
-      if (saved) return JSON.parse(saved);
-
-      // Default sample record if empty
-      const sample: RondaGSARecord[] = [{
-        id: 'gsa-sample-1',
-        dataISO: '2026-08-08',
-        dataFormatted: '08/08/2026',
-        mesAno: '08/2026',
-        localAuditado: 'Armazém Central - Guarabira',
-        colaboradorAuditado: 'MARIVALDO ARTUR ALVES',
-        auditorNome: 'Controle de Qualidade',
-        respostasAvaliacao: {
-          1: 'excelente', 2: 'excelente', 3: 'bom', 4: 'excelente', 5: 'bom',
-          6: 'bom', 7: 'excelente', 8: 'bom', 9: 'excelente', 10: 'excelente',
-          11: 'excelente', 12: 'bom', 13: 'excelente', 14: 'bom', 15: 'excelente',
-          16: 'bom', 17: 'excelente', 18: 'excelente', 19: 'excelente', 20: 'bom',
-          21: 'excelente', 22: 'excelente', 23: 'bom', 24: 'bom', 25: 'bom',
-          26: 'excelente', 27: 'excelente', 28: 'bom', 29: 'excelente', 30: 'excelente',
-          31: 'bom', 32: 'excelente', 33: 'excelente', 34: 'excelente'
-        },
-        observacoesItem: {},
-        respostaTreinamento: 'Treinamento de 5S e Movimentação Ergonômica de Paletes',
-        pontos: 9.6,
-        pontosPercentual: 96,
-        countExcelente: 23,
-        countBom: 11,
-        countRazoavel: 0,
-        countRuim: 0,
-        statusPontuacao: 'EXCELENTE',
-        criadoEm: '2026-08-08T08:00:00.000Z'
-      }];
-      localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(sample));
-      return sample;
-    } catch {
-      return [];
-    }
+      const saved = localStorage.getItem('ronda_dspd_guarabira_history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= RONDA_GSA_HISTORICO_OFICIAL.length) return parsed;
+      }
+    } catch (_) {}
+    return RONDA_GSA_HISTORICO_OFICIAL as RondaGSARecord[];
   });
 
+  // UI Control states
+  const [activeTabVisual, setActiveTabVisual] = useState<'visao_geral' | 'graficos' | 'planos_acao' | 'desvios' | 'historico' | 'laudos' | 'licencas_descarte'>('visao_geral');
   const [showForm, setShowForm] = useState(false);
+  const [isLicencasModalOpen, setIsLicencasModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<RondaGSARecord | null>(null);
+  const [isFullLaudoModalOpen, setIsFullLaudoModalOpen] = useState(false);
+  const [laudoRondaSelecionada, setLaudoRondaSelecionada] = useState<any>(null);
   const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('todos');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('todas');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('todos');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Form states
+  // Estados específicos de Planos de Ação 5W2H e Desvios
+  const [planoAcaoAreaFilter, setPlanoAcaoAreaFilter] = useState<string>('todas');
+  const [planoAcaoSearchTerm, setPlanoAcaoSearchTerm] = useState<string>('');
+  const [desviosSalvosDPO, setDesviosSalvosDPO] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('dspd_planos_salvos_dpo');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {};
+  });
+
+  // Estados específicos da Aba de Laudos
+  const [laudoTabSelectedId, setLaudoTabSelectedId] = useState<string>('');
+  const [laudoTabAreaFilter, setLaudoTabAreaFilter] = useState<string>('TODAS');
+  const [laudoTabSearchTerm, setLaudoTabSearchTerm] = useState<string>('');
+
+  // Form states para Nova Ronda (DSPD Guarabira)
   const [dataISO, setDataISO] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [localAuditado, setLocalAuditado] = useState<string>('Armazém Central - Guarabira');
-  const [colaboradorAuditado, setColaboradorAuditado] = useState<string>('');
-  const [auditorNome, setAuditorNome] = useState<string>(user?.nome || 'Controle de Qualidade');
-  const [respostaTreinamento, setRespostaTreinamento] = useState<string>('');
+  const [localAuditado, setLocalAuditado] = useState<string>('Armazém Geral - DSPD Guarabira');
+  const [colaboradorAuditado, setColaboradorAuditado] = useState<string>('Equipe Operacional');
+  const [auditorNome, setAuditorNome] = useState<string>(user?.nome || 'Djeanderson Soares');
+  const [formComentarios, setFormComentarios] = useState<string>('');
+  const [formAreaTab, setFormAreaTab] = useState<string>(CATEGORIAS_GSA[0]);
 
-  // 34 question responses (default 'excelente')
-  const [respostasAvaliacao, setRespostasAvaliacao] = useState<Record<number, NivelAvaliacao>>(() => {
-    const initial: Record<number, NivelAvaliacao> = {};
-    QUESTOES_RONDA_GSA.forEach(q => {
-      initial[q.id] = 'excelente';
+  // Respostas dos 41 quesitos no formulário
+  const [respostasAvaliacao, setRespostasAvaliacao] = useState<Record<number, 'Sim' | 'Não' | 'N/A'>>(() => {
+    const initial: Record<number, 'Sim' | 'Não' | 'N/A'> = {};
+    QUESTOES_GSA_OFICIAIS.forEach(q => {
+      initial[q.id] = 'Sim';
     });
     return initial;
   });
-
   const [observacoesItem, setObservacoesItem] = useState<Record<number, string>>({});
-  const [pastaCompartilhadaUrl, setPastaCompartilhadaUrl] = useState<string>(() => {
-    return localStorage.getItem('ronda_gsa_pasta_compartilhada') || '';
-  });
-  const [isEditingPasta, setIsEditingPasta] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with Repository / Hybrid Database Router
+  // Sync com Repositório / LocalStorage
   useEffect(() => {
-    const fetchFirestoreGSA = async () => {
-      try {
-        const list = await RondaGsaRepository.getAll(empresaId);
-        if (list && list.length > 0) {
-          list.sort((a, b) => new Date(b.criadoEm || b.dataISO).getTime() - new Date(a.criadoEm || a.dataISO).getTime());
-          setRecords(list);
-          localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(list));
-        }
-      } catch (e) {
-        console.warn('Fallback loading Ronda GSA:', e);
+    try {
+      localStorage.setItem('ronda_dspd_guarabira_history', JSON.stringify(records));
+    } catch (_) {}
+  }, [records]);
+
+  // Cálculo de estatísticas globais
+  const totalAudits = records.length; // 35
+  const avgQuality = useMemo(() => {
+    if (records.length === 0) return 96.5;
+    const sum = records.reduce((acc, r) => acc + r.percentual, 0);
+    return Number((sum / records.length).toFixed(1));
+  }, [records]);
+
+  const totalDesvios = useMemo(() => {
+    return records.reduce((acc, r) => acc + (r.totalNaoConformes || 0), 0);
+  }, [records]);
+
+  // Filtragem de registros históricos
+  const filteredRecords = useMemo(() => {
+    return records.filter(r => {
+      if (selectedMonthFilter !== 'todos' && r.mesAbrev !== selectedMonthFilter && r.mesAno !== selectedMonthFilter) return false;
+      if (selectedStatusFilter !== 'todos') {
+        if (selectedStatusFilter === 'DESVIOS' && r.totalNaoConformes === 0) return false;
+        if (selectedStatusFilter !== 'DESVIOS' && r.status !== selectedStatusFilter) return false;
       }
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchColab = (r.colaboradorAuditado || '').toLowerCase().includes(term);
+        const matchLocal = (r.localAuditado || '').toLowerCase().includes(term);
+        const matchAuditor = (r.auditorNome || '').toLowerCase().includes(term);
+        const matchObs = (r.comentarios || '').toLowerCase().includes(term);
+        const matchData = (r.dataFormatted || '').includes(term);
+        if (!matchColab && !matchLocal && !matchAuditor && !matchObs && !matchData) return false;
+      }
+      return true;
+    });
+  }, [records, selectedMonthFilter, selectedStatusFilter, searchTerm]);
 
-      try {
-        const doc = await firestoreDb.getById<{ url?: string }>('ronda_gsa_config', 'pasta_compartilhada', empresaId);
-        if (doc && doc.url) {
-          setPastaCompartilhadaUrl(doc.url);
-          localStorage.setItem('ronda_gsa_pasta_compartilhada', doc.url);
+  // Registro Selecionado para o Laudo de Conformidade
+  const currentLaudoRecord = useMemo(() => {
+    if (laudoTabSelectedId) {
+      const found = records.find(r => r.id === laudoTabSelectedId);
+      if (found) return found;
+    }
+    return filteredRecords[0] || records[0];
+  }, [records, filteredRecords, laudoTabSelectedId]);
+
+  // Laudo Técnico Estruturado
+  const currentLaudoData: LaudoTecnicoConformidade | null = useMemo(() => {
+    if (!currentLaudoRecord) return null;
+    return gerarLaudoTecnicoConformidade(currentLaudoRecord);
+  }, [currentLaudoRecord]);
+
+  // Dados para Gráficos
+  const chartDataEvolution = useMemo(() => {
+    return [...records].reverse().map((r, i) => ({
+      name: `Ronda ${i + 1}`,
+      data: r.dataFormatted,
+      semana: `Sem ${r.semanaMes || ((i % 4) + 1)} (${r.mesAbrev || 'Mês'})`,
+      aderencia: r.percentual,
+      meta: 95.0,
+      desvios: r.totalNaoConformes || 0
+    }));
+  }, [records]);
+
+  const chartDataMensal = useMemo(() => {
+    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO'];
+    return meses.map(m => {
+      const info = (DOCUMENTO_DSPD_GUARABIRA.resumo_mensal as any)[m];
+      return {
+        mes: m,
+        aderencia: info ? Number(info.aderencia_percentual.toFixed(1)) : 96.5,
+        sim: info ? info.sim : 0,
+        nao: info ? info.nao : 0,
+        meta: 95.0
+      };
+    });
+  }, []);
+
+  const chartDataAreas = useMemo(() => {
+    return CATEGORIAS_GSA.map(cat => {
+      const info = (DOCUMENTO_DSPD_GUARABIRA.resumo_por_area as any)[cat];
+      return {
+        area: cat,
+        aderencia: info ? Number(info.aderencia_percentual.toFixed(1)) : 100,
+        sim: info ? info.sim : 0,
+        nao: info ? info.nao : 0,
+        meta: 95.0
+      };
+    });
+  }, []);
+
+  // Lista de Planos de Ação 5W2H Prioritários Filtrados
+  const filteredPlanosAcao = useMemo(() => {
+    return PLANO_DE_ACAO_PRIORITARIO_GSA.filter(item => {
+      if (planoAcaoAreaFilter !== 'todas' && item.area !== planoAcaoAreaFilter) return false;
+      if (planoAcaoSearchTerm.trim()) {
+        const t = planoAcaoSearchTerm.toLowerCase();
+        const matchQuesito = item.quesito.toLowerCase().includes(t);
+        const matchArea = item.area.toLowerCase().includes(t);
+        const matchAcao = item.acaoPadrao.toLowerCase().includes(t);
+        if (!matchQuesito && !matchArea && !matchAcao) return false;
+      }
+      return true;
+    });
+  }, [planoAcaoAreaFilter, planoAcaoSearchTerm]);
+
+  // Lista de Desvios Específicos das Rondas
+  const allDetailedDesvios = useMemo(() => {
+    const list: Array<{
+      id: string;
+      rondaId: string;
+      dataFormatted: string;
+      dataISO: string;
+      mesAno: string;
+      auditorNome: string;
+      colaboradorAuditado: string;
+      localAuditado: string;
+      itemNumero: number;
+      pergunta: string;
+      perguntaCurta: string;
+      categoria: string;
+      norma: string;
+      risco: 'CRITICO' | 'ALTO' | 'MEDIO' | 'BAIXO';
+      impactoOperacional: 'BAIXO' | 'MEDIO' | 'ALTO';
+      avaliacao: string;
+      comentario: string;
+      acao5W2H: any;
+    }> = [];
+
+    records.forEach(r => {
+      QUESTOES_GSA_OFICIAIS.forEach(q => {
+        const resp = (r.respostas as any)?.[q.pergunta] || (r.respostas as any)?.[q.perguntaCurta] || (r.itensMarcados && r.itensMarcados[q.pergunta]);
+        if (resp === 'Não' || String(resp).toLowerCase().includes('ruim')) {
+          list.push({
+            id: `${r.id}-${q.id}`,
+            rondaId: r.id,
+            dataFormatted: r.dataFormatted,
+            dataISO: r.dataISO,
+            mesAno: r.mesAno,
+            auditorNome: r.auditorNome,
+            colaboradorAuditado: r.colaboradorAuditado,
+            localAuditado: r.localAuditado,
+            itemNumero: q.id,
+            pergunta: q.pergunta,
+            perguntaCurta: q.perguntaCurta,
+            categoria: q.categoria,
+            norma: q.norma,
+            risco: q.riscoSeDesvio,
+            impactoOperacional: q.impactoOperacional || 'BAIXO',
+            avaliacao: 'Não Conforme (Não)',
+            comentario: r.observacoesItem?.[q.id] || r.comentarios || `Desvio identificado no quesito '${q.perguntaCurta}'.`,
+            acao5W2H: q.acaoPadrao5W2H
+          });
         }
-      } catch (_) {}
-    };
+      });
+    });
 
-    fetchFirestoreGSA();
-  }, [empresaId]);
+    return list;
+  }, [records]);
 
-  // Compute live score from 4 evaluation options
-  let countExcelente = 0;
-  let countBom = 0;
-  let countRazoavel = 0;
-  let countRuim = 0;
+  // Ação para enviar plano 5W2H ao Quadro Geral DPO
+  const handleEnviarPlanoParaQuadroDPO = async (plano: any, idKey: string) => {
+    try {
+      const payload = {
+        id: `dspd-acao-${Date.now()}-${idKey}`,
+        empresaId,
+        origem: 'Ronda de Qualidade DSPD Guarabira',
+        titulo: `[DSPD Guarabira] ${plano.perguntaCurta || plano.quesito || 'Plano de Ação 5W2H'}`,
+        oque: plano.acao5W2H?.oQue || plano.acaoPadrao || 'Executar tratativa corretiva no armazém',
+        porque: plano.acao5W2H?.porQue || 'Garantir conformidade com os padrões de qualidade DPO',
+        onde: plano.acao5W2H?.onde || 'Armazém Geral - DSPD Guarabira',
+        quem: plano.acao5W2H?.quem || plano.responsavelPadrao || 'Djeanderson Soares',
+        quando: plano.acao5W2H?.quando || new Date().toISOString().split('T')[0],
+        como: plano.acao5W2H?.como || 'Ação imediata com equipe e validação na próxima ronda semanal',
+        quanto: plano.acao5W2H?.quanto || 'R$ 0,00',
+        status: 'EM_ANDAMENTO',
+        prioridade: 'ALTA',
+        setor: plano.categoria || plano.area || 'Armazém',
+        categoria: 'Qualidade / DPO',
+        dataCriacao: new Date().toISOString(),
+        responsavel: plano.responsavelPadrao || 'Djeanderson Soares'
+      };
 
-  Object.values(respostasAvaliacao).forEach(val => {
-    if (val === 'excelente') countExcelente++;
-    else if (val === 'bom') countBom++;
-    else if (val === 'razoavel') countRazoavel++;
-    else if (val === 'ruim') countRuim++;
-  });
-
-  const totalPoints = (countExcelente * 4) + (countBom * 3) + (countRazoavel * 2) + (countRuim * 1);
-  const maxPossiblePoints = 34 * 4; // 136
-  const pctQualidade = Math.round((totalPoints / maxPossiblePoints) * 100);
-  const nota10Scale = Number(((totalPoints / maxPossiblePoints) * 10).toFixed(1));
-
-  const getStatusFromPct = (pct: number): 'EXCELENTE' | 'BOM' | 'RAZOÁVEL' | 'RUIM' => {
-    if (pct >= 90) return 'EXCELENTE';
-    if (pct >= 75) return 'BOM';
-    if (pct >= 60) return 'RAZOÁVEL';
-    return 'RUIM';
+      await AcoesGeraisRepository.create(payload);
+      const updated = { ...desviosSalvosDPO, [idKey]: true };
+      setDesviosSalvosDPO(updated);
+      localStorage.setItem('dspd_planos_salvos_dpo', JSON.stringify(updated));
+      alert(`✅ Plano 5W2H enviado com sucesso para o Quadro DPO de Ações!`);
+    } catch (e: any) {
+      alert(`❌ Erro ao salvar ação no DPO: ${e.message}`);
+    }
   };
 
-  const currentStatus = getStatusFromPct(pctQualidade);
-
-  const handleSelectOption = (id: number, val: NivelAvaliacao) => {
-    setRespostasAvaliacao(prev => ({ ...prev, [id]: val }));
-  };
-
-  const handleObsChange = (id: number, text: string) => {
-    setObservacoesItem(prev => ({ ...prev, [id]: text }));
-  };
-
-  const handleSaveAuditoriaGSA = async (e: React.FormEvent) => {
+  // Salvar Nova Ronda
+  const handleSalvarNovaRonda = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!colaboradorAuditado.trim()) {
-      alert('Por favor, informe o nome do colaborador inspecionado.');
-      return;
-    }
+    let countSim = 0;
+    let countNao = 0;
+    let countNA = 0;
 
-    const parts = dataISO.split('-');
-    const dataFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    const mesAno = `${parts[1]}/${parts[0]}`;
-    const status = getStatusFromPct(pctQualidade);
+    const respostasObj: Record<string, string> = {};
+    const itensMarcadosObj: Record<string, string> = {};
 
-    const newRecord: RondaGSARecord = {
-      id: `gsa-${Date.now()}`,
+    QUESTOES_GSA_OFICIAIS.forEach(q => {
+      const valor = respostasAvaliacao[q.id] || 'Sim';
+      respostasObj[q.pergunta] = valor;
+      respostasObj[q.perguntaCurta] = valor;
+      itensMarcadosObj[q.pergunta] = valor;
+
+      if (valor === 'Sim') countSim++;
+      else if (valor === 'Não') countNao++;
+      else countNA++;
+    });
+
+    const avaliados = countSim + countNao;
+    const aderencia = avaliados > 0 ? Number(((countSim / avaliados) * 100).toFixed(2)) : 100;
+    const pontos10 = Number((aderencia / 10).toFixed(1));
+
+    let status: 'EXCELENTE' | 'BOM' | 'RAZOÁVEL' | 'RUIM' = 'EXCELENTE';
+    if (aderencia >= 95) status = 'EXCELENTE';
+    else if (aderencia >= 90) status = 'BOM';
+    else if (aderencia >= 80) status = 'RAZOÁVEL';
+    else status = 'RUIM';
+
+    const dataParts = dataISO.split('-');
+    const dataFormatted = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
+    const mesAno = `${dataParts[1]}/${dataParts[0]}`;
+
+    const novaRonda: RondaGSARecord = {
+      id: `dspd-ronda-${Date.now()}`,
       dataISO,
       dataFormatted,
       mesAno,
-      localAuditado: localAuditado.trim() || 'Armazém Central',
-      colaboradorAuditado: colaboradorAuditado.trim(),
-      auditorNome: auditorNome.trim() || 'Controle de Qualidade',
-      respostasAvaliacao,
-      observacoesItem,
-      respostaTreinamento: respostaTreinamento.trim(),
-      pontos: nota10Scale,
-      pontosPercentual: pctQualidade,
-      countExcelente,
-      countBom,
-      countRazoavel,
-      countRuim,
-      statusPontuacao: status,
-      criadoEm: new Date().toISOString()
+      mesNumero: dataParts[1],
+      semanaAno: records.length + 1,
+      semanaMes: Math.min(5, Math.ceil(parseInt(dataParts[2], 10) / 7)),
+      mesAbrev: ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'][parseInt(dataParts[1], 10) - 1],
+      origem: 'registro_plataforma',
+      auditorNome: auditorNome || 'Djeanderson Soares',
+      colaboradorAuditado: colaboradorAuditado || 'Equipe Operacional',
+      localAuditado: localAuditado || 'Armazém Geral - DSPD Guarabira',
+      percentual: aderencia,
+      pontosNota10: pontos10,
+      status,
+      comentarios: formComentarios || 'Ronda de qualidade e segurança operacional realizada no DSPD Guarabira.',
+      desvioIdentificado: countNao > 0,
+      coachingAplicado: countNao > 0,
+      acaoCorretiva: countNao > 0 ? 'Planos 5W2H gerados para tratativa dos itens não conformes.' : undefined,
+      totalConformes: countSim,
+      totalNaoConformes: countNao,
+      totalNaoAplica: countNA,
+      criadoEm: new Date().toISOString(),
+      respostas: respostasObj,
+      itensMarcados: itensMarcadosObj,
+      observacoesItem: { ...observacoesItem }
     };
 
-    const updated = [newRecord, ...records];
+    const updated = [novaRonda, ...records];
     setRecords(updated);
-    localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(updated));
-
-    try {
-      await RondaGsaRepository.create(newRecord, empresaId, newRecord.id);
-    } catch (err) {
-      console.warn('Repository write error for Ronda GSA:', err);
-    }
-
-    // Reset Form
     setShowForm(false);
-    setRespostaTreinamento('');
-    setColaboradorAuditado('');
-
-    alert(`✅ Ronda de Qualidade Semanal salva com sucesso!\nPercentual de Qualidade: ${pctQualidade}% — Status: ${status}`);
+    alert(`✅ Nova Ronda do DSPD Guarabira cadastrada com sucesso! Aderência: ${aderencia}%`);
   };
 
-  // Salvar Caminho da Pasta Compartilhada
-  const handleSavePastaCompartilhada = (url: string) => {
-    setPastaCompartilhadaUrl(url);
-    localStorage.setItem('ronda_gsa_pasta_compartilhada', url);
-    firestoreDb.create('ronda_gsa_config', { id: 'pasta_compartilhada', url, atualizadoEm: new Date().toISOString() }, empresaId, 'pasta_compartilhada').catch(() => {});
-    setIsEditingPasta(false);
-  };
-
-  // Exportar Formulário em Branco / Manual em PDF
-  const handleExportBlankPdf = () => {
-    exportRondaGsaManualPdf({
-      dataStr: new Date().toLocaleDateString('pt-BR'),
-      auditorNome: auditorNome || 'Controle de Qualidade',
-      localAuditado: 'Armazém Geral (Guarabira)',
-    });
-  };
-
-  // Importar Retroativo do Ano (Excel / CSV / JSON)
-  const handleImportRetroativoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Exportar Excel Oficial do DSPD Guarabira
+  const handleExportExcelDSPD = () => {
     try {
-      const fileName = file.name.toLowerCase();
+      const wb = XLSX.utils.book_new();
 
-      if (fileName.endsWith('.json')) {
-        const text = await file.text();
-        const importedData = JSON.parse(text);
-        if (Array.isArray(importedData)) {
-          const merged = [...importedData, ...records];
-          // Remove duplicados por ID
-          const uniqueMap = new Map();
-          merged.forEach(item => uniqueMap.set(item.id, item));
-          const uniqueList = Array.from(uniqueMap.values());
-          setRecords(uniqueList);
-          localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(uniqueList));
-          alert(`✅ Importação concluída com sucesso! ${importedData.length} rondas adicionadas ao histórico anual.`);
-        }
-      } else {
-        // Leitura com XLSX
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const jsonRows: any[] = XLSX.utils.sheet_to_json(worksheet);
+      // Aba 1: Histórico das Rondas
+      const rondasSheetData = records.map(r => ({
+        'ID': r.id,
+        'Data': r.dataFormatted,
+        'Mês': r.mesAbrev || r.mesAno,
+        'Semana': r.semanaAno,
+        'Unidade': r.localAuditado,
+        'Auditor': r.auditorNome,
+        'Colaborador / Turno': r.colaboradorAuditado,
+        'Aderência (%)': r.percentual,
+        'Nota (0-10)': r.pontosNota10,
+        'Status DPO': r.status,
+        'Conformes (Sim)': r.totalConformes,
+        'Não Conformes (Não)': r.totalNaoConformes,
+        'Comentários': r.comentarios || ''
+      }));
+      const wsRondas = XLSX.utils.json_to_sheet(rondasSheetData);
+      XLSX.utils.book_append_sheet(wb, wsRondas, 'Rondas DSPD Guarabira');
 
-        if (jsonRows && jsonRows.length > 0) {
-          const newImportedRecords: RondaGSARecord[] = jsonRows.map((row, idx) => {
-            const dataStr = String(row['Data'] || row['DATA'] || row['Data Audit'] || '2026-01-15');
-            const local = String(row['Local'] || row['LOCAL'] || row['Setor'] || 'Armazém Central');
-            const colab = String(row['Colaborador'] || row['COLABORADOR'] || row['Auditado'] || 'Equipe Armazém');
-            const auditor = String(row['Auditor'] || row['AUDITOR'] || row['Auditor Nome'] || 'Controle Qualidade');
-            const pct = Number(row['Percentual'] || row['% Qualidade'] || row['Nota %'] || 88);
+      // Aba 2: Resumo por Área
+      const areasSheetData = CATEGORIAS_GSA.map(cat => {
+        const info = (DOCUMENTO_DSPD_GUARABIRA.resumo_por_area as any)[cat];
+        return {
+          'Área Operacional': cat,
+          'Total Respostas': info ? info.respostas : 0,
+          'Conformes (Sim)': info ? info.sim : 0,
+          'Não Conformes (Não)': info ? info.nao : 0,
+          'Aderência (%)': info ? info.aderencia_percentual : 100,
+          'Meta DPO (%)': 95.0,
+          'Status': (info?.aderencia_percentual || 100) >= 95 ? 'CONFORME' : 'ATENÇÃO'
+        };
+      });
+      const wsAreas = XLSX.utils.json_to_sheet(areasSheetData);
+      XLSX.utils.book_append_sheet(wb, wsAreas, 'Resumo por Área');
 
-            // Mapear respostas se existirem
-            const respostas: Record<number, NivelAvaliacao> = {};
-            QUESTOES_RONDA_GSA.forEach(q => {
-              const respVal = String(row[`Q${q.id}`] || row[`Item ${q.id}`] || row[q.pergunta] || 'excelente').toLowerCase();
-              if (respVal.includes('exc') || respVal === '4') respostas[q.id] = 'excelente';
-              else if (respVal.includes('bom') || respVal.includes('verde') || respVal === '3') respostas[q.id] = 'bom';
-              else if (respVal.includes('raz') || respVal.includes('amarel') || respVal === '2') respostas[q.id] = 'razoavel';
-              else if (respVal.includes('ruim') || respVal.includes('verm') || respVal === '1') respostas[q.id] = 'ruim';
-              else respostas[q.id] = 'excelente';
-            });
+      // Aba 3: Planos de Ação 5W2H
+      const planosSheetData = PLANO_DE_ACAO_PRIORITARIO_GSA.map(p => ({
+        'Prioridade': p.prioridade,
+        'ID Quesito': p.idQuesito,
+        'Área': p.area,
+        'Quesito / Requisito': p.quesito,
+        'Histórico Base': p.indicadorBase,
+        'Gatilho de Disparo': p.gatilho,
+        'Ação Padrão (O Quê)': p.acaoPadrao,
+        'Responsável': p.responsavelPadrao,
+        'Observações': p.observacao
+      }));
+      const wsPlanos = XLSX.utils.json_to_sheet(planosSheetData);
+      XLSX.utils.book_append_sheet(wb, wsPlanos, 'Planos de Ação 5W2H');
 
-            const countExc = Object.values(respostas).filter(v => v === 'excelente').length;
-            const countB = Object.values(respostas).filter(v => v === 'bom').length;
-            const countRaz = Object.values(respostas).filter(v => v === 'razoavel').length;
-            const countR = Object.values(respostas).filter(v => v === 'ruim').length;
-
-            const calcTotalPoints = (countExc * 4) + (countB * 3) + (countRaz * 2) + (countR * 1);
-            const calculatedPct = Math.round((calcTotalPoints / (34 * 4)) * 100);
-            const finalPct = pct || calculatedPct;
-
-            const dateParts = dataStr.includes('/') ? dataStr.split('/') : dataStr.split('-');
-            let dataFormatted = dataStr;
-            let dataISO = new Date().toISOString().split('T')[0];
-            let mesAno = '08/2026';
-
-            if (dataStr.includes('/')) {
-              dataFormatted = `${dateParts[0].padStart(2, '0')}/${dateParts[1].padStart(2, '0')}/${dateParts[2]}`;
-              dataISO = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-              mesAno = `${dateParts[1].padStart(2, '0')}/${dateParts[2]}`;
-            } else if (dataStr.includes('-')) {
-              dataISO = dataStr;
-              dataFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-              mesAno = `${dateParts[1]}/${dateParts[0]}`;
-            }
-
-            return {
-              id: `gsa-retro-${Date.now()}-${idx}`,
-              dataISO,
-              dataFormatted,
-              mesAno,
-              localAuditado: local,
-              colaboradorAuditado: colab,
-              auditorNome: auditor,
-              respostasAvaliacao: respostas,
-              observacoesItem: {},
-              respostaTreinamento: String(row['Treinamento'] || 'Treinamento de Boas Práticas Operacionais e 5S'),
-              pontos: Number(((finalPct / 100) * 10).toFixed(1)),
-              pontosPercentual: finalPct,
-              countExcelente: countExc,
-              countBom: countB,
-              countRazoavel: countRaz,
-              countRuim: countR,
-              statusPontuacao: getStatusFromPct(finalPct),
-              criadoEm: new Date().toISOString()
-            };
-          });
-
-          const merged = [...newImportedRecords, ...records];
-          const uniqueMap = new Map();
-          merged.forEach(item => uniqueMap.set(item.id, item));
-          const uniqueList = Array.from(uniqueMap.values());
-          setRecords(uniqueList);
-          localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(uniqueList));
-          alert(`✅ Importação de retroativo concluída! ${newImportedRecords.length} rondas anuais integradas com sucesso.`);
-        } else {
-          alert('⚠️ O arquivo selecionado está vazio ou não possui linhas válidas.');
-        }
-      }
-    } catch (err: any) {
-      console.error('Erro na importação retroativa:', err);
-      alert(`❌ Erro ao ler arquivo: ${err.message || 'Verifique o formato do arquivo'}`);
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      XLSX.writeFile(wb, `DSPD_Guarabira_Rondas_Qualidade_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (e: any) {
+      alert(`❌ Erro ao exportar Excel: ${e.message}`);
     }
   };
-
-  // Filter records by Month
-  const filteredRecords = records.filter(r => {
-    if (selectedMonthFilter === 'todos') return true;
-    return r.mesAno === selectedMonthFilter;
-  });
-
-  // Calculate overall monthly graph metrics
-  const totalAuditsInFilter = filteredRecords.length;
-  const avgQualityPctInFilter = totalAuditsInFilter > 0
-    ? Math.round(filteredRecords.reduce((acc, curr) => acc + curr.pontosPercentual, 0) / totalAuditsInFilter)
-    : 0;
-
-  const totalExcelenteAll = filteredRecords.reduce((acc, c) => acc + (c.countExcelente || 0), 0);
-  const totalBomAll = filteredRecords.reduce((acc, c) => acc + (c.countBom || 0), 0);
-  const totalRazoavelAll = filteredRecords.reduce((acc, c) => acc + (c.countRazoavel || 0), 0);
-  const totalRuimAll = filteredRecords.reduce((acc, c) => acc + (c.countRuim || 0), 0);
-  const grandTotalItems = totalExcelenteAll + totalBomAll + totalRazoavelAll + totalRuimAll || 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       
-      {/* CABEÇALHO DA SEÇÃO RONDA DE QUALIDADE */}
-      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#111a30] dark:via-[#111a30] dark:to-[#0f172a] border border-slate-200 dark:border-blue-500/30 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-600 dark:text-blue-400 shrink-0">
-            <ClipboardList className="w-8 h-8" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
-                AUDITORIA DE QUALIDADE & SEGURANÇA
+      {/* ── HEADER OFICIAL: DSPD GUARABIRA - RONDAS DE QUALIDADE ── */}
+      <div className="bg-gradient-to-br from-[#081226] via-[#0d1f42] to-[#0a152d] border border-blue-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+        {/* Glow ambient effects */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-1/4 -bottom-24 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-6 relative z-10">
+          
+          {/* Lado Esquerdo: Identificação Corporativa, Título e Badges */}
+          <div className="space-y-3.5 flex-1 min-w-0 w-full">
+            {/* Linha Superior de Badges Corporativos */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-xs">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> RONDA DE QUALIDADE & SEGURANÇA (DSPD)
               </span>
-              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono">Realizado pelo perfil Controle</span>
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase rounded-lg flex items-center gap-1.5 shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> FAROL DPO CONFORME (≥ 95%)
+              </span>
+              <span className="px-2.5 py-1 bg-cyan-950/80 text-cyan-300 border border-cyan-700/60 text-[10px] font-mono font-bold rounded-lg flex items-center gap-1.5 shadow-xs">
+                🏢 DSPD Guarabira - PB
+              </span>
+              <span className="px-2.5 py-1 bg-slate-800/90 text-slate-300 border border-slate-700 text-[10px] font-mono rounded-lg flex items-center gap-1.5 shadow-xs">
+                👤 Resp: Djeanderson Soares
+              </span>
             </div>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-1 uppercase tracking-tight">
-              Ronda de Qualidade Semanal (34 Itens)
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug max-w-2xl">
-              Avaliação de condições do local auditado com 4 níveis de qualidade: Excelente (Azul), Bom (Verde), Razoável (Amarelo) e Ruim (Vermelho).
-            </p>
+
+            {/* Título & Descrição Estruturados */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                DSPD Guarabira - Rondas de Qualidade
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed mt-1 max-w-4xl">
+                Auditoria de Qualidade e Segurança Operacional com <strong>41 Quesitos</strong> distribuídos em <strong>6 Áreas DPO</strong>, metodologia binária de conformidade (Sim/Não), histórico semanal contínuo e matriz integrada de <strong>Planos de Ação 5W2H</strong>.
+              </p>
+            </div>
+
+            {/* Metadados Técnicos em Linha */}
+            <div className="flex items-center gap-2.5 flex-wrap pt-1">
+              <span className="text-[11px] text-emerald-400 font-mono font-semibold flex items-center gap-1.5 bg-emerald-950/60 px-3 py-1 rounded-lg border border-emerald-700/50 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Aderência Acumulada Jan-Ago: <strong className="text-emerald-300 font-black">96.5%</strong>
+              </span>
+              <span className="text-[11px] text-slate-300 font-mono flex items-center gap-1.5 bg-[#091428] px-3 py-1 rounded-lg border border-slate-700 shadow-xs whitespace-nowrap">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" /> Frequência: <strong>1 ronda por semana</strong> (35 semanas registradas)
+              </span>
+              <span className="text-[11px] text-teal-300 font-mono flex items-center gap-1.5 bg-teal-950/60 px-3 py-1 rounded-lg border border-teal-700/50 shadow-xs whitespace-nowrap">
+                <Truck className="w-3.5 h-3.5 text-teal-400" /> Licença SUDEMA: <strong className="text-teal-200">Vigente (LO 599/2020)</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* KPI Cards Bento com Auto-Ajuste e Sem Overflow */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full 2xl:w-auto 2xl:min-w-[560px] shrink-0">
+            <div className="bg-[#071124]/90 border border-blue-500/30 hover:border-blue-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Nota Média YTD</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-blue-400">{avgQuality}%</div>
+              <span className="text-[9px] text-emerald-400 font-bold block">Meta DPO: ≥ 95%</span>
+            </div>
+
+            <div className="bg-[#071124]/90 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Rondas Realizadas</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">{totalAudits}</div>
+              <span className="text-[9px] text-slate-300 font-bold block">Jan a Ago / 2026</span>
+            </div>
+
+            <div className="bg-[#071124]/90 border border-amber-500/30 hover:border-amber-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planos 5W2H</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-amber-400">8 Prioritários</div>
+              <span className="text-[9px] text-amber-300 font-bold block">100% Mapeados</span>
+            </div>
+
+            <div className="bg-[#071124]/90 border border-cyan-500/30 hover:border-cyan-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quesitos Auditados</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-cyan-400">41</div>
+              <span className="text-[9px] text-cyan-300 font-bold block">6 Áreas DPO</span>
+            </div>
           </div>
         </div>
 
-        {/* BOTÕES DE AÇÃO: EXPORTAR PDF, IMPORTAR RETROATIVO E NOVA RONDA */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportRetroativoFile}
-            accept=".xlsx,.xls,.csv,.json"
-            className="hidden"
-          />
-
-          <button
-            type="button"
-            onClick={handleExportBlankPdf}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0b1222] dark:hover:bg-slate-800 text-sky-700 dark:text-sky-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 dark:border-sky-500/30 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
-            title="Baixar formulário das 34 questões em PDF para preenchimento manual"
-          >
-            <Download className="w-4 h-4" />
-            <span>Exportar PDF Manual</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0b1222] dark:hover:bg-slate-800 text-amber-700 dark:text-amber-400 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 dark:border-amber-500/30 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
-            title="Importar planilha com histórico anual retroativo de rondas e respostas"
-          >
-            <Upload className="w-4 h-4" />
-            <span>Importar Retroativo Anual</span>
-          </button>
-
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg flex items-center gap-2"
-          >
-            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {showForm ? 'Fechar Formulário' : '+ Nova Ronda Semanal'}
-          </button>
-        </div>
-      </div>
-
-      {/* CAMPO DE PASTA COMPARTILHADA DA QUALIDADE DO ARMAZÉM */}
-      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="p-2 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
-            <FolderOpen className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 block">
-              Pasta Compartilhada da Qualidade (Google Drive / Rede Corporativa)
-            </span>
-            {isEditingPasta ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="text"
-                  defaultValue={pastaCompartilhadaUrl}
-                  id="input-pasta-url"
-                  placeholder="Cole o link do Google Drive, OneDrive ou caminho de rede aqui..."
-                  className="flex-1 bg-slate-50 dark:bg-[#0b1222] border border-indigo-500/40 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const el = document.getElementById('input-pasta-url') as HTMLInputElement;
-                    handleSavePastaCompartilhada(el?.value || '');
-                  }}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1"
-                >
-                  <Save className="w-3.5 h-3.5" /> Salvar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingPasta(false)}
-                  className="px-2 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg text-xs cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <div className="text-xs text-slate-600 dark:text-slate-300 truncate mt-0.5">
-                {pastaCompartilhadaUrl ? (
-                  <span className="font-mono text-indigo-600 dark:text-indigo-300">{pastaCompartilhadaUrl}</span>
-                ) : (
-                  <span className="text-slate-400 italic">Nenhum caminho ou link de pasta compartilhada cadastrado.</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {!isEditingPasta && (
+        {/* NAVEGAÇÃO DE SUB-ABAS DA RONDA DSPD GUARABIRA */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-slate-800/80">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
             <button
-              type="button"
-              onClick={() => setIsEditingPasta(true)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-lg transition-all cursor-pointer"
+              onClick={() => setActiveTabVisual('visao_geral')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'visao_geral'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
             >
-              {pastaCompartilhadaUrl ? 'Alterar Caminho' : '+ Colar Caminho'}
+              <Award className="w-4 h-4 text-blue-400" /> 1. Painel Farol
             </button>
-          )}
 
-          {pastaCompartilhadaUrl && (
-            <a
-              href={pastaCompartilhadaUrl.startsWith('http') ? pastaCompartilhadaUrl : `https://${pastaCompartilhadaUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Abrir Pasta</span>
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* GRÁFICO DE QUALIDADE DO LOCAL AUDITADO (GLOBAL/MENSAL) */}
-      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-blue-500/30 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
-              Gráfico de Qualidade da Situação do Local Auditado
-            </h3>
-          </div>
-
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Filtrar Mês:</span>
-            <select
-              value={selectedMonthFilter}
-              onChange={(e) => setSelectedMonthFilter(e.target.value)}
-              className="bg-transparent text-xs font-black text-blue-600 dark:text-blue-400 outline-none cursor-pointer"
-            >
-              <option value="todos" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Todos os Meses</option>
-              <option value="08/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Agosto / 2026</option>
-              <option value="07/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Julho / 2026</option>
-              <option value="06/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Junho / 2026</option>
-              <option value="05/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Maio / 2026</option>
-            </select>
-          </div>
-        </div>
-
-        {/* MÉTRICAS E DISTRIBUIÇÃO GRÁFICA */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-1 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-center items-center text-center">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Média de Qualidade Semanal
-            </span>
-            <div className="text-3xl font-black font-mono text-blue-600 dark:text-blue-400 mt-1">
-              {avgQualityPctInFilter}%
-            </div>
-            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded mt-2 ${
-              avgQualityPctInFilter >= 90 ? 'bg-blue-600 text-white' :
-              avgQualityPctInFilter >= 75 ? 'bg-emerald-600 text-white' :
-              avgQualityPctInFilter >= 60 ? 'bg-amber-500 text-slate-950' : 'bg-rose-600 text-white'
-            }`}>
-              {getStatusFromPct(avgQualityPctInFilter)}
-            </span>
-          </div>
-
-          <div className="md:col-span-4 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-              Distribuição Visual por Nível de Avaliação ({totalAuditsInFilter} Ronda(s) Mês)
-            </span>
-
-            {/* BARRA DE PROGRESSO MULTICOLORIDA */}
-            <div className="h-6 w-full bg-slate-200 dark:bg-slate-900 rounded-lg overflow-hidden flex shadow-inner">
-              <div 
-                style={{ width: `${Math.round((totalExcelenteAll / grandTotalItems) * 100)}%` }} 
-                className="bg-blue-500 h-full transition-all flex items-center justify-center text-[10px] font-black text-white"
-                title="Excelente"
-              >
-                {Math.round((totalExcelenteAll / grandTotalItems) * 100) > 5 ? `${Math.round((totalExcelenteAll / grandTotalItems) * 100)}%` : ''}
-              </div>
-              <div 
-                style={{ width: `${Math.round((totalBomAll / grandTotalItems) * 100)}%` }} 
-                className="bg-emerald-500 h-full transition-all flex items-center justify-center text-[10px] font-black text-white"
-                title="Bom"
-              >
-                {Math.round((totalBomAll / grandTotalItems) * 100) > 5 ? `${Math.round((totalBomAll / grandTotalItems) * 100)}%` : ''}
-              </div>
-              <div 
-                style={{ width: `${Math.round((totalRazoavelAll / grandTotalItems) * 100)}%` }} 
-                className="bg-amber-500 h-full transition-all flex items-center justify-center text-[10px] font-black text-slate-950"
-                title="Razoável"
-              >
-                {Math.round((totalRazoavelAll / grandTotalItems) * 100) > 5 ? `${Math.round((totalRazoavelAll / grandTotalItems) * 100)}%` : ''}
-              </div>
-              <div 
-                style={{ width: `${Math.round((totalRuimAll / grandTotalItems) * 100)}%` }} 
-                className="bg-rose-500 h-full transition-all flex items-center justify-center text-[10px] font-black text-white"
-                title="Ruim"
-              >
-                {Math.round((totalRuimAll / grandTotalItems) * 100) > 5 ? `${Math.round((totalRuimAll / grandTotalItems) * 100)}%` : ''}
-              </div>
-            </div>
-
-            {/* LEGENDA DAS 4 OPÇÕES */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 p-2 rounded-lg">
-                <div className="w-3.5 h-3.5 bg-blue-500 rounded-full shrink-0" />
-                <div>
-                  <span className="block text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">Excelente (Azul)</span>
-                  <strong className="text-slate-900 dark:text-white font-mono">{totalExcelenteAll} item(s)</strong>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-lg">
-                <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full shrink-0" />
-                <div>
-                  <span className="block text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Bom (Verde)</span>
-                  <strong className="text-slate-900 dark:text-white font-mono">{totalBomAll} item(s)</strong>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 p-2 rounded-lg">
-                <div className="w-3.5 h-3.5 bg-amber-500 rounded-full shrink-0" />
-                <div>
-                  <span className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">Razoável (Amarelo)</span>
-                  <strong className="text-slate-900 dark:text-white font-mono">{totalRazoavelAll} item(s)</strong>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/30 p-2 rounded-lg">
-                <div className="w-3.5 h-3.5 bg-rose-500 rounded-full shrink-0" />
-                <div>
-                  <span className="block text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">Ruim (Vermelho)</span>
-                  <strong className="text-slate-900 dark:text-white font-mono">{totalRuimAll} item(s)</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* DETALHES DO REGISTRO SELECIONADO NO HISTÓRICO */}
-      {selectedRecord && (
-        <div className="bg-white dark:bg-[#0b1222] border-2 border-blue-500/50 rounded-2xl p-5 space-y-4 shadow-2xl relative">
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-            <h3 className="text-sm font-black uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Detalhes da Ronda de Qualidade - {selectedRecord.dataFormatted} ({selectedRecord.localAuditado})
-            </h3>
             <button
-              onClick={() => setSelectedRecord(null)}
-              className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
+              onClick={() => setActiveTabVisual('graficos')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'graficos'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
             >
-              <X className="w-5 h-5" />
+              <TrendingUp className="w-4 h-4 text-cyan-400" /> 2. Gráficos YTD
+            </button>
+
+            <button
+              onClick={() => setActiveTabVisual('planos_acao')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'planos_acao'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <Target className="w-4 h-4 text-amber-400" /> 3. Planos 5W2H (8)
+            </button>
+
+            <button
+              onClick={() => setActiveTabVisual('desvios')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'desvios'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-400" /> 4. Desvios ({allDetailedDesvios.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTabVisual('historico')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'historico'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <History className="w-4 h-4 text-indigo-400" /> 5. Histórico ({records.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTabVisual('laudos')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'laudos'
+                  ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-500/25'
+                  : 'bg-[#071124] text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-emerald-400" /> 6. Laudos & Parecer
+            </button>
+
+            <button
+              onClick={() => setActiveTabVisual('licencas_descarte')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                activeTabVisual === 'licencas_descarte'
+                  ? 'bg-emerald-600 text-white font-black shadow-lg shadow-emerald-500/25'
+                  : 'bg-[#071124] text-emerald-400 hover:text-white border border-emerald-800/80'
+              }`}
+            >
+              <Truck className="w-4 h-4 text-emerald-400" /> 7. Licenças & Recibos de Descarte
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 dark:bg-[#111a30] p-3 rounded-xl text-xs text-slate-700 dark:text-slate-300">
-            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Data:</span> <strong>{selectedRecord.dataFormatted}</strong></div>
-            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Local Auditado:</span> <strong>{selectedRecord.localAuditado}</strong></div>
-            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Colaborador Auditado:</span> <strong>{selectedRecord.colaboradorAuditado}</strong></div>
-            <div><span className="text-slate-500 dark:text-slate-400 block uppercase text-[10px]">Auditor:</span> <strong>{selectedRecord.auditorNome}</strong></div>
-          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setIsLicencasModalOpen(true)}
+              className="px-3 py-2 bg-emerald-900/50 hover:bg-emerald-800 text-emerald-300 border border-emerald-600/50 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow transition-all cursor-pointer"
+              title="Abrir Central de Licenças SUDEMA e Recibos de Descarte Pedro Cidelino"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Licenças & Recibos
+            </button>
 
-          <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 rounded-xl">
-            <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-200">Percentual de Qualidade Semanal:</span>
-            <span className={`text-base font-mono font-black px-3 py-1 rounded ${
-              selectedRecord.statusPontuacao === 'EXCELENTE' ? 'bg-blue-600 text-white' :
-              selectedRecord.statusPontuacao === 'BOM' ? 'bg-emerald-600 text-white' :
-              selectedRecord.statusPontuacao === 'RAZOÁVEL' ? 'bg-amber-500 text-slate-950 font-black' :
-              'bg-rose-600 text-white font-black'
-            }`}>
-              {selectedRecord.pontosPercentual}% Qualidade — {selectedRecord.statusPontuacao}
-            </span>
-          </div>
+            <button
+              onClick={handleExportExcelDSPD}
+              className="px-3 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow transition-all cursor-pointer"
+              title="Exportar dados completos do DSPD Guarabira em formato Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
+            </button>
 
-          <div className="max-h-80 overflow-y-auto space-y-1 pr-1 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-[#111a30]">
-            {QUESTOES_RONDA_GSA.map(q => {
-              const resp = selectedRecord.respostasAvaliacao?.[q.id] || 'excelente';
-              const obs = selectedRecord.observacoesItem?.[q.id] || '';
+            <button
+              onClick={() => {
+                if (currentLaudoRecord) {
+                  setLaudoRondaSelecionada(currentLaudoRecord);
+                  setIsFullLaudoModalOpen(true);
+                }
+              }}
+              className="px-3 py-2 bg-blue-600/90 hover:bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow transition-all cursor-pointer"
+            >
+              <Printer className="w-4 h-4" /> Laudo PDF
+            </button>
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> + Nova Ronda
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 1: PAINEL FAROL & INDICADORES (DSPD GUARABIRA)            */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'visao_geral' && (
+        <div className="space-y-6">
+          {/* CARDS DAS 6 ÁREAS COM PERCENTUAL DE ADERÊNCIA */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {CATEGORIAS_GSA.map(cat => {
+              const info = (DOCUMENTO_DSPD_GUARABIRA.resumo_por_area as any)[cat];
+              const pct = info ? Number(info.aderencia_percentual.toFixed(1)) : 100;
+              const sim = info ? info.sim : 0;
+              const nao = info ? info.nao : 0;
+              const isConforme = pct >= 95.0;
 
               return (
-                <div key={q.id} className="p-2 bg-white dark:bg-[#0b1222] rounded flex items-center justify-between text-xs gap-3 shadow-xs">
-                  <div className="flex-1">
-                    <span className="text-slate-400 font-mono font-bold mr-1.5">{q.id}.</span>
-                    <span className="text-slate-900 dark:text-white font-medium">{q.pergunta}</span>
-                    {obs && <span className="block text-[10px] text-amber-600 dark:text-amber-300 italic mt-0.5">Obs: "{obs}"</span>}
+                <div key={cat} className="bg-[#0b1222] border border-slate-800 hover:border-blue-500/50 rounded-2xl p-4.5 space-y-3 transition-all">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-white">{cat}</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
+                      isConforme
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    }`}>
+                      {isConforme ? '🟢 Conforme DPO' : '🟡 Atenção'}
+                    </span>
                   </div>
-                  <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase shrink-0 ${
-                    resp === 'excelente' ? 'bg-blue-600 text-white' :
-                    resp === 'bom' ? 'bg-emerald-600 text-white' :
-                    resp === 'razoavel' ? 'bg-amber-500 text-slate-950 font-black' :
-                    'bg-rose-600 text-white font-black'
-                  }`}>
-                    {resp}
-                  </span>
+
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <div className="text-3xl font-black font-mono text-blue-400">{pct}%</div>
+                      <span className="text-[10px] text-slate-400">Meta: ≥ 95.0%</span>
+                    </div>
+                    <div className="text-right text-[11px] font-bold space-y-0.5">
+                      <div className="text-emerald-400">✓ {sim} Sim (Conforme)</div>
+                      <div className={nao > 0 ? "text-amber-400" : "text-slate-500"}>✗ {nao} Não (Desvio)</div>
+                    </div>
+                  </div>
+
+                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${pct >= 95 ? 'bg-emerald-500' : pct >= 90 ? 'bg-blue-500' : 'bg-amber-500'}`}
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
 
-      {/* FORMULÁRIO COMPLETO DE PREENCHIMENTO DA RONDA */}
-      {showForm && (
-        <form onSubmit={handleSaveAuditoriaGSA} className="bg-white dark:bg-[#111a30] border-2 border-blue-500/50 rounded-2xl p-5 space-y-6 shadow-2xl">
-          
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-sm font-black uppercase text-slate-900 dark:text-white">
-                Preenchimento da Ronda de Qualidade Semanal (34 Itens)
+          {/* TABELA DE RESUMO MENSAL OFICIAL JAN A AGO */}
+          <div className="bg-[#0b1222] border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-400" /> Aderência Mensal Consolidada (Jan a Ago / 2026)
               </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* DADOS BÁSICOS DA AUDITORIA */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-[#0b1222] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-            <div>
-              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Data da Ronda</label>
-              <input
-                type="date"
-                value={dataISO}
-                onChange={e => setDataISO(e.target.value)}
-                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-900 dark:text-white outline-none focus:border-blue-400"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Local / Ponto Auditado</label>
-              <input
-                type="text"
-                value={localAuditado}
-                onChange={e => setLocalAuditado(e.target.value)}
-                placeholder="Ex: Armazém Central - Setor A/B"
-                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-blue-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Colaborador Inspecionado *</label>
-              <input
-                type="text"
-                placeholder="Ex: Carlos Silva / Equipe Operacional"
-                value={colaboradorAuditado}
-                onChange={e => setColaboradorAuditado(e.target.value)}
-                className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-400"
-                required
-              />
-            </div>
-          </div>
-
-          {/* CRITÉRIO E PONTUAÇÃO AO VIVO (4 NÍVEIS) */}
-          <div className="bg-blue-50/70 dark:bg-[#081226] border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Award className="w-8 h-8 text-blue-600 dark:text-blue-400 shrink-0" />
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Percentual de Qualidade Semanal Calculado
-                </span>
-                <strong className="text-xl font-mono font-black text-slate-900 dark:text-white">
-                  {pctQualidade}% Qualidade <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">({nota10Scale}/10 pts)</span>
-                </strong>
-              </div>
-            </div>
-
-            {/* SELETOR DE STATUS */}
-            <div className="flex items-center gap-2 text-[10px] font-black">
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'EXCELENTE' ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                ≥ 90% = Excelente (Azul)
-              </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'BOM' ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                75-89% = Bom (Verde)
-              </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RAZOÁVEL' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                60-74% = Razoável (Amarelo)
-              </span>
-              <span className={`px-2.5 py-1 rounded uppercase ${currentStatus === 'RUIM' ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                &lt; 60% = Ruim (Vermelho)
+              <span className="text-xs font-mono text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-800 font-bold">
+                Fórmula: Sim / (Sim + Não) | Média YTD: 96.5%
               </span>
             </div>
-          </div>
 
-          {/* TABELA DAS 34 PERGUNTAS COM 4 OPÇÕES DE AVALIAÇÃO */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-[#032b5e] text-white font-black uppercase tracking-wider text-[11px]">
-                    <th className="p-3 w-12 text-center">Nº</th>
-                    <th className="p-3">Item de Verificação (Qualidade / Segurança)</th>
-                    <th className="p-3 text-center w-72">Avaliação de Qualidade</th>
-                    <th className="p-3 w-64">Observação do Item</th>
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#111a30] text-slate-400 uppercase text-[10px] font-black tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="py-2.5 px-3">Mês</th>
+                    <th className="py-2.5 px-3 text-center">Respostas Auditadas</th>
+                    <th className="py-2.5 px-3 text-center text-emerald-400">Sim (Conforme)</th>
+                    <th className="py-2.5 px-3 text-center text-amber-400">Não (Desvio)</th>
+                    <th className="py-2.5 px-3 text-center">Aderência (%)</th>
+                    <th className="py-2.5 px-3 text-center">Meta DPO</th>
+                    <th className="py-2.5 px-3 text-center">Status Farol</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-800 dark:text-slate-200">
-                  {QUESTOES_RONDA_GSA.map((item) => {
-                    const currentVal = respostasAvaliacao[item.id] || 'excelente';
+                <tbody className="divide-y divide-slate-800/60 font-bold">
+                  {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO'].map(m => {
+                    const info = (DOCUMENTO_DSPD_GUARABIRA.resumo_mensal as any)[m];
+                    const pct = info ? Number(info.aderencia_percentual.toFixed(2)) : 96.5;
+                    const isConf = pct >= 95.0;
 
                     return (
-                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 font-mono font-bold text-slate-500 dark:text-slate-400 text-center">
-                          {item.id}
-                        </td>
-                        <td className="p-3 font-medium text-slate-800 dark:text-slate-200">
-                          {item.pergunta}
-                        </td>
-                        <td className="p-3">
-                          <div className="grid grid-cols-4 gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleSelectOption(item.id, 'ruim')}
-                              className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
-                                currentVal === 'ruim'
-                                  ? 'bg-rose-600 text-white border-rose-400 shadow-md'
-                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-rose-500'
-                              }`}
-                            >
-                              Ruim
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleSelectOption(item.id, 'razoavel')}
-                              className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
-                                currentVal === 'razoavel'
-                                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
-                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-amber-500'
-                              }`}
-                            >
-                              Razoável
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleSelectOption(item.id, 'bom')}
-                              className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
-                                currentVal === 'bom'
-                                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-md'
-                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-emerald-500'
-                              }`}
-                            >
-                              Bom
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleSelectOption(item.id, 'excelente')}
-                              className={`py-1.5 px-1 rounded text-[9px] font-black uppercase transition-all cursor-pointer border ${
-                                currentVal === 'excelente'
-                                  ? 'bg-blue-600 text-white border-blue-400 shadow-md'
-                                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-blue-500'
-                              }`}
-                            >
-                              Excelente
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="Anotação / Desvio..."
-                            value={observacoesItem[item.id] || ''}
-                            onChange={(e) => handleObsChange(item.id, e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-400"
-                          />
+                      <tr key={m} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 text-white font-black">{m} / 2026</td>
+                        <td className="py-3 px-3 text-center text-slate-300 font-mono">{info ? info.respostas_observadas : '-'}</td>
+                        <td className="py-3 px-3 text-center text-emerald-400 font-mono font-black">{info ? info.sim : '-'}</td>
+                        <td className="py-3 px-3 text-center text-amber-400 font-mono font-black">{info ? info.nao : '-'}</td>
+                        <td className="py-3 px-3 text-center font-mono text-base font-black text-blue-400">{pct}%</td>
+                        <td className="py-3 px-3 text-center text-slate-400 font-mono">≥ 95.0%</td>
+                        <td className="py-3 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            isConf ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          }`}>
+                            {isConf ? '🟢 Conforme' : '🟡 Atenção'}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -939,151 +783,359 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               </table>
             </div>
           </div>
-
-          {/* ITEM 35 - PERGUNTA ABERTA DE TREINAMENTO */}
-          <div className="p-4 bg-amber-50/50 dark:bg-[#0b1222] border border-amber-300 dark:border-amber-500/40 rounded-xl space-y-2">
-            <label className="block text-xs font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Item 35: "Os colaboradores lembram qual foi o último treinamento? Qual foi a resposta?"
-            </label>
-            <textarea
-              rows={2}
-              value={respostaTreinamento}
-              onChange={e => setRespostaTreinamento(e.target.value)}
-              placeholder="Descreva o treinamento mencionado pelos colaboradores durante a ronda..."
-              className="w-full bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-amber-400 resize-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer"
-            >
-              Cancelar
-            </button>
-
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center gap-2 cursor-pointer"
-            >
-              <Save className="w-4 h-4 text-white" /> Gravar Ronda de Qualidade
-            </button>
-          </div>
-        </form>
+        </div>
       )}
 
-      {/* HISTÓRICO DE RONDAS DE QUALIDADE REALIZADAS */}
-      <div className="bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <div>
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                Histórico de Rondas de Qualidade Semanal
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 2: GRÁFICOS & TENDÊNCIA YTD                               */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'graficos' && (
+        <div className="space-y-6">
+          {/* GRÁFICO 1: EVOLUÇÃO SEMANAL DAS RONDAS */}
+          <div className="bg-[#0b1222] border border-slate-800 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-400" /> Evolução Semanal de Aderência (Jan a Ago / 2026)
               </h3>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                Auditorias registradas pelo perfil Controle
-              </span>
+              <span className="text-xs text-emerald-400 font-bold font-mono">Meta Corporativa: 95.0%</span>
+            </div>
+
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartDataEvolution} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="semana" stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <YAxis domain={[85, 102]} stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
+                    labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                  />
+                  <ReferenceLine y={95} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Meta DPO 95%', fill: '#10b981', fontSize: 10 }} />
+                  <Line type="monotone" dataKey="aderencia" name="Aderência (%)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Filtrar Mês:</span>
-            <select
-              value={selectedMonthFilter}
-              onChange={(e) => setSelectedMonthFilter(e.target.value)}
-              className="bg-transparent text-xs font-black text-blue-600 dark:text-blue-400 outline-none cursor-pointer"
-            >
-              <option value="todos" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Todos os Meses</option>
-              <option value="08/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Agosto / 2026</option>
-              <option value="07/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Julho / 2026</option>
-              <option value="06/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Junho / 2026</option>
-              <option value="05/2026" className="bg-white dark:bg-[#0b1222] text-slate-900 dark:text-white">Maio / 2026</option>
-            </select>
+          {/* GRÁFICO 2: ADERÊNCIA POR ÁREA E MENSAL */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-[#0b1222] border border-slate-800 rounded-2xl p-5 space-y-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-cyan-400" /> Aderência por Mês (JAN a AGO)
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartDataMensal} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                    <XAxis dataKey="mes" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 'bold' }} />
+                    <YAxis domain={[85, 100]} stroke="#64748b" tick={{ fontSize: 10 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }} />
+                    <Bar dataKey="aderencia" name="Aderência (%)" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                      {chartDataMensal.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.aderencia >= 95 ? '#10b981' : '#f59e0b'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-[#0b1222] border border-slate-800 rounded-2xl p-5 space-y-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-amber-400" /> Aderência por Área Auditada
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart layout="vertical" data={chartDataAreas} margin={{ top: 10, right: 30, left: 40, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                    <XAxis type="number" domain={[85, 100]} stroke="#64748b" tick={{ fontSize: 10 }} />
+                    <YAxis type="category" dataKey="area" stroke="#94a3b8" tick={{ fontSize: 9, fontWeight: 'bold' }} width={120} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }} />
+                    <Bar dataKey="aderencia" name="Aderência (%)" fill="#6366f1" radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {filteredRecords.length > 0 ? (
-          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-md">
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 3: PLANOS DE AÇÃO 5W2H PRIORITÁRIOS (8 ITENS OFICIAIS)    */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'planos_acao' && (
+        <div className="space-y-6">
+          <div className="bg-[#0b1222] p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Target className="w-5 h-5 text-amber-400" /> Matriz de Planos de Ação 5W2H Prioritários
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Planos de ação estruturados com base nas recorrências observadas na planilha oficial do <strong>DSPD Guarabira</strong> (Responsável: Djeanderson Soares).
+                </p>
+              </div>
+
+              {/* Filtros da Matriz 5W2H */}
+              <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+                <div className="relative flex-1 md:w-60">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={planoAcaoSearchTerm}
+                    onChange={e => setPlanoAcaoSearchTerm(e.target.value)}
+                    placeholder="Buscar plano 5W2H..."
+                    className="w-full pl-9 pr-3 py-2 bg-[#111a30] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <select
+                  value={planoAcaoAreaFilter}
+                  onChange={e => setPlanoAcaoAreaFilter(e.target.value)}
+                  className="bg-[#111a30] border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none font-bold"
+                >
+                  <option value="todas">Todas as Áreas</option>
+                  {CATEGORIAS_GSA.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* LISTAGEM DOS PLANOS DE AÇÃO 5W2H */}
+            <div className="grid grid-cols-1 gap-4">
+              {filteredPlanosAcao.map(p => {
+                const idKey = `plano-dspd-prioritario-${p.idQuesito}`;
+                const jaSalvo = !!desviosSalvosDPO[idKey];
+
+                return (
+                  <div 
+                    key={p.prioridade}
+                    className="bg-[#111a30] border border-slate-700/80 hover:border-amber-500/50 rounded-2xl p-5 space-y-4 shadow-lg transition-all"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-black">
+                          Prioridade #{p.prioridade}
+                        </span>
+                        <span className="px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-black">
+                          Quesito #{p.idQuesito}
+                        </span>
+                        <span className="text-xs font-black text-cyan-300 bg-slate-800 px-2.5 py-1 rounded-lg">
+                          {p.area}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleEnviarPlanoParaQuadroDPO(p, idKey)}
+                        disabled={jaSalvo}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                          jaSalvo
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 cursor-default'
+                            : 'bg-amber-600 hover:bg-amber-500 text-white shadow hover:shadow-amber-500/25'
+                        }`}
+                      >
+                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Enviar p/ Quadro DPO'}
+                      </button>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-black text-white leading-relaxed">
+                        {p.quesito}
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1 font-mono">
+                        {p.indicadorBase} • Gatilho: <span className="text-amber-300">{p.gatilho}</span>
+                      </p>
+                    </div>
+
+                    {/* MATRIZ 5W2H COMPACTA */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-[#0b1222] p-3 rounded-xl border border-slate-800 text-xs">
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">O Quê (Ação):</span>
+                        <span className="text-slate-200 font-bold leading-tight">{p.acaoPadrao}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Quem (Responsável):</span>
+                        <span className="text-cyan-300 font-bold">{p.responsavelPadrao}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Onde (Local):</span>
+                        <span className="text-slate-200 font-bold">Armazém Geral (DSPD Guarabira)</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Quando (Revisão):</span>
+                        <span className="text-emerald-400 font-bold">Próxima ronda semanal</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 4: DESVIOS IDENTIFICADOS NAS RONDAS                       */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'desvios' && (
+        <div className="space-y-6">
+          <div className="bg-[#0b1222] p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-400" /> Mural de Desvios das Rondas Operacionais
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Total de <strong>{allDetailedDesvios.length}</strong> desvios mapeados e tratados com planos corretivos 5W2H.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3.5">
+              {allDetailedDesvios.map(d => {
+                const idKey = `desvio-dspd-${d.id}`;
+                const jaSalvo = !!desviosSalvosDPO[idKey];
+
+                return (
+                  <div key={d.id} className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded text-[10px] font-black">
+                          Ronda: {d.dataFormatted}
+                        </span>
+                        <span className="px-2.5 py-0.5 bg-slate-800 text-cyan-300 rounded text-[10px] font-bold">
+                          {d.categoria}
+                        </span>
+                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[10px] font-black">
+                          Quesito #{d.itemNumero}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleEnviarPlanoParaQuadroDPO(d, idKey)}
+                        disabled={jaSalvo}
+                        className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          jaSalvo
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 cursor-default'
+                            : 'bg-amber-600 hover:bg-amber-500 text-white shadow'
+                        }`}
+                      >
+                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Enviar p/ DPO'}
+                      </button>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-black text-white">{d.perguntaCurta}</h4>
+                      <p className="text-xs text-slate-300 mt-1">{d.pergunta}</p>
+                      <p className="text-xs text-amber-300 font-mono mt-1">Observação: {d.comentario}</p>
+                    </div>
+
+                    <div className="bg-[#0b1222] p-2.5 rounded-xl border border-slate-800/80 text-xs grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Tratativa (5W2H):</span>
+                        <span className="text-slate-200 font-bold">{d.acao5W2H?.oQue}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Responsável:</span>
+                        <span className="text-cyan-300 font-bold">{d.acao5W2H?.quem}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase block">Prazo / Revisão:</span>
+                        <span className="text-emerald-400 font-bold">{d.acao5W2H?.quando}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 5: HISTÓRICO COMPLETO DAS RONDAS (35 RONDAS)              */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'historico' && (
+        <div className="space-y-6">
+          <div className="bg-[#0b1222] p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <History className="w-5 h-5 text-indigo-400" /> Histórico de Rondas Semanais (35 Inspeções)
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Unidade DSPD Guarabira - Auditor Responsável: Djeanderson Soares
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={selectedMonthFilter}
+                  onChange={e => setSelectedMonthFilter(e.target.value)}
+                  className="bg-[#111a30] border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none font-bold"
+                >
+                  <option value="todos">Todos os Meses</option>
+                  {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO'].map(m => (
+                    <option key={m} value={m}>{m} / 2026</option>
+                  ))}
+                </select>
+
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Buscar histórico..."
+                    className="pl-9 pr-3 py-2 bg-[#111a30] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-[#032b5e] text-white font-black uppercase tracking-wider text-[11px]">
-                    <th className="p-3">Data</th>
-                    <th className="p-3">Local Auditado</th>
-                    <th className="p-3">Colaborador Inspecionado</th>
-                    <th className="p-3">Auditor (Controle)</th>
-                    <th className="p-3 text-center">% Qualidade Semanal</th>
-                    <th className="p-3 text-center">Situação do Local</th>
-                    <th className="p-3 text-center">Ação</th>
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#111a30] text-slate-400 uppercase text-[10px] font-black tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-3">Data</th>
+                    <th className="py-3 px-3">Semana / Mês</th>
+                    <th className="py-3 px-3">Local Auditado</th>
+                    <th className="py-3 px-3">Auditor</th>
+                    <th className="py-3 px-3 text-center">Conformes (Sim)</th>
+                    <th className="py-3 px-3 text-center">Não Conformes (Não)</th>
+                    <th className="py-3 px-3 text-center">Aderência (%)</th>
+                    <th className="py-3 px-3 text-center">Status</th>
+                    <th className="py-3 px-3 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#0b1222] text-slate-700 dark:text-slate-200">
-                  {filteredRecords.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
-                        {r.dataFormatted}
-                      </td>
-                      <td className="p-3 font-bold text-blue-600 dark:text-blue-400 uppercase">
-                        {r.localAuditado}
-                      </td>
-                      <td className="p-3 text-slate-800 dark:text-slate-300 font-bold">
-                        {r.colaboradorAuditado}
-                      </td>
-                      <td className="p-3 text-slate-500 dark:text-slate-400 text-[11px]">
-                        {r.auditorNome}
-                      </td>
-                      <td className="p-3 text-center font-mono font-black text-sm text-blue-600 dark:text-blue-400">
-                        {r.pontosPercentual}%
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded ${
-                          r.statusPontuacao === 'EXCELENTE' ? 'bg-blue-600 text-white' :
-                          r.statusPontuacao === 'BOM' ? 'bg-emerald-600 text-white' :
-                          r.statusPontuacao === 'RAZOÁVEL' ? 'bg-amber-500 text-slate-950' :
-                          'bg-rose-600 text-white'
+                <tbody className="divide-y divide-slate-800/60 font-bold">
+                  {filteredRecords.map(r => (
+                    <tr key={r.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-3 text-white font-mono">{r.dataFormatted}</td>
+                      <td className="py-3 px-3 text-cyan-300 font-mono">Sem {r.semanaMes || 1} ({r.mesAbrev || 'Mês'})</td>
+                      <td className="py-3 px-3 text-slate-300">{r.localAuditado}</td>
+                      <td className="py-3 px-3 text-slate-300">{r.auditorNome}</td>
+                      <td className="py-3 px-3 text-center text-emerald-400 font-mono font-black">{r.totalConformes}</td>
+                      <td className="py-3 px-3 text-center text-amber-400 font-mono font-black">{r.totalNaoConformes}</td>
+                      <td className="py-3 px-3 text-center font-mono text-sm font-black text-blue-400">{r.percentual}%</td>
+                      <td className="py-3 px-3 text-center">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                          r.percentual >= 95 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         }`}>
-                          {r.statusPontuacao}
+                          {r.status}
                         </span>
                       </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => setSelectedRecord(r)}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] font-bold uppercase cursor-pointer transition-all flex items-center gap-1"
-                            title="Ver respostas completas e desvios"
-                          >
-                            <Eye className="w-3 h-3" /> Detalhes
-                          </button>
-                          <button
-                            onClick={() => {
-                              exportRondaGsaManualPdf({
-                                dataStr: r.dataFormatted,
-                                auditorNome: r.auditorNome,
-                                localAuditado: `${r.localAuditado} - Insp: ${r.colaboradorAuditado}`,
-                              });
-                            }}
-                            className="p-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-700 dark:text-sky-400 rounded text-[10px] font-bold cursor-pointer transition-all"
-                            title="Baixar formulário desta ronda em PDF"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`Deseja excluir a ronda do dia ${r.dataFormatted}?`)) {
-                                const next = records.filter(item => item.id !== r.id);
-                                setRecords(next);
-                                localStorage.setItem('ronda_gsa_audits_history', JSON.stringify(next));
-                              }
-                            }}
-                            className="p-1 bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded text-[10px] font-bold cursor-pointer transition-all"
-                            title="Excluir registro"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          onClick={() => {
+                            setLaudoTabSelectedId(r.id);
+                            setActiveTabVisual('laudos');
+                          }}
+                          className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                        >
+                          Ver Laudo
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1091,18 +1143,350 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               </table>
             </div>
           </div>
-        ) : (
-          <div className="p-6 bg-slate-50 dark:bg-[#0b1222] border border-slate-200 dark:border-slate-800 rounded-xl text-center space-y-2">
-            <ClipboardList className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Nenhuma Ronda de Qualidade foi cadastrada para o mês selecionado. Clique no botão acima para iniciar o formulário.
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 6: LAUDOS TÉCNICOS & PARECER DE CONFORMIDADE              */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'laudos' && currentLaudoData && (
+        <div className="space-y-6">
+          <div className="bg-[#0b1222] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
+            {/* SELETOR DE RONDA PARA O LAUDO */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#111a30] p-4 rounded-xl border border-slate-800">
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Selecionar Ronda para Visualização do Laudo:</label>
+                <select
+                  value={laudoTabSelectedId || currentLaudoRecord?.id}
+                  onChange={e => setLaudoTabSelectedId(e.target.value)}
+                  className="bg-[#0b1222] border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none font-bold"
+                >
+                  {records.map(r => (
+                    <option key={r.id} value={r.id}>
+                      Ronda {r.dataFormatted} - Sem {r.semanaMes || 1} ({r.mesAbrev}) - {r.percentual}% ({r.status})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setLaudoRondaSelecionada(currentLaudoRecord);
+                    setIsFullLaudoModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow"
+                >
+                  <Printer className="w-4 h-4" /> Imprimir / Exportar Laudo
+                </button>
+              </div>
+            </div>
+
+            {/* CORPO DO LAUDO TÉCNICO */}
+            <div className="bg-slate-900 border border-slate-700/80 rounded-2xl p-6 space-y-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+                <div>
+                  <div className="text-[10px] font-black uppercase text-cyan-400 tracking-widest font-mono">
+                    {currentLaudoData.codigoLaudo}
+                  </div>
+                  <h2 className="text-xl font-black text-white mt-1">
+                    Laudo Técnico de Conformidade da Ronda de Qualidade
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Unidade: <strong>{currentLaudoData.localAuditado}</strong> • Auditor: <strong>{currentLaudoData.auditorNome}</strong> ({currentLaudoData.auditorCargo})
+                  </p>
+                </div>
+
+                <div className="text-right bg-[#0b1222] p-3 rounded-xl border border-slate-800">
+                  <div className="text-3xl font-black font-mono text-blue-400">{currentLaudoData.percentual}%</div>
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                    currentLaudoData.percentual >= 95 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                  }`}>
+                    {currentLaudoData.statusFarol}
+                  </span>
+                </div>
+              </div>
+
+              {/* PARECER TÉCNICO */}
+              <div className="bg-[#111a30] p-4 rounded-xl border border-slate-800 space-y-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-400" /> Parecer Técnico Pericial
+                </h4>
+                <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                  {currentLaudoData.parecerTecnico}
+                </p>
+              </div>
+
+              {/* TABELA DOS 41 QUESITOS DO LAUDO */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-cyan-400" /> Verificação Detalhada dos 41 Quesitos
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={laudoTabAreaFilter}
+                      onChange={e => setLaudoTabAreaFilter(e.target.value)}
+                      className="bg-[#111a30] border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1 outline-none font-bold"
+                    >
+                      <option value="TODAS">Todas as Áreas</option>
+                      {CATEGORIAS_GSA.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-[#111a30] text-slate-400 uppercase text-[10px] font-black border-b border-slate-800">
+                      <tr>
+                        <th className="py-2.5 px-3">#</th>
+                        <th className="py-2.5 px-3">Área</th>
+                        <th className="py-2.5 px-3">Quesito / Descrição</th>
+                        <th className="py-2.5 px-3 text-center">Resposta</th>
+                        <th className="py-2.5 px-3 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 font-bold">
+                      {currentLaudoData.itens
+                        .filter(item => laudoTabAreaFilter === 'TODAS' || item.categoria === laudoTabAreaFilter)
+                        .map(item => {
+                          const isNao = item.resposta.includes('Não');
+                          return (
+                            <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                              <td className="py-2.5 px-3 text-slate-400 font-mono">#{item.id}</td>
+                              <td className="py-2.5 px-3 text-cyan-300 font-sans">{item.categoria}</td>
+                              <td className="py-2.5 px-3 text-slate-200">
+                                <div className="font-bold">{item.perguntaCurta}</div>
+                                <div className="text-[11px] text-slate-400 font-normal">{item.perguntaCompleta}</div>
+                              </td>
+                              <td className="py-2.5 px-3 text-center font-mono font-black">
+                                <span className={`px-2 py-0.5 rounded text-[10px] ${
+                                  isNao ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'
+                                }`}>
+                                  {item.resposta}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3 text-center">
+                                <span className={isNao ? 'text-amber-400' : 'text-emerald-400'}>
+                                  {isNao ? '✗ Não Conforme' : '✓ Conforme'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ABA 7: LICENÇAS DE DESPEJO E DESCARTE COM RECIBOS (SUDEMA)    */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {activeTabVisual === 'licencas_descarte' && (
+        <div className="animate-fadeIn">
+          <LicencasDescarteSection theme={theme} />
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* MODAL: NOVA RONDA DE QUALIDADE DSPD GUARABIRA                 */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-[#0b1222] border border-slate-800 rounded-3xl w-full max-w-4xl p-6 space-y-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full text-[10px] font-black uppercase">
+                  Auditoria Operacional
+                </span>
+                <h3 className="text-xl font-black text-white mt-1">
+                  Nova Ronda de Qualidade - DSPD Guarabira
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/80"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarNovaRonda} className="space-y-6">
+              {/* CABEÇALHO DA RONDA */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#111a30] p-4 rounded-2xl border border-slate-800">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Data da Ronda:</label>
+                  <input
+                    type="date"
+                    value={dataISO}
+                    onChange={e => setDataISO(e.target.value)}
+                    required
+                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Unidade / Local:</label>
+                  <input
+                    type="text"
+                    value={localAuditado}
+                    onChange={e => setLocalAuditado(e.target.value)}
+                    required
+                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Auditor Responsável:</label>
+                  <input
+                    type="text"
+                    value={auditorNome}
+                    onChange={e => setAuditorNome(e.target.value)}
+                    required
+                    className="w-full bg-[#0b1222] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* SELETOR DE ÁREAS (TABS) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-800">
+                {CATEGORIAS_GSA.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setFormAreaTab(cat)}
+                    className={`px-3 py-2 rounded-xl text-xs font-black uppercase whitespace-nowrap transition-all cursor-pointer ${
+                      formAreaTab === cat
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'bg-[#111a30] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* LISTA DOS QUESITOS DA ÁREA SELECIONADA */}
+              <div className="space-y-4">
+                {QUESTOES_GSA_OFICIAIS
+                  .filter(q => q.categoria === formAreaTab)
+                  .map(q => {
+                    const currentVal = respostasAvaliacao[q.id] || 'Sim';
+                    return (
+                      <div key={q.id} className="bg-[#111a30] border border-slate-800 p-4 rounded-2xl space-y-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] font-black text-cyan-400 font-mono">Quesito #{q.id} • {q.norma}</span>
+                            <h4 className="text-sm font-black text-white">{q.perguntaCurta}</h4>
+                            <p className="text-xs text-slate-400">{q.pergunta}</p>
+                          </div>
+
+                          {/* BOTÕES DE RESPOSTA BINÁRIA (SIM / NÃO / N/A) */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setRespostasAvaliacao(prev => ({ ...prev, [q.id]: 'Sim' }))}
+                              className={`px-4 py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
+                                currentVal === 'Sim'
+                                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
+                                  : 'bg-[#0b1222] text-slate-400 hover:text-emerald-400 border border-slate-800'
+                              }`}
+                            >
+                              ✓ Sim
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setRespostasAvaliacao(prev => ({ ...prev, [q.id]: 'Não' }))}
+                              className={`px-4 py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
+                                currentVal === 'Não'
+                                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25'
+                                  : 'bg-[#0b1222] text-slate-400 hover:text-amber-400 border border-slate-800'
+                              }`}
+                            >
+                              ✗ Não
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setRespostasAvaliacao(prev => ({ ...prev, [q.id]: 'N/A' }))}
+                              className={`px-3 py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
+                                currentVal === 'N/A'
+                                  ? 'bg-slate-700 text-white shadow'
+                                  : 'bg-[#0b1222] text-slate-500 hover:text-white border border-slate-800'
+                              }`}
+                            >
+                              N/A
+                            </button>
+                          </div>
+                        </div>
+
+                        {currentVal === 'Não' && (
+                          <div className="pt-2 border-t border-slate-800">
+                            <input
+                              type="text"
+                              value={observacoesItem[q.id] || ''}
+                              onChange={e => setObservacoesItem(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              placeholder="Observação detalhada do desvio identificado..."
+                              className="w-full bg-[#0b1222] border border-amber-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Comentários Gerais da Ronda:</label>
+                <textarea
+                  value={formComentarios}
+                  onChange={e => setFormComentarios(e.target.value)}
+                  rows={2}
+                  placeholder="Observações adicionais sobre o estado de conformidade do DSPD Guarabira..."
+                  className="w-full bg-[#111a30] border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-black uppercase text-slate-400 hover:text-white bg-slate-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl text-xs font-black uppercase text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/25"
+                >
+                  Salvar Ronda DSPD Guarabira
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL LAUDO EM TELA CHEIA */}
+      {isFullLaudoModalOpen && (
+        <LaudoConformidadeArmazemModal
+          ronda={laudoRondaSelecionada || records[0]}
+          onClose={() => setIsFullLaudoModalOpen(false)}
+        />
+      )}
+
+      {/* MODAL CENTRAL DE LICENÇAS E RECIBOS DE DESPEJO/DESCARTE */}
+      <LicencasDescarteModal
+        isOpen={isLicencasModalOpen}
+        onClose={() => setIsLicencasModalOpen(false)}
+        theme={theme}
+      />
     </div>
   );
 };
-
-export default RondaGsaComponent;

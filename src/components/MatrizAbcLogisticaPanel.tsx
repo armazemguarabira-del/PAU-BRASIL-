@@ -6,6 +6,7 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ShieldAlert, 
+  ShieldCheck,
   Package, 
   Layers, 
   Filter, 
@@ -20,7 +21,8 @@ import {
   Truck,
   Flame,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -38,8 +40,12 @@ import {
 import { 
   calcularMatrizAbcLogistica, 
   getMatrizAbcKPIs, 
+  getShelfLifeRisco45Dias,
+  ShelfLifeRiscoItem,
   MatrizAbcItem 
 } from '../utils/matrizAbcUtils';
+import { isProdutoCadastrado } from '../utils/productCatalogData';
+import { gerarRelatorioCompletoLogisticaPDF } from '../utils/pdfExportUtils';
 import { Usuario } from '../types';
 
 interface MatrizAbcLogisticaPanelProps {
@@ -58,9 +64,10 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
   const [selectedCurva, setSelectedCurva] = useState<string>('todos'); // 'A', 'B', 'C'
   const [selectedCriticidade, setSelectedCriticidade] = useState<string>('todas'); // 'Baixa', 'Média', 'Alta', 'Crítica'
   const [selectedPeriodo, setSelectedPeriodo] = useState<string>('mes_vigente');
+  const [filtroShelfLifeRisk, setFiltroShelfLifeRisk] = useState<boolean>(false);
   const [filtroGrafico, setFiltroGrafico] = useState<{ tipo: string; valor: string } | null>(null);
 
-  // Sorting & Pagination State
+  // Sorting & Pagination State (Default: Maior Faturamento para Menor Faturamento)
   const [sortField, setSortField] = useState<keyof MatrizAbcItem>('vendaValorRS');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,6 +96,7 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
         item.curvaAbcOperacional === selectedCurva;
 
       const matchesCriticidade = selectedCriticidade === 'todas' || item.criticidade === selectedCriticidade;
+      const matchesShelfLife = !filtroShelfLifeRisk || (item.diasParaVencimentoMin <= 45 && item.statusFefo !== 'SemRegistro' && item.estoqueAtualCx > 0);
 
       let matchesGrafico = true;
       if (filtroGrafico) {
@@ -99,11 +107,11 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
         else if (filtroGrafico.tipo === 'criticidade') matchesGrafico = item.criticidade === filtroGrafico.valor;
       }
 
-      return matchesSearch && matchesGrupo && matchesEmbalagem && matchesCurva && matchesCriticidade && matchesGrafico;
+      return matchesSearch && matchesGrupo && matchesEmbalagem && matchesCurva && matchesCriticidade && matchesShelfLife && matchesGrafico;
     });
-  }, [rawData, searchTerm, selectedGrupo, selectedEmbalagem, selectedCurva, selectedCriticidade, filtroGrafico]);
+  }, [rawData, searchTerm, selectedGrupo, selectedEmbalagem, selectedCurva, selectedCriticidade, filtroShelfLifeRisk, filtroGrafico]);
 
-  // Sorted dataset
+  // Sorted dataset (Garante ordenação padrão do maior para o menor faturamento R$)
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
       const valA = a[sortField];
@@ -128,6 +136,35 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
 
   // Key Indicators (KPIs)
   const kpis = useMemo(() => getMatrizAbcKPIs(filteredData), [filteredData]);
+
+  // Itens com risco de Shelf-Life (< 45 dias de vencimento) puxados do Dashboard de Shelf-Life / Validades
+  const shelfLifeRiscoList = useMemo(() => {
+    return getShelfLifeRisco45Dias(empresaId);
+  }, [empresaId, rawData]);
+
+  // Itens na tabela filtrada que possuem risco de validade <= 45 dias
+  const itensRiscoShelfLife = useMemo(() => {
+    const setCodigosRisco = new Set(shelfLifeRiscoList.map(s => s.codigo));
+    return filteredData.filter(i => 
+      (i.estoqueAtualCx > 0 && i.diasParaVencimentoMin <= 45 && i.statusFefo !== 'SemRegistro' && i.diasParaVencimentoMin < 999) ||
+      setCodigosRisco.has(i.codigo)
+    );
+  }, [filteredData, shelfLifeRiscoList]);
+
+  // Valoração financeira total dos itens com menos de 45 dias para vencer
+  const valorEstoqueRiscoValidade = useMemo(() => {
+    if (shelfLifeRiscoList.length > 0) {
+      return shelfLifeRiscoList.reduce((acc, i) => acc + i.valorTotalRS, 0);
+    }
+    return itensRiscoShelfLife.reduce((acc, i) => acc + i.estoqueValorRS, 0);
+  }, [shelfLifeRiscoList, itensRiscoShelfLife]);
+
+  const volumeEstoqueRiscoValidade = useMemo(() => {
+    if (shelfLifeRiscoList.length > 0) {
+      return shelfLifeRiscoList.reduce((acc, i) => acc + i.quantidadeCx, 0);
+    }
+    return itensRiscoShelfLife.reduce((acc, i) => acc + i.estoqueAtualCx, 0);
+  }, [shelfLifeRiscoList, itensRiscoShelfLife]);
 
   // Sorting Handler
   const handleSort = (field: keyof MatrizAbcItem) => {
@@ -239,73 +276,95 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
     ];
   }, [filteredData]);
 
-  // 5. Top 10 SKUs por Faturamento R$
+  // 5. Top 10 SKUs por Faturamento R$ (03.05.19 - Apenas Produtos Cadastrados na Plataforma)
   const top10Faturamento = useMemo(() => {
     return [...filteredData]
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId) && i.vendaValorRS > 0)
       .sort((a, b) => b.vendaValorRS - a.vendaValorRS)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
         valor: i.vendaValorRS
       }));
-  }, [filteredData]);
+  }, [filteredData, empresaId]);
 
   // 6. Top 10 SKUs por Estoque Financeiro R$
   const top10EstoqueFinanceiro = useMemo(() => {
     return [...filteredData]
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId))
       .sort((a, b) => b.estoqueValorRS - a.estoqueValorRS)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
         valor: i.estoqueValorRS
       }));
-  }, [filteredData]);
+  }, [filteredData, empresaId]);
 
   // 7. Top 10 SKUs por Movimentação (Volume Qtd)
   const top10Volume = useMemo(() => {
     return [...filteredData]
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId))
       .sort((a, b) => b.vendaQtdCx - a.vendaQtdCx)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
         valor: i.vendaQtdCx
       }));
-  }, [filteredData]);
+  }, [filteredData, empresaId]);
 
   // 8. Produtos com Maior Número de Reabastecimentos
   const top10Reabastecimentos = useMemo(() => {
     return [...filteredData]
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId))
       .sort((a, b) => b.qtdReabastecimentos - a.qtdReabastecimentos)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
         valor: i.qtdReabastecimentos
       }));
-  }, [filteredData]);
+  }, [filteredData, empresaId]);
 
-  // 9. Produtos com Maior Risco de Vencimento / FEFO
+  // 9. Produtos com Maior Risco de Vencimento FEFO / Shelf-Life (< 45 dias - Valoração R$)
   const top10RiscoVencimento = useMemo(() => {
+    if (shelfLifeRiscoList.length > 0) {
+      return shelfLifeRiscoList
+        .filter(i => isProdutoCadastrado(i.codigo, empresaId))
+        .slice(0, 10)
+        .map(i => ({
+          nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
+          nomeCompleto: i.descricao,
+          valor: i.valorTotalRS,
+          dias: i.diasParaVencer,
+          caixas: i.quantidadeCx,
+          status: i.status
+        }));
+    }
+
     return [...filteredData]
-      .filter(i => i.estoqueAtualCx > 0)
-      .sort((a, b) => a.diasParaVencimentoMin - b.diasParaVencimentoMin)
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId) && i.estoqueAtualCx > 0 && i.statusFefo !== 'SemRegistro' && i.diasParaVencimentoMin <= 45)
+      .sort((a, b) => b.estoqueValorRS - a.estoqueValorRS)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
-        valor: i.diasParaVencimentoMin
+        nomeCompleto: i.descricao,
+        valor: i.estoqueValorRS,
+        dias: i.diasParaVencimentoMin,
+        caixas: i.estoqueAtualCx,
+        status: i.statusFefo
       }));
-  }, [filteredData]);
+  }, [shelfLifeRiscoList, filteredData, empresaId]);
 
   // 10. Produtos com Maior Índice / Valor de Quebras
   const top10Quebras = useMemo(() => {
     return [...filteredData]
-      .filter(i => i.valorQuebrasRS > 0)
+      .filter(i => isProdutoCadastrado(i.codigo, empresaId) && i.valorQuebrasRS > 0)
       .sort((a, b) => b.valorQuebrasRS - a.valorQuebrasRS)
       .slice(0, 10)
       .map(i => ({
         nome: i.descricao.length > 20 ? i.descricao.substring(0, 18) + '...' : i.descricao,
         valor: i.valorQuebrasRS
       }));
-  }, [filteredData]);
+  }, [filteredData, empresaId]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -325,6 +384,17 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            id="btn-matriz-exportar-relatorio-pdf"
+            onClick={() => {
+              gerarRelatorioCompletoLogisticaPDF(empresaId, 'CDD Guarabira', user?.nome || 'Gestor Logístico');
+            }}
+            className="px-4 py-2.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2 border border-blue-400/40"
+            title="Exportar Relatório Integrado em PDF com Capacidade, Política e Matriz"
+          >
+            <FileText className="w-4 h-4 text-blue-200" /> Exportar Relatório (PDF)
+          </button>
+
           <button
             onClick={handleExportCSV}
             className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2"
@@ -420,10 +490,10 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
           </div>
           <div className="mt-2">
             <span className="text-lg font-black font-mono text-purple-950">
-              {kpis.totalMovimentacoesOperacionais.toLocaleString('pt-BR')}
+              {kpis.totalPalletsMovimentados.toLocaleString('pt-BR')} pal
             </span>
             <span className="text-[10px] font-extrabold text-purple-700 block mt-0.5">
-              Reabastecimentos: {kpis.totalReabastecimentos}
+              Ressuprimento: {kpis.palletsRessuprimentoTotal.toLocaleString('pt-BR')} • Reabastecimento: {kpis.palletsReabastecimentoTotal.toLocaleString('pt-BR')}
             </span>
           </div>
         </div>
@@ -431,7 +501,7 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
         {/* KPI 8: Valor de Quebras */}
         <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between border-l-4 border-l-rose-600">
           <div className="flex items-center justify-between text-rose-800">
-            <span className="text-[10px] font-black uppercase tracking-wider">Valor de Quebras</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Volume & Custo Quebras</span>
             <AlertTriangle className="w-4 h-4 text-rose-600" />
           </div>
           <div className="mt-2">
@@ -439,20 +509,24 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
               R$ {kpis.valorTotalQuebras.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
             </span>
             <span className="text-[10px] font-extrabold text-rose-700 block mt-0.5">
-              Perdas e Avarias Registradas
+              {kpis.volumeTotalQuebrasCx.toLocaleString('pt-BR')} caixas avariadas
             </span>
           </div>
         </div>
 
-        {/* KPI 9: Risco de Vencimento FEFO */}
+        {/* KPI 9: Risco de Vencimento FEFO / Shelf-Life (< 45 dias) */}
         <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between border-l-4 border-l-orange-500">
           <div className="flex items-center justify-between text-orange-800">
-            <span className="text-[10px] font-black uppercase tracking-wider">Risco Vencimento</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Risco Shelf-Life (&lt; 45d)</span>
             <ShieldAlert className="w-4 h-4 text-orange-500" />
           </div>
           <div className="mt-2">
-            <span className="text-xl font-black font-mono text-orange-950">{kpis.skusRiscoVencimento}</span>
-            <span className="text-[10px] font-extrabold text-orange-700 block mt-0.5">SKUs FEFO Ativos em Alerta</span>
+            <span className="text-xl font-black font-mono text-orange-950">
+              {itensRiscoShelfLife.length} SKUs
+            </span>
+            <span className="text-[10px] font-extrabold text-orange-700 block mt-0.5">
+              R$ {valorEstoqueRiscoValidade.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} • {volumeEstoqueRiscoValidade.toLocaleString('pt-BR')} cx em risco
+            </span>
           </div>
         </div>
       </div>
@@ -460,7 +534,7 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
       {/* ── BARRA DE FILTROS INTEGRAIS ── */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Filter className="w-4 h-4 text-[#1e56f0]" />
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
               Filtros da Matriz ABC Logística
@@ -474,6 +548,19 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
                 <button onClick={() => setFiltroGrafico(null)} className="ml-1 text-slate-500 hover:text-black">✕</button>
               </span>
             )}
+            {/* Quick Filter: Risco Shelf-Life < 45d */}
+            <button
+              onClick={() => setFiltroShelfLifeRisk(prev => !prev)}
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                filtroShelfLifeRisk
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200'
+              }`}
+              title="Filtrar apenas itens com estoque ativo e menos de 45 dias para o vencimento"
+            >
+              <ShieldAlert className="w-3 h-3" />
+              {filtroShelfLifeRisk ? 'Exibindo Risco < 45d (Ativo)' : `Filtrar Risco Shelf-Life < 45d (${itensRiscoShelfLife.length})`}
+            </button>
           </div>
 
           <button 
@@ -484,6 +571,7 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
               setSelectedCurva('todos');
               setSelectedCriticidade('todas');
               setSelectedPeriodo('mes_vigente');
+              setFiltroShelfLifeRisk(false);
               setFiltroGrafico(null);
             }}
             className="text-[11px] font-bold text-[#1e56f0] hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1.5"
@@ -782,21 +870,42 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
             </div>
           </div>
 
-          {/* Gráfico 9: Produtos com Maior Risco de Vencimento FEFO */}
+          {/* Gráfico 9: Produtos com Maior Risco de Vencimento FEFO / Shelf-Life */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-            <h4 className="text-xs font-black uppercase tracking-tight text-slate-800 mb-1">
-              9. Maior Risco FEFO (Menor Shelf-Life)
-            </h4>
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-xs font-black uppercase tracking-tight text-slate-800">
+                9. Maior Risco Shelf-Life (&lt; 45d) — Valoração
+              </h4>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 bg-orange-50 text-orange-800 rounded border border-orange-200">
+                FEFO &lt; 45d
+              </span>
+            </div>
             <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart layout="vertical" data={top10RiscoVencimento} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 8 }} />
-                  <YAxis dataKey="nome" type="category" tick={{ fontSize: 8, fontWeight: 'bold' }} width={100} />
-                  <Tooltip formatter={(v: any) => [`${v} dias restantes`, 'Prazo Vencimento']} />
-                  <Bar dataKey="valor" fill="#f97316" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {top10RiscoVencimento.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart layout="vertical" data={top10RiscoVencimento} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 8 }} />
+                    <YAxis dataKey="nome" type="category" tick={{ fontSize: 8, fontWeight: 'bold' }} width={100} />
+                    <Tooltip 
+                      formatter={(v: any, name: any, item: any) => {
+                        const p = item?.payload;
+                        return [
+                          `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • ${p?.dias ?? 0}d p/ vencer (${p?.caixas ?? 0} cx)`,
+                          'Valoração em Risco'
+                        ];
+                      }} 
+                    />
+                    <Bar dataKey="valor" fill="#f97316" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                  <ShieldCheck className="w-8 h-8 text-emerald-500 mb-1" />
+                  <span className="text-xs font-bold text-slate-700">Nenhum SKU com risco de vencimento &lt; 45 dias</span>
+                  <span className="text-[10px] text-slate-500">Lotes do estoque físico em conformidade com prazo seguro de shelf-life.</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -909,13 +1018,13 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
                 <th className="py-3 px-3 text-center text-emerald-300">ABC Est.</th>
 
                 {/* OPERAÇÃO */}
-                <th className="py-3 px-3 text-right text-purple-300">Picking</th>
-                <th className="py-3 px-3 text-right text-purple-300">Reabast.</th>
-                <th className="py-3 px-3 text-center text-purple-300">Score Op.</th>
+                <th className="py-3 px-3 text-right text-purple-300">Ressupr. (Pal)</th>
+                <th className="py-3 px-3 text-right text-purple-300">Reabast. (Pal)</th>
+                <th className="py-3 px-3 text-center text-purple-300">Total Pallets</th>
                 <th className="py-3 px-3 text-center text-purple-300">ABC Op.</th>
 
                 {/* QUALIDADE */}
-                <th className="py-3 px-3 text-right text-rose-300">Quebras (R$)</th>
+                <th className="py-3 px-3 text-right text-rose-300">Quebras (Cx / R$)</th>
                 <th className="py-3 px-3 text-center text-orange-300">Status FEFO</th>
 
                 {/* CLASSIFICAÇÃO FINAL */}
@@ -1013,9 +1122,9 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
                     </td>
 
                     {/* OPERAÇÃO */}
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">{row.qtdPickingCx} cx</td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">{row.qtdReabastecimentos}x</td>
-                    <td className="py-3 px-3 text-center font-mono font-bold text-purple-900">{row.scoreImpactoOperacional}</td>
+                    <td className="py-3 px-3 text-right font-mono text-slate-700">{row.palletsRessuprimento} pal</td>
+                    <td className="py-3 px-3 text-right font-mono text-slate-700">{row.palletsReabastecimento} pal</td>
+                    <td className="py-3 px-3 text-center font-mono font-black text-purple-900">{row.totalPalletsMovimentados} pal</td>
 
                     <td className="py-3 px-3 text-center">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-black border ${
@@ -1029,16 +1138,31 @@ export default function MatrizAbcLogisticaPanel({ user, empresaId = 'demo' }: Ma
 
                     {/* QUALIDADE */}
                     <td className="py-3 px-3 text-right font-mono font-bold text-rose-900">
-                      R$ {row.valorQuebrasRS.toFixed(2)}
+                      {row.qtdQuebras > 0 ? (
+                        <span>
+                          {row.qtdQuebras} cx <span className="text-[10px] text-rose-600 block">(R$ {row.valorQuebrasRS.toFixed(2)})</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-normal">0 cx</span>
+                      )}
                     </td>
                     <td className="py-3 px-3 text-center font-bold text-[10px]">
-                      <span className={`px-2 py-0.5 rounded ${
-                        row.statusFefo === 'Vencido' || row.statusFefo === 'Critico' ? 'bg-rose-100 text-rose-800' :
-                        row.statusFefo === 'Atencao' ? 'bg-amber-100 text-amber-800' :
-                        'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {row.diasParaVencimentoMin}d ({row.statusFefo})
-                      </span>
+                      {row.statusFefo === 'SemRegistro' || row.diasParaVencimentoMin >= 999 ? (
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                          Sem Lote
+                        </span>
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded font-mono font-black ${
+                          row.diasParaVencimentoMin <= 0 ? 'bg-rose-600 text-white font-black' :
+                          row.diasParaVencimentoMin <= 15 ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                          row.diasParaVencimentoMin <= 45 ? 'bg-orange-100 text-orange-900 border border-orange-300 font-black shadow-xs' :
+                          row.diasParaVencimentoMin <= 60 ? 'bg-amber-100 text-amber-800' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}
+                        title={`${row.diasParaVencimentoMin} dias restantes para o vencimento (${row.statusFefo})`}>
+                          {row.diasParaVencimentoMin}d {row.diasParaVencimentoMin <= 45 ? '⚠️ (<45d)' : `(${row.statusFefo})`}
+                        </span>
+                      )}
                     </td>
 
                     {/* CLASSIFICAÇÃO FINAL */}

@@ -21,12 +21,15 @@ import {
   Download, 
   Sparkles,
   BarChart2,
-  Check
+  Check,
+  FileCode,
+  ShieldAlert
 } from 'lucide-react';
 import { getRepository } from '../db';
 import { Usuario, Empresa } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { WlpDashboard } from './WlpDashboard';
+import { GestaoPncPlatform } from './GestaoPncPlatform';
 
 const treinamentosRepo = getRepository<any>('treinamentos_qualidade');
 const bloqueioRepo = getRepository<any>('bloqueio_armazem');
@@ -156,6 +159,7 @@ export function TreinamentosQualidadePanel({ user, empresa, theme = 'light' }: P
 // ─────────────────────────────────────────────────────────────────────────────
 export function BloqueioArmazemPanel({ user, empresa, theme = 'light' }: PanelProps) {
   const empresaId = empresa?.id || 'demo';
+  const [activeTab, setActiveTab] = useState<'platform' | 'registro'>('platform');
   const [list, setList] = useState<any[]>([]);
   const [produto, setProduto] = useState('');
   const [motivo, setMotivo] = useState('Qualidade / Avaria');
@@ -196,67 +200,102 @@ export function BloqueioArmazemPanel({ user, empresa, theme = 'light' }: PanelPr
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-gradient-to-r from-rose-900 to-slate-900 text-white rounded-2xl shadow-md">
-        <div>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-400/30">
-            DPO Bloco 2 — Qualidade
-          </span>
-          <h1 className="text-xl font-black mt-1 flex items-center gap-2">
-            <Lock className="w-6 h-6 text-rose-400" />
-            Gestão de Bloqueios no Armazém (KPI Falha de Bloqueio)
-          </h1>
-          <p className="text-xs text-slate-300">Controle físico e sistêmico com alerta de 30 dias para descarte/destruição.</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleAdd} className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-5 gap-3">
-        <input type="text" placeholder="SKU / Descrição do Produto" value={produto} onChange={e => setProduto(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold" required />
-        <select value={motivo} onChange={e => setMotivo(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold">
-          <option value="Qualidade / Avaria">Qualidade / Avaria</option>
-          <option value="Validade Vencida">Validade Vencida</option>
-          <option value="Recall Fábrica">Recall Fábrica</option>
-          <option value="Aguardando Análise">Aguardando Análise</option>
-        </select>
-        <input type="number" placeholder="Quantidade (CX/HL)" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="px-3 py-2 border rounded-lg text-xs font-bold" required />
-        <input type="text" placeholder="Nº Selo / Lacre" value={selo} onChange={e => setSelo(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold" />
-        <button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1 cursor-pointer">
-          <Plus className="w-4 h-4" /> Registrar Bloqueio
+    <div className="space-y-4">
+      {/* SELETOR DE MODO */}
+      <div className="px-4 sm:px-6 pt-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('platform')}
+          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            activeTab === 'platform'
+              ? 'bg-[#032b5e] text-white shadow-md'
+              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <span>Plataforma Gestão de PNC (Base JSON Oficial)</span>
         </button>
-      </form>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-100 dark:bg-slate-900 uppercase text-[10px] font-black text-slate-600 dark:text-slate-300">
-            <tr>
-              <th className="p-3">Data Bloqueio</th>
-              <th className="p-3">Produto</th>
-              <th className="p-3">Motivo</th>
-              <th className="p-3">Qtde</th>
-              <th className="p-3">Selo/Lacre</th>
-              <th className="p-3">Responsável</th>
-              <th className="p-3 text-right">Ação</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-            {list.map(item => (
-              <tr key={item._docId}>
-                <td className="p-3 font-bold">{item.dataBloqueioISO}</td>
-                <td className="p-3 font-bold text-rose-700">{item.produto}</td>
-                <td className="p-3">{item.motivo}</td>
-                <td className="p-3 font-bold">{item.quantidade}</td>
-                <td className="p-3 text-slate-500">{item.selo || '—'}</td>
-                <td className="p-3">{item.responsavel}</td>
-                <td className="p-3 text-right">
-                  <button onClick={() => handleDelete(item._docId)} className="text-rose-500 hover:text-rose-700 p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <button
+          type="button"
+          onClick={() => setActiveTab('registro')}
+          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            activeTab === 'registro'
+              ? 'bg-[#032b5e] text-white shadow-md'
+              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <Plus className="w-4 h-4 text-rose-500" />
+          <span>Registro Rápido de Bloqueio</span>
+        </button>
       </div>
+
+      {activeTab === 'platform' ? (
+        <GestaoPncPlatform user={user} empresa={empresa} theme={theme} />
+      ) : (
+        <div className="p-4 sm:p-6 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-gradient-to-r from-rose-900 to-slate-900 text-white rounded-2xl shadow-md">
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                DPO Bloco 2 — Qualidade
+              </span>
+              <h1 className="text-xl font-black mt-1 flex items-center gap-2">
+                <Lock className="w-6 h-6 text-rose-400" />
+                Gestão de Bloqueios no Armazém (KPI Falha de Bloqueio)
+              </h1>
+              <p className="text-xs text-slate-300">Controle físico e sistêmico com alerta de 30 dias para descarte/destruição.</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAdd} className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-5 gap-3">
+            <input type="text" placeholder="SKU / Descrição do Produto" value={produto} onChange={e => setProduto(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold" required />
+            <select value={motivo} onChange={e => setMotivo(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold">
+              <option value="Qualidade / Avaria">Qualidade / Avaria</option>
+              <option value="Validade Vencida">Validade Vencida</option>
+              <option value="Recall Fábrica">Recall Fábrica</option>
+              <option value="Aguardando Análise">Aguardando Análise</option>
+            </select>
+            <input type="number" placeholder="Quantidade (CX/HL)" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="px-3 py-2 border rounded-lg text-xs font-bold" required />
+            <input type="text" placeholder="Nº Selo / Lacre" value={selo} onChange={e => setSelo(e.target.value)} className="px-3 py-2 border rounded-lg text-xs font-bold" />
+            <button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1 cursor-pointer">
+              <Plus className="w-4 h-4" /> Registrar Bloqueio
+            </button>
+          </form>
+
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 dark:bg-slate-900 uppercase text-[10px] font-black text-slate-600 dark:text-slate-300">
+                <tr>
+                  <th className="p-3">Data Bloqueio</th>
+                  <th className="p-3">Produto</th>
+                  <th className="p-3">Motivo</th>
+                  <th className="p-3">Qtde</th>
+                  <th className="p-3">Selo/Lacre</th>
+                  <th className="p-3">Responsável</th>
+                  <th className="p-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {list.map(item => (
+                  <tr key={item._docId}>
+                    <td className="p-3 font-bold">{item.dataBloqueioISO}</td>
+                    <td className="p-3 font-bold text-rose-700">{item.produto}</td>
+                    <td className="p-3">{item.motivo}</td>
+                    <td className="p-3 font-bold">{item.quantidade}</td>
+                    <td className="p-3 text-slate-500">{item.selo || '—'}</td>
+                    <td className="p-3">{item.responsavel}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => handleDelete(item._docId)} className="text-rose-500 hover:text-rose-700 p-1">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

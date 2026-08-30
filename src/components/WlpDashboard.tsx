@@ -27,6 +27,7 @@ import {
   FileSpreadsheet, 
   FileText,
   CheckCircle2, 
+  XCircle,
   AlertTriangle,
   HelpCircle,
   X,
@@ -42,10 +43,13 @@ import {
   UserCheck,
   UserX,
   Search,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import RetroactiveWlpFaturadoJsonImport from './RetroactiveWlpFaturadoJsonImport';
 import { QuadroAcoesDpo } from './QuadroAcoesDpo';
+import WlpSimulatorHeadcountTab from './WlpSimulatorHeadcountTab';
 
 export interface HistoricalVolumeRowItem {
   m: string;
@@ -57,14 +61,14 @@ export interface HistoricalVolumeRowItem {
 }
 
 export const DEFAULT_HISTORICAL_VOLUMES: HistoricalVolumeRowItem[] = [
-  { m: 'Jan', v24: '-', v25: '13.491,3', v26: '16.336,4', crit: false },
-  { m: 'Fev', v24: '-', v25: '11.676,1', v26: '12.486,1', crit: false },
-  { m: 'Mar', v24: '-', v25: '10.023,7', v26: '13.813,4', crit: true },
-  { m: 'Abr', v24: '-', v25: '11.426,4', v26: '12.981,1', crit: false },
-  { m: 'Mai', v24: '-', v25: '12.501,8', v26: '12.447,2', crit: false },
-  { m: 'Jun', v24: '-', v25: '13.697,8', v26: '16.686,6', crit: true },
-  { m: 'Jul', v24: '-', v25: '10.923,4', v26: '13.626,8', crit: false },
-  { m: 'Ago', v24: '-', v25: '9.272,7', v26: '11.130,9', crit: false },
+  { m: 'Jan', v24: '-', v25: '13.491,3', v26: '12.357,9', crit: false },
+  { m: 'Fev', v24: '-', v25: '11.676,1', v26: '10.367,5', crit: false },
+  { m: 'Mar', v24: '-', v25: '10.023,7', v26: '12.435,0', crit: true },
+  { m: 'Abr', v24: '-', v25: '11.426,4', v26: '13.288,1', crit: false },
+  { m: 'Mai', v24: '-', v25: '12.501,8', v26: '13.077,8', crit: false },
+  { m: 'Jun', v24: '-', v25: '13.697,8', v26: '16.526,4', crit: true },
+  { m: 'Jul', v24: '-', v25: '10.923,4', v26: '17.911,3', crit: false },
+  { m: 'Ago', v24: '-', v25: '9.272,7', v26: '14.126,0', crit: false },
   { m: 'Set', v24: '-', v25: '11.211,3', v26: '-', crit: false },
   { m: 'Out', v24: '10.040,2', v25: '11.802,8', v26: '-', crit: false },
   { m: 'Nov', v24: '12.553,6', v25: '12.774,3', v26: '-', crit: false },
@@ -140,14 +144,14 @@ import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { getMetaOficialMes, getMetaOficialPnp, getHeadcountEsperado } from '../data/wlpRetroactiveData';
 
 export const ALL_MONTHS_NAV = [
-  { num: '01', short: 'JAN', name: 'Janeiro', vol2025: 13491.3, vol2026: 16336.4, abs2026: '1,17%', absStatus: 'OK' },
-  { num: '02', short: 'FEV', name: 'Fevereiro', vol2025: 11676.1, vol2026: 12486.1, abs2026: '0,00%', absStatus: 'NOK' },
-  { num: '03', short: 'MAR', name: 'Março', isCritical: true, criticalTag: 'PICO (+2h HE)', vol2025: 10023.7, vol2026: 13813.4, abs2026: '2,38%', absStatus: 'OK' },
-  { num: '04', short: 'ABR', name: 'Abril', vol2025: 11426.4, vol2026: 12981.1, abs2026: '0,23%', absStatus: 'OK' },
-  { num: '05', short: 'MAI', name: 'Maio', vol2025: 12501.8, vol2026: 12447.2, abs2026: '0,56%', absStatus: 'OK' },
-  { num: '06', short: 'JUN', name: 'Junho', isCritical: true, criticalTag: 'PICO (+2h HE)', vol2025: 13697.8, vol2026: 16686.6, abs2026: '0,56%', absStatus: 'OK' },
-  { num: '07', short: 'JUL', name: 'Julho', vol2025: 10923.4, vol2026: 13626.8, abs2026: '0,69%', absStatus: 'OK' },
-  { num: '08', short: 'AGO', name: 'Agosto', vol2025: 9272.7, vol2026: 11130.9, abs2026: '0,52%', absStatus: 'OK' },
+  { num: '01', short: 'JAN', name: 'Janeiro', vol2025: 13491.3, vol2026: 12357.9, abs2026: '1,17%', absStatus: 'OK' },
+  { num: '02', short: 'FEV', name: 'Fevereiro', vol2025: 11676.1, vol2026: 10367.5, abs2026: '0,00%', absStatus: 'NOK' },
+  { num: '03', short: 'MAR', name: 'Março', isCritical: true, criticalTag: 'PICO (+2h HE)', vol2025: 10023.7, vol2026: 12435.0, abs2026: '2,38%', absStatus: 'OK' },
+  { num: '04', short: 'ABR', name: 'Abril', vol2025: 11426.4, vol2026: 13288.1, abs2026: '0,23%', absStatus: 'OK' },
+  { num: '05', short: 'MAI', name: 'Maio', vol2025: 12501.8, vol2026: 13077.8, abs2026: '0,56%', absStatus: 'OK' },
+  { num: '06', short: 'JUN', name: 'Junho', isCritical: true, criticalTag: 'PICO (+2h HE)', vol2025: 13697.8, vol2026: 16526.4, abs2026: '0,56%', absStatus: 'OK' },
+  { num: '07', short: 'JUL', name: 'Julho', vol2025: 10923.4, vol2026: 17911.3, abs2026: '0,69%', absStatus: 'OK' },
+  { num: '08', short: 'AGO', name: 'Agosto', vol2025: 9272.7, vol2026: 14126.0, abs2026: '0,52%', absStatus: 'OK' },
   { num: '09', short: 'SET', name: 'Setembro', vol2025: 11211.3, vol2026: 0, abs2026: '-', absStatus: 'PENDENTE' },
   { num: '10', short: 'OUT', name: 'Outubro', vol2024: 10040.2, vol2025: 11802.8, vol2026: 0, abs2026: '-', absStatus: 'PENDENTE' },
   { num: '11', short: 'NOV', name: 'Novembro', vol2024: 12553.6, vol2025: 12774.3, vol2026: 0, abs2026: '-', absStatus: 'PENDENTE' },
@@ -169,7 +173,7 @@ export const WlpDashboard: React.FC<WlpDashboardProps> = ({
 }) => {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedMesAno, setSelectedMesAno] = useState<string>('08/2026');
-  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente' | 'importacao_json' | 'acoes'>('indicador');
+  const [activeSubTab, setActiveSubTab] = useState<'indicador' | 'simulador_quadro' | 'historico_diario' | 'desvios_dpo' | 'pontos_jornada' | 'presentes_dia' | 'pnp_ajudante' | 'pnp_empilhador' | 'pnp_conferente' | 'importacao_json' | 'acoes'>('indicador');
 
   // Filtro Entre Dias (Intervalo de Datas)
   const [filterMode, setFilterMode] = useState<'MES' | 'INTERVALO'>('MES');
@@ -899,9 +903,9 @@ export const WlpDashboard: React.FC<WlpDashboardProps> = ({
       if (norm) monthsSet.add(norm);
     });
 
-    const volumeTotalHL = vol2026Sum > 0 ? vol2026Sum : 103496.3;
-    const totalHH = totalHH2026 > 0 ? totalHH2026 : Math.round(103496.3 / 6.93);
-    const realWlp = totalHH > 0 ? volumeTotalHL / totalHH : 6.93;
+    const volumeTotalHL = vol2026Sum > 0 ? vol2026Sum : 110094.0;
+    const totalHH = totalHH2026 > 0 ? totalHH2026 : Math.round(110094.0 / 6.59);
+    const realWlp = totalHH > 0 ? volumeTotalHL / totalHH : 6.59;
     const metaWlp = 6.23;
     const atingimentoPct = metaWlp > 0 ? (realWlp / metaWlp) * 100 : 0;
     const deltaVsMeta = realWlp - metaWlp;
@@ -913,11 +917,127 @@ export const WlpDashboard: React.FC<WlpDashboardProps> = ({
       metaWlp,
       atingimentoPct,
       deltaVsMeta,
-      monthsCount: Math.max(monthsSet.size, 7),
+      monthsCount: Math.max(monthsSet.size, 8),
       totalJourneys2026: jrn2026.length,
       isRealImportedData: vol2026Sum > 0 || totalHH2026 > 0
     };
   }, [dailyFaturados, jornadas]);
+
+  // MAPA CONSOLIDADO DE PERFORMANCE DOS 12 MESES (OK / NOK PARA WLP E ABSENTEÍSMO)
+  const monthlyPerformanceMap = React.useMemo(() => {
+    const map: Record<string, {
+      num: string;
+      short: string;
+      name: string;
+      mesAno: string;
+      isCritical?: boolean;
+      volSum: number;
+      totalHH: number;
+      realWlp: number;
+      metaWlp: number;
+      deltaWlp: number;
+      atingimentoPct: number;
+      hasData: boolean;
+      bateuMeta: boolean;
+      wlpStatus: 'OK' | 'NOK' | 'PENDENTE';
+      absenteismoVal: string;
+      absenteismoStatus: 'OK' | 'NOK' | 'PENDENTE';
+      statusGeral: 'OK' | 'NOK' | 'PENDENTE';
+    }> = {};
+
+    const year = selectedMesAno.split('/')[1] || '2026';
+
+    // Agrupamento O(N) de jornadas e faturados por mês
+    const journeysByMonth = new Map<string, JornadaRecord[]>();
+    const faturadosByMonth = new Map<string, WlpDailyFaturadoRecord[]>();
+
+    jornadas.forEach(j => {
+      const k = normalizeMesAnoStr(j.mesAno, j.dataISO);
+      if (k) {
+        if (!journeysByMonth.has(k)) journeysByMonth.set(k, []);
+        journeysByMonth.get(k)!.push(j);
+      }
+    });
+
+    dailyFaturados.forEach(f => {
+      const k = normalizeMesAnoStr(f.mesAno, f.dataISO);
+      if (k) {
+        if (!faturadosByMonth.has(k)) faturadosByMonth.set(k, []);
+        faturadosByMonth.get(k)!.push(f);
+      }
+    });
+
+    // Mapeamento oficial de referência dos meses fechados 2026
+    const officialRefMap: Record<string, { vol: number; realWlp: number }> = {
+      '01/2026': { vol: 12357.9, realWlp: 6.60 },
+      '02/2026': { vol: 10371.5, realWlp: 6.59 },
+      '03/2026': { vol: 12435.0, realWlp: 6.59 },
+      '04/2026': { vol: 13288.1, realWlp: 6.59 },
+      '05/2026': { vol: 13077.8, realWlp: 6.59 },
+      '06/2026': { vol: 16526.4, realWlp: 6.60 },
+      '07/2026': { vol: 17911.3, realWlp: 6.59 },
+      '08/2026': { vol: 14126.0, realWlp: 6.59 }
+    };
+
+    ALL_MONTHS_NAV.forEach(m => {
+      const mesAnoKey = `${m.num}/${year}`;
+      const mNum = parseInt(m.num, 10);
+      const metaWlp = getMetaOficialMes(mNum);
+
+      const mJourneys = journeysByMonth.get(mesAnoKey) || [];
+      const mFaturados = faturadosByMonth.get(mesAnoKey) || [];
+      let volSum = mFaturados.reduce((s, f) => s + (f.volumeHL || 0), 0);
+      let totalHH = mJourneys.reduce((s, j) => s + (j.duracaoHoras || 0), 0);
+
+      const hasDirectData = mJourneys.length > 0 || volSum > 0;
+      const ref = officialRefMap[mesAnoKey];
+      const hasData = hasDirectData || !!ref;
+
+      let realWlp = 0;
+      if (volSum > 0 && totalHH > 0) {
+        realWlp = volSum / totalHH;
+      } else if (ref) {
+        if (volSum === 0) volSum = ref.vol;
+        realWlp = ref.realWlp;
+        if (totalHH === 0 && realWlp > 0) totalHH = Math.round(volSum / realWlp);
+      }
+
+      const bateuMeta = hasData && realWlp >= metaWlp;
+      const wlpStatus: 'OK' | 'NOK' | 'PENDENTE' = !hasData ? 'PENDENTE' : (bateuMeta ? 'OK' : 'NOK');
+      const atingimentoPct = (hasData && metaWlp > 0 && realWlp > 0) ? (realWlp / metaWlp) * 100 : 0;
+      const deltaWlp = realWlp > 0 ? (realWlp - metaWlp) : 0;
+
+      const absItem = absenteeismList.find(a => a.num === m.num);
+      const absenteismoVal = absItem?.val || '-';
+      const absenteismoStatus: 'OK' | 'NOK' | 'PENDENTE' = (absItem?.st as any) || 'PENDENTE';
+
+      const statusGeral: 'OK' | 'NOK' | 'PENDENTE' = !hasData 
+        ? 'PENDENTE' 
+        : (wlpStatus === 'OK' && absenteismoStatus !== 'NOK' ? 'OK' : (wlpStatus === 'NOK' || absenteismoStatus === 'NOK' ? 'NOK' : 'OK'));
+
+      map[mesAnoKey] = {
+        num: m.num,
+        short: m.short,
+        name: m.name,
+        mesAno: mesAnoKey,
+        isCritical: m.isCritical,
+        volSum,
+        totalHH,
+        realWlp,
+        metaWlp,
+        deltaWlp,
+        atingimentoPct,
+        hasData,
+        bateuMeta,
+        wlpStatus,
+        absenteismoVal,
+        absenteismoStatus,
+        statusGeral
+      };
+    });
+
+    return map;
+  }, [selectedMesAno, jornadas, dailyFaturados, absenteeismList]);
 
   // Datas operacionais disponíveis no mês/período
   const availableDesvioDates = React.useMemo(() => {
@@ -993,6 +1113,104 @@ export const WlpDashboard: React.FC<WlpDashboardProps> = ({
     result.sort((a, b) => b.totalHoras - a.totalHoras);
     return result;
   }, [journeysInMonth]);
+
+  // WLP e Performance Operacional por Turno (MANHÃ, TARDE, NOITE)
+  const wlpPorTurnoStats = React.useMemo(() => {
+    const turnoMap = {
+      MANHA: {
+        id: 'MANHA',
+        nome: 'Turno Manhã (Diurno)',
+        horarioRef: '06:00 - 15:48',
+        badgeColor: 'from-emerald-600 to-teal-700',
+        borderColor: 'border-emerald-500/40',
+        textColor: 'text-emerald-400',
+        bgPill: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+        totalHoras: 0,
+        jornadasCount: 0,
+        colabsSet: new Set<string>(),
+        daysSet: new Set<string>()
+      },
+      TARDE: {
+        id: 'TARDE',
+        nome: 'Turno Tarde (Vespertino)',
+        horarioRef: '14:00 - 22:30',
+        badgeColor: 'from-amber-600 to-orange-700',
+        borderColor: 'border-amber-500/40',
+        textColor: 'text-amber-400',
+        bgPill: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+        totalHoras: 0,
+        jornadasCount: 0,
+        colabsSet: new Set<string>(),
+        daysSet: new Set<string>()
+      },
+      NOITE: {
+        id: 'NOITE',
+        nome: 'Turno Noite (Noturno)',
+        horarioRef: '22:00 - 06:48',
+        badgeColor: 'from-indigo-600 to-purple-700',
+        borderColor: 'border-indigo-500/40',
+        textColor: 'text-indigo-400',
+        bgPill: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
+        totalHoras: 0,
+        jornadasCount: 0,
+        colabsSet: new Set<string>(),
+        daysSet: new Set<string>()
+      }
+    };
+
+    journeysInMonth.forEach(j => {
+      const colabOficial = getCollaboratorOfficialInfo(j.colaboradorNome, empresaId);
+      let turnoKey: 'MANHA' | 'TARDE' | 'NOITE' = 'NOITE';
+      
+      const tUpper = ((j as any).turno || colabOficial.turno || '').toUpperCase();
+      if (tUpper.includes('MANH') || tUpper.includes('DIURNO')) {
+        turnoKey = 'MANHA';
+      } else if (tUpper.includes('TARD') || tUpper.includes('VESP')) {
+        turnoKey = 'TARDE';
+      } else if (tUpper.includes('NOIT') || tUpper.includes('NOTUR')) {
+        turnoKey = 'NOITE';
+      } else {
+        const hInicio = j.horaInicio || '';
+        const hNum = parseInt(hInicio.split(':')[0], 10);
+        if (!isNaN(hNum)) {
+          if (hNum >= 5 && hNum < 13) turnoKey = 'MANHA';
+          else if (hNum >= 13 && hNum < 20) turnoKey = 'TARDE';
+          else turnoKey = 'NOITE';
+        }
+      }
+
+      const tObj = turnoMap[turnoKey];
+      tObj.totalHoras += (j.duracaoHoras || 0);
+      tObj.jornadasCount += 1;
+      if (j.colaboradorNome) tObj.colabsSet.add(j.colaboradorNome);
+      if (j.dataISO) tObj.daysSet.add(j.dataISO);
+    });
+
+    const grandTotalHH = Object.values(turnoMap).reduce((acc, t) => acc + t.totalHoras, 0);
+    const totalVolumeHL = metrics.volumeFaturadoHL || 0;
+
+    return Object.values(turnoMap).map(t => {
+      const shareHH = grandTotalHH > 0 ? (t.totalHoras / grandTotalHH) : (1 / 3);
+      const volumeTurnoHL = grandTotalHH > 0 ? totalVolumeHL * shareHH : 0;
+      const wlpTurno = t.totalHoras > 0 ? volumeTurnoHL / t.totalHoras : (totalVolumeHL > 0 && grandTotalHH > 0 ? totalVolumeHL / grandTotalHH : 0);
+      const mediaHorasColab = t.colabsSet.size > 0 ? t.totalHoras / t.colabsSet.size : 0;
+      const percentualMeta = metaOficial > 0 ? (wlpTurno / metaOficial) * 100 : 100;
+      const atingiuMeta = wlpTurno >= metaOficial;
+
+      return {
+        ...t,
+        colabsCount: t.colabsSet.size,
+        diasOperados: t.daysSet.size,
+        volumeTurnoHL,
+        wlpTurno,
+        mediaHorasColab,
+        shareHHPct: shareHH * 100,
+        percentualMeta,
+        atingiuMeta,
+        colabsNomes: Array.from(t.colabsSet)
+      };
+    });
+  }, [journeysInMonth, metrics.volumeFaturadoHL, metaOficial, empresaId]);
 
   // Lista ativa de desvios aplicando o filtro de status (TODOS, APENAS DESVIOS, DENTRO DA META)
   const activeDesviosList = React.useMemo(() => {
@@ -1547,25 +1765,27 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
           </div>
 
           {filterMode === 'MES' ? (
-            /* GRID HORIZONTAL SIMÉTRICA DE 12 MESES */
+            /* GRID HORIZONTAL SIMÉTRICA DE 12 MESES COM STATUS OK / NOK */
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-1.5 pt-1">
               {ALL_MONTHS_NAV.map((m) => {
                 const year = selectedMesAno.split('/')[1] || '2026';
                 const mesAnoKey = `${m.num}/${year}`;
                 const isSelected = selectedMesAno === mesAnoKey;
-
-                // Stats for month badge
-                const monthJourneys = jornadas.filter(j => normalizeMesAnoStr(j.mesAno, j.dataISO) === mesAnoKey);
-                const monthFaturados = dailyFaturados.filter(f => normalizeMesAnoStr(f.mesAno, f.dataISO) === mesAnoKey);
-                const volSum = monthFaturados.reduce((s, f) => s + (f.volumeHL || 0), 0);
-                const hasData = monthJourneys.length > 0 || volSum > 0;
+                const perf = monthlyPerformanceMap[mesAnoKey] || {
+                  hasData: false,
+                  wlpStatus: 'PENDENTE',
+                  bateuMeta: false,
+                  volSum: 0,
+                  realWlp: 0,
+                  atingimentoPct: 0
+                };
 
                 return (
                   <button
                     key={m.num}
                     type="button"
                     onClick={() => setSelectedMesAno(mesAnoKey)}
-                    className={`relative p-2 rounded-xl transition-all cursor-pointer border text-center flex flex-col justify-between items-center min-h-[74px] shadow-sm ${
+                    className={`relative p-2 rounded-xl transition-all cursor-pointer border text-center flex flex-col justify-between items-center min-h-[88px] shadow-sm ${
                       isSelected
                         ? m.isCritical
                           ? 'bg-amber-500 text-slate-950 border-amber-300 ring-2 ring-amber-400/80 shadow-lg font-black scale-[1.03] z-10'
@@ -1575,7 +1795,7 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                         : 'bg-[#111a30] hover:bg-slate-800 text-slate-300 border-slate-800'
                     }`}
                   >
-                    {/* Tag de Alerta no mês de Junho */}
+                    {/* Tag de Alerta no mês crítico */}
                     {m.isCritical && (
                       <span className={`absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[7px] font-black uppercase tracking-wider shrink-0 flex items-center gap-0.5 whitespace-nowrap shadow-xs ${
                         isSelected ? 'bg-slate-950 text-amber-400 border border-amber-400' : 'bg-amber-500 text-slate-950 font-black'
@@ -1584,7 +1804,7 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                       </span>
                     )}
 
-                    <div className="w-full text-center mt-1">
+                    <div className="w-full text-center mt-0.5">
                       <span className={`text-xs font-black uppercase tracking-wider block ${
                         isSelected ? 'text-slate-950' : m.isCritical ? 'text-amber-300 font-black' : 'text-white'
                       }`}>
@@ -1597,19 +1817,48 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                       </span>
                     </div>
 
-                    {/* Quick status badge */}
-                    <div className="mt-1 w-full">
-                      {hasData ? (
-                        <span className={`text-[8px] font-mono font-bold px-1 py-0.2 rounded block truncate ${
-                          isSelected ? 'bg-slate-950/20 text-slate-950 font-black' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    {/* INDICADOR DE META: OK (BATEU) / NOK (NÃO BATEU) / PENDENTE */}
+                    <div className="w-full my-1">
+                      {perf.wlpStatus === 'OK' ? (
+                        <span className={`text-[8px] font-black uppercase px-1 py-0.5 rounded flex items-center justify-center gap-0.5 shadow-xs truncate ${
+                          isSelected
+                            ? 'bg-emerald-800 text-white border border-emerald-900 font-black'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-black'
                         }`}>
-                          {volSum > 0 ? `${Math.round(volSum)} HL` : `${monthJourneys.length} pts`}
+                          <CheckCircle2 className="w-2.5 h-2.5 shrink-0 text-emerald-400" />
+                          <span>OK • BATEU</span>
+                        </span>
+                      ) : perf.wlpStatus === 'NOK' ? (
+                        <span className={`text-[8px] font-black uppercase px-1 py-0.5 rounded flex items-center justify-center gap-0.5 shadow-xs truncate ${
+                          isSelected
+                            ? 'bg-rose-800 text-white border border-rose-900 font-black'
+                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-black'
+                        }`}>
+                          <XCircle className="w-2.5 h-2.5 shrink-0 text-rose-400" />
+                          <span>NOK</span>
+                        </span>
+                      ) : (
+                        <span className={`text-[7.5px] font-bold uppercase px-1 py-0.5 rounded block text-center truncate ${
+                          isSelected ? 'text-slate-800 bg-slate-950/10' : 'text-slate-500 bg-slate-800/40'
+                        }`}>
+                          ⏳ PENDENTE
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Resumo de Volume / WLP Real */}
+                    <div className="w-full">
+                      {perf.hasData ? (
+                        <span className={`text-[8px] font-mono font-bold px-1 py-0.2 rounded block truncate ${
+                          isSelected ? 'bg-slate-950/20 text-slate-950 font-black' : 'bg-slate-900/70 text-amber-300 border border-slate-700/60'
+                        }`}>
+                          {perf.realWlp > 0 ? `${perf.realWlp.toFixed(2)} HL/HH` : `${Math.round(perf.volSum)} HL`}
                         </span>
                       ) : (
                         <span className={`text-[8px] font-mono block italic ${
                           isSelected ? 'text-slate-800' : 'text-slate-500'
                         }`}>
-                          Sem dados
+                          -
                         </span>
                       )}
                     </div>
@@ -1999,12 +2248,18 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                   <th className="py-2 px-3 text-right">Volume 2025</th>
                   <th className="py-2 px-3 text-right">Volume 2026</th>
                   <th className="py-2 px-3 text-right">Variação '26 vs '25</th>
+                  <th className="py-2 px-3 text-center">Meta WLP (6.23)</th>
                   <th className="py-2 px-3 text-center">Origem / Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-200 text-[11px]">
                 {calculatedHistoricalRows.map((row, i) => {
                   const isCrit = row.crit || (row.m === 'Dez' || row.m === 'Mar' || row.m === 'Jun');
+                  const mNum = String(i + 1).padStart(2, '0');
+                  const year = selectedMesAno.split('/')[1] || '2026';
+                  const mesAnoKey = `${mNum}/${year}`;
+                  const perf = monthlyPerformanceMap[mesAnoKey];
+
                   return (
                     <tr key={i} className={isCrit ? 'bg-amber-500/10 font-bold' : 'hover:bg-slate-800/40'}>
                       <td className="py-2 px-3 font-bold uppercase text-white flex items-center gap-1.5">
@@ -2027,6 +2282,23 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                       </td>
                       <td className={`py-2 px-3 text-right font-bold ${row.varStr.startsWith('+') ? 'text-emerald-400' : row.varStr.startsWith('-') ? 'text-rose-400' : 'text-slate-400'}`}>
                         {row.varStr}
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        {perf?.wlpStatus === 'OK' ? (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black text-[9px] uppercase border border-emerald-500/40 inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                            <span>OK • BATEU</span>
+                          </span>
+                        ) : perf?.wlpStatus === 'NOK' ? (
+                          <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-black text-[9px] uppercase border border-rose-500/40 inline-flex items-center gap-1">
+                            <XCircle className="w-2.5 h-2.5 text-rose-400" />
+                            <span>NOK</span>
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-500 uppercase font-mono">
+                            Pendente
+                          </span>
+                        )}
                       </td>
                       <td className="py-2 px-3 text-center">
                         {row.isImportedDynamic ? (
@@ -2052,10 +2324,98 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                   <td className="py-2.5 px-3 text-right text-slate-300">{totalsHistorical.formatted25}</td>
                   <td className="py-2.5 px-3 text-right text-amber-400">{totalsHistorical.formatted26}</td>
                   <td className="py-2.5 px-3 text-right text-emerald-400">{totalsHistorical.varTotalStr}</td>
+                  <td className="py-2.5 px-3 text-center text-emerald-400">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-black uppercase">
+                      YTD: OK
+                    </span>
+                  </td>
                   <td className="py-2.5 px-3 text-center text-slate-400">Ref. 2026</td>
                 </tr>
               </tfoot>
             </table>
+          </div>
+        </div>
+
+        {/* QUADRO EXECUTIVO DE ATINGIMENTO DE METAS 2026 (OK / NOK POR MÊS) */}
+        <div className="pt-3 border-t border-slate-800 space-y-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span className="text-[11px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5 text-amber-400" /> Painel de Atingimento de Metas DPO 2026 (OK / NOK por Mês)
+            </span>
+            <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> OK = Bateu a Meta</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500"></span> NOK = Não Bateu</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-600"></span> Pendente = Aguardando</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2">
+            {ALL_MONTHS_NAV.map((m) => {
+              const year = selectedMesAno.split('/')[1] || '2026';
+              const mesAnoKey = `${m.num}/${year}`;
+              const perf = monthlyPerformanceMap[mesAnoKey];
+              const isSelected = selectedMesAno === mesAnoKey;
+
+              return (
+                <div
+                  key={m.num}
+                  onClick={() => setSelectedMesAno(mesAnoKey)}
+                  className={`p-2.5 rounded-xl border flex flex-col justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-amber-500/20 border-amber-400 ring-1 ring-amber-400/60 shadow-md'
+                      : perf?.wlpStatus === 'OK'
+                      ? 'bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/60'
+                      : perf?.wlpStatus === 'NOK'
+                      ? 'bg-rose-950/20 border-rose-500/30 hover:border-rose-500/60'
+                      : 'bg-[#0b1222] border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-white">
+                      {m.short}
+                    </span>
+                    <span className="text-[8px] font-mono text-slate-400">
+                      {m.num}/{year.slice(2)}
+                    </span>
+                  </div>
+
+                  <div className="my-1.5 text-center">
+                    {perf?.wlpStatus === 'OK' ? (
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[8px] uppercase tracking-wider block shadow-xs">
+                        ✅ OK • BATEU
+                      </span>
+                    ) : perf?.wlpStatus === 'NOK' ? (
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white font-black text-[8px] uppercase tracking-wider block shadow-xs">
+                        ❌ NOK
+                      </span>
+                    ) : (
+                      <span className="px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold text-[7.5px] uppercase block">
+                        ⏳ PENDENTE
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-0.5 text-[8.5px] font-mono border-t border-slate-800/80 pt-1">
+                    <div className="flex items-center justify-between text-slate-300">
+                      <span className="text-slate-500">Real:</span>
+                      <strong className={perf?.wlpStatus === 'OK' ? 'text-emerald-300 font-black' : 'text-slate-200'}>
+                        {perf?.realWlp ? `${perf.realWlp.toFixed(2)}` : '-'}
+                      </strong>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span className="text-slate-500">Meta:</span>
+                      <span>{perf?.metaWlp ? `${perf.metaWlp.toFixed(2)}` : '6.23'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span className="text-slate-500">Abs:</span>
+                      <span className={perf?.absenteismoStatus === 'OK' ? 'text-emerald-400 font-bold' : perf?.absenteismoStatus === 'NOK' ? 'text-rose-400 font-bold' : 'text-slate-500'}>
+                        {perf?.absenteismoVal || '-'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -2363,6 +2723,116 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
         </div>
       </div>
 
+      {/* CARDS DE WLP E PERFORMANCE POR TURNO (MANHÃ, TARDE E NOITE) */}
+      <div className="bg-[#111a30] border border-indigo-500/40 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-indigo-300 flex items-center gap-2">
+                Performance e Indicador WLP por Turno de Trabalho
+                <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono border border-indigo-500/30">
+                  Manhã • Tarde • Noite
+                </span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Acompanhamento segregado de produtividade (HL/HH), horas faturadas e quadro de pessoal ativo por turno ({selectedMesAno}).
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-mono font-bold text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/30 shrink-0">
+            Meta Oficial: {metaOficial.toFixed(2)} HL/HH
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {wlpPorTurnoStats.map((turno) => (
+            <div 
+              key={turno.id}
+              className={`bg-[#0b1222] p-4.5 rounded-2xl border-2 ${turno.borderColor} shadow-lg flex flex-col justify-between space-y-3.5 relative overflow-hidden transition-all hover:scale-[1.01]`}
+            >
+              {/* Header do Turno */}
+              <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-2.5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black uppercase text-white">
+                      {turno.nome}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
+                    Horário Padrão: {turno.horarioRef}
+                  </span>
+                </div>
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${turno.bgPill}`}>
+                  {turno.colabsCount} Colaboradores
+                </span>
+              </div>
+
+              {/* Indicador WLP Real vs Meta */}
+              <div className="grid grid-cols-2 gap-2 bg-[#111a30] p-3 rounded-xl border border-slate-800 text-center">
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">
+                    WLP do Turno
+                  </span>
+                  <span className={`text-xl font-black font-mono ${turno.textColor}`}>
+                    {turno.wlpTurno.toFixed(2)} <span className="text-[10px]">HL/HH</span>
+                  </span>
+                </div>
+                <div className="border-l border-slate-800">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase block">
+                    % da Meta ({metaOficial.toFixed(2)})
+                  </span>
+                  <span className={`text-xl font-black font-mono ${
+                    turno.atingiuMeta ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>
+                    {turno.percentualMeta.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Métricas Detalhadas do Turno */}
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-[#111a30] p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-[8px] font-bold uppercase text-slate-400 block">Horas (HH)</span>
+                  <span className="text-xs font-black font-mono text-sky-400">
+                    {turno.totalHoras.toFixed(1)}h
+                  </span>
+                  <span className="text-[8px] text-slate-500 block">({turno.shareHHPct.toFixed(0)}% do mês)</span>
+                </div>
+                <div className="bg-[#111a30] p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-[8px] font-bold uppercase text-slate-400 block">Volume (HL)</span>
+                  <span className="text-xs font-black font-mono text-amber-400">
+                    {turno.volumeTurnoHL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                  </span>
+                  <span className="text-[8px] text-slate-500 block">HL Estimado</span>
+                </div>
+                <div className="bg-[#111a30] p-2 rounded-lg border border-slate-800/80">
+                  <span className="text-[8px] font-bold uppercase text-slate-400 block">Média/Colab</span>
+                  <span className="text-xs font-black font-mono text-purple-300">
+                    {turno.mediaHorasColab.toFixed(1)}h
+                  </span>
+                  <span className="text-[8px] text-slate-500 block">por mês</span>
+                </div>
+              </div>
+
+              {/* Status do Turno & Lista Rápida */}
+              <div className="border-t border-slate-800 pt-2 flex items-center justify-between text-[10px]">
+                <span className="text-slate-400">
+                  Status DPO: <strong className={turno.atingiuMeta ? 'text-emerald-400' : 'text-rose-400'}>
+                    {turno.atingiuMeta ? '✅ Na Meta' : '⚠️ Abaixo da Meta'}
+                  </strong>
+                </span>
+                <span className="text-[9px] text-slate-500 font-mono">
+                  {turno.jornadasCount} lançamentos
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* CARD PAINEL MÉDIA DE HORAS TRABALHADAS POR DIA POR FUNÇÃO */}
       <div className="bg-[#111a30] border border-amber-500/40 rounded-2xl p-5 space-y-4 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -2442,6 +2912,19 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
         >
           <BarChart3 className="w-4 h-4" />
           <span>Visão Geral do Indicador WLP</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('simulador_quadro')}
+          className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-2 ${
+            activeSubTab === 'simulador_quadro'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md ring-2 ring-amber-300 font-black'
+              : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>Simulador WLP & Férias (Headcount 2026)</span>
+          <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 rounded text-[9px] font-black tracking-wider">NOVO</span>
         </button>
 
         <button
@@ -2553,6 +3036,11 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
           <span>Ações DPO (WLP)</span>
         </button>
       </div>
+
+      {/* GUIA DO SIMULADOR DE WLP & HEADCOUNT / FÉRIAS 2026 */}
+      {activeSubTab === 'simulador_quadro' && (
+        <WlpSimulatorHeadcountTab empresaId={empresaId} theme={theme} />
+      )}
 
       {/* GUIA DE IMPORTAÇÃO RETROATIVA JSON DE VOLUME FATURADO & JORNADAS WLP */}
       {activeSubTab === 'importacao_json' && (
@@ -3536,7 +4024,7 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                     nome: norm,
                     matricula: info.nomeOficial ? (LISTA_COLABORADORES_OFICIAIS.find(c => c.nome === info.nomeOficial)?.matricula || `G${1000 + colabsMap.size + 1}`) : `G${1000 + colabsMap.size + 1}`,
                     cargo: effectiveCargo,
-                    turno: 'MANHÃ'
+                    turno: info.turno || (LISTA_COLABORADORES_OFICIAIS.find(c => c.nome === info.nomeOficial)?.turno) || 'MANHÃ'
                   });
                 }
               }
@@ -3552,7 +4040,7 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                     nome: c.nome,
                     matricula: c.matricula,
                     cargo: info.cargo,
-                    turno: c.turno
+                    turno: info.turno || c.turno
                   });
                 }
               }
@@ -3659,7 +4147,11 @@ PAULO PEREIRA DA SILVA;Ajudante;01/08/2026;07:00;16:20;Turno Normal`;
                             </td>
                             <td className="p-3 text-center">
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                colab.turno === 'Noturno' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                String(colab.turno).toUpperCase().includes('NOITE') || String(colab.turno).toUpperCase().includes('NOTURNO')
+                                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                  : String(colab.turno).toUpperCase().includes('TARDE')
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                               }`}>
                                 {colab.turno}
                               </span>
