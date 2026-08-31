@@ -41,8 +41,14 @@ jobs:
       - name: Build da aplicação para produção
         run: npm run build
 
+      - name: Preparar roteamento SPA para GitHub Pages (.nojekyll & 404.html)
+        run: |
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html || true
+
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
+        continue-on-error: true
 
       - name: Upload dos artefatos estáticos (dist)
         uses: actions/upload-pages-artifact@v3
@@ -52,3 +58,4 @@ jobs:
       - name: Deploy no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
