@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import { ExternalLink, ArrowLeft, Loader2, Truck } from 'lucide-react';
+import React from 'react';
+import { ExternalLink, ArrowLeft, Truck } from 'lucide-react';
 import { Usuario, Empresa } from '../types';
+import { openExternalDashboard } from '../utils/externalDashboards';
 
 interface RetornoDeRotaDashboardProps {
   user: Usuario;
@@ -17,17 +18,8 @@ export default function RetornoDeRotaDashboard({
 }: RetornoDeRotaDashboardProps) {
   const isDark = theme !== 'light';
 
-  useEffect(() => {
-    // Redireciona automaticamente ao acessar o painel
-    const timer = setTimeout(() => {
-      window.location.href = EXTERNAL_URL;
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleManualOpen = () => {
-    window.location.href = EXTERNAL_URL;
+  const handleOpenExternal = () => {
+    openExternalDashboard('retorno-de-rota');
   };
 
   return (
@@ -43,24 +35,20 @@ export default function RetornoDeRotaDashboard({
 
         <div className="space-y-2">
           <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
-            Redirecionamento Automático
+            Aplicativo Externo Integrado
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-slate-100 dark:text-white">
-            Abrindo Retorno de Rota...
+            Retorno de Rota
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            Você está sendo redirecionado para o aplicativo oficial de Retorno de Rota.
+            Acesse o aplicativo oficial de Retorno de Rota em uma nova guia do seu navegador sem sair do sistema principal.
           </p>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-xs font-mono text-indigo-400">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Conectando ao aplicativo externo...</span>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           {onBack && (
             <button
+              type="button"
               onClick={onBack}
               className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all ${
                 isDark 
@@ -69,15 +57,16 @@ export default function RetornoDeRotaDashboard({
               }`}
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Voltar ao Armazém</span>
+              <span>Voltar</span>
             </button>
           )}
 
           <button
-            onClick={handleManualOpen}
+            type="button"
+            onClick={handleOpenExternal}
             className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 cursor-pointer transition-all"
           >
-            <span>Acessar Agora</span>
+            <span>Abrir em Nova Guia</span>
             <ExternalLink className="w-4 h-4" />
           </button>
         </div>
@@ -85,3 +74,4 @@ export default function RetornoDeRotaDashboard({
     </div>
   );
 }
+
