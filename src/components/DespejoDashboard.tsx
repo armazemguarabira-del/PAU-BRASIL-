@@ -1887,7 +1887,7 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
                 <div className="flex items-center gap-2 mt-1 text-xs text-blue-600 dark:text-blue-400 font-bold">
                   <span>{totalSkus.toLocaleString('pt-BR')} Unidades</span>
                   <span className="text-gray-300 dark:text-slate-700">•</span>
-                  <span>{totalHE < 10 ? totalHE.toFixed(4) : totalHE.toFixed(2)} HL Perdido</span>
+                  <span>{totalHE.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HL Perdido</span>
                 </div>
               </div>
             </div>

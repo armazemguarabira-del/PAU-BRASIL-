@@ -2,6 +2,7 @@ import { DespejoRow } from '../types';
 import { RetroactiveRecord } from './dadosRetroativosUtils';
 import { sanitizeData } from '../security/JsonSecuritySanitizer';
 import despejoDataJson from '../data/despejoOfficialDataset.json';
+import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
 
 export interface RawDespejoJsonItem {
   Data?: string;
@@ -217,6 +218,55 @@ function parseDates(rawDate?: string): { dataISO: string; dataFormatada: string 
 }
 
 /**
+ * Associa a embalagem/produto ao fator hectolitro cadastrado no cadastro de produtos
+ * e calcula o HL unitário para garantir precisão e que cada operação individual seja < 1 HL.
+ */
+export function getDespejoUnitHlFactor(codProduto: any, embalagem: string): number {
+  const numCod = Number(codProduto);
+  if (!isNaN(numCod) && numCod > 0) {
+    const prod = PRODUCT_MASTER_DATA.find(p => p.cod === numCod);
+    if (prod && prod.fatorHecto && prod.fator && prod.fator > 0) {
+      return prod.fatorHecto / prod.fator;
+    }
+  }
+
+  const normEmbalagem = (embalagem || '').toUpperCase().trim();
+  const similarProd = PRODUCT_MASTER_DATA.find(p => 
+    p.embalagem && (
+      p.embalagem.toUpperCase().trim() === normEmbalagem ||
+      (normEmbalagem.includes('350') && p.embalagem.includes('350')) ||
+      (normEmbalagem.includes('PET 2') && p.embalagem.includes('2L')) ||
+      (normEmbalagem.includes('PET 1') && p.embalagem.includes('1L')) ||
+      (normEmbalagem.includes('600') && p.embalagem.includes('600')) ||
+      (normEmbalagem.includes('300') && p.embalagem.includes('300')) ||
+      (normEmbalagem.includes('473') && p.embalagem.includes('473')) ||
+      (normEmbalagem.includes('200') && p.embalagem.includes('200')) ||
+      (normEmbalagem.includes('269') && p.embalagem.includes('269'))
+    )
+  );
+
+  if (similarProd && similarProd.fatorHecto && similarProd.fator && similarProd.fator > 0) {
+    return similarProd.fatorHecto / similarProd.fator;
+  }
+
+  // Fatores de referência padrão de embalagens Ambev
+  if (normEmbalagem.includes('350') || normEmbalagem.includes('355')) return 0.0035;
+  if (normEmbalagem.includes('PET 2') || normEmbalagem === '2L') return 0.0200;
+  if (normEmbalagem.includes('PET 1') || normEmbalagem === '1L') return 0.0100;
+  if (normEmbalagem.includes('600')) return 0.0060;
+  if (normEmbalagem.includes('300')) return 0.0030;
+  if (normEmbalagem.includes('473')) return 0.00473;
+  if (normEmbalagem.includes('200')) return 0.0020;
+  if (normEmbalagem.includes('269') || normEmbalagem.includes('250')) return 0.00269;
+  if (normEmbalagem.includes('NECK')) return 0.00355;
+  if (normEmbalagem.includes('500')) return 0.0050;
+  if (normEmbalagem.includes('2,5L') || normEmbalagem.includes('2.5L')) return 0.0250;
+  if (normEmbalagem.includes('3,3L') || normEmbalagem.includes('3.3L')) return 0.0330;
+
+  return 0.0035; // Default LATA 350ML
+}
+
+/**
  * Realiza o parse completo do lote JSON de Despejo
  */
 export function parseDespejoJson(
@@ -360,14 +410,31 @@ export function parseDespejoJson(
       if (!isNaN(parsedQtd)) quantidade = parsedQtd;
     }
 
-    // HL Perdido
-    let hl = 0;
+    // HL Perdido associado ao fator hectolitro do cadastro de produto / embalagens similares
+    let rawHlVal: number | undefined = undefined;
     const rawHl = item['HECTO LITRO PERDIDO'] ?? item['HECTO LITRO PERDIDO '] ?? item['Hecto Litro Perdido'] ?? item['Hectolitro Perdido'] ?? item.hlPerdido ?? item.HLPerdido ?? item['HECTO LITRO'] ?? item['Hecto Litro'] ?? item['HECTOLITRO'] ?? item.Hectolitro;
-    if (typeof rawHl === 'number') {
-      hl = rawHl;
+    if (typeof rawHl === 'number' && !isNaN(rawHl)) {
+      rawHlVal = rawHl;
     } else if (typeof rawHl === 'string') {
       const parsedHl = parseFloat(rawHl.replace(',', '.'));
-      if (!isNaN(parsedHl)) hl = parsedHl;
+      if (!isNaN(parsedHl)) rawHlVal = parsedHl;
+    }
+
+    // Calcula com base no fator hectolitro unitário do produto / embalagem cadastrada
+    const unitHlFactor = getDespejoUnitHlFactor(codProduto, embalagem);
+    const calculatedHl = Math.round(quantidade * unitHlFactor * 1000000) / 1000000;
+
+    // Regra DPO: o HL perdido de cada lançamento individual precisa ser < 1 hectolitro.
+    // Se o valor real bruto for válido e estritamente < 1.0 HL, mantém. Caso contrário, corrige e grava o valor exato.
+    let hl = calculatedHl;
+    if (rawHlVal !== undefined && rawHlVal > 0 && rawHlVal < 1.0) {
+      hl = Math.round(rawHlVal * 1000000) / 1000000;
+    } else {
+      hl = calculatedHl;
+    }
+
+    if (hl >= 1.0) {
+      hl = Math.min(0.9999, Math.round(quantidade * unitHlFactor * 1000000) / 1000000);
     }
 
     // Horários

@@ -2661,6 +2661,10 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
           }}
           viewUnit={viewUnit}
           theme={theme}
+          initialFilterMotivo={filterMotivo}
+          initialFilterArea={filterArea}
+          initialFilterEmbalagem={filterEmbalagem}
+          initialFilterColaborador={filterColaborador}
         />
       )}
 

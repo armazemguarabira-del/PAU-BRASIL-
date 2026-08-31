@@ -182,7 +182,8 @@ export function getConsolidated030519Map(): Map<string, Item030519Data> {
 
   // If a quarter has data, load it first
   if (chosenQuarterKey && quarters[chosenQuarterKey]?.itemsMap) {
-    const items = Object.values(quarters[chosenQuarterKey].itemsMap);
+    const rawItems = Object.values(quarters[chosenQuarterKey].itemsMap || {});
+    const items = rawItems.filter((item: any) => item && typeof item === 'object' && item.codigo != null && !isNaN(Number(item.codigo)));
     
     // Sort by volume to assign Pareto ABC
     const sorted = [...items].sort((a: any, b: any) => (b.volumeTotalTrimestre || 0) - (a.volumeTotalTrimestre || 0));
@@ -222,6 +223,7 @@ export function getConsolidated030519Map(): Map<string, Item030519Data> {
     const estoqueStorageItems = getVendaMediaItens();
     if (estoqueStorageItems && estoqueStorageItems.length > 0) {
       estoqueStorageItems.forEach((esItem, idx) => {
+        if (!esItem || typeof esItem !== 'object' || esItem.codigo == null || isNaN(Number(esItem.codigo))) return;
         const codeNum = Number(esItem.codigo);
         const codeStr = String(codeNum);
         const vmDiaria = Number((esItem as any).vendaMediaDiaria || (esItem as any).vendaMedia || 0);
@@ -314,23 +316,53 @@ export function get030519DataForSku(codigo: string | number): Item030519Data | n
 /**
  * Broadcasts an update across the app whenever 03.05.19 is imported or updated
  */
-export function sync030519WithEstoqueStorage(updatedItemsMap: Record<number, any>): void {
+export function sync030519WithEstoqueStorage(updatedItemsMap: Record<number | string, any>): void {
   try {
+    if (!updatedItemsMap || typeof updatedItemsMap !== 'object') return;
+
+    // Normalize updatedItemsMap: handle if caller passed quarters dictionary e.g. { Q1: { itemsMap }, Q2: ... }
+    const flatItems: any[] = [];
+    const isQuarterDict = Object.keys(updatedItemsMap).some(k => k === 'Q1' || k === 'Q2' || k === 'Q3' || k === 'Q4');
+
+    if (isQuarterDict) {
+      Object.values(updatedItemsMap).forEach((q: any) => {
+        if (q && q.itemsMap && typeof q.itemsMap === 'object') {
+          Object.values(q.itemsMap).forEach((item: any) => {
+            if (item && typeof item === 'object' && item.codigo != null && !isNaN(Number(item.codigo))) {
+              flatItems.push(item);
+            }
+          });
+        }
+      });
+    } else {
+      Object.values(updatedItemsMap).forEach((item: any) => {
+        if (item && typeof item === 'object' && item.codigo != null && !isNaN(Number(item.codigo))) {
+          flatItems.push(item);
+        }
+      });
+    }
+
     const currentStorage = getVendaMediaItens();
     const storageMap = new Map<number, VendaMediaItem>();
-    currentStorage.forEach(item => {
-      storageMap.set(Number(item.codigo), item);
-    });
+    if (Array.isArray(currentStorage)) {
+      currentStorage.forEach(item => {
+        if (item && typeof item === 'object' && item.codigo != null && !isNaN(Number(item.codigo))) {
+          storageMap.set(Number(item.codigo), item);
+        }
+      });
+    }
 
-    Object.values(updatedItemsMap).forEach((item: any) => {
+    flatItems.forEach((item: any) => {
+      if (!item || typeof item !== 'object' || item.codigo == null) return;
       const code = Number(item.codigo);
+      if (isNaN(code) || code <= 0) return;
       const existing = storageMap.get(code);
       storageMap.set(code, {
         codigo: code,
-        produto: item.produto || (item as any).descricao || existing?.produto || `Produto ${code}`,
-        vendaMediaDiaria: Math.max(0.1, Math.round(Number(item.vendaMediaDiaria || (item as any).vendaMedia || 0) * 100) / 100),
+        produto: item.produto || item.descricao || existing?.produto || `Produto ${code}`,
+        vendaMediaDiaria: Math.max(0.1, Math.round(Number(item.vendaMediaDiaria || item.vendaMedia || 0) * 100) / 100),
         precoUnitario: Number(item.precoUnitario) || existing?.precoUnitario || 50,
-        familia: item.categoria || (item as any).familia || existing?.familia || 'Cervejas',
+        familia: item.categoria || item.familia || existing?.familia || 'Cervejas',
         marca: existing?.marca || 'Ambev',
         setor: existing?.setor || 'Central A',
         atualizadoEm: new Date().toISOString()
@@ -339,17 +371,26 @@ export function sync030519WithEstoqueStorage(updatedItemsMap: Record<number, any
 
     saveVendaMediaItens(Array.from(storageMap.values()));
 
-    // Also update active quarter in STORAGE_KEY_TRIMESTRES_030519
-    const quarters = getStored030519Quarters();
-    const month = new Date().getMonth() + 1;
-    const currentQ = month <= 3 ? 'Q1' : month <= 6 ? 'Q2' : month <= 9 ? 'Q3' : 'Q4';
-    if (!quarters[currentQ]) {
-      quarters[currentQ] = { diasUteis: 66, itemsMap: {} };
+    // Also update active quarter in STORAGE_KEY_TRIMESTRES_030519 if flat map provided
+    if (!isQuarterDict && flatItems.length > 0) {
+      const quarters = getStored030519Quarters();
+      const month = new Date().getMonth() + 1;
+      const currentQ = month <= 3 ? 'Q1' : month <= 6 ? 'Q2' : month <= 9 ? 'Q3' : 'Q4';
+      if (!quarters[currentQ]) {
+        quarters[currentQ] = { diasUteis: 66, itemsMap: {} };
+      }
+      if (!quarters[currentQ].itemsMap) {
+        quarters[currentQ].itemsMap = {};
+      }
+      flatItems.forEach((item: any) => {
+        if (item && item.codigo != null && !isNaN(Number(item.codigo))) {
+          quarters[currentQ].itemsMap[Number(item.codigo)] = item;
+        }
+      });
+      quarters[currentQ].importadoEm = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY_TRIMESTRES_030519, JSON.stringify(quarters));
+      invalidateQuarters030519Cache();
     }
-    Object.assign(quarters[currentQ].itemsMap, updatedItemsMap);
-    quarters[currentQ].importadoEm = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY_TRIMESTRES_030519, JSON.stringify(quarters));
-    invalidateQuarters030519Cache();
 
     window.dispatchEvent(new CustomEvent(EVENT_VENDA_MEDIA_030519_UPDATED));
     window.dispatchEvent(new CustomEvent('local_data_changed'));

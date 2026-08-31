@@ -448,7 +448,13 @@ export default function CurvaAbcTrimestralTab() {
     } catch (e) {}
 
     try {
-      sync030519WithEstoqueStorage(updatedQuarters as any);
+      const remainingItemsMap: Record<number, any> = {};
+      Object.values(updatedQuarters).forEach((q: any) => {
+        if (q?.itemsMap) {
+          Object.assign(remainingItemsMap, q.itemsMap);
+        }
+      });
+      sync030519WithEstoqueStorage(remainingItemsMap);
     } catch (e) {}
 
     showNotify(`Trimestre ${activeQuarter} limpo com sucesso! Base 03.05.19 zerada.`);

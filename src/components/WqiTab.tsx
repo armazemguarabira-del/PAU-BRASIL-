@@ -61,6 +61,10 @@ interface WqiTabProps {
   onDateChange: (start: string, end: string) => void;
   viewUnit: 'rs' | 'hl' | 'sku';
   theme?: 'light' | 'dark';
+  initialFilterMotivo?: string;
+  initialFilterArea?: string;
+  initialFilterEmbalagem?: string;
+  initialFilterColaborador?: string;
 }
 
 const COLORS = ['#032b5e', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
@@ -210,19 +214,14 @@ export const isQuebraMovimentacaoArmazem = (q: QuebraRow): boolean => {
   const motivoUpper = (q.motivo || '').toUpperCase();
   const areaUpper = (q.area || '').toUpperCase();
 
-  // Strictly warehouse area (not entrega, not rota, not mercado, not puxada externa)
-  if (areaUpper === 'ENTREGA' || areaUpper === 'ROTA' || areaUpper === 'MERCADO' || areaUpper === 'PUXADA' || areaUpper === 'TRANSF') {
-    return false;
-  }
-
-  const isArmazemArea = areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || areaUpper === '' || areaUpper === 'DEPÓSITO' || areaUpper === 'DEPOSITO' || areaUpper === 'PICKING';
-
-  // DPO specific codes for warehouse movement breakages (539 = Quebra com Movimentação Armazém, 537 = Quebra Picking, 525 = Quebrada, 521 = Acidente, 535 = Mal Chapeada)
-  if (['539', '537', '525', '521', '535'].includes(cod)) return true;
+  // DPO specific codes for warehouse movement breakages (539 = Quebra com Movimentação, 557 = Entrega, 589 = Puxada, 537 = Quebra Picking, 525 = Quebrada, 521 = Acidente, 535 = Mal Chapeada)
+  if (['539', '537', '525', '521', '535', '557', '589'].includes(cod)) return true;
 
   // Motive strings containing warehouse movement keywords
   if (
     motivoUpper.includes('MOVIMENTA') || 
+    motivoUpper.includes('MOVIMENTAÇÃO') ||
+    motivoUpper.includes('MOVIMENTACAO') ||
     motivoUpper.includes('MANUSEIO') || 
     motivoUpper.includes('CHOQUE') || 
     motivoUpper.includes('TOMBADA') ||
@@ -233,7 +232,9 @@ export const isQuebraMovimentacaoArmazem = (q: QuebraRow): boolean => {
     return true;
   }
 
-  // If area is Armazém and has general breakage classification
+  const isArmazemArea = areaUpper === 'ARMAZEM' || areaUpper === 'ARMAZÉM' || areaUpper === '' || areaUpper === 'DEPÓSITO' || areaUpper === 'DEPOSITO' || areaUpper === 'PICKING' || areaUpper === 'PUXADA';
+
+  // If area is Armazém or Puxada and has general breakage classification
   if (isArmazemArea) {
     if (motivoUpper.includes('QUEBRADA') || motivoUpper.includes('QUEBRA') || motivoUpper.includes('AVARIA')) {
       return true;
@@ -480,17 +481,37 @@ export default function WqiTab({
   endDate,
   onDateChange,
   viewUnit,
-  theme = 'light'
+  theme = 'light',
+  initialFilterMotivo,
+  initialFilterArea,
+  initialFilterEmbalagem,
+  initialFilterColaborador
 }: WqiTabProps) {
   const isDark = theme === 'dark';
   const [data, setData] = useState<QuebraRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [filterArea, setFilterArea] = useState<string>('TODAS');
-  const [filterEmbalagem, setFilterEmbalagem] = useState<string>('TODAS');
-  const [filterTipoQuebra, setFilterTipoQuebra] = useState<string>('MOVIMENTACAO_ARMAZEM');
-  const [filterMotivo, setFilterMotivo] = useState<string>('TODOS');
+  const [filterArea, setFilterArea] = useState<string>(initialFilterArea || 'TODAS');
+  const [filterEmbalagem, setFilterEmbalagem] = useState<string>(initialFilterEmbalagem || 'TODAS');
+  const [filterTipoQuebra, setFilterTipoQuebra] = useState<string>('MOVIMENTACAO_TODAS');
+  const [filterMotivo, setFilterMotivo] = useState<string>(initialFilterMotivo || 'TODOS');
   const [filterFuncao, setFilterFuncao] = useState<string>('TODAS');
-  const [filterColaborador, setFilterColaborador] = useState<string>('TODOS');
+  const [filterColaborador, setFilterColaborador] = useState<string>(initialFilterColaborador || 'TODOS');
+
+  useEffect(() => {
+    if (initialFilterMotivo !== undefined) setFilterMotivo(initialFilterMotivo);
+  }, [initialFilterMotivo]);
+
+  useEffect(() => {
+    if (initialFilterArea !== undefined) setFilterArea(initialFilterArea);
+  }, [initialFilterArea]);
+
+  useEffect(() => {
+    if (initialFilterEmbalagem !== undefined) setFilterEmbalagem(initialFilterEmbalagem);
+  }, [initialFilterEmbalagem]);
+
+  useEffect(() => {
+    if (initialFilterColaborador !== undefined) setFilterColaborador(initialFilterColaborador);
+  }, [initialFilterColaborador]);
 
   // State for Dedicated Records Card (Card 6)
   const [recordsSearchQuery, setRecordsSearchQuery] = useState<string>('');
@@ -503,44 +524,94 @@ export default function WqiTab({
   // Sweeper: Full scan across Firestore Context, LocalStorage & Official Pre-loaded Datasets
   const fetchWqiData = () => {
     setLoading(true);
-    const map = new Map<string, QuebraRow>();
+    const companyId = empresaId || 'demo';
+    const officialRows = buildOfficialQuebrasRows(companyId);
+    const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-    // 1. Official baseline dataset (instant in-memory)
-    const official = buildOfficialQuebrasRows(empresaId || 'demo');
-    official.forEach(q => {
-      const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
-      map.set(id, q);
-    });
+    const customRows: QuebraRow[] = [];
+    const seenCustomKeys = new Set<string>();
 
-    // 2. Merge Firestore context rows if present
+    const addCustomIfNew = (item: QuebraRow) => {
+      if (!item) return;
+      const idStr = String(item.id || item._docId || '');
+      if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+      const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.colaborador || item.colaboradorQuebrou || item.responsavel || ''}_${item.area || ''}_${item.quantidade || 0}`;
+      if (seenCustomKeys.has(bizKey)) return;
+      seenCustomKeys.add(bizKey);
+      customRows.push(item);
+    };
+
+    // 1. From empresaData.quebras (Firestore / Context)
     if (empresaData.quebras && empresaData.quebras.length > 0) {
-      empresaData.quebras.forEach(q => {
-        const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
-        map.set(id, q);
-      });
+      empresaData.quebras.forEach(addCustomIfNew);
     }
 
-    // 3. Merge custom user quebras from localStorage if present
-    try {
-      const customSaved = localStorage.getItem(`custom_quebras_${empresaId || 'demo'}`) || localStorage.getItem(`local_quebras_${empresaId || 'demo'}`);
-      if (customSaved) {
-        const parsed = JSON.parse(customSaved);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((q: QuebraRow) => {
-            const id = q._docId || q.id || `${q.dataISO || q.data}_${q.codProduto}_${q.quantidade}_${q.colaboradorQuebrou || q.responsavel}_${q.codQuebra}`;
-            map.set(id, q);
-          });
-        }
+    // 2. From LocalStorage custom keys
+    const lsKeys = [
+      `custom_quebras_${companyId}`,
+      `quebras_${companyId}`,
+      `quebras_records_${companyId}`,
+      `local_quebras_${companyId}`,
+      `quebras_manual_entries_${companyId}`
+    ];
+    lsKeys.forEach(k => {
+      const savedCustom = localStorage.getItem(k);
+      if (savedCustom) {
+        try {
+          const parsed = JSON.parse(savedCustom);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(addCustomIfNew);
+          }
+        } catch (_) {}
       }
-    } catch (_) {}
+    });
 
-    // 4. Enrich rows with resolved collaborator & function
-    const allRows = Array.from(map.values()).map(q => {
+    // 3. From DTO Diagnóstico Histórico (DTO de Quebras / Operações)
+    const rawDto = localStorage.getItem('armazem_dto_historico_registros_v1');
+    if (rawDto) {
+      try {
+        const parsedDto = JSON.parse(rawDto);
+        if (Array.isArray(parsedDto)) {
+          parsedDto
+            .filter((d: any) => d.operacaoId === 'quebras' || d.modulo === 'quebras' || (d.tipo && String(d.tipo).toLowerCase().includes('quebra')))
+            .forEach((dto: any) => {
+              const colabName = dto.operadorNome || dto.colaborador || dto.usuarioNome || dto.auditorNome || 'NÃO IDENTIFICADO';
+              const qtd = Number(dto.itensContados || dto.quantidade || 1);
+              const desc = dto.produtoDescricao || dto.descricao || 'PRODUTO NÃO ESPECIFICADO';
+              const cod = dto.codProduto || dto.codigo || '539';
+              const dataRaw = dto.dataHoraISO || dto.dataISO || new Date().toISOString();
+              const dFormatted = dataRaw.includes('T') ? dataRaw.split('T')[0].split('-').reverse().join('/') : dataRaw;
+
+              addCustomIfNew({
+                id: `dto-qb-${dto.id || Math.random().toString(36).substring(7)}`,
+                data: dFormatted,
+                dataISO: dataRaw,
+                codProduto: cod,
+                descricao: desc,
+                quantidade: qtd,
+                motivo: dto.motivo || 'QUEBRA COM MOVIMENTAÇÃO',
+                codQuebra: dto.codQuebra || '539',
+                area: (dto.area && ['ARMAZEM', 'ENTREGA', 'MERCADO', 'PUXADA'].includes(dto.area)) ? dto.area : 'ARMAZEM',
+                turno: dto.turno || 'MANHÃ',
+                colaborador: colabName,
+                colaboradorQuebrou: colabName,
+                responsavel: colabName,
+                origem: 'DTO_DIAGNOSTICO'
+              });
+            });
+        }
+      } catch (_) {}
+    }
+
+    const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+
+    // Enrich rows with resolved collaborator & function
+    const allRows = rows.map(q => {
       const colabInfo = resolveCollaboratorAndFunction(q);
       return {
         ...q,
-        colaboradorQuebrou: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.colaboradorQuebrou || q.responsavel || ''),
-        responsavel: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.responsavel || q.colaboradorQuebrou || ''),
+        colaboradorQuebrou: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.colaboradorQuebrou || q.responsavel || (q as any).colaborador || ''),
+        responsavel: colabInfo.nome !== 'NÃO INFORMADO' ? colabInfo.nome : (q.responsavel || q.colaboradorQuebrou || (q as any).colaborador || ''),
         funcao: colabInfo.funcao
       };
     });
@@ -552,6 +623,27 @@ export default function WqiTab({
 
   useEffect(() => {
     fetchWqiData();
+
+    const handleUpdate = () => fetchWqiData();
+    window.addEventListener('quebras-db-updated', handleUpdate);
+    window.addEventListener('quebras-updated', handleUpdate);
+    window.addEventListener('repack-db-updated', handleUpdate);
+    window.addEventListener('despejo-db-updated', handleUpdate);
+    window.addEventListener('dto_historico_updated', handleUpdate);
+    window.addEventListener('retroactive-data-updated', handleUpdate);
+    window.addEventListener('empresa-data-reload', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('quebras-db-updated', handleUpdate);
+      window.removeEventListener('quebras-updated', handleUpdate);
+      window.removeEventListener('repack-db-updated', handleUpdate);
+      window.removeEventListener('despejo-db-updated', handleUpdate);
+      window.removeEventListener('dto_historico_updated', handleUpdate);
+      window.removeEventListener('retroactive-data-updated', handleUpdate);
+      window.removeEventListener('empresa-data-reload', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, [empresaData.quebras, empresaData.loaded, empresaId]);
 
   const availableWqiMotivos = useMemo(() => {
@@ -628,13 +720,29 @@ export default function WqiTab({
   // Client-side filtering by Date, Context, Area, Embalagem, Motivo, Função, Colaborador
   const filteredData = useMemo(() => {
     return data.filter(q => {
-      // 1. Tipo de Quebra / Context Filter
-      if (filterTipoQuebra === 'MOVIMENTACAO_ARMAZEM') {
-        if (!isQuebraMovimentacaoArmazem(q)) return false;
-      } else if (filterTipoQuebra === 'MOVIMENTACAO_TODAS') {
-        if (!isQuebraMovimentacao(q)) return false;
+      const cod = String(q.codQuebra || '').trim();
+      const mot = (q.motivo || '').trim().toUpperCase();
+
+      // 1. Motivo filter
+      if (filterMotivo !== 'TODOS') {
+        const filterUpper = filterMotivo.toUpperCase();
+        const is539Target = filterMotivo === '539' || filterUpper.includes('539') || filterUpper.includes('MOVIMENTA');
+        
+        if (is539Target) {
+          const match539 = cod === '539' || cod === '557' || cod === '589' || mot.includes('MOVIMENTAÇÃO') || mot.includes('MOVIMENTACAO') || mot.includes('MOVIMENTA');
+          if (!match539) return false;
+        } else {
+          const match = cod === filterMotivo || mot === filterUpper || mot.includes(filterUpper) || `${cod} - ${q.motivo}`.toUpperCase().includes(filterUpper);
+          if (!match) return false;
+        }
+      } else {
+        // Only apply Tipo de Quebra when not explicitly filtering by a specific single Motivo
+        if (filterTipoQuebra === 'MOVIMENTACAO_ARMAZEM') {
+          if (!isQuebraMovimentacaoArmazem(q)) return false;
+        } else if (filterTipoQuebra === 'MOVIMENTACAO_TODAS') {
+          if (!isQuebraMovimentacao(q)) return false;
+        }
       }
-      // if 'TODAS_QUEBRAS', allows all
 
       // 2. Area filter
       if (filterArea !== 'TODAS' && q.area !== filterArea) return false;
@@ -643,29 +751,19 @@ export default function WqiTab({
       const embName = q.embalagem || getEmbalagemName(q.descricao);
       if (filterEmbalagem !== 'TODAS' && embName !== filterEmbalagem) return false;
 
-      // 4. Motivo filter
-      if (filterMotivo !== 'TODOS') {
-        const cod = String(q.codQuebra || '').trim();
-        const mot = (q.motivo || '').trim().toUpperCase();
-        const filterUpper = filterMotivo.toUpperCase();
-        
-        const match = cod === filterMotivo || mot === filterUpper || mot.includes(filterUpper) || `${cod} - ${q.motivo}`.toUpperCase().includes(filterUpper);
-        if (!match) return false;
-      }
-
-      // 5. Função / Cargo filter
+      // 4. Função / Cargo filter
       const colabInfo = resolveCollaboratorAndFunction(q);
       if (filterFuncao !== 'TODAS') {
         if (!colabInfo.funcao.includes(filterFuncao.toUpperCase())) return false;
       }
 
-      // 6. Colaborador (Quem Quebrou) filter
+      // 5. Colaborador (Quem Quebrou) filter
       if (filterColaborador !== 'TODOS') {
         const filterNorm = normalizeCollaboratorName(filterColaborador);
         if (colabInfo.nome !== filterNorm) return false;
       }
 
-      // 7. Date range filter
+      // 6. Date range filter
       if (startDate || endDate) {
         let rowISO = '';
         if (q.dataISO) {
@@ -897,13 +995,18 @@ export default function WqiTab({
     data.forEach(q => {
       if (!isQuebraMovimentacao(q)) return;
 
-      // Filter by area if specific area is selected in main filter or calculate for Armazém WQI
+      // Filter by area based on filterArea or area2025Filter
       const rawArea = (q.area || '').toUpperCase();
       if (filterArea !== 'TODAS') {
         if (q.area !== filterArea) return;
-      } else {
-        // Default WQI Armazém filter
-        if (rawArea.includes('ENTREGA') || rawArea.includes('ROTA') || rawArea.includes('MERCADO') || rawArea.includes('PUXADA') || rawArea.includes('TRANSF') || rawArea.includes('TRANS')) {
+      } else if (area2025Filter !== 'TODOS') {
+        if (area2025Filter === 'ARMAZEM' && (rawArea.includes('ENTREGA') || rawArea.includes('ROTA') || rawArea.includes('MERCADO'))) {
+          return;
+        }
+        if (area2025Filter === 'ENTREGA' && !rawArea.includes('ENTREGA') && !rawArea.includes('ROTA')) {
+          return;
+        }
+        if (area2025Filter === 'PUXADA' && !rawArea.includes('PUXADA') && !rawArea.includes('TRANSF')) {
           return;
         }
       }

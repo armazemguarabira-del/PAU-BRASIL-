@@ -219,7 +219,7 @@ export const matchesProcessFilter = (itemProcesso: string = '', filter: string):
   if (p === f || p.includes(f) || f.includes(p)) return true;
   if ((f === 'capacidade' || f === 'armazenagem' || f === 'layout' || f === 'estoque') && (p.includes('capacidade') || p.includes('armazen') || p.includes('layout') || p.includes('estoque') || p.includes('política'))) return true;
   if ((f === 'fefo' || f === 'validade') && (p.includes('fefo') || p.includes('validade') || p.includes('shelf life'))) return true;
-  if ((f === 'quebras' || f === 'qualidade') && (p.includes('quebra') || p.includes('qualidade') || p.includes('avaria') || p.includes('wqi'))) return true;
+  if ((f === 'quebras' || f === 'qualidade' || f === 'ronda' || f === '5s' || f === 'pragas' || f === 'gsa' || f === 'temperatura') && (p.includes('quebra') || p.includes('qualidade') || p.includes('avaria') || p.includes('wqi') || p.includes('ronda') || p.includes('5s') || p.includes('pragas') || p.includes('gsa') || p.includes('temperatura'))) return true;
   if ((f === 'wlp' || f === 'produtividade') && (p.includes('wlp') || p.includes('produtividade') || p.includes('pnp') || p.includes('jornada'))) return true;
   if ((f === 'tmr' || f === 'recebimento') && (p.includes('tmr') || p.includes('recebimento') || p.includes('descarga') || p.includes('carreta'))) return true;
   if ((f === 'carregamento' || f === 'efc') && (p.includes('carregamento') || p.includes('efc') || p.includes('expedição'))) return true;
@@ -227,8 +227,171 @@ export const matchesProcessFilter = (itemProcesso: string = '', filter: string):
   return false;
 };
 
-// Seed dataset representativo
+// Seed dataset representativo incluindo ações consolidadas de desvios da Ronda de Qualidade DPO
 const SEED_ACOES_DPO: AcaoDpoItem[] = [
+  // ── AÇÕES DE DESVIOS & GATILHOS DA RONDA DE QUALIDADE DSPD GUARABIRA (CONCLUÍDAS COM RESOLUÇÃO SIMPLES) ──
+  {
+    id: 'acao-ronda-gsa-1',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Estrutura de Armazém e Layout',
+    criticidade: 'Alta',
+    tipo: 'Corretiva',
+    oQueFazer: 'Eliminar focos de poeira e organizar materiais nos corredores de circulação e docas.',
+    resolucao: 'Como foi resolvido: Realizada limpeza geral e varrição com equipe de apoio, recolhidos resíduos de paletes e reforçada vedação de telas perimetrais.',
+    dataInicio: '2026-08-20',
+    dataTermino: '2026-08-22',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Armazém Geral - Galpão Principal e Docas',
+    observacaoCampo: 'Ação preventiva executada com sucesso. Inspeção da ronda semanal validada.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Realizar mutirão de varrição pesada nos corredores centrais', concluida: true },
+      { id: '2', texto: 'Remover sobras de madeira e paletes danificados', concluida: true },
+      { id: '3', texto: 'Inspecionar vedação de telas contra entrada de poeira e pragas', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-2',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Limpeza de Pátio e Docas',
+    criticidade: 'Média',
+    tipo: 'Rotina',
+    oQueFazer: 'Manter rotina de varrição nas baias externas de carga/descarga para evitar entrada de poeira pelas empilhadeiras.',
+    resolucao: 'Como foi resolvido: Estabelecido cronograma diário de varrição pré-turno às 06h e 14h nas docas e pátio de manobra, com registro em checklist 5S.',
+    dataInicio: '2026-08-21',
+    dataTermino: '2026-08-23',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Pátio Externo e Docas de Carga/Descarga',
+    observacaoCampo: 'Varrição diária incorporada à rotina padrão da equipe de apoio.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Ajustar cronograma de limpeza externa pré-turno', concluida: true },
+      { id: '2', texto: 'Disponibilizar vassourões e carrinhos coletores nas docas', concluida: true },
+      { id: '3', texto: 'Auditar pátio na abertura dos turnos', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-3',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Preservação de Produto',
+    criticidade: 'Alta',
+    tipo: 'Corretiva',
+    oQueFazer: 'Eliminar incidência de radiação solar direta sobre paletes de cervejas e refrigerantes nas docas e portas laterais.',
+    resolucao: 'Como foi resolvido: Instaladas cortinas retráteis de proteção UV nas aberturas das docas laterais e reposicionadas as pilhas a 2 metros das entradas.',
+    dataInicio: '2026-08-18',
+    dataTermino: '2026-08-20',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Docas 01 a 04 / Entradas Laterais',
+    observacaoCampo: '100% dos produtos protegidos contra incidência solar.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Instalar cortinas blackout/UV nas portas abertas', concluida: true },
+      { id: '2', texto: 'Recuar alinhamento de paletes de produto acabado', concluida: true },
+      { id: '3', texto: 'Verificar temperatura superficial dos produtos às 14h', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-4',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Conservação de Piso e Rotas',
+    criticidade: 'Alta',
+    tipo: 'Corretiva',
+    oQueFazer: 'Recuperar juntas de dilatação e pequenas fissuras nas ruas principais para evitar solavancos nas cargas de empilhadeiras.',
+    resolucao: 'Como foi resolvido: Aplicada resina epóxi de cura rápida para nivelamento de juntas e eliminadas imperfeições no piso dos corredores 01 e 03.',
+    dataInicio: '2026-08-15',
+    dataTermino: '2026-08-17',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Corredores Principais de Tráfego / Ruas 01 e 03',
+    observacaoCampo: 'Tráfego de empilhadeiras suave, sem solavancos nas cargas.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Mapear fissuras e ressaltos no trajeto das empilhadeiras', concluida: true },
+      { id: '2', texto: 'Aplicar massa autonivelante epóxi nas juntas danificadas', concluida: true },
+      { id: '3', texto: 'Testar trânsito de empilhadeira com carga cheia', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-5',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Integridade de Paletes PBR',
+    criticidade: 'Alta',
+    tipo: 'Corretiva',
+    oQueFazer: 'Segregar paletes de madeira quebrados ou com pregos expostos para evitar perfuração de latas e garrafas.',
+    resolucao: 'Como foi resolvido: Criada baia exclusiva identificada para triagem de paletes danificados e retirados 18 paletes avariados para manutenção externa.',
+    dataInicio: '2026-08-22',
+    dataTermino: '2026-08-24',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Baia de Paletes e Linha de Separação',
+    observacaoCampo: 'Eliminado risco de avaria por pregos salientes.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Demarcar no chão baia para paletes não conformes', concluida: true },
+      { id: '2', texto: 'Realizar triagem rigorosa na descarga e no picking', concluida: true },
+      { id: '3', texto: 'Encaminhar lote avariado para reforma com fornecedor', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-6',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Organização da Bancada de Repack',
+    criticidade: 'Média',
+    tipo: 'Rotina',
+    oQueFazer: 'Organizar caixas novas, divisórias, filme stretch e fitas adesivas em prateleiras elevadas e secas.',
+    resolucao: 'Como foi resolvido: Instalada estante metálica de 3 níveis com identificação por SKU e suporte suspenso para bobinas de filme stretch.',
+    dataInicio: '2026-08-23',
+    dataTermino: '2026-08-25',
+    status: 'Concluído',
+    responsavel: 'Ozenildo Silva',
+    local: 'Bancada de Repack / Estação de Montagem',
+    observacaoCampo: 'Insumos 100% protegidos contra umidade do piso e de fácil acesso.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Montar estante metálica de 3 níveis na sala de repack', concluida: true },
+      { id: '2', texto: 'Identificar prateleiras por tipo de embalagem e fita', concluida: true },
+      { id: '3', texto: 'Padronizar abastecimento de insumos no início do turno', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-7',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Controle Térmico do Armazém',
+    criticidade: 'Média',
+    tipo: 'Rotina',
+    oQueFazer: 'Manter estabilidade térmica no galpão, evitando picos acima do limite padrão.',
+    resolucao: 'Como foi resolvido: Ativados exaustores eólicos automatizados nos horários de maior calor (13h-16h) e padronizada aferição às 09h, 16h e 22h.',
+    dataInicio: '2026-08-24',
+    dataTermino: '2026-08-26',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Termômetros 01 e 02 / Galpão Principal',
+    observacaoCampo: 'Temperatura média mantida em 25.1°C (faixa segura DPO).',
+    etapasVerificacao: [
+      { id: '1', texto: 'Calibrar termômetros digitais do armazém', concluida: true },
+      { id: '2', texto: 'Programar acionamento de exaustores de teto nos horários de pico', concluida: true },
+      { id: '3', texto: 'Registrar medições diárias nos 3 horários fixos', concluida: true }
+    ]
+  },
+  {
+    id: 'acao-ronda-gsa-8',
+    processo: 'Qualidade',
+    indicador: 'Ronda de Qualidade / Proteção Mecânica de Cargas',
+    criticidade: 'Alta',
+    tipo: 'Corretiva',
+    oQueFazer: 'Equipar garfos das empilhadeiras com proteção de borracha/poliuretano para evitar perfuração de embalagens.',
+    resolucao: 'Como foi resolvido: Instalados protetores de poliuretano nos garfos das empilhadeiras 01 e 02 e realizada revisão de faróis e alarmes sonoros.',
+    dataInicio: '2026-08-19',
+    dataTermino: '2026-08-21',
+    status: 'Concluído',
+    responsavel: 'Djeanderson Soares',
+    local: 'Oficina / Empilhadeiras 01 e 02',
+    observacaoCampo: 'Garfos protegidos e adesivos de segurança atualizados.',
+    etapasVerificacao: [
+      { id: '1', texto: 'Adquirir kits de proteção de borracha/poliuretano para garfos', concluida: true },
+      { id: '2', texto: 'Instalar protetores nas empilhadeiras da frota ativa', concluida: true },
+      { id: '3', texto: 'Validar fixação durante manobras de teste', concluida: true }
+    ]
+  },
+
+  // ── OUTRAS AÇÕES OPERACIONAIS ──
   {
     id: 'acao-montagem-1',
     processo: 'Montagem',
@@ -370,11 +533,19 @@ export const QuadroAcoesDpo: React.FC<QuadroAcoesDpoProps> = ({
           });
         }
       }
+
+      // Ensure seed actions (including consolidated deviation actions from Ronda de Qualidade) are present
+      SEED_ACOES_DPO.forEach(item => {
+        if (!map.has(item.id)) {
+          map.set(item.id, item);
+        }
+      });
+
       return Array.from(map.values());
     } catch (e) {
       console.warn('Erro ao carregar ações do localStorage:', e);
     }
-    return [];
+    return SEED_ACOES_DPO;
   });
 
   // Sync to localStorage and all actions storage keys

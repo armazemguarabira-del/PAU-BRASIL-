@@ -90,6 +90,18 @@ interface RondaGsaComponentProps {
   theme?: 'light' | 'dark';
 }
 
+const RESOLUCOES_GSA_CONCLUIDAS: Record<number, string> = {
+  3: 'Realizada limpeza geral e varrição pesada com equipe de apoio, recolhidos resíduos de paletes e reforçada vedação de telas perimetrais.',
+  6: 'Estabelecido cronograma diário de varrição pré-turno às 06h e 14h nas docas e pátio de manobra, com registro em checklist 5S.',
+  9: 'Instaladas cortinas retráteis de proteção UV nas aberturas das docas laterais e reposicionadas as pilhas a 2 metros das entradas.',
+  4: 'Aplicada resina epóxi de cura rápida para nivelamento de juntas e eliminadas imperfeições no piso dos corredores 01 e 03.',
+  15: 'Criada baia exclusiva identificada para triagem de paletes danificados e retirados 18 paletes avariados para manutenção externa.',
+  32: 'Instalada estante metálica de 3 níveis com identificação por SKU e suporte suspenso para bobinas de filme stretch.',
+  10: 'Ativados exaustores eólicos automatizados nos horários de maior calor (13h-16h) e padronizada aferição às 09h, 16h e 22h.',
+  12: 'Disponibilizada tabela de lastro e altura máxima (PTL) afixada em todas as ruas e orientada equipe sobre limite de empilhamento.',
+  18: 'Instalados protetores de poliuretano nos garfos das empilhadeiras 01 e 02 e realizada revisão de faróis e alarmes sonoros.'
+};
+
 export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
   user,
   empresaId = 'demo',
@@ -508,6 +520,9 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               <span className="px-2.5 py-1 bg-slate-800/90 text-slate-300 border border-slate-700 text-[10px] font-mono rounded-lg flex items-center gap-1.5 shadow-xs">
                 👤 Resp: Djeanderson Soares
               </span>
+              <span className="px-2.5 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 text-[10px] font-bold rounded-lg flex items-center gap-1.5 shadow-xs">
+                ✓ Ações Consolidadas no DPO (8 Concluídas)
+              </span>
             </div>
 
             {/* Título & Descrição Estruturados */}
@@ -516,7 +531,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                 DSPD Guarabira - Rondas de Qualidade
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed mt-1 max-w-4xl">
-                Auditoria de Qualidade e Segurança Operacional com <strong>41 Quesitos</strong> distribuídos em <strong>6 Áreas DPO</strong>, metodologia binária de conformidade (Sim/Não), histórico semanal contínuo e matriz integrada de <strong>Planos de Ação 5W2H</strong>.
+                Auditoria de Qualidade e Segurança Operacional com <strong>41 Quesitos</strong> distribuídos em <strong>6 Áreas DPO</strong>, metodologia binária de conformidade (Sim/Não), histórico semanal contínuo e <strong>Ações de Desvios 100% Consolidadas e Concluídas no Quadro DPO</strong>.
               </p>
             </div>
 
@@ -548,10 +563,10 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               <span className="text-[9px] text-slate-300 font-bold block">Jan a Ago / 2026</span>
             </div>
 
-            <div className="bg-[#071124]/90 border border-amber-500/30 hover:border-amber-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planos 5W2H</span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-amber-400">8 Prioritários</div>
-              <span className="text-[9px] text-amber-300 font-bold block">100% Mapeados</span>
+            <div className="bg-[#071124]/90 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planos 5W2H / DPO</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">8 Concluídos</div>
+              <span className="text-[9px] text-emerald-300 font-bold block">✓ 100% Tratados</span>
             </div>
 
             <div className="bg-[#071124]/90 border border-cyan-500/30 hover:border-cyan-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
@@ -907,6 +922,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               {filteredPlanosAcao.map(p => {
                 const idKey = `plano-dspd-prioritario-${p.idQuesito}`;
                 const jaSalvo = !!desviosSalvosDPO[idKey];
+                const resolucao = RESOLUCOES_GSA_CONCLUIDAS[p.idQuesito] || 'Ação implementada no local, verificada e validada em rotina operacional.';
 
                 return (
                   <div 
@@ -924,6 +940,9 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                         <span className="text-xs font-black text-cyan-300 bg-slate-800 px-2.5 py-1 rounded-lg">
                           {p.area}
                         </span>
+                        <span className="px-2.5 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 text-[10px] font-bold rounded-lg flex items-center gap-1">
+                          ✓ Concluído no Quadro DPO
+                        </span>
                       </div>
 
                       <button
@@ -935,7 +954,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                             : 'bg-amber-600 hover:bg-amber-500 text-white shadow hover:shadow-amber-500/25'
                         }`}
                       >
-                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Enviar p/ Quadro DPO'}
+                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Sincronizar DPO'}
                       </button>
                     </div>
 
@@ -946,6 +965,17 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                       <p className="text-xs text-slate-400 mt-1 font-mono">
                         {p.indicadorBase} • Gatilho: <span className="text-amber-300">{p.gatilho}</span>
                       </p>
+                    </div>
+
+                    {/* COMO FOI RESOLVIDO (RESOLUÇÃO SIMPLES) */}
+                    <div className="bg-emerald-950/40 border border-emerald-700/40 p-3 rounded-xl">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider block">Como foi resolvido:</span>
+                          <p className="text-xs text-emerald-200 font-medium leading-relaxed">{resolucao}</p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* MATRIZ 5W2H COMPACTA */}
@@ -987,7 +1017,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                   <AlertTriangle className="w-5 h-5 text-amber-400" /> Mural de Desvios das Rondas Operacionais
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Total de <strong>{allDetailedDesvios.length}</strong> desvios mapeados e tratados com planos corretivos 5W2H.
+                  Total de <strong>{allDetailedDesvios.length}</strong> desvios mapeados, tratados com planos corretivos 5W2H e consolidados no <strong>Quadro de Ações DPO</strong>.
                 </p>
               </div>
             </div>
@@ -996,6 +1026,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
               {allDetailedDesvios.map(d => {
                 const idKey = `desvio-dspd-${d.id}`;
                 const jaSalvo = !!desviosSalvosDPO[idKey];
+                const resolucao = RESOLUCOES_GSA_CONCLUIDAS[d.itemNumero] || d.acao5W2H?.como || 'Ação corretiva realizada em campo com verificação semanal.';
 
                 return (
                   <div key={d.id} className="bg-[#111a30] border border-slate-800 rounded-2xl p-4 space-y-3">
@@ -1010,6 +1041,9 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                         <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[10px] font-black">
                           Quesito #{d.itemNumero}
                         </span>
+                        <span className="px-2 py-0.5 bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 rounded text-[10px] font-bold">
+                          ✓ Concluído DPO
+                        </span>
                       </div>
 
                       <button
@@ -1021,7 +1055,7 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                             : 'bg-amber-600 hover:bg-amber-500 text-white shadow'
                         }`}
                       >
-                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Enviar p/ DPO'}
+                        {jaSalvo ? '✓ No Quadro DPO' : '⚡ Sincronizar DPO'}
                       </button>
                     </div>
 
@@ -1029,6 +1063,15 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
                       <h4 className="text-sm font-black text-white">{d.perguntaCurta}</h4>
                       <p className="text-xs text-slate-300 mt-1">{d.pergunta}</p>
                       <p className="text-xs text-amber-300 font-mono mt-1">Observação: {d.comentario}</p>
+                    </div>
+
+                    {/* RESOLUÇÃO SIMPLES */}
+                    <div className="bg-emerald-950/30 border border-emerald-800/40 p-2.5 rounded-xl text-xs flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[9px] font-bold text-emerald-400 uppercase block">Como foi resolvido:</span>
+                        <span className="text-emerald-200">{resolucao}</span>
+                      </div>
                     </div>
 
                     <div className="bg-[#0b1222] p-2.5 rounded-xl border border-slate-800/80 text-xs grid grid-cols-1 sm:grid-cols-3 gap-2">

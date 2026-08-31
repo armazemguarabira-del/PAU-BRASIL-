@@ -16,7 +16,7 @@ export interface Campeao5SMensal {
 }
 
 export const CAMPEOES_5S_MENSAIS: Record<number, Campeao5SMensal> = {
-  1: { mesNum: 1, mesStr: '01', mesNome: 'Janeiro', nome: 'KATHYEL ROCHA DA SILVA', apelido: 'Kathyel', cargo: 'ADMINISTRATIVO', setorPrincipal: 'ADMINISTRATIVO', notaEsperada: 100 },
+  1: { mesNum: 1, mesStr: '01', mesNome: 'Janeiro', nome: 'CICERO MATHEU DE OLIVEIRA SILVA', apelido: 'Cícero', cargo: 'CONFERENTE', setorPrincipal: 'DEVOLUÇÃO / REFUGO', notaEsperada: 100 },
   2: { mesNum: 2, mesStr: '02', mesNome: 'Fevereiro', nome: 'OZENILDO SOUSA SILVA', apelido: 'Ozenildo', cargo: 'AJUDANTE', setorPrincipal: 'DESPEJO / REPACK', notaEsperada: 98 },
   3: { mesNum: 3, mesStr: '03', mesNome: 'Março', nome: 'DEJEAN SILVA DE OLIVEIRA', apelido: 'Dejean', cargo: 'AJUDANTE', setorPrincipal: 'PICKING / CENTRAL', notaEsperada: 98 },
   4: { mesNum: 4, mesStr: '04', mesNome: 'Abril', nome: 'DIOGENES PEREIRA DA SILVA', apelido: 'Diogenes', cargo: 'AJUDANTE', setorPrincipal: 'FROTA DA ENTREGA', notaEsperada: 100 },
@@ -29,16 +29,23 @@ export const CAMPEOES_5S_MENSAIS: Record<number, Campeao5SMensal> = {
 export const isChampionForMonth = (respName: string, areaName: string, m: number): boolean => {
   const champ = CAMPEOES_5S_MENSAIS[m];
   if (!champ) return false;
-  const normResp = (respName || '').toUpperCase().trim();
-  const normChamp = champ.nome.toUpperCase().trim();
+  const normResp = (respName || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const normChamp = champ.nome.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
   const firstName = normChamp.split(' ')[0];
+  const apelidoNorm = (champ.apelido || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
-  if (normResp === normChamp || normResp.includes(normChamp) || normChamp.includes(normResp) || normResp.includes(firstName)) {
+  if (
+    normResp === normChamp ||
+    normResp.includes(normChamp) ||
+    normChamp.includes(normResp) ||
+    (firstName.length > 2 && normResp.includes(firstName)) ||
+    (apelidoNorm.length > 2 && normResp.includes(apelidoNorm))
+  ) {
     return true;
   }
 
   // Setores diretos de responsabilidade de cada campeão
-  if (m === 1 && areaName === 'ADMINISTRATIVO') return true;
+  if (m === 1 && (areaName === 'DEVOLUÇÃO' || areaName === 'REFUGO' || areaName === 'CENTRAL' || normResp.includes('CICERO'))) return true;
   if (m === 2 && (areaName === 'DESPEJO' || areaName === 'REPACK' || areaName === 'ÁREA MKT PLACE')) return true;
   if (m === 3 && (areaName === 'PICKING' || areaName === 'ÁREA DE CARREGAMENTO' || areaName === 'CENTRAL')) return true;
   if (m === 4 && areaName === 'FROTA DA ENTREGA') return true;
@@ -342,7 +349,7 @@ export const balanceMonthlyAudits = (audits: Audit5SRecord[]): Audit5SRecord[] =
   return balanced;
 };
 
-const SEED_VERSION_TAG = 'af_5s_audits_v2026_08_champions_v1';
+const SEED_VERSION_TAG = 'af_5s_audits_v2026_08_champions_v3';
 
 export const getStored5SAudits = (): Audit5SRecord[] => {
   if (_inMemoryAuditsCache && _inMemoryAuditsCache.length > 0) {

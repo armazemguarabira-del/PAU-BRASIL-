@@ -272,19 +272,24 @@ export function getVendaMediaItens(): VendaMediaItem[] {
     if (!raw) {
       return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((it: any) => it && typeof it === 'object' && it.codigo != null && !isNaN(Number(it.codigo)));
   } catch (e) {
     return [];
   }
 }
 
 export function saveVendaMediaItens(itens: VendaMediaItem[]): void {
-  const jsonStr = JSON.stringify(itens);
+  const safeList = Array.isArray(itens)
+    ? itens.filter((it: any) => it && typeof it === 'object' && it.codigo != null && !isNaN(Number(it.codigo)))
+    : [];
+  const jsonStr = JSON.stringify(safeList);
   try {
     localStorage.setItem(STORAGE_KEYS.VENDA_MEDIA, jsonStr);
   } catch (_) {}
   setMediaItem(STORAGE_KEYS.VENDA_MEDIA, jsonStr);
-  const mapped = itens.map(it => ({ id: String(it.codigo), ...it }));
+  const mapped = safeList.map(it => ({ id: String(it.codigo), ...it }));
   firestoreDb.batchUpsert('af_estoque_venda_media', mapped, getCompanyId()).catch(() => {});
 }
 
