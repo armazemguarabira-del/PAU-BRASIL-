@@ -570,7 +570,9 @@ export default function CategoryIndexPanel({
             const style = getItemStyle(item.id);
             const isExternal = isExternalDashboard(item.id);
 
-            const handleCardClick = () => {
+            const handleCardClick = (e: React.MouseEvent) => {
+              e.preventDefault();
+              e.stopPropagation();
               if (isExternal) {
                 openExternalDashboard(item.id);
               } else {
@@ -581,6 +583,7 @@ export default function CategoryIndexPanel({
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={handleCardClick}
                 className={`text-left bg-white dark:bg-[#111a30] border border-slate-200 dark:border-slate-800/90 rounded-2xl p-5 sm:p-6 relative group transition-all duration-300 cursor-pointer shadow-md hover:shadow-2xl hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden min-h-[220px] ${style.hoverBorder}`}
               >

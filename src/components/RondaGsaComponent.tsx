@@ -496,89 +496,75 @@ export const RondaGsaComponent: React.FC<RondaGsaComponentProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       
-      {/* ── HEADER OFICIAL: DSPD GUARABIRA - RONDAS DE QUALIDADE ── */}
-      <div className="bg-gradient-to-br from-[#081226] via-[#0d1f42] to-[#0a152d] border border-blue-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
-        {/* Glow ambient effects */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-1/4 -bottom-24 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* ── HEADER COMPACTO & HARMONIZADO: DSPD GUARABIRA - RONDAS DE QUALIDADE ── */}
+      <div className="bg-gradient-to-br from-[#081226] via-[#0d1f42] to-[#0a152d] border border-blue-500/30 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
+        {/* Ambient subtle glow */}
+        <div className="absolute right-0 top-0 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 relative z-10">
           
-          {/* Lado Esquerdo: Identificação Corporativa, Título e Badges */}
-          <div className="space-y-3.5 flex-1 min-w-0 w-full">
-            {/* Linha Superior de Badges Corporativos */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> RONDA DE QUALIDADE & SEGURANÇA (DSPD)
+          {/* Lado Esquerdo: Identificação Corporativa & Título em Linha Direta */}
+          <div className="space-y-2 flex-1 min-w-0">
+            {/* Linha 1: Badges de Identificação e Conformidade */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-blue-400" /> DSPD QUALIDADE & SEGURANÇA
               </span>
-              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase rounded-lg flex items-center gap-1.5 shadow-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> FAROL DPO CONFORME (≥ 95%)
+              <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase rounded-md flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" /> FAROL CONFORME (≥ 95%)
               </span>
-              <span className="px-2.5 py-1 bg-cyan-950/80 text-cyan-300 border border-cyan-700/60 text-[10px] font-mono font-bold rounded-lg flex items-center gap-1.5 shadow-xs">
-                🏢 DSPD Guarabira - PB
+              <span className="px-2 py-0.5 bg-cyan-950/80 text-cyan-300 border border-cyan-700/60 text-[10px] font-mono font-bold rounded-md">
+                🏢 Guarabira - PB
               </span>
-              <span className="px-2.5 py-1 bg-slate-800/90 text-slate-300 border border-slate-700 text-[10px] font-mono rounded-lg flex items-center gap-1.5 shadow-xs">
-                👤 Resp: Djeanderson Soares
+              <span className="px-2 py-0.5 bg-slate-800/90 text-slate-300 border border-slate-700 text-[10px] font-mono rounded-md">
+                👤 Djeanderson Soares
               </span>
-              <span className="px-2.5 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 text-[10px] font-bold rounded-lg flex items-center gap-1.5 shadow-xs">
-                ✓ Ações Consolidadas no DPO (8 Concluídas)
+              <span className="px-2 py-0.5 bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 text-[10px] font-bold rounded-md">
+                ✓ 8 Planos 5W2H Concluídos
               </span>
             </div>
 
-            {/* Título & Descrição Estruturados */}
+            {/* Linha 2: Título e Resumo Operacional */}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                DSPD Guarabira - Rondas de Qualidade
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                DSPD Guarabira — Ronda de Qualidade Semanal (DPO)
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed mt-1 max-w-4xl">
-                Auditoria de Qualidade e Segurança Operacional com <strong>41 Quesitos</strong> distribuídos em <strong>6 Áreas DPO</strong>, metodologia binária de conformidade (Sim/Não), histórico semanal contínuo e <strong>Ações de Desvios 100% Consolidadas e Concluídas no Quadro DPO</strong>.
+              <p className="text-xs text-slate-300 font-normal leading-relaxed mt-0.5">
+                Auditoria de <strong>41 Quesitos em 6 Áreas DPO</strong> • Frequência Semanal (Jan a Ago/2026) • <strong>Licença SUDEMA: LO 599/2020</strong>
               </p>
-            </div>
-
-            {/* Metadados Técnicos em Linha */}
-            <div className="flex items-center gap-2.5 flex-wrap pt-1">
-              <span className="text-[11px] text-emerald-400 font-mono font-semibold flex items-center gap-1.5 bg-emerald-950/60 px-3 py-1 rounded-lg border border-emerald-700/50 shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Aderência Acumulada Jan-Ago: <strong className="text-emerald-300 font-black">96.5%</strong>
-              </span>
-              <span className="text-[11px] text-slate-300 font-mono flex items-center gap-1.5 bg-[#091428] px-3 py-1 rounded-lg border border-slate-700 shadow-xs whitespace-nowrap">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" /> Frequência: <strong>1 ronda por semana</strong> (35 semanas registradas)
-              </span>
-              <span className="text-[11px] text-teal-300 font-mono flex items-center gap-1.5 bg-teal-950/60 px-3 py-1 rounded-lg border border-teal-700/50 shadow-xs whitespace-nowrap">
-                <Truck className="w-3.5 h-3.5 text-teal-400" /> Licença SUDEMA: <strong className="text-teal-200">Vigente (LO 599/2020)</strong>
-              </span>
             </div>
           </div>
 
-          {/* KPI Cards Bento com Auto-Ajuste e Sem Overflow */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full 2xl:w-auto 2xl:min-w-[560px] shrink-0">
-            <div className="bg-[#071124]/90 border border-blue-500/30 hover:border-blue-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
+          {/* Lado Direito: Grid Compacto de 4 KPIs Bento */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[500px] shrink-0">
+            <div className="bg-[#071124]/95 border border-blue-500/30 hover:border-blue-400/60 rounded-xl px-3 py-2 text-center space-y-0.5 shadow-md transition-all flex flex-col justify-center">
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Nota Média YTD</span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-blue-400">{avgQuality}%</div>
-              <span className="text-[9px] text-emerald-400 font-bold block">Meta DPO: ≥ 95%</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-blue-400">{avgQuality}%</div>
+              <span className="text-[9px] text-emerald-400 font-bold block">Meta: ≥ 95%</span>
             </div>
 
-            <div className="bg-[#071124]/90 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Rondas Realizadas</span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">{totalAudits}</div>
-              <span className="text-[9px] text-slate-300 font-bold block">Jan a Ago / 2026</span>
+            <div className="bg-[#071124]/95 border border-emerald-500/30 hover:border-emerald-400/60 rounded-xl px-3 py-2 text-center space-y-0.5 shadow-md transition-all flex flex-col justify-center">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Rondas</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-emerald-400">{totalAudits}</div>
+              <span className="text-[9px] text-slate-300 font-bold block">35 Semanas</span>
             </div>
 
-            <div className="bg-[#071124]/90 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planos 5W2H / DPO</span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">8 Concluídos</div>
-              <span className="text-[9px] text-emerald-300 font-bold block">✓ 100% Tratados</span>
+            <div className="bg-[#071124]/95 border border-emerald-500/30 hover:border-emerald-400/60 rounded-xl px-3 py-2 text-center space-y-0.5 shadow-md transition-all flex flex-col justify-center">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planos 5W2H</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-emerald-400">8 OK</div>
+              <span className="text-[9px] text-emerald-300 font-bold block">100% Tratados</span>
             </div>
 
-            <div className="bg-[#071124]/90 border border-cyan-500/30 hover:border-cyan-400/60 rounded-2xl p-3.5 text-center space-y-1 shadow-lg transition-all">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quesitos Auditados</span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-cyan-400">41</div>
+            <div className="bg-[#071124]/95 border border-cyan-500/30 hover:border-cyan-400/60 rounded-xl px-3 py-2 text-center space-y-0.5 shadow-md transition-all flex flex-col justify-center">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quesitos</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-cyan-400">41</div>
               <span className="text-[9px] text-cyan-300 font-bold block">6 Áreas DPO</span>
             </div>
           </div>
         </div>
 
         {/* NAVEGAÇÃO DE SUB-ABAS DA RONDA DSPD GUARABIRA */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-800/80">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
             <button
               onClick={() => setActiveTabVisual('visao_geral')}

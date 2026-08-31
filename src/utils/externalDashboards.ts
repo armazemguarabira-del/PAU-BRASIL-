@@ -51,11 +51,19 @@ export function isExternalDashboard(panelId: string): boolean {
 export function openExternalDashboard(panelId: string): boolean {
   const item = EXTERNAL_DASHBOARDS[panelId];
   if (item && typeof window !== 'undefined') {
-    const win = window.open(item.url, '_blank', 'noopener,noreferrer');
-    if (!win) {
-      window.location.href = item.url;
+    try {
+      const a = document.createElement('a');
+      a.href = item.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return true;
+    } catch (e) {
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+      return true;
     }
-    return true;
   }
   return false;
 }

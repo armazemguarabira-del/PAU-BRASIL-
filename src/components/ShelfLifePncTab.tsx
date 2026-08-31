@@ -1379,20 +1379,21 @@ export const ShelfLifePncTab: React.FC<ShelfLifePncTabProps> = ({
                                   </button>
                                 )}
 
-                                {/* Excluir */}
+                                {/* Excluir Item do Shelf */}
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (window.confirm(`Excluir item de Shelf ${item.codigo} - ${item.descricao}?`)) {
+                                    if (window.confirm(`Excluir item de Shelf ${item.codigo} - ${item.descricao} (caso importado por erro)?`)) {
                                       removerShelfItem(item.id, empresaId);
                                       refreshLocalData();
-                                      showToast('Item removido do Shelf.', 'info');
+                                      showToast('Item removido com sucesso da lista de Shelf Life.', 'info');
                                     }
                                   }}
-                                  className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                  title="Remover item do Shelf"
+                                  className="px-2 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-rose-600 dark:hover:bg-rose-600 bg-slate-100 dark:bg-slate-800 transition-all flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+                                  title="Remover este item da lista de Shelf Life"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
+                                  <span className="hidden xl:inline">Excluir</span>
                                 </button>
                               </div>
                             </td>

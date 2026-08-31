@@ -437,6 +437,39 @@ export function updatePncRecordNf(
 }
 
 /**
+ * Exclui um registro de PNC pelo seu número de bloqueio (n_bloqueio)
+ */
+export function deletePncRecord(n_bloqueio: string, empresaId = 'demo'): PncRecord[] {
+  const current = getStoredPncRecords(empresaId);
+  const updatedList = current.filter(r => String(r.n_bloqueio).trim() !== String(n_bloqueio).trim());
+  
+  savePncRecords(updatedList, empresaId);
+  try {
+    window.dispatchEvent(new CustomEvent('pnc-records-updated', { detail: { records: updatedList } }));
+  } catch (e) {
+    // ignore
+  }
+  return updatedList;
+}
+
+/**
+ * Exclui múltiplos registros de PNC em lote pelos seus números de bloqueio
+ */
+export function deletePncRecordsBulk(n_bloqueios: string[], empresaId = 'demo'): PncRecord[] {
+  const current = getStoredPncRecords(empresaId);
+  const removeSet = new Set(n_bloqueios.map(n => String(n).trim()));
+  const updatedList = current.filter(r => !removeSet.has(String(r.n_bloqueio).trim()));
+
+  savePncRecords(updatedList, empresaId);
+  try {
+    window.dispatchEvent(new CustomEvent('pnc-records-updated', { detail: { records: updatedList } }));
+  } catch (e) {
+    // ignore
+  }
+  return updatedList;
+}
+
+/**
  * Reseta os dados para o JSON oficial original
  */
 export function resetPncToOfficial(empresaId = 'demo'): PncRecord[] {

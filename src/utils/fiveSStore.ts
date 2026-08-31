@@ -20,7 +20,7 @@ export const CAMPEOES_5S_MENSAIS: Record<number, Campeao5SMensal> = {
   2: { mesNum: 2, mesStr: '02', mesNome: 'Fevereiro', nome: 'OZENILDO SOUSA SILVA', apelido: 'Ozenildo', cargo: 'AJUDANTE', setorPrincipal: 'DESPEJO / REPACK', notaEsperada: 98 },
   3: { mesNum: 3, mesStr: '03', mesNome: 'Março', nome: 'DEJEAN SILVA DE OLIVEIRA', apelido: 'Dejean', cargo: 'AJUDANTE', setorPrincipal: 'PICKING / CENTRAL', notaEsperada: 98 },
   4: { mesNum: 4, mesStr: '04', mesNome: 'Abril', nome: 'DIOGENES PEREIRA DA SILVA', apelido: 'Diogenes', cargo: 'AJUDANTE', setorPrincipal: 'FROTA DA ENTREGA', notaEsperada: 100 },
-  5: { mesNum: 5, mesStr: '05', mesNome: 'Maio', nome: 'ADELSON SANTOS DE ARAUJO', apelido: 'Adelson', cargo: 'MOTORISTA', setorPrincipal: 'RECICLÁVEIS', notaEsperada: 98 },
+  5: { mesNum: 5, mesStr: '05', mesNome: 'Maio', nome: 'GLADSON LISBOA DOS SANTOS', apelido: 'Gladson', cargo: 'AJUDANTE', setorPrincipal: 'REFUGO / DEVOLUÇÃO', notaEsperada: 100 },
   6: { mesNum: 6, mesStr: '06', mesNome: 'Junho', nome: 'PAULO PEREIRA DA SILVA', apelido: 'Paulo Pereira', cargo: 'EMPILHADOR', setorPrincipal: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', notaEsperada: 98 },
   7: { mesNum: 7, mesStr: '07', mesNome: 'Julho', nome: 'GILSON ROSA DA SILVA', apelido: 'Gilson', cargo: 'CONFERENTE', setorPrincipal: 'PNC', notaEsperada: 100 },
   8: { mesNum: 8, mesStr: '08', mesNome: 'Agosto', nome: 'DIOGENES PEREIRA DA SILVA', apelido: 'Diogenes', cargo: 'AJUDANTE', setorPrincipal: 'FROTA DA ENTREGA', notaEsperada: 98 }
@@ -46,13 +46,13 @@ export const isChampionForMonth = (respName: string, areaName: string, m: number
 
   // Setores diretos de responsabilidade de cada campeão
   if (m === 1 && (areaName === 'DEVOLUÇÃO' || areaName === 'REFUGO' || areaName === 'CENTRAL' || normResp.includes('CICERO'))) return true;
-  if (m === 2 && (areaName === 'DESPEJO' || areaName === 'REPACK' || areaName === 'ÁREA MKT PLACE')) return true;
-  if (m === 3 && (areaName === 'PICKING' || areaName === 'ÁREA DE CARREGAMENTO' || areaName === 'CENTRAL')) return true;
-  if (m === 4 && areaName === 'FROTA DA ENTREGA') return true;
-  if (m === 5 && areaName === 'RECICLÁVEIS') return true;
-  if (m === 6 && areaName === 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA') return true;
-  if (m === 7 && areaName === 'PNC') return true;
-  if (m === 8 && areaName === 'FROTA DA ENTREGA') return true;
+  if (m === 2 && (areaName === 'DESPEJO' || areaName === 'REPACK' || areaName === 'ÁREA MKT PLACE' || normResp.includes('OZENILDO'))) return true;
+  if (m === 3 && (areaName === 'PICKING' || areaName === 'ÁREA DE CARREGAMENTO' || areaName === 'CENTRAL' || normResp.includes('DEJEAN'))) return true;
+  if (m === 4 && (areaName === 'FROTA DA ENTREGA' || normResp.includes('DIOGENES'))) return true;
+  if (m === 5 && (areaName === 'REFUGO' || areaName === 'DEVOLUÇÃO' || normResp.includes('GLADSON'))) return true;
+  if (m === 6 && (areaName === 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA' || normResp.includes('PAULO'))) return true;
+  if (m === 7 && (areaName === 'PNC' || normResp.includes('GILSON'))) return true;
+  if (m === 8 && (areaName === 'FROTA DA ENTREGA' || normResp.includes('DIOGENES'))) return true;
 
   return false;
 };

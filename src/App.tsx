@@ -205,15 +205,17 @@ export default function App() {
   const canGoForward = historyIndex < history.length - 1;
 
   const handleGoBack = () => {
-    if (canGoBack) {
+    if (historyIndex > 0) {
       const prevIdx = historyIndex - 1;
       setHistoryIndex(prevIdx);
       setActivePanel(history[prevIdx]);
+    } else if (activePanel !== 'visao-geral' && activePanel !== 'landing') {
+      navigateToPanel('visao-geral');
     }
   };
 
   const handleGoForward = () => {
-    if (canGoForward) {
+    if (historyIndex < history.length - 1) {
       const nextIdx = historyIndex + 1;
       setHistoryIndex(nextIdx);
       setActivePanel(history[nextIdx]);
@@ -745,7 +747,7 @@ export default function App() {
           <CategoryIndexPanel
             categoryKey={activePanel}
             user={user}
-            onNavigate={setActivePanel}
+            onNavigate={navigateToPanel}
             theme={theme}
           />
         );
@@ -755,7 +757,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab={dashInitialTab}
             kpiStats={{
@@ -767,21 +769,21 @@ export default function App() {
           />
         );
       case 'dn-swot':
-        return <DnSwotPanel user={user} onNavigate={setActivePanel} />;
+        return <DnSwotPanel user={user} onNavigate={navigateToPanel} />;
       case 'ajudante':
       case 'repack':
         return <AjudantePanel user={user} empresa={empresa} theme={theme} />;
       case 'montagem':
       case 'guia-montagem':
-        return <GuiaMontagemPanel user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <GuiaMontagemPanel user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'repack-dashboard':
-        return <RepackDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <RepackDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'despejo-dashboard':
-        return <DespejoDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <DespejoDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'logistica-dashboard':
-        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="efc_efd" onBack={() => setActivePanel('visao-geral')} />;
+        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="efc_efd" onBack={handleGoBack} />;
       case 'quebras-dashboard':
-        return <QuebrasDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <QuebrasDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'fefo-dashboard':
         return (
           <FefoDashboard 
@@ -790,15 +792,15 @@ export default function App() {
             theme={theme} 
             initialTab={fefoInitialTab} 
             initialSubTab={fefoInitialSubTab} 
-            onBack={() => setActivePanel('visao-geral')} 
+            onBack={handleGoBack} 
           />
         );
       case 'picking-dashboard':
-        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="operadores" onBack={() => setActivePanel('visao-geral')} />;
+        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="operadores" onBack={handleGoBack} />;
       case 'gestao-capacidade':
-        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} onNavigate={setActivePanel} />;
+        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} onNavigate={navigateToPanel} />;
       case 'tmr-dashboard':
-        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="tmr" onBack={() => setActivePanel('visao-geral')} />;
+        return <PickingDashboard user={user} empresa={empresa} theme={theme} initialModule="tmr" onBack={handleGoBack} />;
       case 'despejo':
         return <DespejoPanel user={user} empresa={empresa} theme={theme} />;
       case 'armazem':
@@ -814,21 +816,21 @@ export default function App() {
       case 'conferente':
         return <ConferentePanel user={user} empresa={empresa} theme={theme} />;
       case 'registros':
-        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={setActivePanel} initialTab="governanca" />;
+        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={navigateToPanel} initialTab="governanca" />;
       case 'acessos':
-        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={setActivePanel} initialTab="acoes" />;
+        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={navigateToPanel} initialTab="acoes" />;
       case 'cadastros':
         return <CadastrosPanel user={user} empresa={empresa} theme={theme} initialSubTab="produtos" />;
       case 'controle':
         return <ControlePanel user={user} empresa={empresa} theme={theme} />;
       case 'acoes':
-        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={setActivePanel} initialTab="acoes" />;
+        return <SimulacaoAcoesPanel user={user} empresa={empresa} onNavigate={navigateToPanel} initialTab="acoes" />;
       case 'firebase':
         return <FirebasePanel theme={theme} />;
       case 'exportar':
         return <ExportarPanel user={user} empresa={empresa} theme={theme} />;
       case 'politica-estoque':
-        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} initialTab="politica-estoque" onBack={() => setActivePanel('visao-geral')} onNavigate={setActivePanel} />;
+        return <GestaoCapacidadeDashboard user={user} empresa={empresa} theme={theme} initialTab="politica-estoque" onBack={handleGoBack} onNavigate={navigateToPanel} />;
       case 'importacao-contagens':
         return <EstoqueHub user={user} initialTab="importacao-contagens" />;
       case 'area-contingencia':
@@ -849,7 +851,7 @@ export default function App() {
       case 'plataformas-externas':
         return <PlataformasExternasPanel user={user} theme={theme} />;
       case 'auditoria-dpo':
-        return <AuditoriaDpoPanel user={user} empresa={empresa} theme={theme} onNavigate={setActivePanel} />;
+        return <AuditoriaDpoPanel user={user} empresa={empresa} theme={theme} onNavigate={navigateToPanel} />;
       case 'treinamentos-qualidade':
         return <TreinamentosQualidadePanel user={user} empresa={empresa} theme={theme} />;
       case 'bloqueio-armazem':
@@ -870,7 +872,7 @@ export default function App() {
       case 'padronizacao-processos':
         return <PadraoOperacionalPanel user={user} theme={theme} />;
       case 'simulacao-acoes':
-        return <SimulacaoAcoesPanel user={user} />;
+        return <SimulacaoAcoesPanel user={user} onNavigate={navigateToPanel} />;
       case 'dados-retroativos':
       case 'importacao-dados-retroativos':
         return <DadosRetroativosPanel user={user} initialTab="importacao" onNavigate={navigateToPanel} />;
@@ -892,7 +894,7 @@ export default function App() {
             user={user} 
             empresa={empresa} 
             theme={theme} 
-            onBack={() => setActivePanel('visao-geral')} 
+            onBack={handleGoBack} 
             onNavigate={(panel, tab, subTab) => {
               if (tab) setFefoInitialTab(tab);
               if (subTab) setFefoInitialSubTab(subTab);
@@ -901,17 +903,17 @@ export default function App() {
           />
         );
       case 'trocas-reposicoes':
-        return <TrocasEReposicoesDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <TrocasEReposicoesDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'retorno-de-rota':
-        return <RetornoDeRotaDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <RetornoDeRotaDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'blitz-de-puxada':
-        return <BlitzDePuxadaDashboard user={user} empresa={empresa} theme={theme} onBack={() => setActivePanel('visao-geral')} />;
+        return <BlitzDePuxadaDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'agenda-executiva':
         return (
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="agenda"
             kpiStats={{
@@ -927,7 +929,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="diario_bordo"
             kpiStats={{
@@ -943,7 +945,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="reunioes"
             kpiStats={{
@@ -961,7 +963,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="gatilhos"
             kpiStats={{
@@ -978,7 +980,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="desvios"
             kpiStats={{
@@ -995,7 +997,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             initialTab="fluxograma"
             kpiStats={{
@@ -1012,7 +1014,7 @@ export default function App() {
           <QuebrasDashboard 
             user={user} 
             empresa={empresa} 
-            onBack={() => setActivePanel('visao-geral')} 
+            onBack={handleGoBack} 
             theme={theme}
             initialSubTab="arvore"
           />
@@ -1022,7 +1024,7 @@ export default function App() {
           <DashboardOverview 
             user={user} 
             empresa={empresa} 
-            onNavigate={setActivePanel} 
+            onNavigate={navigateToPanel} 
             theme={theme}
             kpiStats={{
               usuarios: 3,

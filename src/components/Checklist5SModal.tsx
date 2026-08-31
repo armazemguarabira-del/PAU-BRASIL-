@@ -94,14 +94,15 @@ export const MAPEAMENTO_RESPONSAVEIS_5S: Responsavel5SItem[] = [
   { id: 5, area: 'ÁREA MKT PLACE', colaborador: 'OZENILDO SOUSA SILVA', cargo: 'AJUDANTE' },
   { id: 6, area: 'PNC', colaborador: 'GILSON ROSA DA SILVA', cargo: 'CONFERENTE' },
   { id: 7, area: 'RECICLÁVEIS', colaborador: 'ADELSON SANTOS DE ARAUJO', cargo: 'MOTORISTA' },
-  { id: 8, area: 'REFUGO', colaborador: 'CICERO MATHEU DE OLIVEIRA SILVA', cargo: 'CONFERENTE' },
-  { id: 9, area: 'DEVOLUÇÃO', colaborador: 'CICERO MATHEU DE OLIVEIRA SILVA', cargo: 'CONFERENTE' },
+  { id: 8, area: 'REFUGO', colaborador: 'GLADSON LISBOA DOS SANTOS', cargo: 'AJUDANTE' },
+  { id: 9, area: 'DEVOLUÇÃO', colaborador: 'GLADSON LISBOA DOS SANTOS', cargo: 'AJUDANTE' },
   { id: 10, area: 'REPACK', colaborador: 'OZENILDO SOUSA SILVA', cargo: 'AJUDANTE' },
   { id: 11, area: 'ÁREA DE CARREGAMENTO DA EMPILHADEIRA', colaborador: 'PAULO PEREIRA DA SILVA', cargo: 'EMPILHADOR' },
   { id: 12, area: 'EMPILHADEIRA 2', colaborador: 'JOSE RONILDO DA SILVA', cargo: 'EMPILHADOR' },
   { id: 13, area: 'EMPILHADEIRA 1', colaborador: 'MARIVALDO ARTUR ALVES', cargo: 'EMPILHADOR' },
   { id: 14, area: 'FROTA DA ENTREGA', colaborador: 'DIOGENES PEREIRA DA SILVA', cargo: 'AJUDANTE' },
   { id: 15, area: 'ADMINISTRATIVO', colaborador: 'KATHYEL ROCHA DA SILVA', cargo: 'ADMINISTRATIVO' },
+  { id: 16, area: 'ADMINISTRATIVO', colaborador: 'JOSE GONCALVES DE SOUZA', cargo: 'ADMINISTRATIVO' },
 ];
 
 export const getUserAssignedAreasList = (
@@ -115,13 +116,11 @@ export const getUserAssignedAreasList = (
     const matched = MAPEAMENTO_RESPONSAVEIS_5S.filter(item => {
       const respName = (item.colaborador || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       if (!respName) return false;
-      const firstNameUser = normalizedName.split(' ')[0];
-      const firstNameResp = respName.split(' ')[0];
-      return respName.includes(normalizedName) || normalizedName.includes(respName) || (firstNameUser.length > 2 && firstNameUser === firstNameResp);
+      return respName === normalizedName || respName.includes(normalizedName) || normalizedName.includes(respName);
     });
 
     if (matched.length > 0) {
-      return matched.map(m => m.area);
+      return Array.from(new Set(matched.map(m => m.area)));
     }
   }
 
