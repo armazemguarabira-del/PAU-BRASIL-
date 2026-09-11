@@ -45,12 +45,12 @@ interface FirebaseConfigExtended {
 const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
 
 const DEFAULT_CONFIG: FirebaseConfigExtended = {
-  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyCEVc8_C4nk8_NBitfE1oBki_dWYvBpXyg",
-  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "mesmerizing-rampart-wdzmz.firebaseapp.com",
-  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "mesmerizing-rampart-wdzmz",
-  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "mesmerizing-rampart-wdzmz.firebasestorage.app",
-  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "612888387646",
-  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:612888387646:web:57f543336ce0209dceb16f",
+  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyCZ2yYeYPVA_TVIEwsvQNJ9tzq4f3kYyis",
+  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "armazemrelatorios.firebaseapp.com",
+  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "armazemrelatorios",
+  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "armazemrelatorios.firebasestorage.app",
+  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1060201893094",
+  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:1060201893094:web:5702ee694b6e234f0dbf27",
   measurementId: metaEnv?.VITE_FIREBASE_MEASUREMENT_ID || undefined,
   firestoreDatabaseId: metaEnv?.VITE_FIREBASE_DATABASE_ID || undefined
 };
@@ -64,8 +64,8 @@ if (typeof window !== 'undefined') {
   if (savedConfigStr) {
     try {
       const parsed = JSON.parse(savedConfigStr);
-      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'armazemrelatorios')) {
-        // Automatically clear stale cache pointing to old projects
+      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'mesmerizing-rampart-wdzmz')) {
+        // Automatically clear stale cache pointing to previous projects
         localStorage.removeItem('custom_firebase_config');
       } else if (parsed && parsed.apiKey && parsed.projectId) {
         firebaseConfig = {
@@ -105,24 +105,15 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Setup optimized cache strategy: persistent IndexedDB cache across tabs to eliminate repeated reads
-let hybridFirestoreCache;
-try {
-  hybridFirestoreCache = persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  });
-} catch (e) {
-  hybridFirestoreCache = memoryLocalCache();
-}
-
+// Cache persistente desativado a pedido: utiliza apenas memoryLocalCache() para evitar retenção em disco
 let db: Firestore;
 try {
   db = firebaseConfig.firestoreDatabaseId 
     ? initializeFirestore(app, {
-        localCache: hybridFirestoreCache
+        localCache: memoryLocalCache()
       }, firebaseConfig.firestoreDatabaseId)
     : initializeFirestore(app, {
-        localCache: hybridFirestoreCache
+        localCache: memoryLocalCache()
       });
 } catch (err) {
   try {

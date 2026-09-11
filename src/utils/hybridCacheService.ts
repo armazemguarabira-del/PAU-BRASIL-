@@ -25,6 +25,12 @@ let idbPromise: Promise<IDBDatabase | null> | null = null;
 const memoryCache = new Map<string, CacheEntry<any>>();
 
 // Métricas de leituras economizadas em tempo de execução
+export let HYBRID_CACHE_ACTIVE = false;
+
+export function setHybridCacheActive(active: boolean) {
+  HYBRID_CACHE_ACTIVE = active;
+}
+
 export interface CacheMetrics {
   cacheHits: number;
   serverReadsSaved: number;
@@ -169,20 +175,26 @@ export async function setHybridCacheCollection<T>(
 ): Promise<CacheEntry<T[]>> {
   const nowISO = new Date().toISOString();
   
-  // Verifica se já existia para manter createdAt original
-  const existingMem = memoryCache.get(key);
-  const createdAt = existingMem?.createdAt || nowISO;
-
   const entry: CacheEntry<T[]> = {
     key,
     source,
-    createdAt,
+    createdAt: nowISO,
     updatedAt: nowISO,
     ttl: ttlMs,
     version,
     data,
     count: Array.isArray(data) ? data.length : 1
   };
+
+  // Se cache estiver desativado, não armazena em memória nem no IndexedDB
+  if (!HYBRID_CACHE_ACTIVE) {
+    return entry;
+  }
+  
+  // Verifica se já existia para manter createdAt original
+  const existingMem = memoryCache.get(key);
+  const createdAt = existingMem?.createdAt || nowISO;
+  entry.createdAt = createdAt;
   
   // 1. Atualizar Memória (L1)
   memoryCache.set(key, entry);
@@ -215,6 +227,11 @@ export async function getHybridCacheCollection<T>(
   key: string,
   allowStale = true
 ): Promise<{ data: T[]; isStale: boolean; fromMemory: boolean; entry?: CacheEntry<T[]> } | null> {
+  // Quando cache estiver desativado a pedido do usuário, sempre retorna null para forçar busca direta
+  if (!HYBRID_CACHE_ACTIVE) {
+    return null;
+  }
+
   const now = Date.now();
 
   // 1. Verificar Memória (L1)
@@ -371,4 +388,45 @@ export async function invalidateHybridCache(keyPrefix?: string): Promise<void> {
       };
     }
   } catch (_) {}
+}
+
+/**
+ * Limpa completamente todos os caches (Memória, IndexedDB e LocalStorage)
+ */
+export async function clearAllCaches(): Promise<void> {
+  memoryCache.clear();
+  if (typeof window === 'undefined') return;
+
+  try {
+    // 1. Limpar LocalStorage de chaves de cache
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (
+        k.startsWith('hc:') || 
+        k.startsWith('hybrid_col:') || 
+        k.startsWith('col:') || 
+        k.startsWith('sync:') || 
+        k.startsWith('af_json_table:') ||
+        k.startsWith('cached_')
+      )) {
+        toRemove.push(k);
+      }
+    }
+    toRemove.forEach(k => {
+      try { localStorage.removeItem(k); } catch (_) {}
+    });
+
+    // 2. Fechar e deletar banco IndexedDB de cache
+    if (window.indexedDB) {
+      if (idbInstance) {
+        try { idbInstance.close(); } catch (_) {}
+        idbInstance = null;
+      }
+      try { window.indexedDB.deleteDatabase(IDB_NAME); } catch (_) {}
+      try { window.indexedDB.deleteDatabase('ArmazemFacilHybridDB'); } catch (_) {}
+    }
+  } catch (err) {
+    console.warn('[hybridCache] Erro ao limpar caches:', err);
+  }
 }

@@ -4,7 +4,13 @@ import './utils/safeLocalStorage';
 import App from './App';
 import { CrossFilterProvider } from './context/CrossFilterContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { clearAllCaches } from './utils/hybridCacheService';
 import './index.css';
+
+// Purga automática de cache residual para garantir dados 100% frescos do Firestore
+if (typeof window !== 'undefined') {
+  clearAllCaches().catch(() => {});
+}
 
 if (typeof window !== 'undefined') {
   // Capture unhandled errors and suppress generic iframe "Script error."

@@ -759,7 +759,12 @@ export function generateMonthBaseline(monthKey: string): ColetaItemRaw[] {
     return getAugustBaselineColetas();
   }
 
-  // Sexta-feira padrão de contagem para cada mês
+  // DE SETEMBRO EM DIANTE (09, 10, 11, 12): Base 100% ZERADA sem registros e sem geração de mock
+  if (m >= 9) {
+    return [];
+  }
+
+  // Sexta-feira padrão de contagem para cada mês (Janeiro a Agosto)
   const defaultCollectionDays: Record<string, string> = {
     '01': '09/01/2026',
     '02': '06/02/2026',
@@ -800,7 +805,13 @@ export function getStoredMonthlyColetas(): Record<string, ColetaItemRaw[]> {
   const allMonthKeys = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
   const defaultMonths: Record<string, ColetaItemRaw[]> = {};
   allMonthKeys.forEach(mk => {
-    defaultMonths[mk] = generateMonthBaseline(mk);
+    const num = parseInt(mk, 10);
+    // Meses de Setembro em diante não possuem coletas/mock: 100% zerados
+    if (num >= 9) {
+      defaultMonths[mk] = [];
+    } else {
+      defaultMonths[mk] = generateMonthBaseline(mk);
+    }
   });
 
   if (typeof window === 'undefined') return defaultMonths;
@@ -811,9 +822,18 @@ export function getStoredMonthlyColetas(): Record<string, ColetaItemRaw[]> {
       if (parsed && typeof parsed === 'object') {
         let changed = false;
         allMonthKeys.forEach(m => {
-          if (!parsed[m] || !Array.isArray(parsed[m]) || parsed[m].length === 0) {
-            parsed[m] = defaultMonths[m];
-            changed = true;
+          const num = parseInt(m, 10);
+          if (num >= 9) {
+            // Setembro em diante: ZERADO OBRIGATORIAMENTE (sem mock e sem dados legados)
+            if (!Array.isArray(parsed[m]) || parsed[m].length > 0) {
+              parsed[m] = [];
+              changed = true;
+            }
+          } else {
+            if (!parsed[m] || !Array.isArray(parsed[m]) || parsed[m].length === 0) {
+              parsed[m] = defaultMonths[m];
+              changed = true;
+            }
           }
         });
 
@@ -875,8 +895,10 @@ export function getYearlyStockAgeSummary(): {
   let contagensCount = 0;
   let mesesComColetas = 0;
 
-  Object.entries(monthly).forEach(([_, list]) => {
-    if (Array.isArray(list) && list.length > 0) {
+  Object.entries(monthly).forEach(([mKey, list]) => {
+    const num = parseInt(mKey, 10);
+    // Somente meses com coletas reais (Jan-Ago, excluindo meses zerados >= 9)
+    if (num < 9 && Array.isArray(list) && list.length > 0) {
       mesesComColetas++;
       allColetas.push(...list);
       const dates = new Set(list.map(i => i.dataColeta));
@@ -886,7 +908,7 @@ export function getYearlyStockAgeSummary(): {
 
   if (allColetas.length === 0) {
     return {
-      avgStockAgeAno: 100,
+      avgStockAgeAno: 0,
       totalLotesAno: 0,
       totalCaixasAno: 0,
       totalHectoAno: 0,
@@ -1338,7 +1360,7 @@ export function processColetaItems(
       totalCaixas: curvaAgg.A.totalCaixas,
       totalHecto: Math.round(curvaAgg.A.totalHecto * 100) / 100,
       totalValor: Math.round(curvaAgg.A.totalValor),
-      stockAgeIndexMedio: curvaAgg.A.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.A.sumStockAge / curvaAgg.A.totalLotes) * 10) / 10)) : 100,
+      stockAgeIndexMedio: curvaAgg.A.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.A.sumStockAge / curvaAgg.A.totalLotes) * 10) / 10)) : 0,
       criticosCount: curvaAgg.A.criticosCount,
       criticosCaixas: curvaAgg.A.criticosCaixas,
       criticosHecto: Math.round(curvaAgg.A.criticosHecto * 100) / 100,
@@ -1352,7 +1374,7 @@ export function processColetaItems(
       totalCaixas: curvaAgg.B.totalCaixas,
       totalHecto: Math.round(curvaAgg.B.totalHecto * 100) / 100,
       totalValor: Math.round(curvaAgg.B.totalValor),
-      stockAgeIndexMedio: curvaAgg.B.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.B.sumStockAge / curvaAgg.B.totalLotes) * 10) / 10)) : 100,
+      stockAgeIndexMedio: curvaAgg.B.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.B.sumStockAge / curvaAgg.B.totalLotes) * 10) / 10)) : 0,
       criticosCount: curvaAgg.B.criticosCount,
       criticosCaixas: curvaAgg.B.criticosCaixas,
       criticosHecto: Math.round(curvaAgg.B.criticosHecto * 100) / 100,
@@ -1366,7 +1388,7 @@ export function processColetaItems(
       totalCaixas: curvaAgg.C.totalCaixas,
       totalHecto: Math.round(curvaAgg.C.totalHecto * 100) / 100,
       totalValor: Math.round(curvaAgg.C.totalValor),
-      stockAgeIndexMedio: curvaAgg.C.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.C.sumStockAge / curvaAgg.C.totalLotes) * 10) / 10)) : 100,
+      stockAgeIndexMedio: curvaAgg.C.totalLotes > 0 ? Math.min(100, Math.max(0, Math.round((curvaAgg.C.sumStockAge / curvaAgg.C.totalLotes) * 10) / 10)) : 0,
       criticosCount: curvaAgg.C.criticosCount,
       criticosCaixas: curvaAgg.C.criticosCaixas,
       criticosHecto: Math.round(curvaAgg.C.criticosHecto * 100) / 100,
@@ -1413,8 +1435,8 @@ export function processColetaItems(
   const semanasComDados = semanasSummary.filter(s => s.hasData);
   const rawAvgMediaSemanas = semanasComDados.length > 0
     ? Math.round((semanasComDados.reduce((acc, s) => acc + s.avgStockAge, 0) / semanasComDados.length) * 10) / 10
-    : 100;
-  const avgStockAgeMediaSemanas = Math.min(100, Math.max(0, rawAvgMediaSemanas));
+    : 0;
+  const avgStockAgeMediaSemanas = processedItems.length === 0 ? 0 : Math.min(100, Math.max(0, rawAvgMediaSemanas));
 
   const totalLotesGeral = processedItems.length || 0;
   const criticosPct = totalLotesGeral > 0 ? Math.round((criticosCountGeral / totalLotesGeral) * 100) : 0;
@@ -1431,7 +1453,7 @@ export function processColetaItems(
       totalCaixas: totalCaixasGeral,
       totalHecto: Math.round(totalHectoGeral * 100) / 100,
       totalLotes: totalLotesGeral,
-      avgStockAge: avgStockAgeMediaSemanas, // O Stock Age do Mês é a média das semanas
+      avgStockAge: totalLotesGeral === 0 ? 0 : avgStockAgeMediaSemanas, // O Stock Age do Mês é a média das semanas (zerado se sem coletas)
       criticosPct,
       criticosCaixas: criticosCaixasGeral,
       criticosHecto: Math.round(criticosHectoGeral * 100) / 100,

@@ -134,86 +134,26 @@ export function syncIncremental({
   };
 
   const runSync = async () => {
-    // 1. CARGA IMEDIATA DO CACHE (0ms, 0 leituras no servidor)
-    try {
-      const cached = await getHybridCacheCollection<any>(cacheKey, true);
-      if (cached && cached.data && cached.data.length > 0) {
-        cached.data.forEach((item: any) => {
-          const key = getItemKey(item);
-          if (key) docsMap.set(key, item);
-        });
-        notify();
-      } else {
-        // Fallback: tenta ler direto da tabela JSON local
-        const jsonRecords = await getJsonTable<any>(empresaId, collectionName);
-        if (jsonRecords && jsonRecords.length > 0) {
-          jsonRecords.forEach((item: any) => {
-            const key = getItemKey(item);
-            if (key) docsMap.set(key, item);
-          });
-          notify();
-        }
-      }
-    } catch (_) {}
-
     if (isUnsubscribed) return;
 
     const colRef = collection(db, collectionName);
-    const baseQuery = query(colRef, where('empresaId', '==', empresaId));
+    const baseQuery = (empresaId && empresaId !== 'all')
+      ? query(colRef, where('empresaId', '==', empresaId))
+      : query(colRef);
 
-    // 2. Tenta o cache do Firestore SDK (0 leituras)
-    try {
-      const cacheSnap = await getDocsFromCache(baseQuery);
-      if (!cacheSnap.empty) {
-        cacheSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
-          storeDoc(doc.id, doc.data());
-        });
-        notify();
-      }
-    } catch (_) {}
-
-    if (isUnsubscribed) return;
-
-    // 3. Sincronização Delta inteligente no Servidor (apenas modificados recentemente)
+    // Consulta direta ao Firestore (Cache desativado)
     const startTime = new Date();
     try {
-      let serverQuery = baseQuery;
-      let isDeltaQuery = false;
-
-      if (lastSyncStr && docsMap.size > 0) {
-        const lastSyncDate = new Date(lastSyncStr);
-        if (!isNaN(lastSyncDate.getTime())) {
-          serverQuery = query(
-            colRef,
-            where('empresaId', '==', empresaId),
-            where('atualizadoEm', '>', Timestamp.fromDate(lastSyncDate)),
-            limit(500)
-          );
-          isDeltaQuery = true;
-        }
-      }
-
       let serverSnap;
       try {
-        serverSnap = await getDocsFromServer(serverQuery);
-      } catch (serverErr) {
-        if (isDeltaQuery) {
-          // Se a query delta falhar por falta de índice ou timestamp, tenta carregar query base
-          serverSnap = await getDocsFromServer(baseQuery);
-          isDeltaQuery = false;
-        } else {
-          throw serverErr;
-        }
+        serverSnap = await getDocsFromServer(baseQuery);
+      } catch (_) {
+        serverSnap = await getDocs(baseQuery);
       }
 
       if (serverSnap && !serverSnap.empty) {
         recordActualFirestoreReads(serverSnap.docs.length);
-        
-        // Se foi uma consulta completa (não delta), substitui a base para evitar soma indesejada com cache obsoleto
-        if (!isDeltaQuery) {
-          docsMap.clear();
-        }
-        
+        docsMap.clear();
         serverSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
           storeDoc(doc.id, doc.data());
         });
@@ -223,7 +163,6 @@ export function syncIncremental({
       localStorage.setItem(syncKey, startTime.toISOString());
     } catch (err) {
       console.warn(`[syncIncremental] Aviso ao sincronizar '${collectionName}':`, err);
-      // Fallback offline seguro
       try {
         const fallbackSnap = await getDocs(baseQuery);
         if (!fallbackSnap.empty) {

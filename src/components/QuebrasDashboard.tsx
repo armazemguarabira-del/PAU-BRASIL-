@@ -250,13 +250,19 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
       const customRows: QuebraRow[] = [];
       const seenCustomKeys = new Set<string>();
 
+      // Populate seen keys from official rows first
+      officialRows.forEach(r => {
+        const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
+        seenCustomKeys.add(key);
+      });
+
       const addCustomIfNew = (item: QuebraRow) => {
         if (!item) return;
         const idStr = String(item.id || item._docId || '');
         if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
-        const bizKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${item.colaborador || item.colaboradorQuebrou || item.responsavel || ''}_${item.area || ''}_${item.quantidade || 0}`;
-        if (seenCustomKeys.has(bizKey)) return;
-        seenCustomKeys.add(bizKey);
+        const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
+        if (seenCustomKeys.has(itemKey)) return;
+        seenCustomKeys.add(itemKey);
         customRows.push(item);
       };
 

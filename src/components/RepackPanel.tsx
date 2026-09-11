@@ -6,11 +6,13 @@ import { useEmpresaData } from '../context/EmpresaDataContext';
 
 const repackValidadesRepo = RepackValidadesRepository;
 import { PRODUCTS } from '../planosData';
-import { TrendingUp, CheckCircle, Clock, Award, BarChart2, BookOpen, Users, FileText, ChevronDown, ChevronUp, AlertCircle, ShieldAlert } from 'lucide-react';
+import { TrendingUp, CheckCircle, Clock, Award, BarChart2, BookOpen, Users, FileText, ChevronDown, ChevronUp, AlertCircle, ShieldAlert, Download, FileSpreadsheet } from 'lucide-react';
 import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { triggerAutoAcaoCorretiva } from '../utils/simulacaoAcoesUtils';
 import { buildOfficialRepackRows } from '../utils/repackDefaultData';
+import { CustomDateExportModal, isDateWithinInterval } from './common/CustomDateExportModal';
+import { CustomDateFilterBar } from './common/CustomDateFilterBar';
 
 interface RepackPanelProps {
   user: Usuario;
@@ -551,15 +553,54 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     return { lancamentos, caixas, metasBatidas };
   }, [todayRepackRows]);
 
+  // Custom Date Range & Export Modal State
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+
+  const dateFilteredRepackRows = useMemo(() => {
+    if (!filterStartDate && !filterEndDate) return filteredRepackRows;
+    return filteredRepackRows.filter(r => {
+      const rawDate = r.dataISO || r.data;
+      return isDateWithinInterval(rawDate, filterStartDate, filterEndDate);
+    });
+  }, [filteredRepackRows, filterStartDate, filterEndDate]);
+
   const groupedHistoryEntries = useMemo(() => {
-    const grouped = filteredRepackRows.reduce((acc, r) => {
+    const grouped = dateFilteredRepackRows.reduce((acc, r) => {
       const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
       if (!acc[key]) acc[key] = [];
       acc[key].push(r);
       return acc;
     }, {} as Record<string, RepackRow[]>);
     return Object.entries(grouped) as [string, RepackRow[]][];
-  }, [filteredRepackRows]);
+  }, [dateFilteredRepackRows]);
+
+  const formatRepackForExcel = (rows: RepackRow[]) => {
+    return rows.map(r => ({
+      'Data': r.data || (r.dataISO ? r.dataISO.split('-').reverse().join('/') : '-'),
+      'Embalagem': r.embalagem || '-',
+      'Caixas Reembaladas': Number(r.quantidade || r.caixas || r.caixasReembaladas || 0),
+      'Início': r.inicio || '-',
+      'Fim': r.fim || '-',
+      'Duração': r.duracao || '-',
+      'Meta Unitária': r.meta || '-',
+      'Resultado': r.resultado || '-',
+      'Operador': r.operador || '-',
+      'Motivo Desvio': r.motivoNaoBaterMeta || '-',
+      'Tratativa Gestor': r.tratativaGestor || '-'
+    }));
+  };
+
+  const getRepackExtraSummary = (rows: RepackRow[]) => {
+    const totalCaixas = rows.reduce((s, r) => s + Number(r.quantidade || r.caixas || 0), 0);
+    const batidas = rows.filter(r => (r.resultado || '').includes('BATIDA')).length;
+    const perc = rows.length > 0 ? Math.round((batidas / rows.length) * 100) : 0;
+    return [
+      { label: 'Total Caixas', value: totalCaixas },
+      { label: 'Aderência Meta', value: `${perc}% (${batidas}/${rows.length})` }
+    ];
+  };
 
   const vFilteredProducts = useMemo(() => {
     const q = vProdutoBusca.toLowerCase().trim();
@@ -593,56 +634,69 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
       {/* Standard Operating Procedure (POP / SOP) Banner for Operator */}
       <SopBannerViewer operation="repack" operationName="Repack" />
 
-      <div className="ptabs border-b border-[#222d3a] flex gap-2 flex-wrap">
-        <button 
-          onClick={() => setActiveTab('form')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          ⚙ Registrar
-        </button>
-        <button 
-          onClick={() => setActiveTab('stats')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📊 Produtividade do Dia
-        </button>
-        <button 
-          onClick={() => setActiveTab('hist')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredRepackRows.length}</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('validade')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'validade' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📅 Validade do Repack <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{repackValidades.length}</span>
-        </button>
+      <div className="ptabs border-b border-[#222d3a] flex items-center justify-between gap-2 flex-wrap pb-1">
+        <div className="flex gap-2 flex-wrap">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            ⚙ Registrar
+          </button>
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📊 Produtividade do Dia
+          </button>
+          <button 
+            onClick={() => setActiveTab('hist')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredRepackRows.length}</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('validade')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'validade' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📅 Validade do Repack <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{repackValidades.length}</span>
+          </button>
 
-        {activeTab === 'raci' && (
-          <button 
-            type="button"
-            className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
-          >
-            👥 Matriz RACI
-          </button>
-        )}
-        {activeTab === 'pop' && (
-          <button 
-            type="button"
-            className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
-          >
-            📄 Procedimento POP
-          </button>
-        )}
-        {activeTab === 'lup' && (
-          <button 
-            type="button"
-            className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
-          >
-            ⚠️ Lição LUP
-          </button>
-        )}
+          {activeTab === 'raci' && (
+            <button 
+              type="button"
+              className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
+            >
+              👥 Matriz RACI
+            </button>
+          )}
+          {activeTab === 'pop' && (
+            <button 
+              type="button"
+              className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
+            >
+              📄 Procedimento POP
+            </button>
+          )}
+          {activeTab === 'lup' && (
+            <button 
+              type="button"
+              className="ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative text-[#f5a623] border-b-2 border-b-[#f5a623]"
+            >
+              ⚠️ Lição LUP
+            </button>
+          )}
+        </div>
+
+        {/* BOTÃO EXPORTAR POR PERÍODO PERSONALIZADO */}
+        <button
+          type="button"
+          onClick={() => setShowExportModal(true)}
+          className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer border border-amber-400 shrink-0 ml-auto my-1"
+          title="Exportar dados de Repack escolhendo datas personalizadas"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Exportar por Período</span>
+        </button>
       </div>
 
       {activeTab === 'stats' && (
@@ -897,6 +951,22 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
       {activeTab === 'hist' && (
         <div className="flex flex-col gap-3">
           <HistoryRestrictionNotice user={user} />
+
+          {/* BARRA DE FILTRO DE DATA E EXPORTAÇÃO */}
+          <CustomDateFilterBar
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+            onStartDateChange={setFilterStartDate}
+            onEndDateChange={setFilterEndDate}
+            onReset={() => { setFilterStartDate(''); setFilterEndDate(''); }}
+            onOpenExportModal={() => setShowExportModal(true)}
+            totalFiltered={dateFilteredRepackRows.length}
+            totalAll={filteredRepackRows.length}
+            accentColor="amber"
+            label="Filtrar Repack por Período:"
+            unitLabel="operações"
+            extraStats={`Total: ${dateFilteredRepackRows.reduce((s, r) => s + (r.quantidade || 0), 0)} caixas`}
+          />
           {(() => {
             if (groupedHistoryEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum repack computado ainda.</div>;
@@ -1678,6 +1748,29 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
           </div>
         </div>
       )}
+      {/* MODAL DE EXPORTAÇÃO PERSONALIZADA POR PERÍODO */}
+      <CustomDateExportModal<RepackRow>
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Exportar Produtividade Repack"
+        subtitle="Escolha o intervalo de datas para exportar os registros de Repack em Excel ou CSV."
+        records={filteredRepackRows}
+        dateExtractor={r => r.dataISO || r.data}
+        formatDataForExcel={formatRepackForExcel}
+        defaultFileName="Produtividade_Repack_Ajudante"
+        sheetName="Repack"
+        accentColor="amber"
+        extraSummary={getRepackExtraSummary}
+        onApplyScreenFilter={(start, end) => {
+          setFilterStartDate(start);
+          setFilterEndDate(end);
+        }}
+        onClearScreenFilter={() => {
+          setFilterStartDate('');
+          setFilterEndDate('');
+        }}
+        currentScreenFilter={{ startISO: filterStartDate, endISO: filterEndDate }}
+      />
     </div>
   );
 }

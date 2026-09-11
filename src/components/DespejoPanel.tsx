@@ -16,7 +16,9 @@ import {
   concluirDespejoTask,
   saveDespejoTask 
 } from '../utils/pncManager';
-import { AlertTriangle as AlertTriangleIcon, Box, ArrowDownRight, Layers, Sparkles as SparklesIcon } from 'lucide-react';
+import { AlertTriangle as AlertTriangleIcon, Box, ArrowDownRight, Layers, Sparkles as SparklesIcon, FileSpreadsheet } from 'lucide-react';
+import { CustomDateExportModal, isDateWithinInterval } from './common/CustomDateExportModal';
+import { CustomDateFilterBar } from './common/CustomDateFilterBar';
 
 interface DespejoPanelProps {
   user: Usuario;
@@ -372,15 +374,56 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
     return { lancamentos, unidades, metasBatidas };
   }, [todayDespejoRows]);
 
+  // Custom Date Range & Export Modal State
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+
+  const dateFilteredDespejoRows = useMemo(() => {
+    if (!filterStartDate && !filterEndDate) return filteredDespejoRows;
+    return filteredDespejoRows.filter(r => {
+      const rawDate = r.dataISO || r.data;
+      return isDateWithinInterval(rawDate, filterStartDate, filterEndDate);
+    });
+  }, [filteredDespejoRows, filterStartDate, filterEndDate]);
+
   const groupedDespejoEntries = useMemo(() => {
-    const grouped = filteredDespejoRows.reduce((acc, r) => {
+    const grouped = dateFilteredDespejoRows.reduce((acc, r) => {
       const key = r.dataISO || (r.data ? r.data.split('/').reverse().join('-') : 'sem-data');
       if (!acc[key]) acc[key] = [];
       acc[key].push(r);
       return acc;
     }, {} as Record<string, DespejoRow[]>);
     return Object.entries(grouped) as [string, DespejoRow[]][];
-  }, [filteredDespejoRows]);
+  }, [dateFilteredDespejoRows]);
+
+  const formatDespejoForExcel = (rows: DespejoRow[]) => {
+    return rows.map(r => ({
+      'Data': r.data || (r.dataISO ? r.dataISO.split('-').reverse().join('/') : '-'),
+      'Embalagem': r.embalagem || '-',
+      'SKU / Produto': r.descricao || (r.codProduto ? `SKU ${r.codProduto}` : '-'),
+      'Quantidade': Number(r.quantidade || 0),
+      'HL Perdido': r.hlPerdido !== undefined ? Number(r.hlPerdido).toFixed(2) : (r.hectolitroPerdido !== undefined ? Number(r.hectolitroPerdido).toFixed(2) : '-'),
+      'Início': r.inicio || '-',
+      'Fim': r.fim || '-',
+      'Duração / Tempo': r.tempo || r.duracao || '-',
+      'Meta Unitária': r.meta || '-',
+      'Resultado': r.resultado || '-',
+      'Operador': r.operador || '-',
+      'Motivo': r.motivo || '-',
+      'Tratativa Gestor': r.tratativaGestor || '-'
+    }));
+  };
+
+  const getDespejoExtraSummary = (rows: DespejoRow[]) => {
+    const totalUnits = rows.reduce((s, r) => s + (r.quantidade || 0), 0);
+    const batidas = rows.filter(r => (r.resultado || '').includes('BATIDA')).length;
+    const perc = rows.length > 0 ? Math.round((batidas / rows.length) * 100) : 0;
+    return [
+      { label: 'Total Despejado', value: `${totalUnits} un` },
+      { label: 'Aderência Meta', value: `${perc}% (${batidas}/${rows.length})` }
+    ];
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -396,24 +439,37 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
       {/* Standard Operating Procedure (POP / SOP) Banner for Operator */}
       <SopBannerViewer operation="despejo" operationName="Despejo" />
 
-      <div className="ptabs border-b border-[#222d3a] flex gap-2">
-        <button 
-          onClick={() => setActiveTab('form')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+      <div className="ptabs border-b border-[#222d3a] flex items-center justify-between gap-2 flex-wrap pb-1">
+        <div className="flex gap-2 flex-wrap">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            ⚙ Registrar
+          </button>
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📊 Produtividade do Dia
+          </button>
+          <button 
+            onClick={() => setActiveTab('hist')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredDespejoRows.length}</span>
+          </button>
+        </div>
+
+        {/* BOTÃO EXPORTAR POR PERÍODO PERSONALIZADO */}
+        <button
+          type="button"
+          onClick={() => setShowExportModal(true)}
+          className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer border border-rose-500 shrink-0 ml-auto my-1"
+          title="Exportar dados de Despejo escolhendo datas personalizadas"
         >
-          ⚙ Registrar
-        </button>
-        <button 
-          onClick={() => setActiveTab('stats')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📊 Produtividade do Dia
-        </button>
-        <button 
-          onClick={() => setActiveTab('hist')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredDespejoRows.length}</span>
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Exportar por Período</span>
         </button>
       </div>
 
@@ -754,6 +810,22 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
         <div className="flex flex-col gap-4">
           <HistoryRestrictionNotice user={user} />
 
+          {/* BARRA DE FILTRO DE DATA E EXPORTAÇÃO */}
+          <CustomDateFilterBar
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+            onStartDateChange={setFilterStartDate}
+            onEndDateChange={setFilterEndDate}
+            onReset={() => { setFilterStartDate(''); setFilterEndDate(''); }}
+            onOpenExportModal={() => setShowExportModal(true)}
+            totalFiltered={dateFilteredDespejoRows.length}
+            totalAll={filteredDespejoRows.length}
+            accentColor="red"
+            label="Filtrar Despejo por Período:"
+            unitLabel="operações"
+            extraStats={`Total: ${dateFilteredDespejoRows.reduce((s, r) => s + (r.quantidade || 0), 0)} un`}
+          />
+
           {/* Banner de Tempos Ilustrativos de Referência da Operação Despejo */}
           <div className="bg-gradient-to-r from-[#11151c] via-[#151b23] to-[#1a222d] border border-[#ef4444]/30 rounded-xl p-4 text-snow flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg">
             <div className="flex items-center gap-3">
@@ -967,6 +1039,29 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
           })()}
         </div>
       )}
+      {/* MODAL DE EXPORTAÇÃO PERSONALIZADA POR PERÍODO */}
+      <CustomDateExportModal<DespejoRow>
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Exportar Produtividade Despejo"
+        subtitle="Escolha o intervalo de datas para exportar os registros de Despejo em Excel ou CSV."
+        records={filteredDespejoRows}
+        dateExtractor={r => r.dataISO || r.data}
+        formatDataForExcel={formatDespejoForExcel}
+        defaultFileName="Produtividade_Despejo_Ajudante"
+        sheetName="Despejo"
+        accentColor="red"
+        extraSummary={getDespejoExtraSummary}
+        onApplyScreenFilter={(start, end) => {
+          setFilterStartDate(start);
+          setFilterEndDate(end);
+        }}
+        onClearScreenFilter={() => {
+          setFilterStartDate('');
+          setFilterEndDate('');
+        }}
+        currentScreenFilter={{ startISO: filterStartDate, endISO: filterEndDate }}
+      />
     </div>
   );
 }

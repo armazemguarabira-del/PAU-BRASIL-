@@ -652,7 +652,7 @@ export default function StockAgeIndexTab({ validadesList = [], validades = [], u
                       ? 'text-emerald-700 font-black' 
                       : 'text-slate-400'
                   }`}>
-                    {hasData ? `${evo?.avgStockAge}%` : 'Vazio'}
+                    {hasData ? `${evo?.avgStockAge}%` : 'Zerado'}
                   </span>
                 </button>
               );
@@ -782,15 +782,23 @@ export default function StockAgeIndexTab({ validadesList = [], validades = [], u
             <div>
               <span className="text-[10px] uppercase font-bold text-blue-200 block">Stock Age do Mês</span>
               <span className={`text-2xl font-black ${
-                kpiGeral.avgStockAge >= 75 ? 'text-emerald-300' : kpiGeral.avgStockAge >= 60 ? 'text-amber-300' : 'text-rose-300'
+                kpiGeral.totalLotes === 0 
+                  ? 'text-slate-400' 
+                  : kpiGeral.avgStockAge >= 75 
+                  ? 'text-emerald-300' 
+                  : kpiGeral.avgStockAge >= 60 
+                  ? 'text-amber-300' 
+                  : 'text-rose-300'
               }`}>
-                {kpiGeral.avgStockAge}%
+                {kpiGeral.totalLotes === 0 ? '0%' : `${kpiGeral.avgStockAge}%`}
               </span>
             </div>
             <div className="text-right border-l border-white/20 pl-3">
               <span className="text-[9px] uppercase font-bold text-blue-200 block">Fórmula Oficial</span>
-              <span className="text-[11px] font-black text-emerald-300">
-                Média das {semanasSummary.filter(s => s.hasData).length || 4} Semanas
+              <span className={`text-[11px] font-black ${kpiGeral.totalLotes === 0 ? 'text-slate-400' : 'text-emerald-300'}`}>
+                {kpiGeral.totalLotes === 0 
+                  ? 'Sem registros (0%)' 
+                  : `Média das ${semanasSummary.filter(s => s.hasData).length} Semanas`}
               </span>
             </div>
           </div>
@@ -960,14 +968,26 @@ export default function StockAgeIndexTab({ validadesList = [], validades = [], u
           </div>
           <div className="flex items-baseline gap-2 mt-2">
             <span className={`text-3xl font-black ${
-              kpiGeral.avgStockAge >= 75 ? 'text-emerald-600' : kpiGeral.avgStockAge >= 60 ? 'text-amber-600' : 'text-rose-600'
+              kpiGeral.totalLotes === 0
+                ? 'text-slate-400'
+                : kpiGeral.avgStockAge >= 75 
+                ? 'text-emerald-600' 
+                : kpiGeral.avgStockAge >= 60 
+                ? 'text-amber-600' 
+                : 'text-rose-600'
             }`}>
-              {kpiGeral.avgStockAge}%
+              {kpiGeral.totalLotes === 0 ? '0%' : `${kpiGeral.avgStockAge}%`}
             </span>
             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-              kpiGeral.avgStockAge >= 75 ? 'bg-emerald-100 text-emerald-800' : kpiGeral.avgStockAge >= 60 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+              kpiGeral.totalLotes === 0
+                ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                : kpiGeral.avgStockAge >= 75 
+                ? 'bg-emerald-100 text-emerald-800' 
+                : kpiGeral.avgStockAge >= 60 
+                ? 'bg-amber-100 text-amber-800' 
+                : 'bg-rose-100 text-rose-800'
             }`}>
-              {kpiGeral.avgStockAge >= 75 ? 'OK (≥75%)' : kpiGeral.avgStockAge >= 60 ? 'ATENÇÃO' : 'CRÍTICO (<60%)'}
+              {kpiGeral.totalLotes === 0 ? 'ZERADO (0%)' : kpiGeral.avgStockAge >= 75 ? 'OK (≥75%)' : kpiGeral.avgStockAge >= 60 ? 'ATENÇÃO' : 'CRÍTICO (<60%)'}
             </span>
           </div>
           <div className="text-[9px] text-slate-400 font-bold mt-2 border-t border-slate-100 pt-1.5 flex justify-between">

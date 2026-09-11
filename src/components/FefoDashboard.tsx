@@ -1042,7 +1042,7 @@ export default function FefoDashboard({
     const totalItensCount = validadesRecolhidasDeduplicadas.length;
     if (totalItensCount === 0) {
       return {
-        stockAgeAtual: 100,
+        stockAgeAtual: 0,
         faixaStockAge: 'ok',
         criticoSkusCount: 0,
         criticoCaixasCount: 0,
@@ -1054,8 +1054,8 @@ export default function FefoDashboard({
         monthlyChartData: [
           { mes: 'Jan', index: 85 }, { mes: 'Fev', index: 82 }, { mes: 'Mar', index: 78 },
           { mes: 'Abr', index: 80 }, { mes: 'Mai', index: 75 }, { mes: 'Jun', index: 72 },
-          { mes: 'Jul', index: 70 }, { mes: 'Ago', index: 74 }, { mes: 'Set', index: 79 },
-          { mes: 'Out', index: 82 }, { mes: 'Nov', index: 86 }, { mes: 'Dez', index: 88 }
+          { mes: 'Jul', index: 70 }, { mes: 'Ago', index: 74 }, { mes: 'Set', index: 0 },
+          { mes: 'Out', index: 0 }, { mes: 'Nov', index: 0 }, { mes: 'Dez', index: 0 }
         ]
       };
     }
@@ -1107,9 +1107,13 @@ export default function FefoDashboard({
 
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const monthlyChartData = months.map((m, idx) => {
+      // De Setembro (idx >= 8) em diante: ZERADO (0) pois não há registros/coletas
+      if (idx >= 8) {
+        return { mes: m, index: 0 };
+      }
       let val = avgStockAge;
       if (idx < 6) val = Math.min(100, Math.max(35, avgStockAge + (6 - idx) * 3 - (idx % 2 === 0 ? 4 : -2)));
-      else if (idx > 6) val = Math.min(100, Math.max(35, avgStockAge + (idx - 6) * 2));
+      else if (idx === 6 || idx === 7) val = Math.min(100, Math.max(35, avgStockAge + (idx - 6) * 2));
       return { mes: m, index: Math.round(val) };
     });
 

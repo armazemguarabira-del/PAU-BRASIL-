@@ -228,6 +228,7 @@ export function parseQuebrasJson(
 
   const quebraRows: QuebraRow[] = [];
   const retroactiveRecords: RetroactiveRecord[] = [];
+  const seenDedupeKeys = new Set<string>();
 
   let totalQuantidade = 0;
   let totalHlPerdido = 0;
@@ -260,9 +261,17 @@ export function parseQuebrasJson(
       if (!isNaN(parsedQtd)) quantidade = parsedQtd;
     }
 
-    const area = String(item.Area || item.area || item.AREA || item.Setor || item.setor || 'ARMAZEM').trim().toUpperCase();
-    const turno = String(item.Turno || item.turno || item.TURNO || 'MANHÃ').trim();
-    const codQuebra = String(item.CodQuebra ?? item.codQuebra ?? item.CODQUEBRA ?? item['Cod Quebra'] ?? item['COD QUEBRA'] ?? '524').trim();
+    let area = String(item.Area || item.area || item.AREA || item.Setor || item.setor || 'ARMAZEM').trim().toUpperCase();
+    if (!['ARMAZEM', 'ENTREGA', 'MERCADO', 'PUXADA'].includes(area)) {
+      area = 'ARMAZEM';
+    }
+
+    let turno = String(item.Turno || item.turno || item.TURNO || 'MANHÃ').trim().toUpperCase();
+    if (turno.includes('MANH')) turno = 'MANHÃ';
+    else if (turno.includes('NOIT') || turno.includes('MADRUG')) turno = 'NOITE';
+    else turno = 'MANHÃ';
+
+    const codQuebra = String(item.CodQuebra ?? item.codQuebra ?? item.CODQUEBRA ?? item['Cod Quebra'] ?? item['COD QUEBRA'] ?? '539').trim();
     const motivo = String(item.Motivo || item.motivo || item.MOTIVO || item['Motivo Quebra'] || 'QUEBRA OPERACIONAL').trim().toUpperCase();
 
     const colaboradorQuebrou = String(item.Colaborador || item.colaborador || item.COLABORADOR || item['Colaborador Quebrou'] || item.Responsavel || item.responsavel || '').trim();
@@ -287,6 +296,13 @@ export function parseQuebrasJson(
       const parsedHl = parseFloat(rawHl.replace(',', '.'));
       if (!isNaN(parsedHl)) hlPerdido = parsedHl;
     }
+
+    // Deduplication check
+    const dedupeKey = `${dataISO}_${codProduto}_${colaboradorQuebrou.toUpperCase()}_${area}_${turno}_${quantidade}_${codQuebra}_${motivo}`;
+    if (seenDedupeKeys.has(dedupeKey)) {
+      return;
+    }
+    seenDedupeKeys.add(dedupeKey);
 
     const hash = Math.abs(
       (dataISO + codProduto + codQuebra + area + turno + idx).split('').reduce((a, b) => {
@@ -420,6 +436,16 @@ export function buildOfficialQuebrasRows(empresaId = 'demo'): QuebraRow[] {
 }
 
 let cachedOfficialQuebrasRetro: Record<string, RetroactiveRecord[]> = {};
+
+export function invalidateOfficialQuebrasCache(empresaId?: string) {
+  if (empresaId) {
+    delete cachedOfficialQuebrasRows[empresaId];
+    delete cachedOfficialQuebrasRetro[empresaId];
+  } else {
+    cachedOfficialQuebrasRows = {};
+    cachedOfficialQuebrasRetro = {};
+  }
+}
 
 /**
  * Converte o dataset oficial de Quebras em RetroactiveRecord para a Base Central

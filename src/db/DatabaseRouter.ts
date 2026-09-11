@@ -164,35 +164,7 @@ export class DatabaseRouter {
       const cacheKey = `col:${empresaId}:${collectionName}`;
       const ttl = options.ttlMs || 1000 * 60 * 30; // 30 minutos
 
-      // 1. Verificar Cache L1/L2 (Memória + IndexedDB) se não for forceServer
-      if (!options.forceServer) {
-        const cached = await getHybridCacheCollection<T>(cacheKey, true);
-        if (cached && cached.data && cached.data.length > 0) {
-          let results = cached.data;
-          if (options.filters && options.filters.length > 0) {
-            results = this.applyLocalFilters(results, options.filters);
-          }
-          monitoringService.recordCacheHit(results.length, collectionName);
-          return results;
-        } else {
-          monitoringService.recordCacheMiss(collectionName);
-        }
-
-        // 2. Verificar JSON Database local (dados consolidados / históricos)
-        const jsonRecords = await getJsonTable<T>(empresaId, collectionName);
-        if (jsonRecords && jsonRecords.length > 0) {
-          let results = jsonRecords;
-          if (options.filters && options.filters.length > 0) {
-            results = this.applyLocalFilters(results, options.filters);
-          }
-          monitoringService.recordJsonHit(results.length, collectionName);
-          return results;
-        } else {
-          monitoringService.recordJsonMiss(collectionName);
-        }
-      }
-
-      // 3. Consulta Firestore (com fallback cache do SDK)
+      // Consulta Direta ao Firestore (Cache desativado a pedido do usuário)
       try {
         const colRef = collection(db, collectionName);
         const constraints: QueryConstraint[] = [];
@@ -219,14 +191,9 @@ export class DatabaseRouter {
         let snap;
 
         try {
-          snap = await getDocsFromCache(q);
-          if (snap.empty) {
-            snap = await getDocsFromServer(q);
-            recordActualFirestoreReads(snap.docs.length);
-            monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getDocs');
-          } else {
-            monitoringService.recordCacheHit(snap.docs.length, collectionName);
-          }
+          snap = await getDocsFromServer(q);
+          recordActualFirestoreReads(snap.docs.length);
+          monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getDocs');
         } catch (_) {
           snap = await getDocs(q);
           recordActualFirestoreReads(snap.docs.length);
@@ -239,16 +206,10 @@ export class DatabaseRouter {
           ...d.data()
         } as unknown as T));
 
-        // Atualiza Cache L1/L2 e JSON Database em background
-        if (serverDocs.length > 0) {
-          setHybridCacheCollection(cacheKey, serverDocs, ttl).catch(() => {});
-          saveJsonTable(empresaId, collectionName, serverDocs).catch(() => {});
-        }
-
         return serverDocs;
       } catch (error) {
         console.warn(`[DatabaseRouter] Erro na consulta do Firestore para '${collectionName}':`, error);
-        // Fallback final: JSON local
+        // Fallback de contingência somente em caso de falha de rede
         const fb = await getJsonTable<T>(empresaId, collectionName);
         monitoringService.recordJsonHit(fb.length, collectionName);
         return fb;
@@ -353,14 +314,9 @@ export class DatabaseRouter {
         let snap;
 
         try {
-          snap = await getDocsFromCache(q);
-          if (snap.empty && !options.useCacheOnly) {
-            snap = await getDocsFromServer(q);
-            recordActualFirestoreReads(snap.docs.length);
-            monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getPaginated');
-          } else {
-            monitoringService.recordCacheHit(snap.docs.length, collectionName);
-          }
+          snap = await getDocsFromServer(q);
+          recordActualFirestoreReads(snap.docs.length);
+          monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getPaginated');
         } catch (_) {
           snap = await getDocs(q);
           recordActualFirestoreReads(snap.docs.length);
@@ -562,17 +518,7 @@ export class DatabaseRouter {
     if (!docId) return null;
     const strDocId = String(docId);
 
-    // 1. Tenta recuperar da tabela JSON local primeiro
-    const jsonRecords = await getJsonTable<T>(empresaId, collectionName);
-    const foundInJson = jsonRecords.find(item => String(item.id || item._docId) === strDocId);
-    if (foundInJson) {
-      monitoringService.recordJsonHit(1, collectionName);
-      return foundInJson;
-    } else {
-      monitoringService.recordJsonMiss(collectionName);
-    }
-
-    // 2. Tenta Firestore
+    // Consulta Direta ao Firestore (Cache desativado)
     try {
       const docRef = doc(db, collectionName, strDocId);
       const snap = await getDoc(docRef);
@@ -580,12 +526,18 @@ export class DatabaseRouter {
         recordActualFirestoreReads(1);
         monitoringService.recordFirestoreRead(1, collectionName, 'getDoc');
         const data = { _docId: snap.id, id: snap.id, ...snap.data() } as unknown as T;
-        upsertJsonRecord(empresaId, collectionName, data).catch(() => {});
         return data;
       }
       return null;
     } catch (e) {
       console.warn(`[DatabaseRouter] Erro ao buscar documento ${strDocId} em ${collectionName}:`, e);
+      // Fallback para JSON local em caso de erro
+      const jsonRecords = await getJsonTable<T>(empresaId, collectionName);
+      const foundInJson = jsonRecords.find(item => String(item.id || item._docId) === strDocId);
+      if (foundInJson) {
+        monitoringService.recordJsonHit(1, collectionName);
+        return foundInJson;
+      }
       return null;
     }
   }

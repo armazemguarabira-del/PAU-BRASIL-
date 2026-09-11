@@ -13,6 +13,10 @@ import { LISTA_COLABORADORES_OFICIAIS } from './RankingModule';
 import { safeSetLocalStorage } from '../utils/safeLocalStorage';
 import { PaginationControls } from './common/PaginationControls';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
+import { smartParseQuebrasText } from '../utils/quebrasImportParser';
+import { getProductMeta } from '../utils/productCatalogData';
+import { CustomDateExportModal, isDateWithinInterval } from './common/CustomDateExportModal';
+import { CustomDateFilterBar } from './common/CustomDateFilterBar';
 
 interface QuebrasPanelProps {
   user: Usuario;
@@ -157,12 +161,23 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [importHeaders, setImportHeaders] = useState<string[]>([]);
-  const [pasteMode, setPasteMode] = useState<'file' | 'paste'>('file');
+  const [pasteMode, setPasteMode] = useState<'file' | 'paste'>('paste');
   const [pastedText, setPastedText] = useState('');
   const [importStatusMsg, setImportStatusMsg] = useState<string | null>(null);
 
+  // Realtime detected records from pasted text
+  const detectedPasteCount = useMemo(() => {
+    if (!pastedText || !pastedText.trim()) return 0;
+    try {
+      const items = smartParseQuebrasText(pastedText);
+      return items.length;
+    } catch (_) {
+      return 0;
+    }
+  }, [pastedText]);
+
   // Helper to parse individual raw row into QuebraRow format
-  const parseQuebraRow = (raw: any): Omit<QuebraRow, '_docId'> & { empresaId: string } => {
+  const parseQuebraRow = (raw: any, index = 0): QuebraRow & { empresaId: string } => {
     const cleanRow: Record<string, any> = {};
     Object.entries(raw || {}).forEach(([k, v]) => {
       cleanRow[k.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = v;
@@ -172,11 +187,11 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     const todayStr = today.toLocaleDateString('pt-BR');
     const todayISO = today.toISOString().split('T')[0];
 
-    const rawDate = String(cleanRow.data || cleanRow['data lancamento'] || cleanRow.date || cleanRow.dt || todayStr).trim();
+    const rawDate = String(cleanRow.data || cleanRow['data lancamento'] || cleanRow.date || cleanRow.dt || cleanRow.dataiso || todayStr).trim();
     let dataISO = todayISO;
     let dataStr = rawDate || todayStr;
 
-    // Trata datas com timestamp como "2026-01-01 11:59:15" ou "2026-01-01T11:59:15"
+    // Trata datas com timestamp como "2026-08-10 11:59:15" ou "2026-08-10T11:59:15"
     const dateOnly = rawDate.split(' ')[0].split('T')[0];
 
     if (dateOnly.includes('/')) {
@@ -202,28 +217,43 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
 
     const codProduto = String(cleanRow.codproduto || cleanRow.produto || cleanRow['cod produto'] || cleanRow.codigo || cleanRow.sku || cleanRow.cod || '000').trim();
-    const descricao = String(cleanRow.descricao || cleanRow.descricaoproduto || cleanRow['descricao produto'] || cleanRow.produto || cleanRow.item || 'PRODUTO IMPORTADO').trim();
+    const codeNum = Number(codProduto) || 0;
+    const meta = codeNum > 0 ? getProductMeta(codeNum) : null;
+    const foundProd = PRODUCTS.find(p => Number(p.codigo) === codeNum);
+
+    const descricao = String(
+      cleanRow.descricao || cleanRow.descricaoproduto || cleanRow['descricao produto'] || cleanRow.produto || cleanRow.item || foundProd?.descricao || 'PRODUTO IMPORTADO'
+    ).trim();
+
     const quantidade = Math.max(1, Number(cleanRow.quantidade || cleanRow['quant und.'] || cleanRow['quant und'] || cleanRow.qtd || cleanRow.unidades || 1));
     const area = String(cleanRow.area || cleanRow.origem || cleanRow.setor || 'ARMAZEM').trim().toUpperCase();
-    const turno = String(cleanRow.turno || 'MANHÃ').trim();
+    const turno = String(cleanRow.turno || 'MANHÃ').trim().toUpperCase();
     const codQuebra = String(cleanRow.codquebra || cleanRow.cod || cleanRow['cod quebra'] || cleanRow.codigoquebra || cleanRow.codigodaquebra || '525').trim();
     const motivo = String(cleanRow.motivo || cleanRow.causa || cleanRow['motivo quebra'] || 'QUEBRADA').trim();
     const colaboradorQuebrou = String(cleanRow.colaborador || cleanRow.responsavel || cleanRow.colaboradorquebrou || cleanRow['colaborador quebrou'] || cleanRow.operador || '').trim();
-    const responsavel = String(cleanRow.responsavel || cleanRow.colaborador || '').trim();
+    const responsavel = String(cleanRow.responsavel || cleanRow.colaborador || colaboradorQuebrou || '').trim();
     const funcao = String(cleanRow.funcao || cleanRow['funcao'] || '').trim();
     const fiscal = String(cleanRow.fiscal || cleanRow['fiscal lancador'] || user.nome || 'Fiscal').trim();
-    const valorUnitario = Number(cleanRow['valor da avaria'] || cleanRow['valor por unid'] || cleanRow.valorunitario || cleanRow.valoravaria || 0);
-    const valorTotal = Number(cleanRow['valor tt'] || cleanRow.valortotal || cleanRow['valor total'] || cleanRow.valor || (valorUnitario * quantidade));
+    
+    const valorUnitario = Number(cleanRow['valor da avaria'] || cleanRow['valor por unid'] || cleanRow.valorunitario || cleanRow.valoravaria || cleanRow.preco || meta?.preco || foundProd?.preco || 0);
+    const valorTotal = Number(cleanRow['valor tt'] || cleanRow.valortotal || cleanRow['valor total'] || cleanRow.valor || (valorUnitario > 0 ? valorUnitario * quantidade : 0));
+    
     const mes = String(cleanRow.mes || '').trim();
-    const rawFatorHl = cleanRow['hecto litro'] || cleanRow['hectolitro'] || cleanRow['fator hecto por unidade'] || cleanRow['fator hecto por unid'] || cleanRow['fatorhectoporunidade'] || cleanRow['fator hl'] || cleanRow.fatorhl || cleanRow['fator hecto'] || 0;
+    const rawFatorHl = cleanRow['hecto litro'] || cleanRow['hectolitro'] || cleanRow['fator hecto por unidade'] || cleanRow['fator hecto por unid'] || cleanRow['fatorhectoporunidade'] || cleanRow['fator hl'] || cleanRow.fatorhl || cleanRow['fator hecto'] || meta?.fatorHecto || 0;
     const fatorHl = typeof rawFatorHl === 'string' ? Number(String(rawFatorHl).replace(',', '.')) : Number(rawFatorHl || 0);
-    const rawHlPerdido = cleanRow['hecto perdido'] || cleanRow['hectoperdido'] || cleanRow['hl perdido'] || cleanRow.hlperdido || 0;
+    
+    const rawHlPerdido = cleanRow['hecto perdido'] || cleanRow['hectoperdido'] || cleanRow['hl perdido'] || cleanRow.hlperdido || (fatorHl > 0 ? fatorHl * quantidade : 0);
     const hlPerdido = typeof rawHlPerdido === 'string' ? Number(String(rawHlPerdido).replace(',', '.')) : Number(rawHlPerdido || 0);
-    const tipoMarca = String(cleanRow['tipo marca'] || cleanRow.tipomarca || '').trim();
-    const embalagem = String(cleanRow.embalagem || '').trim();
+    
+    const tipoMarca = String(cleanRow['tipo marca'] || cleanRow.tipomarca || meta?.grupo || '').trim();
+    const embalagem = String(cleanRow.embalagem || meta?.embalagem || '').trim();
     const wqi = String(cleanRow.wqi || '').trim();
 
+    const uniqueId = `qb-imp-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`;
+
     return {
+      id: uniqueId,
+      _docId: uniqueId,
       empresaId: empresa?.id || 'demo',
       data: dataStr,
       dataISO,
@@ -235,17 +265,18 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       codQuebra,
       motivo,
       ...(colaboradorQuebrou ? { colaboradorQuebrou } : {}),
-      ...(responsavel ? { responsavel } : {}),
+      ...(responsavel ? { responsavel, colaborador: responsavel, operador: responsavel } : {}),
       ...(funcao ? { funcao } : {}),
       fiscal,
       ...(valorUnitario > 0 ? { valorUnitario } : {}),
-      ...(valorTotal > 0 ? { valorTotal } : {}),
+      ...(valorTotal > 0 ? { valorTotal, valor: valorTotal } : {}),
       ...(mes ? { mes } : {}),
       ...(fatorHl > 0 ? { fatorHl } : {}),
       ...(hlPerdido > 0 ? { hlPerdido } : {}),
       ...(tipoMarca ? { tipoMarca } : {}),
       ...(embalagem ? { embalagem } : {}),
       ...(wqi ? { wqi } : {}),
+      origem: 'IMPORTACAO_PLANILHA',
       _criadoEm: new Date().toISOString()
     };
   };
@@ -325,7 +356,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
           setImportPreview(rows.slice(0, 10));
         }
       } catch (err) {
-        alert('Erro ao carregar o arquivo Excel/CSV: ' + err);
+        setImportStatusMsg('❌ Erro ao carregar o arquivo Excel/CSV: ' + err);
       }
     };
     reader.readAsBinaryString(file);
@@ -334,29 +365,68 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   // Process and save import data
   const processAndImportRows = async (rows: any[]) => {
     if (!rows || rows.length === 0) {
-      alert('Nenhum registro encontrado para importação.');
+      setImportStatusMsg('⚠️ Nenhum registro encontrado para importação.');
       return;
     }
 
     setImporting(true);
-    setImportStatusMsg(`Importando ${rows.length} registros para o banco de dados...`);
+    setImportStatusMsg(`⏳ Processando e importando ${rows.length} registros para o banco de dados...`);
 
-    let importedCount = 0;
-    const newItems: QuebraRow[] = [];
+    const companyId = empresa?.id || 'demo';
 
     try {
-      const rowsData = rows.map(raw => parseQuebraRow(raw));
-      await QuebrasRepository.batchUpsert(rowsData, empresa?.id || 'demo');
-      importedCount = rowsData.length;
+      const rowsData = rows.map((raw, idx) => parseQuebraRow(raw, idx));
+      
+      // 1. Salva no repositório Firestore / Cache Híbrido
+      try {
+        await QuebrasRepository.batchUpsert(rowsData, companyId);
+      } catch (repoErr) {
+        console.warn('Salvando em cache local resiliente:', repoErr);
+      }
 
-      setImportStatusMsg(`✅ Sucesso! ${importedCount} registros de quebras foram importados com êxito!`);
-      alert(`🎉 Importação Concluída!\nForam cadastrados ${importedCount} registros de quebras no banco de dados.`);
+      // 2. Mescla e persiste no LocalStorage para sincronização instantânea em todos os módulos
+      const customKey = `custom_quebras_${companyId}`;
+      const savedCustom = localStorage.getItem(customKey);
+      let existingCustom: QuebraRow[] = [];
+      if (savedCustom) {
+        try {
+          const parsed = JSON.parse(savedCustom);
+          if (Array.isArray(parsed)) existingCustom = parsed;
+        } catch (_) {}
+      }
+
+      const mergedCustom = [...rowsData, ...existingCustom];
+      safeSetLocalStorage(customKey, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`quebras_records_${companyId}`, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`local_quebras_${companyId}`, JSON.stringify(mergedCustom));
+
+      // 3. Atualiza estado local do painel
+      const officialRows = buildOfficialQuebrasRows(companyId);
+      const combinedAll = [...mergedCustom, ...officialRows];
+      combinedAll.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setQuebras(combinedAll);
+
+      // 4. Dispara eventos globais para atualização reativa instantânea de todas as telas e painéis
+      window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: rowsData }));
+      window.dispatchEvent(new CustomEvent('quebras-updated', { detail: rowsData }));
+      window.dispatchEvent(new CustomEvent('pacote_prejuizo_updated'));
+      window.dispatchEvent(new CustomEvent('retroactive-data-updated'));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+      window.dispatchEvent(new Event('storage'));
+
+      const importedCount = rowsData.length;
+      setImportStatusMsg(`✅ Sucesso! ${importedCount} registros de quebras foram importados e o Dashboard foi atualizado com sucesso!`);
       setImportFile(null);
       setImportPreview([]);
       setPastedText('');
-      setActiveTab('hist');
+      
+      // Feedback amigável
+      setTimeout(() => {
+        setActiveTab('hist');
+      }, 1200);
     } catch (err: any) {
-      alert('Erro ao importar registros: ' + (err?.message || err));
+      console.error('Erro ao importar:', err);
       setImportStatusMsg(`❌ Erro durante a importação: ${err?.message || err}`);
     } finally {
       setImporting(false);
@@ -376,7 +446,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
         const rows = XLSX.utils.sheet_to_json(worksheet) as any[];
         await processAndImportRows(rows);
       } catch (err: any) {
-        alert('Erro ao ler planilha: ' + err);
+        setImportStatusMsg('❌ Erro ao ler planilha: ' + err);
       }
     };
     reader.readAsBinaryString(importFile);
@@ -384,23 +454,24 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
   // Submit pasted JSON or CSV text
   const handlePasteSubmit = async () => {
-    if (!pastedText.trim()) return;
+    if (!pastedText.trim()) {
+      setImportStatusMsg('⚠️ Cole os registros no campo de texto antes de clicar em importar.');
+      return;
+    }
     try {
-      let parsedRows: any[] = [];
-      const text = pastedText.trim();
-      if (text.startsWith('[') || text.startsWith('{')) {
-        const json = JSON.parse(text);
-        parsedRows = Array.isArray(json) ? json : [json];
-      } else {
-        // Assume CSV
-        const workbook = XLSX.read(text, { type: 'string' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        parsedRows = XLSX.utils.sheet_to_json(worksheet) as any[];
+      setImporting(true);
+      setImportStatusMsg('⏳ Analisando dados colados...');
+      const parsedRows = smartParseQuebrasText(pastedText);
+      if (!parsedRows || parsedRows.length === 0) {
+        setImportStatusMsg('❌ Não foi possível identificar registros válidos no texto colado. Certifique-se de que os dados estão em formato JSON ({...}) ou CSV com cabeçalho.');
+        setImporting(false);
+        return;
       }
       await processAndImportRows(parsedRows);
     } catch (err: any) {
-      alert('Erro ao processar texto fornecido. Certifique-se de que é um formato válido (JSON ou CSV/Valores separados por vírgula ou tabulação): ' + err);
+      console.error('Erro ao processar texto fornecido:', err);
+      setImportStatusMsg('❌ Erro ao processar texto: ' + (err?.message || err));
+      setImporting(false);
     }
   };
   const [draftRestored, setDraftRestored] = useState<boolean>(() => {
@@ -485,48 +556,69 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     const refreshQuebras = () => {
-      const saved = localStorage.getItem(`quebras_${companyId}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setQuebras(parsed);
-            return;
-          }
-        } catch (e) {}
+      const officialRows = buildOfficialQuebrasRows(companyId);
+      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+
+      const customRows: QuebraRow[] = [];
+      const seenKeys = new Set<string>();
+
+      officialRows.forEach(r => {
+        const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
+        seenKeys.add(key);
+      });
+
+      const addCustomIfNew = (item: QuebraRow) => {
+        if (!item) return;
+        const idStr = String(item.id || item._docId || '');
+        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+        const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
+        if (seenKeys.has(itemKey)) return;
+        seenKeys.add(itemKey);
+        customRows.push(item);
+      };
+
+      if (empresaData.quebras && empresaData.quebras.length > 0) {
+        empresaData.quebras.forEach(addCustomIfNew);
       }
+
+      const lsKeys = [
+        `custom_quebras_${companyId}`,
+        `quebras_${companyId}`,
+        `quebras_records_${companyId}`,
+        `local_quebras_${companyId}`
+      ];
+      lsKeys.forEach(k => {
+        const savedCustom = localStorage.getItem(k);
+        if (savedCustom) {
+          try {
+            const parsed = JSON.parse(savedCustom);
+            if (Array.isArray(parsed)) parsed.forEach(addCustomIfNew);
+          } catch (_) {}
+        }
+      });
+
+      const combined = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+      combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+      setQuebras(combined);
     };
 
-    if (empresaData.quebras && empresaData.quebras.length > 0) {
-      const rows = [...empresaData.quebras];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-      setQuebras(rows);
-      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(rows));
-    } else {
-      const saved = localStorage.getItem(`quebras_${companyId}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setQuebras(parsed);
-            return;
-          }
-        } catch (e) {}
-      }
-      // Fallback para a base oficial embutida no código
-      const defaultRows = buildOfficialQuebrasRows(companyId);
-      if (defaultRows.length > 0) {
-        setQuebras(defaultRows);
-      }
-    }
+    refreshQuebras();
 
     const handleUpdated = () => {
       refreshQuebras();
     };
 
     window.addEventListener('quebras-db-updated', handleUpdated);
+    window.addEventListener('quebras-updated', handleUpdated);
+    window.addEventListener('retroactive-data-updated', handleUpdated);
+    window.addEventListener('empresa-data-reload', handleUpdated);
+    window.addEventListener('storage', handleUpdated);
     return () => {
       window.removeEventListener('quebras-db-updated', handleUpdated);
+      window.removeEventListener('quebras-updated', handleUpdated);
+      window.removeEventListener('retroactive-data-updated', handleUpdated);
+      window.removeEventListener('empresa-data-reload', handleUpdated);
+      window.removeEventListener('storage', handleUpdated);
     };
   }, [empresaData.quebras, empresa?.id]);
 
@@ -560,9 +652,13 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     const dataStr = today.toLocaleDateString('pt-BR');
 
     const chosenMotive = motivosDisponiveis.find(m => m.cod === motivoCod)?.motivo || String(motivoCod);
+    const companyId = empresa?.id || 'demo';
+    const genId = `qb-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-    const newRow: Omit<QuebraRow, '_docId'> & { empresaId: string; _criadoEm?: string } = {
-      empresaId: empresa?.id || 'demo',
+    const newRow: QuebraRow & { empresaId: string; _criadoEm?: string } = {
+      id: genId,
+      _docId: genId,
+      empresaId: companyId,
       data: dataStr,
       dataISO,
       _criadoEm: today.toISOString(),
@@ -574,11 +670,36 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       turno,
       codQuebra: String(motivoCod),
       motivo: chosenMotive,
-      ...(isQuebraMovimentacao ? { colaboradorQuebrou: colaboradorQuebrou.trim() } : {})
+      ...(isQuebraMovimentacao || colaboradorQuebrou ? { colaboradorQuebrou: colaboradorQuebrou.trim(), colaborador: colaboradorQuebrou.trim(), responsavel: colaboradorQuebrou.trim() } : {})
     };
 
     try {
-      await QuebrasRepository.create(newRow, empresa?.id || 'demo');
+      await QuebrasRepository.create(newRow, companyId);
+
+      const customKey = `custom_quebras_${companyId}`;
+      const savedCustom = localStorage.getItem(customKey);
+      let existingCustom: QuebraRow[] = [];
+      if (savedCustom) {
+        try {
+          const parsed = JSON.parse(savedCustom);
+          if (Array.isArray(parsed)) existingCustom = parsed;
+        } catch (_) {}
+      }
+
+      const mergedCustom = [newRow, ...existingCustom];
+      safeSetLocalStorage(customKey, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`quebras_records_${companyId}`, JSON.stringify(mergedCustom));
+      safeSetLocalStorage(`local_quebras_${companyId}`, JSON.stringify(mergedCustom));
+
+      setQuebras(prev => [newRow, ...prev]);
+
+      window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: [newRow] }));
+      window.dispatchEvent(new CustomEvent('quebras-updated', { detail: [newRow] }));
+      window.dispatchEvent(new CustomEvent('pacote_prejuizo_updated'));
+      window.dispatchEvent(new CustomEvent('retroactive-data-updated'));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+      window.dispatchEvent(new Event('storage'));
 
       setProdutoBusca('');
       setSelectedProd(null);
@@ -611,14 +732,25 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
   const handleDelete = async (docId?: string) => {
     if (!docId) return;
+    const companyId = empresa?.id || 'demo';
     try {
-      await QuebrasRepository.delete(docId, empresa?.id || 'demo');
+      await QuebrasRepository.delete(docId, companyId);
     } catch (e) {
       console.error(e);
     } finally {
       const remaining = quebras.filter(r => r._docId !== docId && (r as any).id !== docId);
       setQuebras(remaining);
-      safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`quebras_records_${companyId}`, JSON.stringify(remaining));
+      safeSetLocalStorage(`local_quebras_${companyId}`, JSON.stringify(remaining));
+
+      window.dispatchEvent(new CustomEvent('quebras-db-updated'));
+      window.dispatchEvent(new CustomEvent('quebras-updated'));
+      window.dispatchEvent(new CustomEvent('pacote_prejuizo_updated'));
+      window.dispatchEvent(new CustomEvent('retroactive-data-updated'));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+      window.dispatchEvent(new Event('storage'));
     }
   };
 
@@ -664,6 +796,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     }
 
     setSavingEdit(true);
+    const companyId = empresa?.id || 'demo';
 
     const updatedFields: Partial<QuebraRow> = {
       codProduto: String(editSelectedProd.codigo),
@@ -681,12 +814,22 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     try {
       const idToUpdate = editingRow._docId || editingRow.id;
       if (idToUpdate) {
-        await QuebrasRepository.update(idToUpdate, updatedFields, empresa?.id || 'demo');
+        await QuebrasRepository.update(idToUpdate, updatedFields, companyId);
       }
 
       const nextQuebras = quebras.map(r => ((r._docId === idToUpdate || r.id === idToUpdate) ? { ...r, ...updatedFields } : r));
       setQuebras(nextQuebras);
-      safeSetLocalStorage(`quebras_${empresa?.id || 'demo'}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`quebras_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`custom_quebras_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`quebras_records_${companyId}`, JSON.stringify(nextQuebras));
+      safeSetLocalStorage(`local_quebras_${companyId}`, JSON.stringify(nextQuebras));
+
+      window.dispatchEvent(new CustomEvent('quebras-db-updated', { detail: nextQuebras }));
+      window.dispatchEvent(new CustomEvent('quebras-updated', { detail: nextQuebras }));
+      window.dispatchEvent(new CustomEvent('pacote_prejuizo_updated'));
+      window.dispatchEvent(new CustomEvent('retroactive-data-updated'));
+      window.dispatchEvent(new CustomEvent('empresa-data-reload'));
+      window.dispatchEvent(new Event('storage'));
 
       setEditingRow(null);
     } catch (e) {
@@ -711,15 +854,53 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     return { registros, unidades };
   }, [todayQuebras]);
 
+  // Custom Date Range & Export Modal State
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+
+  const dateFilteredQuebras = useMemo(() => {
+    if (!filterStartDate && !filterEndDate) return filteredQuebras;
+    return filteredQuebras.filter(q => {
+      const rawDate = q.dataISO || q.data;
+      return isDateWithinInterval(rawDate, filterStartDate, filterEndDate);
+    });
+  }, [filteredQuebras, filterStartDate, filterEndDate]);
+
   const groupedQuebrasEntries = useMemo(() => {
-    const grouped = filteredQuebras.reduce((acc, q) => {
+    const grouped = dateFilteredQuebras.reduce((acc, q) => {
       const key = q.dataISO || (q.data ? q.data.split('/').reverse().join('-') : 'sem-data');
       if (!acc[key]) acc[key] = [];
       acc[key].push(q);
       return acc;
     }, {} as Record<string, QuebraRow[]>);
     return Object.entries(grouped) as [string, QuebraRow[]][];
-  }, [filteredQuebras]);
+  }, [dateFilteredQuebras]);
+
+  const formatQuebrasForExcel = (rows: QuebraRow[]) => {
+    return rows.map(q => ({
+      'Data': q.data || (q.dataISO ? q.dataISO.split('-').reverse().join('/') : '-'),
+      'Cód. SKU': q.codProduto || '-',
+      'Descrição': q.descricao || '-',
+      'Quantidade': Number(q.quantidade || 0),
+      'HL Perdido': q.hlPerdido !== undefined ? Number(q.hlPerdido).toFixed(2) : '-',
+      'Valor Estimado (R$)': q.valorTotal !== undefined ? `R$ ${Number(q.valorTotal).toFixed(2)}` : (q.valor !== undefined ? `R$ ${Number(q.valor).toFixed(2)}` : '-'),
+      'Área': q.area || '-',
+      'Turno': q.turno || '-',
+      'Cód. Quebra': q.codQuebra || '-',
+      'Motivo': q.motivo || '-',
+      'Colaborador Responsável': q.colaboradorQuebrou || q.responsavel || q.colaborador || q.operador || '-'
+    }));
+  };
+
+  const getQuebrasExtraSummary = (rows: QuebraRow[]) => {
+    const totalUnits = rows.reduce((sum, q) => sum + Number(q.quantidade || 0), 0);
+    const totalHL = rows.reduce((sum, q) => sum + Number(q.hlPerdido || 0), 0);
+    return [
+      { label: 'Total Avariado', value: `${totalUnits} un` },
+      { label: 'HL Perdido', value: `${totalHL.toFixed(2)} HL` }
+    ];
+  };
 
   // Filter products for autocomplete dropdown
   const filteredProducts = useMemo(() => {
@@ -739,30 +920,43 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
 
       <SopBannerViewer operation="quebras" operationName="Quebras e Avarias" theme="dark" />
 
-      <div className="ptabs border-b border-[#222d3a] flex gap-2 flex-wrap">
-        <button 
-          onClick={() => setActiveTab('form')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+      <div className="ptabs border-b border-[#222d3a] flex items-center justify-between gap-2 flex-wrap pb-1">
+        <div className="flex gap-2 flex-wrap">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'form' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📝 Cadastrar Quebra
+          </button>
+          <button 
+            onClick={() => setActiveTab('import')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'import' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📥 Importar Banco / Planilha
+          </button>
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📊 Produtividade do Dia
+          </button>
+          <button 
+            onClick={() => setActiveTab('hist')}
+            className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
+          >
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredQuebras.length}</span>
+          </button>
+        </div>
+
+        {/* BOTÃO EXPORTAR POR PERÍODO PERSONALIZADO */}
+        <button
+          type="button"
+          onClick={() => setShowExportModal(true)}
+          className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer border border-rose-500 shrink-0 ml-auto my-1"
+          title="Exportar dados de Quebras escolhendo datas personalizadas"
         >
-          📝 Cadastrar Quebra
-        </button>
-        <button 
-          onClick={() => setActiveTab('import')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'import' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📥 Importar Banco / Planilha
-        </button>
-        <button 
-          onClick={() => setActiveTab('stats')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'stats' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📊 Produtividade do Dia
-        </button>
-        <button 
-          onClick={() => setActiveTab('hist')}
-          className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
-        >
-          📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{filteredQuebras.length}</span>
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Exportar por Período</span>
         </button>
       </div>
 
@@ -881,26 +1075,59 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
           ) : (
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-bold uppercase text-[#6a7d92] mb-1 block">
-                  Cole os dados em formato JSON ou CSV (com cabeçalho na 1ª linha)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold uppercase text-[#6a7d92] block">
+                    Cole os dados em formato JSON ou CSV (com cabeçalho na 1ª linha)
+                  </label>
+                  {pastedText.trim() && (
+                    <button
+                      onClick={() => {
+                        setPastedText('');
+                        setImportStatusMsg(null);
+                      }}
+                      className="text-[11px] text-[#ef4444] hover:underline font-bold cursor-pointer"
+                    >
+                      Limpar Texto
+                    </button>
+                  )}
+                </div>
                 <textarea
-                  rows={9}
+                  rows={10}
                   value={pastedText}
-                  onChange={(e) => setPastedText(e.target.value)}
-                  placeholder={`[\n  {\n    "Data": "2026-01-01 11:59:15",\n    "Mês": "JANEIRO",\n    "CodProduto": 21020,\n    "Descricao": "BUDWEISER 350ML",\n    "Quantidade": 1,\n    "Area": "ARMAZEM",\n    "Turno": "Noite",\n    "CodQuebra": 524,\n    "Motivo": "FALTA NO PALETE",\n    "Colaborador": "RONILDO",\n    "Funcao": "EMPILHADOR",\n    "VALOR DA AVARIA": 2.6486,\n    "HECTO LITRO": 0.0035,\n    "HECTO PERDIDO ": 0.0035\n  }\n]`}
+                  onChange={(e) => {
+                    setPastedText(e.target.value);
+                    if (importStatusMsg) setImportStatusMsg(null);
+                  }}
+                  placeholder={`[\n  {\n    "Data": "2026-08-10 11:59:15",\n    "Mês": "AGOSTO",\n    "CodProduto": 504,\n    "Descricao": "PEPSI COLA PET 2L CAIXA C/6",\n    "Quantidade": 1,\n    "Area": "PUXADA",\n    "Turno": "NOITE",\n    "CodQuebra": "578",\n    "Motivo": "VAZAMENTO"\n  }\n]`}
                   className="w-full bg-[#151b23] border border-[#222d3a] focus:border-[#ef4444] rounded-lg p-3 font-mono text-xs text-snow focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                {pastedText.trim() ? (
+                  detectedPasteCount > 0 ? (
+                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                      <Check className="w-4 h-4" /> {detectedPasteCount} {detectedPasteCount === 1 ? 'registro identificado' : 'registros identificados'} pronto(s) para importação
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4" /> Processando texto... Insira formato JSON com {`{ ... }`} ou CSV
+                    </span>
+                  )
+                ) : (
+                  <span className="text-xs text-[#6a7d92]">
+                    Suporta fragmentos copiados de JSON, listas completas [ ... ] ou planilhas CSV/TSV.
+                  </span>
+                )}
+
                 <button
+                  id="btn-import-quebras-pasted-text"
                   onClick={handlePasteSubmit}
                   disabled={importing || !pastedText.trim()}
                   className="px-6 py-3 bg-[#ef4444] hover:bg-[#dc2626] disabled:opacity-50 text-white font-bold rounded-lg text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg transition-all"
                 >
                   {importing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  Importar Registros do Texto
+                  {importing ? 'Importando...' : 'Importar Registros do Texto'}
                 </button>
               </div>
             </div>
@@ -1184,6 +1411,22 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       ) : (
         <div className="flex flex-col gap-3">
           <HistoryRestrictionNotice user={user} />
+
+          {/* BARRA DE FILTRO DE DATA E EXPORTAÇÃO */}
+          <CustomDateFilterBar
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+            onStartDateChange={setFilterStartDate}
+            onEndDateChange={setFilterEndDate}
+            onReset={() => { setFilterStartDate(''); setFilterEndDate(''); }}
+            onOpenExportModal={() => setShowExportModal(true)}
+            totalFiltered={dateFilteredQuebras.length}
+            totalAll={filteredQuebras.length}
+            accentColor="red"
+            label="Filtrar Quebras por Período:"
+            unitLabel="lançamentos"
+            extraStats={`Total: ${dateFilteredQuebras.reduce((s, q) => s + (q.quantidade || 0), 0)} un`}
+          />
           {(() => {
             if (groupedQuebrasEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhuma quebra registrada.</div>;
@@ -1499,6 +1742,29 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
           </div>
         </div>
       )}
+      {/* MODAL DE EXPORTAÇÃO PERSONALIZADA POR PERÍODO */}
+      <CustomDateExportModal<QuebraRow>
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Exportar Registro de Quebras e Avarias"
+        subtitle="Escolha o intervalo de datas para exportar os registros de Quebras em Excel ou CSV com cálculos de perdas."
+        records={filteredQuebras}
+        dateExtractor={q => q.dataISO || q.data}
+        formatDataForExcel={formatQuebrasForExcel}
+        defaultFileName="Relatorio_Quebras_Avarias"
+        sheetName="Quebras"
+        accentColor="red"
+        extraSummary={getQuebrasExtraSummary}
+        onApplyScreenFilter={(start, end) => {
+          setFilterStartDate(start);
+          setFilterEndDate(end);
+        }}
+        onClearScreenFilter={() => {
+          setFilterStartDate('');
+          setFilterEndDate('');
+        }}
+        currentScreenFilter={{ startISO: filterStartDate, endISO: filterEndDate }}
+      />
     </div>
   );
 }

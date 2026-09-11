@@ -63,92 +63,47 @@ export class DatabaseRouter {
   }
 
   // =========================================================================
-  // 1. REGRA DE PRIORIDADE: HISTÓRICO (JSON -> Cache)
-  // Nunca consulta Firestore automaticamente se já estiver no JSON ou Cache.
+  // 1. DADOS: Consulta direta ao Firestore (Cache desativado a pedido)
   // =========================================================================
   public async getHistorico<T extends { id?: string | number; _docId?: string | number }>(
     collectionName: string,
     empresaId = 'demo',
     options?: QueryOptions<T>
   ): Promise<T[]> {
-    // 1. Primeiro tenta no JSON Database local (onde o histórico fica consolidado em disco/storage)
-    const jsonRecords = await jsonDb.getTable<T>(collectionName, empresaId, options);
-    if (jsonRecords && jsonRecords.length > 0) {
-      cacheDb.recordAvoided(jsonRecords.length);
-      // Alimenta o cache de memória para acessos instantâneos subsequentes
-      cacheDb.set(collectionName, jsonRecords, empresaId, options?.ttlMs || 3600000, 'json');
-      return this.applyInMemoryFilters(jsonRecords, options);
-    }
-
-    // 2. Se JSON vazio, tenta Cache L1/L2
-    const cached = await cacheDb.get<T>(collectionName, empresaId, options?.ttlMs);
-    if (cached && cached.length > 0) {
-      cacheDb.recordAvoided(cached.length);
-      return this.applyInMemoryFilters(cached, options);
-    }
-
-    // 3. Se forçado explicitamente pelo usuário (forceServer=true), permite consultar Firestore
-    if (options?.forceServer) {
-      try {
-        const remote = await firestoreDb.getList<T>(collectionName, empresaId, options);
-        if (remote && remote.length > 0) {
-          cacheDb.recordActualReads(remote.length);
-          cacheDb.set(collectionName, remote, empresaId, options?.ttlMs, 'firestore');
-          await jsonDb.saveTable(collectionName, remote, empresaId);
-          return remote;
-        }
-      } catch (err) {
-        console.warn(`[DatabaseRouter] Erro ao buscar histórico forçado no Firestore para ${collectionName}:`, err);
+    try {
+      const remote = await firestoreDb.getList<T>(collectionName, empresaId, options);
+      if (remote && remote.length > 0) {
+        return remote;
       }
+    } catch (err) {
+      console.warn(`[DatabaseRouter] Erro ao buscar no Firestore para ${collectionName}:`, err);
     }
-
-    // Nunca consulta Firestore automaticamente para histórico existente no JSON
-    return [];
+    const jsonRecords = await jsonDb.getTable<T>(collectionName, empresaId, options);
+    return this.applyInMemoryFilters(jsonRecords, options);
   }
 
   // =========================================================================
-  // 2. REGRA DE PRIORIDADE: DADOS ATUAIS NÃO CRÍTICOS (Cache -> JSON -> Firestore se necessário)
+  // 2. DADOS GERAIS: Consulta direta ao Firestore
   // =========================================================================
   public async getNaoCritico<T extends { id?: string | number; _docId?: string | number }>(
     collectionName: string,
     empresaId = 'demo',
     options?: QueryOptions<T>
   ): Promise<T[]> {
-    // 1. Tenta Cache L1 (Memória) e L2 (Storage)
-    const cached = await cacheDb.get<T>(collectionName, empresaId, options?.ttlMs);
-    if (cached && cached.length > 0) {
-      cacheDb.recordAvoided(cached.length);
-      return this.applyInMemoryFilters(cached, options);
-    }
-
-    // 2. Tenta JSON Database local
-    const local = await jsonDb.getTable<T>(collectionName, empresaId, options);
-    if (local && local.length > 0) {
-      cacheDb.recordAvoided(local.length);
-      cacheDb.set(collectionName, local, empresaId, options?.ttlMs, 'json');
-      return this.applyInMemoryFilters(local, options);
-    }
-
-    // 3. Firestore SOMENTE se necessário (quando ausente no Cache e JSON)
     try {
       const serverItems = await firestoreDb.getList<T>(collectionName, empresaId, options);
       if (serverItems && serverItems.length > 0) {
-        cacheDb.recordActualReads(serverItems.length);
-        // Atualiza Cache e JSON local para consultas futuras
-        cacheDb.set(collectionName, serverItems, empresaId, options?.ttlMs, 'firestore');
-        await jsonDb.saveTable(collectionName, serverItems, empresaId);
         return serverItems;
       }
     } catch (err) {
-      console.warn(`[DatabaseRouter] Firestore inacessível para dados não críticos de ${collectionName}:`, err);
+      console.warn(`[DatabaseRouter] Firestore inacessível para ${collectionName}:`, err);
     }
-
-    return [];
+    const local = await jsonDb.getTable<T>(collectionName, empresaId, options);
+    return this.applyInMemoryFilters(local, options);
   }
 
   // =========================================================================
   // 3. REGRA DE PRIORIDADE: DADOS REALTIME (Firestore via Listener)
-  // Somente dados que realmente precisam de atualização em tempo real utilizam listeners.
   // =========================================================================
   public subscribeRealtime<T extends { id?: string | number; _docId?: string | number }>(
     collectionName: string,
@@ -157,28 +112,10 @@ export class DatabaseRouter {
     onError?: (err: any) => void,
     forceRealtime = false
   ): () => void {
-    // 1. Disponibiliza imediatamente os dados do Cache/JSON para UI não aguardar o handshake de rede
-    this.getNaoCritico<T>(collectionName, empresaId).then(initialData => {
-      if (initialData && initialData.length > 0) {
-        callback(initialData);
-      }
-    }).catch(() => {});
-
-    // 2. Verifica se a coleção REALMENTE necessita de listener onSnapshot
-    const permitRealtime = isRealtimePermitido(collectionName, forceRealtime);
-    if (!permitRealtime) {
-      // Para histórico, relatórios, produtos e dados diários: NÃO conecta onSnapshot no Firestore!
-      return () => {};
-    }
-
-    // 3. Conecta listener no Firestore apenas para dados com realtime necessário
     return firestoreDb.subscribe<T>(
       collectionName,
       empresaId,
       (items) => {
-        // Ao receber atualização em tempo real, mantém Cache e JSON local sincronizados
-        cacheDb.set(collectionName, items, empresaId, undefined, 'firestore');
-        jsonDb.saveTable(collectionName, items, empresaId);
         callback(items);
       },
       onError
