@@ -49,6 +49,7 @@ export function syncIncremental({
   let isUnsubscribed = false;
   let activeUnsub: (() => void) | null = null;
   const docsMap = new Map<string, any>();
+  const businessIdToDocKey = new Map<string, string>();
 
   const cacheKey = `hybrid_col:${empresaId}:${collectionName}`;
   const syncKey = `sync:${empresaId}:${collectionName}`;
@@ -80,7 +81,7 @@ export function syncIncremental({
       const seen = new Set<string>();
       const records: any[] = [];
 
-      // Processar em ordem reversa ou com prioridade para garantir unicidade estrita
+      // Processar garantindo unicidade estrita O(N)
       for (const item of rawRecords) {
         if (!item) continue;
         const key = getItemKey(item);
@@ -114,22 +115,16 @@ export function syncIncremental({
     const rawData = typeof data === 'object' && data !== null ? data : {};
     const businessId = rawData.id !== undefined && rawData.id !== null ? rawData.id : docId;
     const docItem = { _docId: docId, id: businessId, ...rawData };
+    const primaryKey = `doc:${docId}`;
+    const businessKey = String(businessId);
 
-    // Remover qualquer chave anterior que represente o mesmo documento
-    for (const [key, existing] of docsMap.entries()) {
-      if (
-        key === docId ||
-        key === `doc:${docId}` ||
-        key === `id:${businessId}` ||
-        key === String(businessId) ||
-        existing._docId === docId ||
-        (existing.id !== undefined && String(existing.id) === String(businessId))
-      ) {
-        docsMap.delete(key);
-      }
+    // O(1): se já existia outro documento com o mesmo businessId, remove para evitar duplicatas
+    const prevKey = businessIdToDocKey.get(businessKey);
+    if (prevKey && prevKey !== primaryKey) {
+      docsMap.delete(prevKey);
     }
 
-    const primaryKey = `doc:${docId}`;
+    businessIdToDocKey.set(businessKey, primaryKey);
     docsMap.set(primaryKey, docItem);
   };
 
@@ -154,6 +149,7 @@ export function syncIncremental({
       if (serverSnap && !serverSnap.empty) {
         recordActualFirestoreReads(serverSnap.docs.length);
         docsMap.clear();
+        businessIdToDocKey.clear();
         serverSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
           storeDoc(doc.id, doc.data());
         });
@@ -167,6 +163,7 @@ export function syncIncremental({
         const fallbackSnap = await getDocs(baseQuery);
         if (!fallbackSnap.empty) {
           docsMap.clear();
+          businessIdToDocKey.clear();
           fallbackSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
             storeDoc(doc.id, doc.data());
           });
@@ -193,9 +190,10 @@ export function syncIncremental({
           let changed = false;
           snap.docChanges().forEach((change) => {
             if (change.type === 'removed') {
-              docsMap.delete(change.doc.id);
-              if (change.doc.data()?.id) {
-                docsMap.delete(String(change.doc.data().id));
+              docsMap.delete(`doc:${change.doc.id}`);
+              const bId = change.doc.data()?.id;
+              if (bId !== undefined && bId !== null) {
+                businessIdToDocKey.delete(String(bId));
               }
               changed = true;
             } else {

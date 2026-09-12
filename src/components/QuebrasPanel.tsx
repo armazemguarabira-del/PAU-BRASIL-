@@ -151,6 +151,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   
   const [activeTab, setActiveTab] = useState<'form' | 'import' | 'stats' | 'hist'>('form');
   const [quebras, setQuebras] = useState<QuebraRow[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
   const [historyPage, setHistoryPage] = useState(1);
@@ -555,57 +556,80 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
   // Sync with empresaData (scoped to company)
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    const refreshQuebras = () => {
-      const officialRows = buildOfficialQuebrasRows(companyId);
-      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+    let updateDebounceTimer: any = null;
+    let cancelLoad = false;
 
-      const customRows: QuebraRow[] = [];
-      const seenKeys = new Set<string>();
+    const refreshQuebras = (isImmediate = false) => {
+      const doLoad = () => {
+        if (cancelLoad) return;
+        const officialRows = buildOfficialQuebrasRows(companyId);
+        const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-      officialRows.forEach(r => {
-        const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
-        seenKeys.add(key);
-      });
+        const customRows: QuebraRow[] = [];
+        const seenKeys = new Set<string>();
 
-      const addCustomIfNew = (item: QuebraRow) => {
-        if (!item) return;
-        const idStr = String(item.id || item._docId || '');
-        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
-        const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
-        if (seenKeys.has(itemKey)) return;
-        seenKeys.add(itemKey);
-        customRows.push(item);
+        officialRows.forEach(r => {
+          const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
+          seenKeys.add(key);
+        });
+
+        const addCustomIfNew = (item: QuebraRow) => {
+          if (!item) return;
+          const idStr = String(item.id || item._docId || '');
+          if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+          const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
+          if (seenKeys.has(itemKey)) return;
+          seenKeys.add(itemKey);
+          customRows.push(item);
+        };
+
+        if (empresaData.quebras && empresaData.quebras.length > 0) {
+          empresaData.quebras.forEach(addCustomIfNew);
+        }
+
+        const lsKeys = [
+          `custom_quebras_${companyId}`,
+          `quebras_${companyId}`,
+          `quebras_records_${companyId}`,
+          `local_quebras_${companyId}`
+        ];
+        lsKeys.forEach(k => {
+          const savedCustom = localStorage.getItem(k);
+          if (savedCustom) {
+            try {
+              const parsed = JSON.parse(savedCustom);
+              if (Array.isArray(parsed)) parsed.forEach(addCustomIfNew);
+            } catch (_) {}
+          }
+        });
+
+        const combined = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+        combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+        if (!cancelLoad) {
+          setQuebras(combined);
+          setIsDataLoading(false);
+        }
       };
 
-      if (empresaData.quebras && empresaData.quebras.length > 0) {
-        empresaData.quebras.forEach(addCustomIfNew);
-      }
-
-      const lsKeys = [
-        `custom_quebras_${companyId}`,
-        `quebras_${companyId}`,
-        `quebras_records_${companyId}`,
-        `local_quebras_${companyId}`
-      ];
-      lsKeys.forEach(k => {
-        const savedCustom = localStorage.getItem(k);
-        if (savedCustom) {
-          try {
-            const parsed = JSON.parse(savedCustom);
-            if (Array.isArray(parsed)) parsed.forEach(addCustomIfNew);
-          } catch (_) {}
+      if (isImmediate) {
+        doLoad();
+      } else {
+        setIsDataLoading(true);
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => doLoad(), { timeout: 150 });
+        } else {
+          setTimeout(doLoad, 16);
         }
-      });
-
-      const combined = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
-      combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
-      setQuebras(combined);
+      }
     };
 
-    refreshQuebras();
+    refreshQuebras(false);
 
     const handleUpdated = () => {
-      refreshQuebras();
+      if (updateDebounceTimer) clearTimeout(updateDebounceTimer);
+      updateDebounceTimer = setTimeout(() => {
+        refreshQuebras(true);
+      }, 150);
     };
 
     window.addEventListener('quebras-db-updated', handleUpdated);
@@ -614,6 +638,8 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
     window.addEventListener('empresa-data-reload', handleUpdated);
     window.addEventListener('storage', handleUpdated);
     return () => {
+      cancelLoad = true;
+      if (updateDebounceTimer) clearTimeout(updateDebounceTimer);
       window.removeEventListener('quebras-db-updated', handleUpdated);
       window.removeEventListener('quebras-updated', handleUpdated);
       window.removeEventListener('retroactive-data-updated', handleUpdated);
@@ -944,7 +970,9 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
             onClick={() => setActiveTab('hist')}
             className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
           >
-            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredQuebras.length}</span>
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">
+              {isDataLoading && dateFilteredQuebras.length === 0 ? '...' : dateFilteredQuebras.length}
+            </span>
           </button>
         </div>
 
@@ -1428,6 +1456,15 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
             extraStats={`Total: ${dateFilteredQuebras.reduce((s, q) => s + (q.quantidade || 0), 0)} un`}
           />
           {(() => {
+            if (isDataLoading && groupedQuebrasEntries.length === 0) {
+              return (
+                <div className="g-card p-12 text-center text-[#6a7d92] flex flex-col items-center justify-center gap-2">
+                  <div className="w-6 h-6 rounded-full border-2 border-red-500 border-t-transparent animate-spin" />
+                  <span className="text-xs font-semibold">Carregando histórico de quebras...</span>
+                </div>
+              );
+            }
+
             if (groupedQuebrasEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhuma quebra registrada.</div>;
             }

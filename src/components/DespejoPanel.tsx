@@ -66,6 +66,7 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
   const [statusMeta, setStatusMeta] = useState('—');
   const [activeTab, setActiveTab] = useState<'form' | 'stats' | 'hist'>('form');
   const [despejoRows, setDespejoRows] = useState<DespejoRow[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [historyPage, setHistoryPage] = useState<number>(1);
   const historyPageSize = 10;
@@ -155,69 +156,92 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
   const empresaData = useEmpresaData(['despejo']);
 
   // Sync with official data and live manual entries
-  const reloadDespejoData = useCallback(() => {
+  const reloadDespejoData = useCallback((isImmediate = false) => {
     const companyId = empresa?.id || 'demo';
-    const officialRows = buildOfficialDespejoRows(companyId);
 
-    let customManualRows: DespejoRow[] = [];
-    const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
-    if (savedManual) {
-      try {
-        const parsed = JSON.parse(savedManual);
-        if (Array.isArray(parsed)) {
-          customManualRows = parsed;
-        }
-      } catch (e) {}
-    } else {
-      // Fallback check on despejo_rows_
-      const saved = localStorage.getItem(`despejo_rows_${companyId}`);
-      if (saved) {
+    const doLoad = () => {
+      const officialRows = buildOfficialDespejoRows(companyId);
+
+      let customManualRows: DespejoRow[] = [];
+      const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+      if (savedManual) {
         try {
-          const parsed = JSON.parse(saved);
+          const parsed = JSON.parse(savedManual);
           if (Array.isArray(parsed)) {
-            customManualRows = parsed.filter(r => 
-              !String(r.id || '').startsWith('retro_despejo_') && 
-              !String(r.id || '').startsWith('seed-despejo-')
-            );
+            customManualRows = parsed;
           }
         } catch (e) {}
+      } else {
+        // Fallback check on despejo_rows_
+        const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              customManualRows = parsed.filter(r => 
+                !String(r.id || '').startsWith('retro_despejo_') && 
+                !String(r.id || '').startsWith('seed-despejo-')
+              );
+            }
+          } catch (e) {}
+        }
+      }
+
+      // Combine manual and official avoiding duplicated IDs
+      const seenIds = new Set<string>();
+      const combined: DespejoRow[] = [];
+
+      customManualRows.forEach(r => {
+        const idKey = String(r._docId || r.id || '');
+        if (idKey && !seenIds.has(idKey)) {
+          seenIds.add(idKey);
+          combined.push(r);
+        }
+      });
+
+      officialRows.forEach(r => {
+        const idKey = String(r._docId || r.id || '');
+        if (!seenIds.has(idKey)) {
+          seenIds.add(idKey);
+          combined.push(r);
+        }
+      });
+
+      combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+      setDespejoRows(combined);
+      setIsDataLoading(false);
+    };
+
+    if (isImmediate) {
+      doLoad();
+    } else {
+      setIsDataLoading(true);
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => doLoad(), { timeout: 150 });
+      } else {
+        setTimeout(doLoad, 16);
       }
     }
-
-    // Combine manual and official avoiding duplicated IDs
-    const seenIds = new Set<string>();
-    const combined: DespejoRow[] = [];
-
-    customManualRows.forEach(r => {
-      const idKey = String(r._docId || r.id || '');
-      if (idKey && !seenIds.has(idKey)) {
-        seenIds.add(idKey);
-        combined.push(r);
-      }
-    });
-
-    officialRows.forEach(r => {
-      const idKey = String(r._docId || r.id || '');
-      if (!seenIds.has(idKey)) {
-        seenIds.add(idKey);
-        combined.push(r);
-      }
-    });
-
-    combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-    setDespejoRows(combined);
   }, [empresa?.id]);
 
   useEffect(() => {
-    reloadDespejoData();
+    reloadDespejoData(false);
 
-    const handleSync = () => reloadDespejoData();
+    let debounceTimer: any = null;
+    const handleSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        reloadDespejoData(true);
+      }, 150);
+    };
+
     window.addEventListener('despejo-updated', handleSync);
     window.addEventListener('despejo-db-updated', handleSync);
     window.addEventListener('empresa-data-reload', handleSync);
     window.addEventListener('storage', handleSync);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('despejo-updated', handleSync);
       window.removeEventListener('despejo-db-updated', handleSync);
       window.removeEventListener('empresa-data-reload', handleSync);
@@ -457,7 +481,9 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
             onClick={() => setActiveTab('hist')}
             className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#ef4444] border-b-2 border-b-[#ef4444]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
           >
-            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredDespejoRows.length}</span>
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">
+              {isDataLoading && dateFilteredDespejoRows.length === 0 ? '...' : dateFilteredDespejoRows.length}
+            </span>
           </button>
         </div>
 
@@ -867,6 +893,15 @@ export default function DespejoPanel({ user, empresa, shiftStarted, onRequireShi
           </div>
 
           {(() => {
+            if (isDataLoading && groupedDespejoEntries.length === 0) {
+              return (
+                <div className="g-card p-12 text-center text-[#6a7d92] flex flex-col items-center justify-center gap-2">
+                  <div className="w-6 h-6 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+                  <span className="text-xs font-semibold">Carregando histórico do despejo...</span>
+                </div>
+              );
+            }
+
             if (groupedDespejoEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum despejo computado ainda.</div>;
             }

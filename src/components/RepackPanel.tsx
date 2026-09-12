@@ -65,6 +65,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   const [motivoNaoBaterMeta, setMotivoNaoBaterMeta] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'form' | 'stats' | 'hist' | 'validade' | 'raci' | 'pop' | 'lup'>('form');
   const [repackRows, setRepackRows] = useState<RepackRow[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
 
   // State variables for Repack Validade tab
@@ -187,62 +188,72 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   // Sync with empresaData (scoped to company)
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
-    const refreshFromStorageOrBase = () => {
-      const officialRows = buildOfficialRepackRows(companyId);
-      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+    let updateDebounceTimer: any = null;
+    let cancelLoad = false;
 
-      const customRows: RepackRow[] = [];
-      const seenCustomKeys = new Set<string>();
+    const refreshFromStorageOrBase = (isImmediate = false) => {
+      const doLoad = () => {
+        if (cancelLoad) return;
+        const officialRows = buildOfficialRepackRows(companyId);
+        const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
 
-      const addCustomIfNew = (item: RepackRow) => {
-        if (!item) return;
-        const idStr = String(item.id || item._docId || '');
-        if (idStr && officialIds.has(idStr)) return;
-        const bizKey = `${item.dataISO || item.data || ''}_${item.inicio || ''}_${item.operador || ''}_${item.embalagem || ''}_${item.quantidade || 0}`;
-        if (seenCustomKeys.has(bizKey)) return;
-        seenCustomKeys.add(bizKey);
-        customRows.push(item);
+        const customRows: RepackRow[] = [];
+        const seenCustomKeys = new Set<string>();
+
+        const addCustomIfNew = (item: RepackRow) => {
+          if (!item) return;
+          const idStr = String(item.id || item._docId || '');
+          if (idStr && officialIds.has(idStr)) return;
+          const bizKey = `${item.dataISO || item.data || ''}_${item.inicio || ''}_${item.operador || ''}_${item.embalagem || ''}_${item.quantidade || 0}`;
+          if (seenCustomKeys.has(bizKey)) return;
+          seenCustomKeys.add(bizKey);
+          customRows.push(item);
+        };
+
+        // 1. Carrega de empresaData.repack
+        if (empresaData.repack && empresaData.repack.length > 0) {
+          empresaData.repack.forEach(addCustomIfNew);
+        }
+
+        // 2. Carrega de repack_manual_entries_ (registros recém cadastrados pelo usuário)
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        if (savedManual) {
+          try {
+            const parsed = JSON.parse(savedManual);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(addCustomIfNew);
+            }
+          } catch (e) {}
+        }
+
+        const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+        rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+        if (!cancelLoad) {
+          setRepackRows(rows);
+          setIsDataLoading(false);
+        }
       };
 
-      if (empresaData.repack && empresaData.repack.length > 0) {
-        empresaData.repack.forEach(addCustomIfNew);
-      }
-
-      // Carrega de repack_manual_entries_
-      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
-      if (savedManual) {
-        try {
-          const parsed = JSON.parse(savedManual);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(addCustomIfNew);
-          }
-        } catch (e) {}
-      }
-
-      const saved = localStorage.getItem(`repack_rows_${companyId}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(addCustomIfNew);
-          }
-        } catch (e) {}
-      }
-
-      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
-      rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
-      setRepackRows(rows);
-      if (customRows.length > 0) {
-        try {
-          localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(customRows));
-        } catch (e) {}
+      if (isImmediate) {
+        doLoad();
+      } else {
+        setIsDataLoading(true);
+        // Yield to allow the browser to paint initial tabs and controls smoothly
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => doLoad(), { timeout: 150 });
+        } else {
+          setTimeout(doLoad, 16);
+        }
       }
     };
 
-    refreshFromStorageOrBase();
+    refreshFromStorageOrBase(false);
 
     const handleRepackUpdated = () => {
-      refreshFromStorageOrBase();
+      if (updateDebounceTimer) clearTimeout(updateDebounceTimer);
+      updateDebounceTimer = setTimeout(() => {
+        refreshFromStorageOrBase(true);
+      }, 100);
     };
 
     window.addEventListener('repack-updated', handleRepackUpdated);
@@ -251,6 +262,8 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     window.addEventListener('storage', handleRepackUpdated);
 
     return () => {
+      cancelLoad = true;
+      if (updateDebounceTimer) clearTimeout(updateDebounceTimer);
       window.removeEventListener('repack-updated', handleRepackUpdated);
       window.removeEventListener('repack-db-updated', handleRepackUpdated);
       window.removeEventListener('empresa-data-reload', handleRepackUpdated);
@@ -652,7 +665,9 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
             onClick={() => setActiveTab('hist')}
             className={`ptab py-2 px-6 font-sans font-bold text-xs uppercase cursor-pointer relative ${activeTab === 'hist' ? 'text-[#f5a623] border-b-2 border-b-[#f5a623]' : 'text-[#6a7d92] hover:text-[#e8eef5]'}`}
           >
-            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">{dateFilteredRepackRows.length}</span>
+            📋 Histórico <span className="ml-1.5 px-2 py-0.5 rounded-full bg-[#151b23] border border-[#222d3a] text-[10px] text-snow">
+              {isDataLoading && dateFilteredRepackRows.length === 0 ? '...' : dateFilteredRepackRows.length}
+            </span>
           </button>
           <button 
             onClick={() => setActiveTab('validade')}
@@ -968,6 +983,15 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
             extraStats={`Total: ${dateFilteredRepackRows.reduce((s, r) => s + (r.quantidade || 0), 0)} caixas`}
           />
           {(() => {
+            if (isDataLoading && groupedHistoryEntries.length === 0) {
+              return (
+                <div className="g-card p-12 text-center text-[#6a7d92] flex flex-col items-center justify-center gap-2">
+                  <div className="w-6 h-6 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                  <span className="text-xs font-semibold">Carregando histórico do repack...</span>
+                </div>
+              );
+            }
+
             if (groupedHistoryEntries.length === 0) {
               return <div className="g-card p-12 text-center text-[#6a7d92]">Nenhum repack computado ainda.</div>;
             }

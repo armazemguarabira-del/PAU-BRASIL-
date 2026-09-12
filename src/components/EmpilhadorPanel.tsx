@@ -309,17 +309,21 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
   // Real-time synchronization listeners for local and cross-tab events
   useEffect(() => {
+    let debounceTimer: any = null;
     const reloadLocalTasks = () => {
-      try {
-        const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
-            setTasks(activeTasks);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        try {
+          const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
+              setTasks(activeTasks);
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }, 50);
     };
 
     window.addEventListener('app_data_updated', reloadLocalTasks);
@@ -329,6 +333,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     window.addEventListener('storage', reloadLocalTasks);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('app_data_updated', reloadLocalTasks);
       window.removeEventListener('local_data_changed', reloadLocalTasks);
       window.removeEventListener('tasks_updated', reloadLocalTasks);

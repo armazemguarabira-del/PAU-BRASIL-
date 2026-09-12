@@ -55,7 +55,7 @@ interface ConferentePanelProps {
 export default function ConferentePanel({ user, empresa, initialTab, theme = 'dark' }: ConferentePanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `conferente_draft_${empresaId}_${user.nome || 'guest'}`;
-  const empresaData = useEmpresaData(['tarefas', 'colaboradores', 'produtos', 'validades']);
+  const empresaData = useEmpresaData(['tarefas', 'colaboradores', 'validades']);
 
   // Load draft safely once
   const initialDraft = React.useMemo(() => {
@@ -1021,18 +1021,22 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
   // Real-time synchronization listeners for local and cross-tab events
   useEffect(() => {
+    let debounceTimer: any = null;
     const reloadLocalTasks = () => {
-      try {
-        const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
-            const sorted = [...activeTasks].sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-            setTasks(sorted);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        try {
+          const saved = localStorage.getItem(`tasks_${empresaId}`) || localStorage.getItem(`tarefas_rows_${empresaId}`);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              const { activeTasks } = filterExpiredOpenTasks(deduplicateTasks(parsed), 5);
+              const sorted = [...activeTasks].sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+              setTasks(sorted);
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }, 50);
     };
 
     window.addEventListener('app_data_updated', reloadLocalTasks);
@@ -1042,6 +1046,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     window.addEventListener('storage', reloadLocalTasks);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('app_data_updated', reloadLocalTasks);
       window.removeEventListener('local_data_changed', reloadLocalTasks);
       window.removeEventListener('tasks_updated', reloadLocalTasks);

@@ -72,7 +72,7 @@ interface ShiftHistoryRecord {
 
 export default function AjudantePanel({ user, empresa, theme = 'dark' }: AjudantePanelProps) {
   const empresaId = empresa?.id || 'demo';
-  const empresaData = useEmpresaData(['repack', 'despejo', 'quebras', 'colaboradores']);
+  const empresaData = useEmpresaData(['repack', 'despejo', 'colaboradores']);
   const shiftStorageKey = `ajudante_shift_${empresaId}_${user.uid || user.nome}`;
   const historyStorageKey = `ajudante_history_${empresaId}_${user.uid || user.nome}`;
 
@@ -267,11 +267,15 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     triggerToast('✓ Correção de ponto de jornada atualizada com sucesso no histórico!');
   };
 
-  // Live listener for real-time Despejo and Repack synchronization
+  // Live listener for real-time Despejo and Repack synchronization (debounced to avoid freezing)
   const [syncVersion, setSyncVersion] = useState(0);
   useEffect(() => {
+    let debounceTimer: any = null;
     const handleSync = () => {
-      setSyncVersion(v => v + 1);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setSyncVersion(v => v + 1);
+      }, 400);
     };
 
     window.addEventListener('despejo-updated', handleSync);
@@ -282,6 +286,7 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     window.addEventListener('storage', handleSync);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('despejo-updated', handleSync);
       window.removeEventListener('despejo-db-updated', handleSync);
       window.removeEventListener('repack-updated', handleSync);
@@ -291,94 +296,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     };
   }, []);
 
-  // Calculate today's productivity meta compliance for Repack & Despejo
+  // Non-blocking data loading for today's productivity meta compliance (Repack & Despejo)
   const todayISO = React.useMemo(() => new Date().toISOString().split('T')[0], []);
   const todayStr = React.useMemo(() => new Date().toLocaleDateString('pt-BR'), []);
 
-  const todayRepackEntries = React.useMemo(() => {
-    const companyId = empresa?.id || 'demo';
-    const allRepack: any[] = [...(empresaData.repack || [])];
-
-    // 1. Carrega de repack_manual_entries_
-    try {
-      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
-      if (savedManual) {
-        const parsed = JSON.parse(savedManual);
-        if (Array.isArray(parsed)) {
-          allRepack.push(...parsed);
-        }
-      }
-    } catch (e) {}
-
-    // 2. Carrega de repack_rows_
-    try {
-      const savedRows = localStorage.getItem(`repack_rows_${companyId}`);
-      if (savedRows) {
-        const parsed = JSON.parse(savedRows);
-        if (Array.isArray(parsed)) {
-          allRepack.push(...parsed);
-        }
-      }
-    } catch (e) {}
-
-    const seenIds = new Set<string>();
-    const deduplicated: any[] = [];
-    allRepack.forEach(r => {
-      if (!r) return;
-      const key = String(r._docId || r.id || `${r.dataISO || r.data}_${r.inicio}_${r.embalagem}_${r.quantidade}`);
-      if (!seenIds.has(key)) {
-        seenIds.add(key);
-        deduplicated.push(r);
-      }
-    });
-
-    return deduplicated.filter(r => {
-      const isDateMatch = r.dataISO === todayISO || r.data === todayStr || (r.data && r.data.includes(todayStr));
-      const isOperatorMatch = !r.operador || r.operador === user.nome || r.operador.includes(user.nome) || user.nome.includes(r.operador) || r.operador.includes('GLADSON') || r.operador.includes('OZENILDO') || r.operador.includes('AJUDANTE');
-      return isDateMatch && isOperatorMatch;
-    });
-  }, [empresaData.repack, todayISO, todayStr, user.nome, empresa?.id, syncVersion]);
-
-  const todayDespejoEntries = React.useMemo(() => {
-    const companyId = empresa?.id || 'demo';
-    const allDespejo: any[] = [...(empresaData.despejo || [])];
-
-    // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
-    try {
-      const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
-      if (savedManual) {
-        const parsed = JSON.parse(savedManual);
-        if (Array.isArray(parsed)) {
-          allDespejo.push(...parsed);
-        }
-      }
-    } catch (e) {}
-
-    try {
-      const savedRows = localStorage.getItem(`despejo_rows_${companyId}`);
-      if (savedRows) {
-        const parsed = JSON.parse(savedRows);
-        if (Array.isArray(parsed)) {
-          allDespejo.push(...parsed);
-        }
-      }
-    } catch (e) {}
-
-    const seenIds = new Set<string>();
-    const deduplicated: any[] = [];
-    allDespejo.forEach(d => {
-      const key = String(d._docId || d.id || `${d.dataISO}_${d.inicio}_${d.embalagem}_${d.quantidade}`);
-      if (!seenIds.has(key)) {
-        seenIds.add(key);
-        deduplicated.push(d);
-      }
-    });
-
-    return deduplicated.filter(d => 
-      (d.dataISO === todayISO || d.data === todayStr) && 
-      (d.operador === user.nome || !d.operador || d.operador === 'AJUDANTE DESPEJO')
-    );
-  }, [empresaData.despejo, todayISO, todayStr, user.nome, empresa?.id, syncVersion]);
+  const [todayRepackEntries, setTodayRepackEntries] = useState<any[]>([]);
+  const [todayDespejoEntries, setTodayDespejoEntries] = useState<any[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
 
   // Helper to parse duration or time string into minutes
   const parseTimeToMinutes = (timeStr?: string): number => {
@@ -393,6 +317,19 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     return isNaN(num) ? 0 : num;
   };
 
+  const [metrics, setMetrics] = useState({
+    totalRepackMetaMins: 0,
+    totalRepackRealMins: 0,
+    hasMissedRepackMeta: false,
+    totalRepackQty: 0,
+    repackRitmoCxHora: 0,
+    isGatilhoRepack10CxAtivo: false,
+    totalDespejoMetaMins: 0,
+    totalDespejoRealMins: 0,
+    hasMissedDespejoMeta: false,
+    overallMetaMet: true
+  });
+
   const {
     totalRepackMetaMins,
     totalRepackRealMins,
@@ -404,52 +341,161 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
     totalDespejoRealMins,
     hasMissedDespejoMeta,
     overallMetaMet
-  } = React.useMemo(() => {
-    // Repack: Soma das metas por embalagem vs Soma dos tempos efetivos de repack (início a fim)
-    const rMetaMins = todayRepackEntries.reduce((sum, r) => {
-      const metaUnit = parseDurationToMinutes(String(r.metaEmbalagem || r.meta || '00:05:00')) || 5;
-      const qty = Number(r.quantidade) || 1;
-      return sum + (metaUnit * qty);
-    }, 0);
+  } = metrics;
 
-    // Soma estritamente apenas os períodos em que o operador esteve em atividade de Repack (início e término de cada lote)
-    const rRealMins = todayRepackEntries.reduce((sum, r) => {
-      return sum + getTaskRealDurationMinutes(r);
-    }, 0);
+  useEffect(() => {
+    let cancelLoad = false;
 
-    const rMissed = todayRepackEntries.length > 0 && rRealMins > rMetaMins;
-    const rQty = todayRepackEntries.reduce((sum, r) => sum + (Number(r.quantidade) || 0), 0);
-    const rHours = rRealMins / 60;
-    const rCxHora = rHours > 0 ? (rQty / rHours) : 0;
-    const rGatilho = todayRepackEntries.length > 0 && rCxHora < 10.0;
+    const doCompute = () => {
+      if (cancelLoad) return;
+      const companyId = empresa?.id || 'demo';
 
-    // Despejo: Soma de tempo padrão (50 seg/un) vs Tempo real efetivo
-    const dMetaMins = todayDespejoEntries.reduce((sum, d) => {
-      const metaUnit = parseDurationToMinutes(String(d.metaEmbalagem || d.meta || '00:00:50')) || (50 / 60);
-      const qty = Number(d.quantidade) || 1;
-      return sum + (metaUnit * qty);
-    }, 0);
+      // 1. Process Repack Entries for today
+      const allRepack: any[] = [];
+      (empresaData.repack || []).forEach(r => {
+        if (!r) return;
+        const isDateMatch = r.dataISO === todayISO || r.data === todayStr || (r.data && r.data.includes(todayStr));
+        if (isDateMatch) {
+          allRepack.push(r);
+        }
+      });
 
-    const dRealMins = todayDespejoEntries.reduce((sum, d) => {
-      return sum + getTaskRealDurationMinutes(d);
-    }, 0);
+      // Carrega de repack_manual_entries_ (apenas registros recentes/manuais)
+      try {
+        const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
+        if (savedManual) {
+          const parsed = JSON.parse(savedManual);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(r => {
+              if (!r) return;
+              const isDateMatch = r.dataISO === todayISO || r.data === todayStr || (r.data && r.data.includes(todayStr));
+              if (isDateMatch) {
+                allRepack.push(r);
+              }
+            });
+          }
+        }
+      } catch (e) {}
 
-    const dMissed = todayDespejoEntries.length > 0 && dRealMins > dMetaMins;
-    const metaAll = !rMissed && !dMissed;
+      const seenRepackIds = new Set<string>();
+      const deduplicatedRepack: any[] = [];
+      allRepack.forEach(r => {
+        if (!r) return;
+        const key = String(r._docId || r.id || `${r.dataISO || r.data}_${r.inicio}_${r.embalagem}_${r.quantidade}`);
+        if (!seenRepackIds.has(key)) {
+          seenRepackIds.add(key);
+          deduplicatedRepack.push(r);
+        }
+      });
 
-    return {
-      totalRepackMetaMins: rMetaMins,
-      totalRepackRealMins: rRealMins,
-      hasMissedRepackMeta: rMissed,
-      totalRepackQty: rQty,
-      repackRitmoCxHora: rCxHora,
-      isGatilhoRepack10CxAtivo: rGatilho,
-      totalDespejoMetaMins: dMetaMins,
-      totalDespejoRealMins: dRealMins,
-      hasMissedDespejoMeta: dMissed,
-      overallMetaMet: metaAll
+      const userRepackFiltered = deduplicatedRepack.filter(r => {
+        const isOperatorMatch = !r.operador || r.operador === user.nome || r.operador.includes(user.nome) || user.nome.includes(r.operador) || r.operador.includes('GLADSON') || r.operador.includes('OZENILDO') || r.operador.includes('AJUDANTE');
+        return isOperatorMatch;
+      });
+
+      // 2. Process Despejo Entries for today
+      const allDespejo: any[] = [];
+      (empresaData.despejo || []).forEach(d => {
+        if (!d) return;
+        const isDateMatch = d.dataISO === todayISO || d.data === todayStr;
+        if (isDateMatch) {
+          allDespejo.push(d);
+        }
+      });
+
+      // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
+      try {
+        const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
+        if (savedManual) {
+          const parsed = JSON.parse(savedManual);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(d => {
+              if (!d) return;
+              const isDateMatch = d.dataISO === todayISO || d.data === todayStr;
+              if (isDateMatch) {
+                allDespejo.push(d);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      const seenDespejoIds = new Set<string>();
+      const deduplicatedDespejo: any[] = [];
+      allDespejo.forEach(d => {
+        const key = String(d._docId || d.id || `${d.dataISO}_${d.inicio}_${d.embalagem}_${d.quantidade}`);
+        if (!seenDespejoIds.has(key)) {
+          seenDespejoIds.add(key);
+          deduplicatedDespejo.push(d);
+        }
+      });
+
+      const userDespejoFiltered = deduplicatedDespejo.filter(d => 
+        (d.operador === user.nome || !d.operador || d.operador === 'AJUDANTE DESPEJO')
+      );
+
+      // Repack: Soma das metas por embalagem vs Soma dos tempos efetivos de repack (início a fim)
+      const rMetaMins = userRepackFiltered.reduce((sum, r) => {
+        const metaUnit = parseDurationToMinutes(String(r.metaEmbalagem || r.meta || '00:05:00')) || 5;
+        const qty = Number(r.quantidade) || 1;
+        return sum + (metaUnit * qty);
+      }, 0);
+
+      // Soma estritamente apenas os períodos em que o operador esteve em atividade de Repack (início e término de cada lote)
+      const rRealMins = userRepackFiltered.reduce((sum, r) => {
+        return sum + getTaskRealDurationMinutes(r);
+      }, 0);
+
+      const rMissed = userRepackFiltered.length > 0 && rRealMins > rMetaMins;
+      const rQty = userRepackFiltered.reduce((sum, r) => sum + (Number(r.quantidade) || 0), 0);
+      const rHours = rRealMins / 60;
+      const rCxHora = rHours > 0 ? (rQty / rHours) : 0;
+      const rGatilho = userRepackFiltered.length > 0 && rCxHora < 10.0;
+
+      // Despejo: Soma de tempo padrão (50 seg/un) vs Tempo real efetivo
+      const dMetaMins = userDespejoFiltered.reduce((sum, d) => {
+        const metaUnit = parseDurationToMinutes(String(d.metaEmbalagem || d.meta || '00:00:50')) || (50 / 60);
+        const qty = Number(d.quantidade) || 1;
+        return sum + (metaUnit * qty);
+      }, 0);
+
+      const dRealMins = userDespejoFiltered.reduce((sum, d) => {
+        return sum + getTaskRealDurationMinutes(d);
+      }, 0);
+
+      const dMissed = userDespejoFiltered.length > 0 && dRealMins > dMetaMins;
+      const metaAll = !rMissed && !dMissed;
+
+      if (!cancelLoad) {
+        setTodayRepackEntries(userRepackFiltered);
+        setTodayDespejoEntries(userDespejoFiltered);
+        setMetrics({
+          totalRepackMetaMins: rMetaMins,
+          totalRepackRealMins: rRealMins,
+          hasMissedRepackMeta: rMissed,
+          totalRepackQty: rQty,
+          repackRitmoCxHora: rCxHora,
+          isGatilhoRepack10CxAtivo: rGatilho,
+          totalDespejoMetaMins: dMetaMins,
+          totalDespejoRealMins: dRealMins,
+          hasMissedDespejoMeta: dMissed,
+          overallMetaMet: metaAll
+        });
+        setIsDataLoading(false);
+      }
     };
-  }, [todayRepackEntries, todayDespejoEntries]);
+
+    setIsDataLoading(true);
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(doCompute, { timeout: 200 });
+    } else {
+      setTimeout(doCompute, 16);
+    }
+
+    return () => {
+      cancelLoad = true;
+    };
+  }, [empresaData.repack, empresaData.despejo, todayISO, todayStr, user.nome, empresa?.id, syncVersion]);
 
   // State for Operação Ajudante Improvement Suggestions
   const [sugestaoProcesso, setSugestaoProcesso] = useState('Repack');
@@ -745,7 +791,12 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
 
             <div>
-              {todayRepackEntries.length === 0 ? (
+              {isDataLoading ? (
+                <span className="border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>
+                  PROCESSANDO...
+                </span>
+              ) : todayRepackEntries.length === 0 ? (
                 <span className="border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   SEM REGISTROS
@@ -801,7 +852,12 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
             </div>
 
             <div>
-              {todayDespejoEntries.length === 0 ? (
+              {isDataLoading ? (
+                <span className="border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>
+                  PROCESSANDO...
+                </span>
+              ) : todayDespejoEntries.length === 0 ? (
                 <span className="border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   SEM REGISTROS

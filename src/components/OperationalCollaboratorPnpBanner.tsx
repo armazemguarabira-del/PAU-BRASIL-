@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Usuario } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { getCollaboratorPnpSummary, CollaboratorPnpSummary } from '../utils/pnpCollaboratorUtils';
@@ -30,18 +30,36 @@ export const OperationalCollaboratorPnpBanner: React.FC<OperationalCollaboratorP
 }) => {
   const empresaData = useEmpresaData(['repack', 'despejo', 'quebras']);
   const [showModal, setShowModal] = useState(false);
+  const [colabSummary, setColabSummary] = useState<CollaboratorPnpSummary | null>(null);
 
   const userIdent = user?.nome || user?.email || user?.uid || '';
   const empresaId = user?.empresaId || 'demo';
 
-  const colabSummary = useMemo<CollaboratorPnpSummary | null>(() => {
-    return getCollaboratorPnpSummary(
-      userIdent,
-      empresaId,
-      empresaData.repack,
-      empresaData.despejo,
-      empresaData.quebras
-    );
+  useEffect(() => {
+    let cancel = false;
+    const computeSummary = () => {
+      if (cancel) return;
+      const res = getCollaboratorPnpSummary(
+        userIdent,
+        empresaId,
+        empresaData.repack,
+        empresaData.despejo,
+        empresaData.quebras
+      );
+      if (!cancel) {
+        setColabSummary(res);
+      }
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(computeSummary, { timeout: 250 });
+    } else {
+      setTimeout(computeSummary, 16);
+    }
+
+    return () => {
+      cancel = true;
+    };
   }, [userIdent, empresaId, empresaData.repack, empresaData.despejo, empresaData.quebras]);
 
   if (!colabSummary) {

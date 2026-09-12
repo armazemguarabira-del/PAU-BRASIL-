@@ -1,6 +1,85 @@
 import { LISTA_COLABORADORES_OFICIAIS } from '../components/RankingModule';
 import { ColaboradorMaster } from '../types';
 
+// Fast in-memory memoization caches
+const _normCache = new Map<string, string>();
+let _cachedMasterNames: string[] | null = null;
+let _lastMasterNamesCheck = 0;
+
+export function clearCollaboratorNormalizeCache(): void {
+  _normCache.clear();
+  _cachedMasterNames = null;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key.startsWith('colaboradores_')) {
+      clearCollaboratorNormalizeCache();
+    }
+  });
+  window.addEventListener('colaboradores-updated', clearCollaboratorNormalizeCache);
+}
+
+function getMasterNames(customColabs?: ColaboradorMaster[]): string[] {
+  const now = Date.now();
+  if (_cachedMasterNames && (!customColabs || customColabs.length === 0) && now - _lastMasterNamesCheck < 10000) {
+    return _cachedMasterNames;
+  }
+
+  const masterNames: string[] = [];
+  const seen = new Set<string>();
+
+  LISTA_COLABORADORES_OFICIAIS.forEach(c => {
+    if (c.nome) {
+      const u = c.nome.toUpperCase().trim();
+      if (!seen.has(u)) {
+        seen.add(u);
+        masterNames.push(u);
+      }
+    }
+  });
+
+  if (customColabs && Array.isArray(customColabs)) {
+    customColabs.forEach(c => {
+      if (c.nome) {
+        const u = c.nome.toUpperCase().trim();
+        if (!seen.has(u)) {
+          seen.add(u);
+          masterNames.push(u);
+        }
+      }
+    });
+  }
+
+  try {
+    const savedKeys = Object.keys(localStorage).filter(k => k.startsWith('colaboradores_'));
+    for (const key of savedKeys) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (Array.isArray(list)) {
+          list.forEach((c: any) => {
+            if (c.nome) {
+              const u = String(c.nome).toUpperCase().trim();
+              if (!seen.has(u)) {
+                seen.add(u);
+                masterNames.push(u);
+              }
+            }
+          });
+        }
+      }
+    }
+  } catch (e) {}
+
+  if (!customColabs || customColabs.length === 0) {
+    _cachedMasterNames = masterNames;
+    _lastMasterNamesCheck = now;
+  }
+
+  return masterNames;
+}
+
 /**
  * Normalizes a raw collaborator name string by matching against the master registered list of collaborators.
  * Example: "mARIVALDO mARIVALDO" -> "MARIVALDO ARTUR ALVES"
@@ -10,6 +89,11 @@ import { ColaboradorMaster } from '../types';
  */
 export function normalizeCollaboratorName(rawName: string, customColabs?: ColaboradorMaster[]): string {
   if (!rawName || !rawName.trim()) return '';
+
+  const cacheKey = !customColabs || customColabs.length === 0 ? rawName : null;
+  if (cacheKey && _normCache.has(cacheKey)) {
+    return _normCache.get(cacheKey)!;
+  }
 
   let cleaned = rawName.trim().replace(/\s+/g, ' ');
 
@@ -58,49 +142,14 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
     cleaned = 'MARIVALDO ARTUR ALVES';
   }
 
-  // Combine official list with custom registered list
-  const masterNames: string[] = [];
-  LISTA_COLABORADORES_OFICIAIS.forEach(c => {
-    if (c.nome && !masterNames.includes(c.nome)) {
-      masterNames.push(c.nome.toUpperCase().trim());
-    }
-  });
-
-  if (customColabs && Array.isArray(customColabs)) {
-    customColabs.forEach(c => {
-      if (c.nome) {
-        const u = c.nome.toUpperCase().trim();
-        if (!masterNames.includes(u)) {
-          masterNames.push(u);
-        }
-      }
-    });
-  }
-
-  // Also check localStorage colaboradores if available
-  try {
-    const savedKeys = Object.keys(localStorage).filter(k => k.startsWith('colaboradores_'));
-    for (const key of savedKeys) {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const list = JSON.parse(saved);
-        if (Array.isArray(list)) {
-          list.forEach((c: any) => {
-            if (c.nome) {
-              const u = String(c.nome).toUpperCase().trim();
-              if (!masterNames.includes(u)) {
-                masterNames.push(u);
-              }
-            }
-          });
-        }
-      }
-    }
-  } catch (e) {}
+  const masterNames = getMasterNames(customColabs);
 
   // 1. Direct exact match
   const exactMatch = masterNames.find(n => n === cleaned);
-  if (exactMatch) return exactMatch;
+  if (exactMatch) {
+    if (cacheKey) _normCache.set(cacheKey, exactMatch);
+    return exactMatch;
+  }
 
   // 2. Token / Similarity match
   const cleanedTokens = cleaned.split(' ').filter(t => t.length > 2);
@@ -133,11 +182,15 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
     const firstName = cleanedTokens[0];
     const matchesWithFirstName = masterNames.filter(n => n.startsWith(firstName));
     if (matchesWithFirstName.length === 1) {
-      return matchesWithFirstName[0];
+      bestMatch = matchesWithFirstName[0];
     }
   }
 
-  return bestMatch || cleaned;
+  const finalResult = bestMatch || cleaned;
+  if (cacheKey) {
+    _normCache.set(cacheKey, finalResult);
+  }
+  return finalResult;
 }
 
 /**
