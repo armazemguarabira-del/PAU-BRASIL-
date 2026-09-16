@@ -52,7 +52,7 @@ const DEFAULT_PLATFORMS: ExternalPlatformTool[] = [
     id: 'retorno-rota',
     name: 'Plataforma de Retorno de Rota',
     category: 'Logística & Acerto de Rota',
-    url: 'https://nhpa-cyber.github.io/rota/',
+    url: 'https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/',
     description: 'Ferramenta oficial para conferência, gestão e liquidação de retornos de rotas, devoluções e acertos operacionais de entrega.',
     instructions: '1. Acesse o aplicativo oficial de Retorno de Rota.\n2. Verifique as notas de retorno, devoluções e avarias de trânsito.\n3. Confirme os acertos físicos e confira os indicadores DPO.',
     status: 'active',
@@ -99,6 +99,32 @@ const DEFAULT_PLATFORMS: ExternalPlatformTool[] = [
     lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
     openMode: 'new_tab',
     iconType: 'truck'
+  },
+  {
+    id: 'gestao-puxadas-nri',
+    name: 'Gestão de Puxadas e NRI',
+    category: 'Logística & Inbound',
+    url: 'https://aistudio.google.com/apps/584e1d8a-7eb8-4f7e-bec2-c69b4ef6323a?showAssistant=true&project=gen-lang-client-0624437496&showPreview=true',
+    description: 'Painel avançado de transferências de carretas, monitoramento de puxadas e gestão de Notas de Recebimento Inbound (NRI).',
+    instructions: '1. Acesse o painel de Puxadas e NRI.\n2. Monitore o status das carretas e agendamentos.\n3. Valide as entradas de mercadorias e documentação fiscal.',
+    status: 'active',
+    lastUpdatedBy: 'Sistema Oficial',
+    lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
+    openMode: 'new_tab',
+    iconType: 'truck'
+  },
+  {
+    id: 'gestao-conciliacao-grade',
+    name: 'Gestão de Conciliação e Grade',
+    category: 'Estoque & Grade Operacional',
+    url: 'https://aistudio.google.com/apps/cbe7b184-3aab-404c-8f9a-fa89782f39fa?showPreview=true&showAssistant=true&fullscreenApplet=true',
+    description: 'Plataforma oficial para conciliação de estoques, grade de carregamento e auditoria de inventário físico x contábil.',
+    instructions: '1. Acesse a ferramenta de Conciliação e Grade.\n2. Confronte os saldos operacionais e relatórios fiscais.\n3. Acompanhe a grade de agendamento de recebimento/expedição.',
+    status: 'active',
+    lastUpdatedBy: 'Sistema Oficial',
+    lastUpdatedAt: new Date().toLocaleDateString('pt-BR'),
+    openMode: 'new_tab',
+    iconType: 'custom'
   }
 ];
 

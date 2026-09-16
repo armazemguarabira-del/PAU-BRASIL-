@@ -64,8 +64,8 @@ if (typeof window !== 'undefined') {
   if (savedConfigStr) {
     try {
       const parsed = JSON.parse(savedConfigStr);
-      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'mesmerizing-rampart-wdzmz')) {
-        // Automatically clear stale cache pointing to previous projects
+      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'mesmerizing-rampart-wdzmz' || parsed.projectId?.startsWith('gen-lang-client-') || parsed.projectId !== 'armazemrelatorios')) {
+        // Automatically clear stale cache pointing to previous or uninitialized projects
         localStorage.removeItem('custom_firebase_config');
       } else if (parsed && parsed.apiKey && parsed.projectId) {
         firebaseConfig = {

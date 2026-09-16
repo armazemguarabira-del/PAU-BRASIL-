@@ -563,12 +563,14 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
       const doLoad = () => {
         if (cancelLoad) return;
         const officialRows = buildOfficialQuebrasRows(companyId);
-        const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
+        const hasLiveDb = Array.isArray(empresaData.quebras) && empresaData.quebras.length > 0;
+        const baseRows: QuebraRow[] = hasLiveDb ? empresaData.quebras : officialRows;
+        const seenIds = new Set(baseRows.map(r => String(r.id || r._docId)));
 
         const customRows: QuebraRow[] = [];
         const seenKeys = new Set<string>();
 
-        officialRows.forEach(r => {
+        baseRows.forEach(r => {
           const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
           seenKeys.add(key);
         });
@@ -576,14 +578,14 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
         const addCustomIfNew = (item: QuebraRow) => {
           if (!item) return;
           const idStr = String(item.id || item._docId || '');
-          if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
+          if (idStr && (seenIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
           const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
           if (seenKeys.has(itemKey)) return;
           seenKeys.add(itemKey);
           customRows.push(item);
         };
 
-        if (empresaData.quebras && empresaData.quebras.length > 0) {
+        if (!hasLiveDb && empresaData.quebras && empresaData.quebras.length > 0) {
           empresaData.quebras.forEach(addCustomIfNew);
         }
 
@@ -603,7 +605,7 @@ export default function QuebrasPanel({ user, empresa, shiftStarted, onRequireShi
           }
         });
 
-        const combined = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+        const combined = customRows.length > 0 ? [...customRows, ...baseRows] : [...baseRows];
         combined.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
         if (!cancelLoad) {
           setQuebras(combined);

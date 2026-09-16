@@ -430,30 +430,83 @@ export default function DespejoDashboard({ user, empresa, onBack, theme = 'light
       // 1. Base oficial definitiva vinculada no código (SAMPLE_DESPEJO_JSON cobrindo Jan a 28 de Agosto)
       const officialRows = buildOfficialDespejoRows(companyId);
 
-      // 2. Coleta novos registros manuais criados pelo ajudante / operador nesta empresa
-      let customManualRows: DespejoRow[] = [];
-      const savedManual = localStorage.getItem(`despejo_manual_entries_${companyId}`);
-      if (savedManual) {
-        try {
-          const parsed = JSON.parse(savedManual);
-          if (Array.isArray(parsed)) {
-            customManualRows = parsed;
-          }
-        } catch (e) {}
-      } else {
-        const saved = localStorage.getItem(`despejo_rows_${companyId}`);
+      // 2. Coleta novos registros manuais criados pelo ajudante / operador nesta empresa e demo
+      const customManualRows: DespejoRow[] = [];
+      const seenCustomIds = new Set<string>();
+
+      const addCustomDespejo = (r: any) => {
+        if (!r) return;
+        const idKey = String(r._docId || r.id || '');
+        if (idKey && (seenCustomIds.has(idKey) || idKey.startsWith('retro_despejo_') || idKey.startsWith('seed-despejo-'))) return;
+        if (idKey) seenCustomIds.add(idKey);
+        customManualRows.push(r);
+      };
+
+      const keysToCheck = [
+        `despejo_manual_entries_${companyId}`,
+        `despejo_manual_entries_demo`,
+        `despejo_rows_${companyId}`,
+        `despejo_rows_demo`
+      ];
+
+      keysToCheck.forEach(k => {
+        const saved = localStorage.getItem(k);
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              customManualRows = parsed.filter(r => 
-                !String(r.id || '').startsWith('retro_despejo_') && 
-                !String(r.id || '').startsWith('seed-despejo-')
-              );
-            }
+            if (Array.isArray(parsed)) parsed.forEach(addCustomDespejo);
           } catch (e) {}
         }
-      }
+      });
+
+      // Also scan all localStorage for any custom despejo entries
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('despejo_manual_entries_') || k.startsWith('despejo_rows_')) && !keysToCheck.includes(k)) {
+            const val = localStorage.getItem(k);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (Array.isArray(parsed)) parsed.forEach(addCustomDespejo);
+            }
+          }
+        }
+      } catch (e) {}
+
+      // Coleta tarefas de despejo concluídas pelo ajudante via PNC
+      try {
+        const pncKeys = [`pnc_despejo_tasks_${companyId}`, 'pnc_despejo_tasks_demo'];
+        pncKeys.forEach(pk => {
+          const rawTasks = localStorage.getItem(pk);
+          if (rawTasks) {
+            const tasks = JSON.parse(rawTasks);
+            if (Array.isArray(tasks)) {
+              tasks.filter((t: any) => t.status === 'Concluído').forEach((t: any) => {
+                const now = t.dataConclusao ? new Date(t.dataConclusao) : new Date();
+                addCustomDespejo({
+                  id: `desp-task-${t.id}`,
+                  _docId: `desp-task-${t.id}`,
+                  data: now.toLocaleDateString('pt-BR'),
+                  dataISO: now.toISOString().split('T')[0],
+                  operador: t.executadoPor || 'AJUDANTE OPERAÇÃO',
+                  embalagem: t.embalagem || 'LATA 350',
+                  produto: `${t.codigo} - ${t.descricao}`,
+                  descricao: t.descricao,
+                  codProduto: t.codigo,
+                  lote: t.lote || '-',
+                  quantidade: t.quantidade || 1,
+                  duracao: t.tempoGasto || '00:04:00',
+                  inicio: '08:00',
+                  fim: '08:04',
+                  motivo: t.motivo || 'Tratativa PNC / Shelf Life',
+                  resultado: '🟢 Dentro da Meta',
+                  origem: 'AJUDANTE_DESPEJO'
+                });
+              });
+            }
+          }
+        });
+      } catch (e) {}
 
       // Base total definitiva = Novos manuais + registros oficiais sem duplicatas
       const seenIds = new Set<string>();

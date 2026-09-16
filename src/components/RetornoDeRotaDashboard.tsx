@@ -10,7 +10,7 @@ interface RetornoDeRotaDashboardProps {
   theme?: 'light' | 'dark';
 }
 
-const EXTERNAL_URL = 'https://nhpa-cyber.github.io/rota/';
+const EXTERNAL_URL = 'https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/';
 
 export default function RetornoDeRotaDashboard({
   onBack,
@@ -43,6 +43,16 @@ export default function RetornoDeRotaDashboard({
           <p className="text-xs sm:text-sm text-slate-400">
             Acesse o aplicativo oficial de Retorno de Rota em uma nova guia do seu navegador sem sair do sistema principal.
           </p>
+          <div className="pt-1">
+            <a
+              href={EXTERNAL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[11px] font-mono text-indigo-400 hover:text-indigo-300 underline underline-offset-2 break-all max-w-full"
+            >
+              {EXTERNAL_URL}
+            </a>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">

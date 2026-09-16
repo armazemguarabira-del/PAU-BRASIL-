@@ -36,12 +36,18 @@ import {
   ArrowRight,
   Users,
   HardHat,
-  UserCheck
+  UserCheck,
+  FileText,
+  Download,
+  RefreshCw,
+  Search,
+  Filter
 } from 'lucide-react';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { buildOfficialQuebrasRows } from '../utils/retroactiveQuebrasParser';
+import { getJsonTable } from '../utils/hybridJsonDatabase';
 import A3BoardComponent from './A3BoardComponent';
 import CalendarFilter from './CalendarFilter';
 import WqiTab, { getItemHlInfo, getItemValorReal } from './WqiTab';
@@ -195,7 +201,17 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     Boolean(startDate) || 
     Boolean(endDate);
   const [secondChartMode, setSecondChartMode] = useState<'grupo' | 'embalagem'>('grupo');
-  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'arvore' | 'wqi' | 'boarda3' | 'acoes'>(initialSubTab || 'indicadores');
+  const [activeSubTab, setActiveSubTab] = useState<'indicadores' | 'arvore' | 'wqi' | 'boarda3' | 'acoes' | 'registros'>(initialSubTab || 'indicadores');
+  
+  // State for the Operational Records ("Histórico & Lançamentos da Operação")
+  const [recordsSearch, setRecordsSearch] = useState('');
+  const [recordsFilterOrigem, setRecordsFilterOrigem] = useState<'TODOS' | 'AJUDANTE' | 'OFICIAL'>('TODOS');
+  const [recordsFilterTurno, setRecordsFilterTurno] = useState<string>('TODOS');
+  const [recordsFilterArea, setRecordsFilterArea] = useState<string>('TODOS');
+  const [recordsDateFilter, setRecordsDateFilter] = useState<'TODOS' | 'HOJE' | '7DIAS' | 'MES'>('TODOS');
+  const [recordsPage, setRecordsPage] = useState(1);
+  const RECORDS_PAGE_SIZE = 15;
+
   const [isPopModalOpen, setIsPopModalOpen] = useState(false);
   const [is5SModalOpen, setIs5SModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -237,61 +253,107 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     return getItemValorReal(q);
   };
   
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['quebras', 'produtos', 'colaboradores']);
 
   // Sync Quebras with memory cache, Firestore, custom entries and DTOs in real-time
   useEffect(() => {
     const companyId = empresa?.id || 'demo';
     
-    const refreshQuebras = () => {
+    const refreshQuebras = async () => {
       const officialRows = buildOfficialQuebrasRows(companyId);
-      const officialIds = new Set(officialRows.map(r => String(r.id || r._docId)));
-
-      const customRows: QuebraRow[] = [];
+      const seenIds = new Set<string>();
       const seenCustomKeys = new Set<string>();
+      const customRows: QuebraRow[] = [];
 
-      // Populate seen keys from official rows first
-      officialRows.forEach(r => {
-        const key = `${r.dataISO || r.data || ''}_${r.codProduto || ''}_${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').toUpperCase()}_${(r.area || '').toUpperCase()}_${r.quantidade || 0}_${r.codQuebra || ''}_${(r.motivo || '').toUpperCase()}`;
-        seenCustomKeys.add(key);
-      });
-
-      const addCustomIfNew = (item: QuebraRow) => {
+      const addCustomIfNew = (item: QuebraRow, forceOperational = false) => {
         if (!item) return;
         const idStr = String(item.id || item._docId || '');
-        if (idStr && (officialIds.has(idStr) || idStr.startsWith('qb-retro-'))) return;
-        const itemKey = `${item.dataISO || item.data || ''}_${item.codProduto || ''}_${(item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toUpperCase()}_${(item.area || '').toUpperCase()}_${item.quantidade || 0}_${item.codQuebra || ''}_${(item.motivo || '').toUpperCase()}`;
+        if (idStr && (seenIds.has(idStr) || (idStr.startsWith('qb-retro-') && !forceOperational))) return;
+        
+        const colabStr = (item.colaborador || item.colaboradorQuebrou || item.responsavel || '').trim().toUpperCase();
+        const areaStr = (item.area || '').trim().toUpperCase();
+        const motStr = (item.motivo || '').trim().toUpperCase();
+        const dateStr = item.dataISO ? item.dataISO.split('T')[0] : (item.data || '').trim();
+        const itemKey = `${dateStr}_${item.codProduto || ''}_${colabStr}_${areaStr}_${item.quantidade || 0}_${item.codQuebra || ''}_${motStr}`;
+        
         if (seenCustomKeys.has(itemKey)) return;
         seenCustomKeys.add(itemKey);
-        customRows.push(item);
+        if (idStr) seenIds.add(idStr);
+
+        const isAjudanteOp = forceOperational || 
+          idStr.startsWith('qb-custom-') || 
+          idStr.startsWith('custom-') || 
+          item.origem === 'AJUDANTE_OPERACAO' || 
+          item.origem === 'ajudante' || 
+          Boolean((item as any).recolhidoAjudante);
+
+        customRows.push({
+          ...item,
+          origem: isAjudanteOp ? 'AJUDANTE_OPERACAO' : (item.origem || 'OPERACAO'),
+          recolhidoAjudante: isAjudanteOp
+        } as QuebraRow);
       };
 
-      // 1. From empresaData.quebras (Firestore / Context)
-      if (empresaData.quebras && empresaData.quebras.length > 0) {
-        empresaData.quebras.forEach(addCustomIfNew);
-      }
+      // 1. From IndexedDB (Hybrid JSON database)
+      try {
+        const idbRows = await getJsonTable<QuebraRow>(companyId, 'quebras');
+        if (Array.isArray(idbRows)) {
+          idbRows.forEach(r => addCustomIfNew(r, true));
+        }
+        if (companyId !== 'demo') {
+          const idbDemo = await getJsonTable<QuebraRow>('demo', 'quebras');
+          if (Array.isArray(idbDemo)) {
+            idbDemo.forEach(r => addCustomIfNew(r, true));
+          }
+        }
+      } catch (_) {}
 
-      // 2. From LocalStorage custom keys
-      const lsKeys = [
+      // 2. From LocalStorage custom keys (checks active company, demo, and all custom_quebras_ / quebras_ keys)
+      const primaryKeys = [
         `custom_quebras_${companyId}`,
+        `custom_quebras_demo`,
         `quebras_${companyId}`,
+        `quebras_demo`,
         `quebras_records_${companyId}`,
+        `quebras_records_demo`,
         `local_quebras_${companyId}`,
-        `quebras_manual_entries_${companyId}`
+        `local_quebras_demo`,
+        `quebras_manual_entries_${companyId}`,
+        `quebras_manual_entries_demo`
       ];
-      lsKeys.forEach(k => {
+
+      primaryKeys.forEach(k => {
         const savedCustom = localStorage.getItem(k);
         if (savedCustom) {
           try {
             const parsed = JSON.parse(savedCustom);
             if (Array.isArray(parsed)) {
-              parsed.forEach(addCustomIfNew);
+              parsed.forEach(r => addCustomIfNew(r, true));
             }
           } catch (_) {}
         }
       });
 
-      // 3. From DTO Diagnóstico Histórico (DTO de Quebras / Operações)
+      // Scan any additional custom quebras keys in localStorage
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('custom_quebras_') || k.startsWith('local_quebras_') || k.startsWith('quebras_')) && !primaryKeys.includes(k)) {
+            const val = localStorage.getItem(k);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (Array.isArray(parsed)) parsed.forEach(r => addCustomIfNew(r, true));
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 3. From Live Database (Firestore)
+      if (Array.isArray(empresaData.quebras) && empresaData.quebras.length > 0) {
+        empresaData.quebras.forEach(r => addCustomIfNew(r, true));
+      }
+
+      // 4. From DTO Diagnóstico Histórico (DTO de Quebras / Operações)
       const rawDto = localStorage.getItem('armazem_dto_historico_registros_v1');
       if (rawDto) {
         try {
@@ -321,14 +383,31 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                   colaborador: colabName,
                   colaboradorQuebrou: colabName,
                   responsavel: colabName,
-                  origem: 'DTO_DIAGNOSTICO'
-                });
+                  origem: 'AJUDANTE_OPERACAO',
+                  recolhidoAjudante: true
+                } as QuebraRow, true);
               });
           }
         } catch (_) {}
       }
 
-      const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+      // 5. Official historical rows are merged after custom operational rows
+      officialRows.forEach(r => {
+        const idStr = String(r.id || r._docId || '');
+        if (idStr && seenIds.has(idStr)) return;
+        const colabStr = (r.colaborador || r.colaboradorQuebrou || r.responsavel || '').trim().toUpperCase();
+        const areaStr = (r.area || '').trim().toUpperCase();
+        const motStr = (r.motivo || '').trim().toUpperCase();
+        const dateStr = r.dataISO ? r.dataISO.split('T')[0] : (r.data || '').trim();
+        const itemKey = `${dateStr}_${r.codProduto || ''}_${colabStr}_${areaStr}_${r.quantidade || 0}_${r.codQuebra || ''}_${motStr}`;
+        if (seenCustomKeys.has(itemKey)) return;
+        seenCustomKeys.add(itemKey);
+        if (idStr) seenIds.add(idStr);
+      });
+
+      // Operational entries always come FIRST at the top!
+      const rows = [...customRows, ...officialRows.filter(r => !seenIds.has(String(r.id || r._docId || '')) || !customRows.some(c => String(c.id) === String(r.id)))];
+      // Sort: entries with dataISO descending
       rows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
       setActualQuebras(rows);
     };
@@ -466,6 +545,78 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
   const crossFilteredData = useMemo(() => {
     return filterData(baseFilteredData);
   }, [baseFilteredData, filterData]);
+
+  // Operational count of items collected by Ajudante / Operation
+  const customOperationalCount = useMemo(() => {
+    return quebras.filter(q => 
+      q.origem === 'AJUDANTE_OPERACAO' || 
+      Boolean((q as any).recolhidoAjudante) || 
+      String(q.id || '').startsWith('qb-custom-') ||
+      String(q.id || '').startsWith('dto-qb-')
+    ).length;
+  }, [quebras]);
+
+  // Filtered operational records list for the "Histórico & Lançamentos da Operação" tab
+  const filteredRecordsList = useMemo(() => {
+    let list = [...quebras];
+
+    // Search filter
+    if (recordsSearch.trim()) {
+      const q = recordsSearch.trim().toLowerCase();
+      list = list.filter(item => 
+        String(item.codProduto || '').toLowerCase().includes(q) ||
+        (item.descricao || '').toLowerCase().includes(q) ||
+        (item.motivo || '').toLowerCase().includes(q) ||
+        (item.colaborador || item.colaboradorQuebrou || item.responsavel || '').toLowerCase().includes(q) ||
+        (item.area || '').toLowerCase().includes(q) ||
+        (item.turno || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Origem filter
+    if (recordsFilterOrigem === 'AJUDANTE') {
+      list = list.filter(item => 
+        item.origem === 'AJUDANTE_OPERACAO' || 
+        Boolean((item as any).recolhidoAjudante) || 
+        String(item.id || '').startsWith('qb-custom-') ||
+        String(item.id || '').startsWith('dto-qb-')
+      );
+    } else if (recordsFilterOrigem === 'OFICIAL') {
+      list = list.filter(item => 
+        item.origem !== 'AJUDANTE_OPERACAO' && 
+        !Boolean((item as any).recolhidoAjudante) && 
+        !String(item.id || '').startsWith('qb-custom-') &&
+        !String(item.id || '').startsWith('dto-qb-')
+      );
+    }
+
+    // Turno filter
+    if (recordsFilterTurno !== 'TODOS') {
+      list = list.filter(item => (item.turno || '').toUpperCase() === recordsFilterTurno.toUpperCase());
+    }
+
+    // Area filter
+    if (recordsFilterArea !== 'TODOS') {
+      list = list.filter(item => (item.area || '').toUpperCase() === recordsFilterArea.toUpperCase());
+    }
+
+    // Date quick filter
+    if (recordsDateFilter === 'HOJE') {
+      const todayISO = new Date().toISOString().split('T')[0];
+      const todayBR = new Date().toLocaleDateString('pt-BR');
+      list = list.filter(item => (item.dataISO && item.dataISO.startsWith(todayISO)) || item.data === todayBR);
+    } else if (recordsDateFilter === '7DIAS') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const minISO = sevenDaysAgo.toISOString().split('T')[0];
+      list = list.filter(item => item.dataISO && item.dataISO >= minISO);
+    } else if (recordsDateFilter === 'MES') {
+      const currentYearMonth = new Date().toISOString().substring(0, 7);
+      list = list.filter(item => item.dataISO && item.dataISO.startsWith(currentYearMonth));
+    }
+
+    return list;
+  }, [quebras, recordsSearch, recordsFilterOrigem, recordsFilterTurno, recordsFilterArea, recordsDateFilter]);
 
   // Dimension-specific datasets for charts (excluding own dimension so chart elements stay visible)
   const motivosData = useMemo(() => {
@@ -791,6 +942,40 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     }));
   }, [sortedSkus]);
 
+  // Export records from the operational list to CSV
+  const handleExportRecordsCsv = () => {
+    const headers = ['Data', 'Cód. SKU', 'Descrição', 'Qtd (cx/un)', 'Volume (HL)', 'Valor (R$)', 'Motivo', 'Cód. Motivo', 'Área', 'Turno', 'Responsável / Ajudante', 'Origem'];
+    const rows = filteredRecordsList.map(r => [
+      `"${r.data || r.dataISO || ''}"`,
+      `"${r.codProduto || ''}"`,
+      `"${(r.descricao || '').replace(/"/g, '""')}"`,
+      r.quantidade || 0,
+      convertCxToHE(r.quantidade, r.descricao, r.codProduto).toFixed(2),
+      getItemValorReal(r).toFixed(2),
+      `"${(r.motivo || '').replace(/"/g, '""')}"`,
+      `"${r.codQuebra || ''}"`,
+      `"${r.area || ''}"`,
+      `"${r.turno || ''}"`,
+      `"${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').replace(/"/g, '""')}"`,
+      `"${r.origem === 'AJUDANTE_OPERACAO' || (r as any).recolhidoAjudante ? 'Ajudante (Produtividade)' : 'Base Oficial'}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `registros_quebras_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSyncRecords = () => {
+    window.dispatchEvent(new CustomEvent('quebras-db-updated'));
+    window.dispatchEvent(new CustomEvent('quebras-updated'));
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <div id="quebras-dashboard-wrapper" className={`flex flex-col gap-4 p-4 lg:p-6 rounded-2xl shadow-sm border transition-colors duration-300 ${
       theme === 'dark' ? 'bg-[#0b1329] text-slate-100 border-slate-800' : 'bg-[#f8fafc] text-[#0f172a] border-gray-200/80'
@@ -871,6 +1056,22 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               Ações DPO (Quebras)
+            </button>
+            <button 
+              onClick={() => setActiveSubTab('registros')}
+              className={`px-3.5 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase tracking-wider transition-all border-none cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'registros' 
+                  ? (theme === 'dark' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-600 text-white shadow-sm') 
+                  : (theme === 'dark' ? 'text-slate-400 hover:text-white bg-transparent' : 'text-gray-500 hover:text-emerald-700 bg-transparent')
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Histórico & Lançamentos</span>
+              {customOperationalCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white font-black animate-pulse">
+                  {customOperationalCount}
+                </span>
+              )}
             </button>
           </div>
 
@@ -2684,6 +2885,394 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
           subtitle="Tratativas DPO, contramedidas 5W2H e planos de ação para redução de perdas no armazém."
           onBack={() => setActiveSubTab('indicadores')}
         />
+      )}
+
+      {/* SUBTAB: HISTÓRICO & LANÇAMENTOS DA OPERAÇÃO (AJUDANTE + OFICIAL) */}
+      {activeSubTab === 'registros' && (
+        <div className="flex flex-col gap-5">
+          {/* Header Summary Card */}
+          <div className={`p-4 md:p-5 rounded-2xl border shadow-sm transition-colors ${
+            theme === 'dark' ? 'bg-[#131d38] border-slate-700/80' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                    <FileText className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h2 className={`font-sans font-black text-lg uppercase tracking-tight ${
+                      theme === 'dark' ? 'text-white' : 'text-[#032b5e]'
+                    }`}>
+                      Histórico &amp; Lançamentos da Operação
+                    </h2>
+                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
+                      Auditoria unificada dos apontamentos recolhidos pelo ajudante na Guia de Produtividade e consolidados com a base oficial.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={handleSyncRecords}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border cursor-pointer ${
+                    theme === 'dark' 
+                      ? 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-200' 
+                      : 'bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-700'
+                  }`}
+                  title="Recarregar registros em tempo real"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Sincronizar</span>
+                </button>
+
+                <button
+                  onClick={handleExportRecordsCsv}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm border-none cursor-pointer transition-all"
+                  title="Exportar registros filtrados em formato CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Exportar CSV</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics Pills */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-700/60">
+              <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#182343] border-slate-700' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+                  Recolhidos pelo Ajudante
+                </span>
+                <span className="text-xl font-black font-mono text-emerald-700 dark:text-emerald-300 block mt-0.5">
+                  {customOperationalCount}
+                </span>
+                <span className="text-[10px] text-gray-400">Levantamentos operacionais</span>
+              </div>
+
+              <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#182343] border-slate-700' : 'bg-blue-50/50 border-blue-100'}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                  Total de Lançamentos
+                </span>
+                <span className="text-xl font-black font-mono text-blue-700 dark:text-blue-300 block mt-0.5">
+                  {filteredRecordsList.length}
+                </span>
+                <span className="text-[10px] text-gray-400">Linhas sob filtros</span>
+              </div>
+
+              <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#182343] border-slate-700' : 'bg-purple-50/50 border-purple-100'}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
+                  Volume Consolidado
+                </span>
+                <span className="text-xl font-black font-mono text-purple-700 dark:text-purple-300 block mt-0.5">
+                  {filteredRecordsList.reduce((acc, q) => acc + convertCxToHE(q.quantidade, q.descricao, q.codProduto), 0).toFixed(2)} HL
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {filteredRecordsList.reduce((acc, q) => acc + (q.quantidade || 0), 0).toLocaleString('pt-BR')} caixas/un
+                </span>
+              </div>
+
+              <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#182343] border-slate-700' : 'bg-red-50/50 border-red-100'}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400 block">
+                  Custo Total de Quebras
+                </span>
+                <span className="text-xl font-black font-mono text-red-700 dark:text-red-400 block mt-0.5">
+                  {filteredRecordsList.reduce((acc, q) => acc + getItemValorReal(q), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </span>
+                <span className="text-[10px] text-gray-400">Impacto financeiro apurado</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls Bar: Search & Filters */}
+          <div className={`p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors ${
+            theme === 'dark' ? 'bg-[#131d38] border-slate-700/80' : 'bg-white border-gray-200'
+          }`}>
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={recordsSearch}
+                onChange={e => {
+                  setRecordsSearch(e.target.value);
+                  setRecordsPage(1);
+                }}
+                placeholder="Buscar por SKU, descrição, ajudante, motivo ou área..."
+                className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl font-medium outline-none transition-all ${
+                  theme === 'dark'
+                    ? 'bg-[#1b2646] border border-slate-700 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#032b5e]'
+                }`}
+              />
+            </div>
+
+            {/* Quick Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Origem Selector */}
+              <div className={`flex items-center p-1 rounded-xl border text-[11px] font-bold ${
+                theme === 'dark' ? 'bg-[#1b2646] border-slate-700' : 'bg-gray-100 border-gray-200'
+              }`}>
+                <button
+                  onClick={() => { setRecordsFilterOrigem('TODOS'); setRecordsPage(1); }}
+                  className={`px-2.5 py-1 rounded-lg transition-all border-none cursor-pointer ${
+                    recordsFilterOrigem === 'TODOS'
+                      ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-[#032b5e] text-white')
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  Todos
+                </button>
+                <button
+                  onClick={() => { setRecordsFilterOrigem('AJUDANTE'); setRecordsPage(1); }}
+                  className={`px-2.5 py-1 rounded-lg transition-all border-none cursor-pointer flex items-center gap-1 ${
+                    recordsFilterOrigem === 'AJUDANTE'
+                      ? 'bg-emerald-600 text-white'
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                  Ajudante
+                </button>
+                <button
+                  onClick={() => { setRecordsFilterOrigem('OFICIAL'); setRecordsPage(1); }}
+                  className={`px-2.5 py-1 rounded-lg transition-all border-none cursor-pointer ${
+                    recordsFilterOrigem === 'OFICIAL'
+                      ? (theme === 'dark' ? 'bg-slate-700 text-white' : 'bg-gray-700 text-white')
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  Oficial
+                </button>
+              </div>
+
+              {/* Turno Dropdown */}
+              <select
+                value={recordsFilterTurno}
+                onChange={e => { setRecordsFilterTurno(e.target.value); setRecordsPage(1); }}
+                className={`text-xs px-2.5 py-2 rounded-xl font-bold outline-none cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-[#1b2646] border border-slate-700 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                }`}
+              >
+                <option value="TODOS">Todos os Turnos</option>
+                <option value="MANHÃ">Manhã</option>
+                <option value="TARDE">Tarde</option>
+                <option value="NOITE">Noite</option>
+              </select>
+
+              {/* Area Dropdown */}
+              <select
+                value={recordsFilterArea}
+                onChange={e => { setRecordsFilterArea(e.target.value); setRecordsPage(1); }}
+                className={`text-xs px-2.5 py-2 rounded-xl font-bold outline-none cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-[#1b2646] border border-slate-700 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                }`}
+              >
+                <option value="TODOS">Todas as Áreas</option>
+                <option value="ARMAZEM">Armazém</option>
+                <option value="ENTREGA">Rota de Entrega</option>
+                <option value="MERCADO">Mercado / Retorno</option>
+                <option value="PUXADA">Puxada / Transferência</option>
+              </select>
+
+              {/* Date Quick Filter */}
+              <div className={`flex items-center p-1 rounded-xl border text-[11px] font-bold ${
+                theme === 'dark' ? 'bg-[#1b2646] border-slate-700' : 'bg-gray-100 border-gray-200'
+              }`}>
+                <button
+                  onClick={() => { setRecordsDateFilter('TODOS'); setRecordsPage(1); }}
+                  className={`px-2 py-1 rounded-lg border-none cursor-pointer ${
+                    recordsDateFilter === 'TODOS'
+                      ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-[#032b5e] text-white')
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  Geral
+                </button>
+                <button
+                  onClick={() => { setRecordsDateFilter('HOJE'); setRecordsPage(1); }}
+                  className={`px-2 py-1 rounded-lg border-none cursor-pointer ${
+                    recordsDateFilter === 'HOJE'
+                      ? 'bg-amber-600 text-white'
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  Hoje
+                </button>
+                <button
+                  onClick={() => { setRecordsDateFilter('7DIAS'); setRecordsPage(1); }}
+                  className={`px-2 py-1 rounded-lg border-none cursor-pointer ${
+                    recordsDateFilter === '7DIAS'
+                      ? 'bg-amber-600 text-white'
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  7 Dias
+                </button>
+                <button
+                  onClick={() => { setRecordsDateFilter('MES'); setRecordsPage(1); }}
+                  className={`px-2 py-1 rounded-lg border-none cursor-pointer ${
+                    recordsDateFilter === 'MES'
+                      ? 'bg-amber-600 text-white'
+                      : (theme === 'dark' ? 'text-slate-400' : 'text-gray-600')
+                  }`}
+                >
+                  Mês
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Table Container */}
+          <div className={`rounded-2xl border shadow-sm overflow-hidden transition-colors ${
+            theme === 'dark' ? 'bg-[#131d38] border-slate-700/80' : 'bg-white border-gray-200'
+          }`}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className={`border-b text-[10px] uppercase font-black tracking-wider ${
+                    theme === 'dark' ? 'bg-[#182343] border-slate-700 text-slate-300' : 'bg-gray-50 border-gray-200 text-gray-600'
+                  }`}>
+                    <th className="py-3 px-3.5">Data</th>
+                    <th className="py-3 px-3.5">Origem</th>
+                    <th className="py-3 px-3.5">Cód. SKU</th>
+                    <th className="py-3 px-3.5">Descrição do Produto</th>
+                    <th className="py-3 px-3.5 text-right">Qtd</th>
+                    <th className="py-3 px-3.5 text-right">Volume (HL)</th>
+                    <th className="py-3 px-3.5 text-right">Valor Total (R$)</th>
+                    <th className="py-3 px-3.5">Motivo / Cód.</th>
+                    <th className="py-3 px-3.5">Área</th>
+                    <th className="py-3 px-3.5">Turno</th>
+                    <th className="py-3 px-3.5">Responsável / Ajudante</th>
+                  </tr>
+                </thead>
+                <tbody className={`divide-y ${theme === 'dark' ? 'divide-slate-800' : 'divide-gray-100'}`}>
+                  {filteredRecordsList.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="py-12 text-center text-gray-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <AlertTriangle className="w-7 h-7 text-amber-500 opacity-60" />
+                          <p className="font-bold text-sm">Nenhum registro encontrado para estes filtros.</p>
+                          <p className="text-xs text-gray-500 max-w-md">
+                            Tente limpar os filtros ou selecionar outra data para ver os apontamentos recolhidos pelos ajudantes.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRecordsList
+                      .slice((recordsPage - 1) * RECORDS_PAGE_SIZE, recordsPage * RECORDS_PAGE_SIZE)
+                      .map((row, idx) => {
+                        const isAjudante = row.origem === 'AJUDANTE_OPERACAO' || Boolean((row as any).recolhidoAjudante) || String(row.id || '').startsWith('qb-custom-') || String(row.id || '').startsWith('dto-qb-');
+                        const dataDisplay = row.data || (row.dataISO ? row.dataISO.split('T')[0].split('-').reverse().join('/') : '-');
+                        const volHl = convertCxToHE(row.quantidade, row.descricao, row.codProduto);
+                        const valTotal = getItemValorReal(row);
+                        const colabNome = row.colaborador || row.colaboradorQuebrou || row.responsavel || 'Não Informado';
+
+                        return (
+                          <tr
+                            key={row.id || idx}
+                            className={`transition-colors ${
+                              isAjudante 
+                                ? (theme === 'dark' ? 'bg-emerald-950/20 hover:bg-emerald-950/30' : 'bg-emerald-50/30 hover:bg-emerald-50/60') 
+                                : (theme === 'dark' ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50')
+                            }`}
+                          >
+                            <td className="py-2.5 px-3.5 font-mono font-medium whitespace-nowrap text-gray-500 dark:text-slate-400">
+                              {dataDisplay}
+                            </td>
+                            <td className="py-2.5 px-3.5 whitespace-nowrap">
+                              {isAjudante ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                                  <HardHat className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  Ajudante
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-400">
+                                  Oficial
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3.5 font-mono font-black text-gray-600 dark:text-slate-300">
+                              {row.codProduto}
+                            </td>
+                            <td className="py-2.5 px-3.5 font-bold text-gray-900 dark:text-slate-100 max-w-[240px] truncate" title={row.descricao}>
+                              {row.descricao}
+                            </td>
+                            <td className="py-2.5 px-3.5 text-right font-mono font-extrabold text-gray-800 dark:text-slate-200">
+                              {row.quantidade || 0}
+                            </td>
+                            <td className="py-2.5 px-3.5 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
+                              {volHl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HL
+                            </td>
+                            <td className="py-2.5 px-3.5 text-right font-mono font-black text-red-600 dark:text-red-400">
+                              {valTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </td>
+                            <td className="py-2.5 px-3.5 font-medium max-w-[180px] truncate" title={`[${row.codQuebra || '539'}] ${row.motivo}`}>
+                              <span className="font-mono text-[10px] text-gray-400 mr-1">[{row.codQuebra || '539'}]</span>
+                              <span>{row.motivo || 'Quebra com Movimentação'}</span>
+                            </td>
+                            <td className="py-2.5 px-3.5">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                row.area === 'ARMAZEM' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' :
+                                row.area === 'ENTREGA' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' :
+                                row.area === 'PUXADA' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300' :
+                                'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-300'
+                              }`}>
+                                {row.area || 'ARMAZEM'}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3.5 font-medium text-gray-600 dark:text-slate-400">
+                              {row.turno || 'MANHÃ'}
+                            </td>
+                            <td className="py-2.5 px-3.5 font-bold text-gray-800 dark:text-slate-200">
+                              {colabNome}
+                            </td>
+                          </tr>
+                        );
+                      })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination footer */}
+            {filteredRecordsList.length > RECORDS_PAGE_SIZE && (
+              <div className={`p-3.5 flex items-center justify-between border-t transition-colors ${
+                theme === 'dark' ? 'border-slate-800 bg-[#15203d]' : 'border-gray-200 bg-gray-50'
+              }`}>
+                <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
+                  Mostrando {((recordsPage - 1) * RECORDS_PAGE_SIZE) + 1} a {Math.min(recordsPage * RECORDS_PAGE_SIZE, filteredRecordsList.length)} de {filteredRecordsList.length} registros
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    disabled={recordsPage <= 1}
+                    onClick={() => setRecordsPage(p => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-xs font-bold px-2 py-1 text-gray-700 dark:text-slate-300">
+                    Página {recordsPage} de {Math.ceil(filteredRecordsList.length / RECORDS_PAGE_SIZE)}
+                  </span>
+                  <button
+                    disabled={recordsPage >= Math.ceil(filteredRecordsList.length / RECORDS_PAGE_SIZE)}
+                    onClick={() => setRecordsPage(p => p + 1)}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* FOOTER BLOCK */}

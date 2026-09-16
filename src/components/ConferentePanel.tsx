@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition, useMemo, lazy, Suspense } from 'react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { TarefasRepository } from '../db';
 import { firestoreDb } from '../database/firestoreDatabase';
@@ -19,8 +19,7 @@ import {
 } from '../utils/efcEfdManager';
 import { addTmrDemand, getStoredTmrDemands, deleteTmrDemand, updateTmrDemandOperators } from '../utils/tmrManager';
 import { Upload, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, Truck, Play, Check, Filter, Trash2, Edit3, Plus, X, Calendar, Thermometer, Droplets, AlertCircle, ShieldAlert, ShieldCheck, Users, Search, ArrowRight, ExternalLink } from 'lucide-react';
-import ValidadesPanel from './ValidadesPanel';
-import RefugoPanel from './RefugoPanel';
+const ValidadesPanel = lazy(() => import('./ValidadesPanel'));
 import TemperaturaImportExportBar from './TemperaturaImportExportBar';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
 import { Checklist5SForm, Collaborator5SPerformanceCard } from './Checklist5SModal';
@@ -52,10 +51,12 @@ interface ConferentePanelProps {
   initialTab?: 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes' | 'refugo';
 }
 
+const CONFERENTE_REQUIRED_COLLECTIONS = ['tarefas', 'colaboradores', 'validades'] as any;
+
 export default function ConferentePanel({ user, empresa, initialTab, theme = 'dark' }: ConferentePanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `conferente_draft_${empresaId}_${user.nome || 'guest'}`;
-  const empresaData = useEmpresaData(['tarefas', 'colaboradores', 'validades']);
+  const empresaData = useEmpresaData(CONFERENTE_REQUIRED_COLLECTIONS);
 
   // Load draft safely once
   const initialDraft = React.useMemo(() => {
@@ -413,6 +414,20 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
   const [panelTab, setPanelTab] = useState<'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes'>(
     initialTab === 'refugo' ? 'retorno_rota' : (initialTab as any) || 'rr'
   );
+  const [isPendingTab, startTabTransition] = useTransition();
+
+  const handleSelectTab = (tab: 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes') => {
+    startTabTransition(() => {
+      setPanelTab(tab);
+    });
+  };
+
+  // Pagination and search states for smooth tab rendering
+  const [tmrPage, setTmrPage] = useState(1);
+  const TMR_PAGE_SIZE = 15;
+  const [tempPage, setTempPage] = useState(1);
+  const TEMP_PAGE_SIZE = 25;
+  const [tempSearchFilter, setTempSearchFilter] = useState('');
 
   useEffect(() => {
     if (initialTab) {
@@ -1183,9 +1198,12 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
   }).slice(0, 10);
 
   // Sync data lists (filtering out tasks that exceeded 5h execution/creation limit + deduplicate)
-  const cleanTasks = deduplicateTasks(tasks);
-  const openTasksList = cleanTasks.filter(t => t.status !== 'done' && !isTaskExpired(t, 5));
-  const doneTasksList = filterHistoryForUser<Tarefa>(cleanTasks.filter(t => t.status === 'done'), user, (item: Tarefa) => item.finalizadoEm ? item.finalizadoEm.split('T')[0] : (item.criadoEm ? item.criadoEm.split('T')[0] : ''));
+  const cleanTasks = useMemo(() => deduplicateTasks(tasks), [tasks]);
+  const openTasksList = useMemo(() => cleanTasks.filter(t => t.status !== 'done' && !isTaskExpired(t, 5)), [cleanTasks]);
+  const doneTasksList = useMemo(() => 
+    filterHistoryForUser<Tarefa>(cleanTasks.filter(t => t.status === 'done'), user, (item: Tarefa) => item.finalizadoEm ? item.finalizadoEm.split('T')[0] : (item.criadoEm ? item.criadoEm.split('T')[0] : '')),
+    [cleanTasks, user]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -1254,9 +1272,6 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </div>
       </div>
 
-      {/* PAINEL EXCLUSIVO DO CONFERENTE - PNP E METAS VS REAL */}
-      <OperationalCollaboratorPnpBanner user={user} theme={theme} />
-
       {/* QUADRO DE DEMANDAS PENDENTES (RESUMO CONFERENTE) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 bg-[#151b23] border border-sky-500/30 rounded-xl flex items-center justify-between">
@@ -1301,9 +1316,9 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
       </div>
 
       {/* NAV TABS: R&R | TMR | Validades | Temperatura | WLP | 5S | Retorno Rota | Guia Ações */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 bg-[#151b23] border border-[#222d3a] p-2 rounded-xl w-full">
+      <div className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 bg-[#151b23] border border-[#222d3a] p-2 rounded-xl w-full transition-opacity duration-150 ${isPendingTab ? 'opacity-70' : 'opacity-100'}`}>
         <button
-          onClick={() => setPanelTab('rr')}
+          onClick={() => handleSelectTab('rr')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'rr'
               ? 'bg-sky-600 text-white font-black shadow-md'
@@ -1318,7 +1333,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('tmr')}
+          onClick={() => handleSelectTab('tmr')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'tmr'
               ? 'bg-purple-600 text-white font-black shadow-md'
@@ -1333,7 +1348,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('validade')}
+          onClick={() => handleSelectTab('validade')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'validade'
               ? 'bg-emerald-600 text-white font-black shadow-md'
@@ -1345,7 +1360,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('temperatura')}
+          onClick={() => handleSelectTab('temperatura')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'temperatura'
               ? 'bg-rose-600 text-white font-black shadow-md'
@@ -1357,7 +1372,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('wlp')}
+          onClick={() => handleSelectTab('wlp')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'wlp'
               ? 'bg-amber-500 text-slate-950 font-black shadow-md'
@@ -1369,7 +1384,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('5s')}
+          onClick={() => handleSelectTab('5s')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === '5s'
               ? 'bg-amber-500 text-slate-950 font-black shadow-md'
@@ -1381,7 +1396,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('retorno_rota')}
+          onClick={() => handleSelectTab('retorno_rota')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'retorno_rota'
               ? 'bg-indigo-600 text-white font-black shadow-md'
@@ -1393,7 +1408,7 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </button>
 
         <button
-          onClick={() => setPanelTab('acoes')}
+          onClick={() => handleSelectTab('acoes')}
           className={`px-3 py-2.5 rounded-lg font-sans font-bold text-xs uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             panelTab === 'acoes'
               ? 'bg-amber-500 text-slate-950 font-black shadow-md'
@@ -2131,8 +2146,8 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1c2530]">
-                    {tmrDemands
-                      .filter(t => {
+                    {(() => {
+                      const filtered = tmrDemands.filter(t => {
                         if (tmrStatusFilter !== 'todas' && t.status !== tmrStatusFilter) return false;
                         if (!tmrSearchFilter.trim()) return true;
                         const q = tmrSearchFilter.toLowerCase();
@@ -2143,8 +2158,23 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                           (t.operadorExecutor && t.operadorExecutor.toLowerCase().includes(q)) ||
                           (t.conferente && t.conferente.toLowerCase().includes(q))
                         );
-                      })
-                      .map(t => {
+                      });
+                      const totalPages = Math.max(1, Math.ceil(filtered.length / TMR_PAGE_SIZE));
+                      const currentPage = Math.min(tmrPage, totalPages);
+                      const start = (currentPage - 1) * TMR_PAGE_SIZE;
+                      const paginated = filtered.slice(start, start + TMR_PAGE_SIZE);
+
+                      if (paginated.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={6} className="p-6 text-center text-slate-400">
+                              Nenhuma demanda de TMR encontrada para os filtros aplicados.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return paginated.map(t => {
                         const durMin = t.dataHoraInicio && t.dataHoraFim
                           ? Math.max(1, Math.round((new Date(t.dataHoraFim).getTime() - new Date(t.dataHoraInicio).getTime()) / 60000))
                           : t.tempoTotalMinutos || null;
@@ -2233,10 +2263,58 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                             </td>
                           </tr>
                         );
-                      })}
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
+
+              {/* TMR Pagination Controls */}
+              {(() => {
+                const filtered = tmrDemands.filter(t => {
+                  if (tmrStatusFilter !== 'todas' && t.status !== tmrStatusFilter) return false;
+                  if (!tmrSearchFilter.trim()) return true;
+                  const q = tmrSearchFilter.toLowerCase();
+                  return (
+                    t.carreta.toLowerCase().includes(q) ||
+                    t.revendaNome.toLowerCase().includes(q) ||
+                    (t.operadorDesignado && t.operadorDesignado.toLowerCase().includes(q)) ||
+                    (t.operadorExecutor && t.operadorExecutor.toLowerCase().includes(q)) ||
+                    (t.conferente && t.conferente.toLowerCase().includes(q))
+                  );
+                });
+                const totalPages = Math.max(1, Math.ceil(filtered.length / TMR_PAGE_SIZE));
+                if (totalPages <= 1) return null;
+
+                return (
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-[#11151c] border border-[#222d3a] rounded-xl text-xs">
+                    <span className="text-slate-400">
+                      Mostrando {Math.min((tmrPage - 1) * TMR_PAGE_SIZE + 1, filtered.length)}–{Math.min(tmrPage * TMR_PAGE_SIZE, filtered.length)} de {filtered.length} demandas
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={tmrPage <= 1}
+                        onClick={() => setTmrPage(p => Math.max(1, p - 1))}
+                        className="px-3 py-1 bg-[#151b23] hover:bg-[#1c2530] disabled:opacity-40 text-slate-300 rounded border border-[#222d3a] cursor-pointer"
+                      >
+                        ◀ Anterior
+                      </button>
+                      <span className="text-purple-400 font-bold px-2 font-mono">
+                        Pág. {tmrPage} / {totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={tmrPage >= totalPages}
+                        onClick={() => setTmrPage(p => Math.min(totalPages, p + 1))}
+                        className="px-3 py-1 bg-[#151b23] hover:bg-[#1c2530] disabled:opacity-40 text-slate-300 rounded border border-[#222d3a] cursor-pointer"
+                      >
+                        Próxima ▶
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -2577,7 +2655,14 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
         </div>
       )}
       {panelTab === 'validade' && (
-        <ValidadesPanel user={user} empresa={empresa} hideSugerirMelhoria={true} theme={theme} />
+        <Suspense fallback={
+          <div className="p-12 text-center text-amber-400 font-mono text-sm bg-[#11151c] rounded-2xl border border-[#222d3a] flex items-center justify-center gap-3">
+            <Clock className="w-5 h-5 animate-spin text-amber-400" />
+            <span>Carregando Gestão de Validades...</span>
+          </div>
+        }>
+          <ValidadesPanel user={user} empresa={empresa} hideSugerirMelhoria={true} theme={theme} />
+        </Suspense>
       )}
 
       {panelTab === 'temperatura' && (
@@ -2818,11 +2903,39 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
 
           {/* Table of Historic Logs */}
           <div className="g-card p-6 flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-[#222d3a] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#222d3a] pb-3">
               <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-sky-400" />
                 Histórico de Aferições Registradas ({tempLogs.length})
               </h4>
+
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Filtrar por data, hora, conferente..."
+                    value={tempSearchFilter}
+                    onChange={e => {
+                      setTempSearchFilter(e.target.value);
+                      setTempPage(1);
+                    }}
+                    className="pl-8 pr-3 py-1 bg-[#0d1218] border border-[#222d3a] rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500/50 w-56"
+                  />
+                  {tempSearchFilter && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempSearchFilter('');
+                        setTempPage(1);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {tempLogs.length === 0 ? (
@@ -2842,46 +2955,123 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1e2733] text-xs">
-                    {tempLogs.map(log => {
-                      const isDanger = log.alertaCritico || log.temperatura > 28.0 || log.temperatura < 18.0;
+                    {(() => {
+                      const filtered = tempLogs.filter(log => {
+                        if (!tempSearchFilter.trim()) return true;
+                        const q = tempSearchFilter.toLowerCase();
+                        return (
+                          (log.dataFormatted && log.dataFormatted.toLowerCase().includes(q)) ||
+                          (log.dataISO && log.dataISO.toLowerCase().includes(q)) ||
+                          (log.hora && log.hora.toLowerCase().includes(q)) ||
+                          (log.registradoPor && log.registradoPor.toLowerCase().includes(q)) ||
+                          (log.conferenteNome && log.conferenteNome.toLowerCase().includes(q)) ||
+                          (log.observacao && log.observacao.toLowerCase().includes(q))
+                        );
+                      });
 
-                      return (
-                        <tr key={log.id} className="hover:bg-[#151b23]/60 transition-colors">
-                          <td className="p-3 font-mono font-bold text-white">
-                            {log.dataFormatted} <span className="text-amber-400 ml-1">({log.hora})</span>
-                          </td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center gap-1 font-mono font-black text-xs px-2.5 py-1 rounded-lg border ${
-                              isDanger 
-                                ? 'bg-rose-500/15 border-rose-500/30 text-rose-400' 
-                                : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                            }`}>
-                              {log.temperatura}°C {isDanger ? '⚠️ DESVIO' : '✅ OK'}
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-200 font-bold">
-                            {log.registradoPor || log.conferenteNome}
-                          </td>
-                          <td className="p-3 text-slate-400 text-[11px] truncate max-w-xs">
-                            {log.observacao || '—'}
-                          </td>
-                          <td className="p-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteTempLog(log.id)}
-                              className="text-[10px] font-bold text-slate-500 hover:text-rose-400 p-1 rounded transition-colors cursor-pointer"
-                              title="Excluir Registro"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                      const totalPages = Math.max(1, Math.ceil(filtered.length / TEMP_PAGE_SIZE));
+                      const currentPage = Math.min(tempPage, totalPages);
+                      const start = (currentPage - 1) * TEMP_PAGE_SIZE;
+                      const paginated = filtered.slice(start, start + TEMP_PAGE_SIZE);
+
+                      if (paginated.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} className="p-6 text-center text-slate-400">
+                              Nenhuma aferição encontrada para "{tempSearchFilter}".
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return paginated.map(log => {
+                        const isDanger = log.alertaCritico || log.temperatura > 28.0 || log.temperatura < 18.0;
+
+                        return (
+                          <tr key={log.id} className="hover:bg-[#151b23]/60 transition-colors">
+                            <td className="p-3 font-mono font-bold text-white">
+                              {log.dataFormatted} <span className="text-amber-400 ml-1">({log.hora})</span>
+                            </td>
+                            <td className="p-3">
+                              <span className={`inline-flex items-center gap-1 font-mono font-black text-xs px-2.5 py-1 rounded-lg border ${
+                                isDanger 
+                                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-400' 
+                                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                              }`}>
+                                {log.temperatura}°C {isDanger ? '⚠️ DESVIO' : '✅ OK'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-200 font-bold">
+                              {log.registradoPor || log.conferenteNome}
+                            </td>
+                            <td className="p-3 text-slate-400 text-[11px] truncate max-w-xs">
+                              {log.observacao || '—'}
+                            </td>
+                            <td className="p-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTempLog(log.id)}
+                                className="text-[10px] font-bold text-slate-500 hover:text-rose-400 p-1 rounded transition-colors cursor-pointer"
+                                title="Excluir Registro"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
             )}
+
+            {/* Pagination Controls */}
+            {(() => {
+              const filtered = tempLogs.filter(log => {
+                if (!tempSearchFilter.trim()) return true;
+                const q = tempSearchFilter.toLowerCase();
+                return (
+                  (log.dataFormatted && log.dataFormatted.toLowerCase().includes(q)) ||
+                  (log.dataISO && log.dataISO.toLowerCase().includes(q)) ||
+                  (log.hora && log.hora.toLowerCase().includes(q)) ||
+                  (log.registradoPor && log.registradoPor.toLowerCase().includes(q)) ||
+                  (log.conferenteNome && log.conferenteNome.toLowerCase().includes(q)) ||
+                  (log.observacao && log.observacao.toLowerCase().includes(q))
+                );
+              });
+              const totalPages = Math.max(1, Math.ceil(filtered.length / TEMP_PAGE_SIZE));
+              if (totalPages <= 1) return null;
+
+              return (
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#222d3a] text-xs">
+                  <span className="text-slate-400">
+                    Mostrando {Math.min((tempPage - 1) * TEMP_PAGE_SIZE + 1, filtered.length)}–{Math.min(tempPage * TEMP_PAGE_SIZE, filtered.length)} de {filtered.length} aferições
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={tempPage <= 1}
+                      onClick={() => setTempPage(p => Math.max(1, p - 1))}
+                      className="px-3 py-1 bg-[#151b23] hover:bg-[#1c2530] disabled:opacity-40 text-slate-300 rounded border border-[#222d3a] cursor-pointer"
+                    >
+                      ◀ Anterior
+                    </button>
+                    <span className="text-rose-400 font-bold px-2 font-mono">
+                      Pág. {tempPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={tempPage >= totalPages}
+                      onClick={() => setTempPage(p => Math.min(totalPages, p + 1))}
+                      className="px-3 py-1 bg-[#151b23] hover:bg-[#1c2530] disabled:opacity-40 text-slate-300 rounded border border-[#222d3a] cursor-pointer"
+                    >
+                      Próxima ▶
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* HISTÓRICO E RECOLHIMENTO DE VALIDADES CRÍTICAS REPLICADO NO PAINEL DE TEMPERATURA */}
@@ -3463,13 +3653,13 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-300 bg-[#0d1117] px-3.5 py-2 rounded-xl border border-[#222d3a] w-fit">
                   <span className="text-emerald-400 font-bold">URL:</span>
-                  <span className="text-emerald-300 underline">https://nhpa-cyber.github.io/rota/</span>
+                  <span className="text-emerald-300 underline">https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/</span>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://nhpa-cyber.github.io/rota/"
+              href="https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/"
               target="_blank"
               rel="noopener noreferrer"
               className="z-10 py-4 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-xl shadow-emerald-950/50 flex items-center gap-3 shrink-0 border border-emerald-300 hover:scale-105"

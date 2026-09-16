@@ -525,6 +525,47 @@ export function concluirDespejoTask(
 
   localStorage.setItem(getDespejoTasksStorageKey(empresaId), JSON.stringify(currentList));
 
+  // Mirror to despejo_manual_entries so DespejoDashboard immediately displays the row in KPIs, charts, and table
+  try {
+    const completedDespejoRow = {
+      id: `desp-task-${task.id}`,
+      _docId: `desp-task-${task.id}`,
+      data: now.toLocaleDateString('pt-BR'),
+      dataISO: now.toISOString().split('T')[0],
+      operador: executadoPor,
+      embalagem: task.embalagem || 'LATA 350',
+      produto: `${task.codigo} - ${task.descricao}`,
+      descricao: task.descricao,
+      codProduto: task.codigo,
+      lote: task.lote,
+      quantidade: task.quantidade,
+      duracao: tempoGasto || '00:04:00',
+      inicio: '08:00',
+      fim: '08:04',
+      motivo: task.motivo || 'Tratativa PNC / Shelf Life',
+      resultado: '🟢 Dentro da Meta',
+      origem: 'AJUDANTE_DESPEJO',
+      criadoEm: now.toISOString()
+    };
+
+    const keysToUpdate = [
+      `despejo_manual_entries_${empresaId}`,
+      `despejo_manual_entries_demo`,
+      `despejo_rows_${empresaId}`
+    ];
+    keysToUpdate.forEach(k => {
+      try {
+        const raw = localStorage.getItem(k);
+        const list = raw ? JSON.parse(raw) : [];
+        const nextList = [completedDespejoRow, ...list.filter((x: any) => x.id !== completedDespejoRow.id)];
+        localStorage.setItem(k, JSON.stringify(nextList));
+      } catch (_) {}
+    });
+
+    window.dispatchEvent(new CustomEvent('despejo-updated', { detail: [completedDespejoRow] }));
+    window.dispatchEvent(new CustomEvent('despejo-db-updated', { detail: [completedDespejoRow] }));
+  } catch (_) {}
+
   // If this task was linked to a PNC item, update the PNC item
   if (task.pncId) {
     const pncList = getStoredPncItems(empresaId);

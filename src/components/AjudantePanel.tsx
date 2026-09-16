@@ -1135,13 +1135,13 @@ export default function AjudantePanel({ user, empresa, theme = 'dark' }: Ajudant
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-[#0d1117] px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#222d3a] w-fit shadow-xs">
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold">URL:</span>
-                  <span className="text-emerald-700 dark:text-emerald-300 underline font-medium">https://nhpa-cyber.github.io/rota/</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 underline font-medium">https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/</span>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://nhpa-cyber.github.io/rota/"
+              href="https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/"
               target="_blank"
               rel="noopener noreferrer"
               className="z-10 py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all shadow-md flex items-center gap-3 shrink-0 hover:scale-105"

@@ -132,8 +132,12 @@ export function syncIncremental({
     if (isUnsubscribed) return;
 
     const colRef = collection(db, collectionName);
-    const baseQuery = (empresaId && empresaId !== 'all')
-      ? query(colRef, where('empresaId', '==', empresaId))
+    const targetEmpresaId = (!empresaId || empresaId === 'emp_dono') ? 'demo' : empresaId;
+    const targetIds = (targetEmpresaId && targetEmpresaId !== 'all')
+      ? (targetEmpresaId === 'demo' ? ['demo', 'emp_dono'] : [targetEmpresaId, 'demo'])
+      : null;
+    const baseQuery = targetIds
+      ? query(colRef, where('empresaId', 'in', targetIds))
       : query(colRef);
 
     // Consulta direta ao Firestore (Cache desativado)

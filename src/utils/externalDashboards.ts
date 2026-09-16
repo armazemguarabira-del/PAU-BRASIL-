@@ -10,14 +10,14 @@ export const EXTERNAL_DASHBOARDS: Record<string, ExternalDashboardConfig> = {
   'retorno-de-rota': {
     id: 'retorno-de-rota',
     name: 'Retorno de Rota',
-    url: 'https://nhpa-cyber.github.io/rota/',
+    url: 'https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/',
     badge: 'Retorno de Rota',
     description: 'Acesso direto ao aplicativo oficial de Retorno de Rota.'
   },
   'retorno-rota': {
     id: 'retorno-rota',
     name: 'Retorno de Rota',
-    url: 'https://nhpa-cyber.github.io/rota/',
+    url: 'https://armazemguarabira-del.github.io/RETORNO-DE-ROTA-PRINCIPAL-/',
     badge: 'Retorno de Rota',
     description: 'Acesso direto ao aplicativo oficial de Retorno de Rota.'
   },
@@ -41,6 +41,34 @@ export const EXTERNAL_DASHBOARDS: Record<string, ExternalDashboardConfig> = {
     url: 'https://sofrimento001-sudo.github.io/Blitz/',
     badge: 'Blitz & Transferência',
     description: 'Acesso direto à ferramenta oficial da Blitz de Puxada.'
+  },
+  'gestao-puxadas-nri': {
+    id: 'gestao-puxadas-nri',
+    name: 'Gestão de Puxadas e NRI',
+    url: 'https://aistudio.google.com/apps/584e1d8a-7eb8-4f7e-bec2-c69b4ef6323a?showAssistant=true&project=gen-lang-client-0624437496&showPreview=true',
+    badge: 'Puxadas & NRI',
+    description: 'Controle, agendamento de carretas, monitoramento de transferências e gestão de Notas de Recebimento Inbound (NRI).'
+  },
+  'puxadas-nri': {
+    id: 'puxadas-nri',
+    name: 'Gestão de Puxadas e NRI',
+    url: 'https://aistudio.google.com/apps/584e1d8a-7eb8-4f7e-bec2-c69b4ef6323a?showAssistant=true&project=gen-lang-client-0624437496&showPreview=true',
+    badge: 'Puxadas & NRI',
+    description: 'Controle, agendamento de carretas, monitoramento de transferências e gestão de Notas de Recebimento Inbound (NRI).'
+  },
+  'gestao-conciliacao-grade': {
+    id: 'gestao-conciliacao-grade',
+    name: 'Gestão de Conciliação e Grade',
+    url: 'https://aistudio.google.com/apps/cbe7b184-3aab-404c-8f9a-fa89782f39fa?showPreview=true&showAssistant=true&fullscreenApplet=true',
+    badge: 'Conciliação & Grade',
+    description: 'Auditoria de conciliação de estoque, grade de carregamento/recebimento e alinhamento fiscal e físico.'
+  },
+  'conciliacao-grade': {
+    id: 'conciliacao-grade',
+    name: 'Gestão de Conciliação e Grade',
+    url: 'https://aistudio.google.com/apps/cbe7b184-3aab-404c-8f9a-fa89782f39fa?showPreview=true&showAssistant=true&fullscreenApplet=true',
+    badge: 'Conciliação & Grade',
+    description: 'Auditoria de conciliação de estoque, grade de carregamento/recebimento e alinhamento fiscal e físico.'
   }
 };
 

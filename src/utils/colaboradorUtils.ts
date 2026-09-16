@@ -3,11 +3,13 @@ import { ColaboradorMaster } from '../types';
 
 // Fast in-memory memoization caches
 const _normCache = new Map<string, string>();
+const _sameColabCache = new Map<string, boolean>();
 let _cachedMasterNames: string[] | null = null;
 let _lastMasterNamesCheck = 0;
 
 export function clearCollaboratorNormalizeCache(): void {
   _normCache.clear();
+  _sameColabCache.clear();
   _cachedMasterNames = null;
 }
 
@@ -22,7 +24,7 @@ if (typeof window !== 'undefined') {
 
 function getMasterNames(customColabs?: ColaboradorMaster[]): string[] {
   const now = Date.now();
-  if (_cachedMasterNames && (!customColabs || customColabs.length === 0) && now - _lastMasterNamesCheck < 10000) {
+  if (_cachedMasterNames && now - _lastMasterNamesCheck < 15000) {
     return _cachedMasterNames;
   }
 
@@ -72,10 +74,8 @@ function getMasterNames(customColabs?: ColaboradorMaster[]): string[] {
     }
   } catch (e) {}
 
-  if (!customColabs || customColabs.length === 0) {
-    _cachedMasterNames = masterNames;
-    _lastMasterNamesCheck = now;
-  }
+  _cachedMasterNames = masterNames;
+  _lastMasterNamesCheck = now;
 
   return masterNames;
 }
@@ -90,8 +90,8 @@ function getMasterNames(customColabs?: ColaboradorMaster[]): string[] {
 export function normalizeCollaboratorName(rawName: string, customColabs?: ColaboradorMaster[]): string {
   if (!rawName || !rawName.trim()) return '';
 
-  const cacheKey = !customColabs || customColabs.length === 0 ? rawName : null;
-  if (cacheKey && _normCache.has(cacheKey)) {
+  const cacheKey = rawName.toUpperCase().trim();
+  if (_normCache.has(cacheKey)) {
     return _normCache.get(cacheKey)!;
   }
 
@@ -147,7 +147,7 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
   // 1. Direct exact match
   const exactMatch = masterNames.find(n => n === cleaned);
   if (exactMatch) {
-    if (cacheKey) _normCache.set(cacheKey, exactMatch);
+    _normCache.set(cacheKey, exactMatch);
     return exactMatch;
   }
 
@@ -187,9 +187,7 @@ export function normalizeCollaboratorName(rawName: string, customColabs?: Colabo
   }
 
   const finalResult = bestMatch || cleaned;
-  if (cacheKey) {
-    _normCache.set(cacheKey, finalResult);
-  }
+  _normCache.set(cacheKey, finalResult);
   return finalResult;
 }
 
@@ -211,17 +209,30 @@ export function isSameCollaborator(
   if (clean1 === clean2) return true;
   if (clean1.includes(clean2) || clean2.includes(clean1)) return true;
 
+  const pairKey = clean1 < clean2 ? `${clean1}|${clean2}` : `${clean2}|${clean1}`;
+  if (_sameColabCache.has(pairKey)) {
+    return _sameColabCache.get(pairKey)!;
+  }
+
+  let result = false;
   const norm1 = normalizeCollaboratorName(clean1, customColabs).toUpperCase().trim();
   const norm2 = normalizeCollaboratorName(clean2, customColabs).toUpperCase().trim();
   if (norm1 && norm2) {
-    if (norm1 === norm2 || norm1.includes(norm2) || norm2.includes(norm1)) return true;
+    if (norm1 === norm2 || norm1.includes(norm2) || norm2.includes(norm1)) {
+      result = true;
+    }
   }
 
-  const first1 = clean1.split(' ')[0];
-  const first2 = clean2.split(' ')[0];
-  if (first1.length >= 3 && first2.length >= 3 && first1 === first2) return true;
+  if (!result) {
+    const first1 = clean1.split(' ')[0];
+    const first2 = clean2.split(' ')[0];
+    if (first1.length >= 3 && first2.length >= 3 && first1 === first2) {
+      result = true;
+    }
+  }
 
-  return false;
+  _sameColabCache.set(pairKey, result);
+  return result;
 }
 
 /**

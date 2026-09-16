@@ -538,25 +538,38 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
       }
 
       // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
-      const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
-      if (savedManual) {
-        try {
-          const parsed = JSON.parse(savedManual);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(addCustomIfNew);
-          }
-        } catch (_) {}
-      }
+      const repackKeys = [
+        `repack_manual_entries_${companyId}`,
+        `repack_manual_entries_demo`,
+        `repack_rows_${companyId}`,
+        `repack_rows_demo`
+      ];
 
-      const saved = localStorage.getItem(`repack_rows_${companyId}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(addCustomIfNew);
+      repackKeys.forEach(k => {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(addCustomIfNew);
+            }
+          } catch (_) {}
+        }
+      });
+
+      // Scan any other repack_manual_entries in localStorage
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('repack_manual_entries_') && !repackKeys.includes(k)) {
+            const val = localStorage.getItem(k);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (Array.isArray(parsed)) parsed.forEach(addCustomIfNew);
+            }
           }
-        } catch (_) {}
-      }
+        }
+      } catch (_) {}
 
       const rows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
 

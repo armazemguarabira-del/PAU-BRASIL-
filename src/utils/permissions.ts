@@ -229,7 +229,11 @@ export function isPanelAllowedForUser(
     panelId === 'pacote-prejuizo' ||
     panelId === 'trocas-reposicoes' ||
     panelId === 'retorno-de-rota' ||
-    panelId === 'blitz-de-puxada'
+    panelId === 'blitz-de-puxada' ||
+    panelId === 'gestao-puxadas-nri' ||
+    panelId === 'puxadas-nri' ||
+    panelId === 'gestao-conciliacao-grade' ||
+    panelId === 'conciliacao-grade'
   ) {
     return true;
   }

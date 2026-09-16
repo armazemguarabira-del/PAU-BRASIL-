@@ -37,6 +37,7 @@ import {
   Truck, 
   Clock, 
   CheckCircle2, 
+  Check,
   Play, 
   AlertTriangle, 
   Moon, 
@@ -132,6 +133,135 @@ function TaskTimerWidget({ task }: { task: Tarefa }) {
   );
 }
 
+const DEFAULT_SAFETY_CHECKLIST = [
+  { id: 1, label: 'Corredor de operação isolado', desc: 'Isolamento com cones ou fitas refletivas nas duas cabeceiras do corredor.', checked: false },
+  { id: 2, label: 'Zonas de pedestre livres', desc: 'Confirmado que nenhum pedestre transita dentro da área operacional de manobra.', checked: false },
+  { id: 3, label: 'Sinalização visual ativa', desc: 'Luz giratória (giroflex) ou strobo e buzina atestadas como operacionais.', checked: false },
+  { id: 4, label: 'Piso livre de resíduos', desc: 'Obstáculos, paletes avariados, plásticos ou fitas de arquear removidos do piso.', checked: false },
+  { id: 5, label: 'Iluminação de pátio adequada', desc: 'Visibilidade regular para empilhadeira atestada na zona operativa.', checked: false },
+];
+
+interface EmpilhadorPreOperationChecklistProps {
+  operatorName: string;
+  checklistStorageKey: string;
+  onConfirm: () => void;
+  triggerToast: (msg: string, err?: boolean) => void;
+}
+
+const EmpilhadorPreOperationChecklist = React.memo(function EmpilhadorPreOperationChecklist({
+  operatorName,
+  checklistStorageKey,
+  onConfirm,
+  triggerToast
+}: EmpilhadorPreOperationChecklistProps) {
+  const [items, setItems] = useState(DEFAULT_SAFETY_CHECKLIST);
+
+  const handleToggle = (id: number) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+  };
+
+  const handleSelectAll = () => {
+    setItems(prev => prev.map(item => ({ ...item, checked: true })));
+  };
+
+  const checkedCount = items.filter(c => c.checked).length;
+  const isCompleted = checkedCount === items.length;
+
+  const handleConfirm = () => {
+    if (!isCompleted) return;
+    try {
+      localStorage.setItem(checklistStorageKey, 'true');
+    } catch (e) {}
+    onConfirm();
+    triggerToast('Checklist concluído! Quadro de demandas liberado para operação.');
+  };
+
+  return (
+    <div className="g-card p-6 md:p-8 flex flex-col gap-5 border border-slate-200 dark:border-[#f5a623]/20 bg-white dark:bg-[#11151c]/90 shadow-lg max-w-2xl mx-auto w-full rounded-2xl">
+      <div className="w-12 h-12 mx-auto rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm mb-1">
+        <Check className="w-7 h-7 stroke-[3]" />
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-[#222d3a] pb-3">
+        <h3 className="font-sans font-black text-sm tracking-wide text-blue-600 dark:text-[#f5a623] uppercase flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-amber-400" /> CHECKLIST PRÉ-OPERAÇÃO EMPILHADEIRA
+        </h3>
+        <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 dark:text-[#22c55e] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-[#22c55e]/5 px-3 py-1 rounded-full border border-emerald-200 dark:border-[#22c55e]/15 self-start sm:self-auto">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          OPERADOR: {operatorName}
+        </div>
+      </div>
+
+      <p className="text-xs text-slate-500 dark:text-[#6a7d92] text-center leading-relaxed max-w-md mx-auto">
+        Por normas de segurança DPO Ambev, confirme cada item do checklist antes de liberar o quadro de tarefas de EFC, EFD e TMR.
+      </p>
+
+      <div className="flex flex-col gap-3 w-full mt-2">
+        {items.map(item => (
+          <div 
+            key={item.id}
+            onClick={() => handleToggle(item.id)}
+            className={`p-3.5 rounded-xl border flex items-start gap-4 cursor-pointer transition-all ${
+              item.checked 
+                ? 'bg-emerald-50/70 border-emerald-300 dark:bg-[#22c55e]/5 dark:border-[#22c55e]/30' 
+                : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/80 dark:bg-[#151b23] dark:border-[#222d3a] dark:hover:bg-[#1a2030]'
+            }`}
+          >
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center font-bold text-xs mt-0.5 transition-colors ${
+              item.checked 
+                ? 'bg-emerald-500 border-emerald-500 text-white' 
+                : 'border-slate-300 text-transparent dark:border-[#243040]'
+            }`}>
+              {item.checked ? '✓' : ''}
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{item.label}</h4>
+              <p className="text-[11px] text-slate-500 dark:text-[#6a7d92] mt-1 leading-relaxed">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between w-full mt-2">
+        <button
+          type="button"
+          onClick={handleSelectAll}
+          className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-amber-400 dark:hover:text-amber-300 underline cursor-pointer"
+        >
+          ✓ Marcar todos como verificados
+        </button>
+        <div className="text-xs font-sans font-bold tracking-wider text-slate-600 dark:text-[#6a7d92] text-right">
+          {checkedCount} / {items.length} itens confirmados
+        </div>
+      </div>
+
+      <div className="w-full">
+        <div className="h-2 w-full bg-slate-100 dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-500 dark:bg-[#22c55e] transition-all duration-300" style={{ width: `${(checkedCount / items.length) * 100}%` }}></div>
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-3 w-full mt-4">
+        <button 
+          type="button"
+          disabled={!isCompleted}
+          onClick={handleConfirm}
+          className={`w-full py-4 text-xs font-black tracking-wider uppercase rounded-xl text-center transition-all shadow-md flex items-center justify-center gap-2 ${
+            isCompleted 
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 cursor-pointer active:scale-[0.99]' 
+              : 'bg-amber-200 dark:bg-amber-950/40 text-amber-800/60 dark:text-amber-500/40 cursor-not-allowed opacity-80'
+          }`}
+        >
+          <Check className="w-4 h-4" /> REVISÃO FEITA — LIBERAR TAREFAS DO EMPILHADOR
+        </button>
+      </div>
+    </div>
+  );
+});
+
 export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: EmpilhadorPanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `empilhador_draft_${empresaId}_${user.uid || user.nome || 'guest'}`;
@@ -178,14 +308,6 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   });
 
   // Safety Checklist State
-  const defaultChecklist = [
-    { id: 1, label: 'Corredor de operação isolado', desc: 'Isolamento com cones ou fitas refletivas nas duas cabeceiras do corredor.', checked: false },
-    { id: 2, label: 'Zonas de pedestre livres', desc: 'Confirmado que nenhum pedestre transita dentro da área operacional de manobra.', checked: false },
-    { id: 3, label: 'Sinalização visual ativa', desc: 'Luz giratória (giroflex) ou strobo e buzina atestadas como operacionais.', checked: false },
-    { id: 4, label: 'Piso livre de resíduos', desc: 'Obstáculos, paletes avariados, plásticos ou fitas de arquear removidos do piso.', checked: false },
-    { id: 5, label: 'Iluminação de pátio adequada', desc: 'Visibilidade regular para empilhadeira atestada na zona operativa.', checked: false },
-  ];
-  const [checklist, setChecklist] = useState(defaultChecklist);
   const checklistStorageKey = `empilhador_checklist_${user.uid || user.nome || 'demo'}_${new Date().toISOString().slice(0, 10)}`;
   const [checklistDone, setChecklistDone] = useState<boolean>(() => {
     try {
@@ -232,6 +354,8 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
   // Load and subscribe to real-time events with debounced FEFO reload
   useEffect(() => {
+    if (!checklistDone) return;
+
     const unsubEfc = subscribeToEfcVehicles(empresaId, (list) => {
       setEfcVehicles(list);
     });
@@ -263,10 +387,12 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       window.removeEventListener('tmr_demands_updated', reloadTmr);
       window.removeEventListener('fefo_demands_updated', reloadFefoDebounced);
     };
-  }, [empresaId]);
+  }, [empresaId, checklistDone]);
 
   // Sync tasks + Auto-Purge expired tasks (> 5h) + Deduplicate
   useEffect(() => {
+    if (!checklistDone) return;
+
     let rows: Tarefa[] = [];
     if (empresaData.tarefas && empresaData.tarefas.length > 50) {
       rows = [...empresaData.tarefas];
@@ -288,10 +414,12 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     } else {
       setTasks([]);
     }
-  }, [empresaData.tarefas, empresaId]);
+  }, [empresaData.tarefas, empresaId, checklistDone]);
 
   // Periodic check to auto-purge tasks that reach 5 hours
   useEffect(() => {
+    if (!checklistDone) return;
+
     const timer = setInterval(() => {
       setTasks((prev) => {
         const deduped = deduplicateTasks(prev);
@@ -305,10 +433,12 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     }, 60000);
 
     return () => clearInterval(timer);
-  }, [empresaId]);
+  }, [empresaId, checklistDone]);
 
   // Real-time synchronization listeners for local and cross-tab events
   useEffect(() => {
+    if (!checklistDone) return;
+
     let debounceTimer: any = null;
     const reloadLocalTasks = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -340,7 +470,7 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       window.removeEventListener('tarefas_updated', reloadLocalTasks);
       window.removeEventListener('storage', reloadLocalTasks);
     };
-  }, [empresaId]);
+  }, [empresaId, checklistDone]);
 
   // Helpers
   const triggerToast = (msg: string, err?: boolean) => {
@@ -497,31 +627,10 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     triggerToast('Jornada encerrada e formulário de 5 Porquês enviado ao supervisor com sucesso!');
   };
 
-  const handleToggleCheck = (id: number) => {
-    setChecklist(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
-  };
-
-  const handleSelectAllChecklist = () => {
-    setChecklist(prev => prev.map(item => ({ ...item, checked: true })));
-  };
-
-  const checklistCheckedCount = checklist.filter(c => c.checked).length;
-  const isChecklistCompleted = checklistCheckedCount === checklist.length;
-
-  const handleConfirmChecklist = () => {
-    if (!isChecklistCompleted) return;
-    try {
-      localStorage.setItem(checklistStorageKey, 'true');
-    } catch (e) {}
-    setChecklistDone(true);
-    triggerToast('Checklist concluído! Quadro de demandas liberado para operação.');
-  };
-
   const handleRedoChecklist = () => {
     try {
       localStorage.removeItem(checklistStorageKey);
     } catch (e) {}
-    setChecklist(defaultChecklist);
     setChecklistDone(false);
     triggerToast('Checklist reiniciado para nova checagem de segurança.');
   };
@@ -853,14 +962,16 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
   const myAssignedVehicles = efcVehicles;
 
   const myAssignedTasks = useMemo(() => {
+    if (!checklistDone) return [];
     return tasks.filter(t => {
       if (isTaskExpired(t, 5)) return false;
       if (!t.operador || t.operador === 'TODOS' || t.operador.toUpperCase().includes('TODOS')) return true;
       return isSameCollaborator(t.operador, activeOperatorClean, empresaData.colaboradores);
     });
-  }, [tasks, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, tasks, activeOperatorClean, empresaData.colaboradores]);
 
   const myAssignedTmr = useMemo(() => {
+    if (!checklistDone) return [];
     return tmrDemands.filter(t => {
       const userRole = (user.papel || '').toLowerCase();
       const userCargo = (user.cargo || '').toLowerCase();
@@ -888,33 +999,37 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
 
       return false;
     });
-  }, [tmrDemands, user, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, tmrDemands, user, activeOperatorClean, empresaData.colaboradores]);
 
   const myAssignedFefo = useMemo(() => {
+    if (!checklistDone) return [];
     return fefoDemands.filter(t => {
       if (!t.solicitadoPorConferente) return false;
       if (t.status === 'done') return false;
       return true;
     });
-  }, [fefoDemands]);
+  }, [checklistDone, fefoDemands]);
 
   // Completed items by logged in user
   const myCompletedEfc = useMemo(() => {
+    if (!checklistDone) return [];
     return efcVehicles.filter(v => 
       !(v.isRecarga || v.tipoCarga === 'Recarga') && 
       v.statusCarregamento === 'Finalizado' && 
       isSameCollaborator(v.operadorExecutorCarregamento, activeOperatorClean, empresaData.colaboradores)
     );
-  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, efcVehicles, activeOperatorClean, empresaData.colaboradores]);
   
   const myCompletedEfd = useMemo(() => {
+    if (!checklistDone) return [];
     return efcVehicles.filter(v => 
       v.statusDescarregamento === 'Finalizado' && 
       isSameCollaborator(v.operadorExecutorDescarregamento, activeOperatorClean, empresaData.colaboradores)
     );
-  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, efcVehicles, activeOperatorClean, empresaData.colaboradores]);
 
   const completedRecargasEfc = useMemo(() => {
+    if (!checklistDone) return [];
     return efcVehicles.filter(v => 
       (v.isRecarga || v.tipoCarga === 'Recarga') && 
       v.statusCarregamento === 'Finalizado' && 
@@ -926,9 +1041,10 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       status: 'done' as const,
       duracaoMin: v.duracaoCarregamentoMin || 15
     }));
-  }, [efcVehicles, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, efcVehicles, activeOperatorClean, empresaData.colaboradores]);
 
   const myCompletedTmr = useMemo(() => {
+    if (!checklistDone) return [];
     const doneTmr = tmrDemands.filter(t => t.status === 'done');
 
     const doneRecargas = efcVehicles.filter(v => {
@@ -951,13 +1067,15 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     });
 
     return [...doneTmr, ...doneRecargas];
-  }, [tmrDemands, activeOperatorClean, efcVehicles]);
+  }, [checklistDone, tmrDemands, activeOperatorClean, efcVehicles]);
 
   const myCompletedPicking = useMemo(() => {
+    if (!checklistDone) return [];
     return tasks.filter(t => t.status === 'done');
-  }, [tasks]);
+  }, [checklistDone, tasks]);
 
   const myCompletedFefo = useMemo(() => {
+    if (!checklistDone) return [];
     return fefoDemands.filter(t => {
       if (t.status !== 'done') return false;
       // Se for admin/conferente ou operador geral, ou se bater com o nome do operador ativo
@@ -968,13 +1086,14 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
       if (activeOperatorClean.includes('CONFERENTE') || activeOperatorClean.includes('ADMIN') || activeOperatorClean.includes('SUPERVIS')) return true;
       return true; // Exibir histórico completo de giros da equipe de empilhadores
     });
-  }, [fefoDemands, activeOperatorClean, empresaData.colaboradores]);
+  }, [checklistDone, fefoDemands, activeOperatorClean, empresaData.colaboradores]);
 
   // Total operations count
   const totalOpsCompleted = myCompletedEfc.length + myCompletedEfd.length + myCompletedTmr.length + myCompletedPicking.length + myCompletedFefo.length;
 
   // Total duration & Average duration calculation
   const avgOperationDuration = useMemo(() => {
+    if (!checklistDone) return 0;
     const totalDurations = [
       ...myCompletedEfc.map(v => v.duracaoCarregamentoMin || 15),
       ...myCompletedEfd.map(v => v.duracaoDescarregamentoMin || 20),
@@ -985,23 +1104,27 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
     return totalDurations.length > 0 
       ? Math.round(totalDurations.reduce((a, b) => a + b, 0) / totalDurations.length) 
       : 0;
-  }, [myCompletedEfc, myCompletedEfd, myCompletedTmr, myCompletedPicking, myCompletedFefo]);
+  }, [checklistDone, myCompletedEfc, myCompletedEfd, myCompletedTmr, myCompletedPicking, myCompletedFefo]);
 
   // Hectoliters & Pallets replenished in Picking
   const totalPalletsPicking = useMemo(() => {
+    if (!checklistDone) return 0;
     return myCompletedPicking.reduce((acc, t) => acc + (t.quantidade || 0), 0);
-  }, [myCompletedPicking]);
+  }, [checklistDone, myCompletedPicking]);
 
   const totalHectolitersPicking = useMemo(() => {
+    if (!checklistDone) return 0;
     return Math.round(totalPalletsPicking * 48.5 * 10) / 10;
-  }, [totalPalletsPicking]);
+  }, [checklistDone, totalPalletsPicking]);
 
   // Vehicle Counts for assigned (Pernoite & 03.111.49.02 sorted to top)
   const efcPendingVehicles = useMemo(() => {
+    if (!checklistDone) return [];
     return myAssignedVehicles.filter(v => v.statusCarregamento !== 'Finalizado');
-  }, [myAssignedVehicles]);
+  }, [checklistDone, myAssignedVehicles]);
 
   const efdPendingVehicles = useMemo(() => {
+    if (!checklistDone) return [];
     return myAssignedVehicles
       .filter(v => {
         const isLoadedOrPernoite = v.statusCarregamento === 'Finalizado' || v.pernoiteMarked === true || v.statusDescarregamento === 'Pernoite';
@@ -1013,85 +1136,28 @@ export default function EmpilhadorPanel({ user, empresa, theme = 'dark' }: Empil
         const bPernoite = (b.pernoiteMarked || b.statusDescarregamento === 'Pernoite' || b.placa?.includes('03.111.49.02')) ? 1 : 0;
         return bPernoite - aPernoite;
       });
-  }, [myAssignedVehicles]);
+  }, [checklistDone, myAssignedVehicles]);
 
   const tercerosVehicles = useMemo(() => {
+    if (!checklistDone) return [];
     return myAssignedVehicles.filter(v => (v.tipoCarga || '').toLowerCase().includes('terceiro'));
-  }, [myAssignedVehicles]);
+  }, [checklistDone, myAssignedVehicles]);
 
   const pernoiteVehicles = useMemo(() => {
+    if (!checklistDone) return [];
     return myAssignedVehicles.filter(v => v.statusDescarregamento === 'Pernoite' || v.pernoiteMarked === true);
-  }, [myAssignedVehicles]);
+  }, [checklistDone, myAssignedVehicles]);
 
   return (
     <div className="flex flex-col gap-6">
       {/* CHECKLIST ESCREVER BLOCK COVERS FULL PAGE IF LOCKED */}
       {!checklistDone ? (
-        <div className="g-card p-6 md:p-8 flex flex-col gap-5 border border-[#f5a623]/20 bg-[#11151c]/90">
-          <div className="text-5xl text-center mb-3">✅</div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222d3a] pb-3">
-            <h3 className="font-sans font-black text-sm tracking-widest text-[#f5a623] uppercase flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-400" /> CHECKLIST PRÉ-OPERAÇÃO EMPILHADEIRA
-            </h3>
-            <div className="flex items-center gap-1.5 text-[9px] text-[#22c55e] font-black uppercase tracking-wider bg-[#22c55e]/5 px-2.5 py-1 rounded-lg border border-[#22c55e]/15">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-              </span>
-              Operador: {user.nome || operatorName}
-            </div>
-          </div>
-          <p className="text-xs text-[#6a7d92] text-center leading-relaxed max-w-md mx-auto">
-            Por normas de segurança DPO Ambev, confirme cada item do checklist antes de liberar o quadro de tarefas de EFC, EFD e TMR.
-          </p>
-
-          <div className="flex flex-col gap-3 max-w-xl mx-auto w-full mt-4">
-            {checklist.map(item => (
-              <div 
-                key={item.id}
-                onClick={() => handleToggleCheck(item.id)}
-                className={`p-3.5 rounded-xl border border-[#222d3a] flex items-start gap-4 cursor-pointer transition-all ${item.checked ? 'bg-[#22c55e]/5 border-[#22c55e]/30' : 'bg-[#151b23] hover:bg-[#1a2030]'}`}
-              >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center font-bold text-xs mt-0.5 ${item.checked ? 'bg-[#22c55e] border-[#22c55e] text-[#07090d]' : 'border-[#243040] text-[#243040]'}`}>
-                  {item.checked ? '✓' : ''}
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-snow leading-tight">{item.label}</h4>
-                  <p className="text-[10px] text-[#6a7d92] mt-1 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between max-w-xl mx-auto w-full mt-2">
-            <button
-              type="button"
-              onClick={handleSelectAllChecklist}
-              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
-            >
-              ✓ Marcar todos como verificados
-            </button>
-            <div className="text-[10px] font-sans font-bold tracking-wider text-[#6a7d92] text-right">
-              {checklistCheckedCount} / {checklist.length} itens confirmados
-            </div>
-          </div>
-
-          <div className="max-w-xl mx-auto w-full">
-            <div className="h-1.5 w-full bg-[#151b23] border border-[#222d3a] rounded-full overflow-hidden">
-              <div className="h-full bg-[#22c55e] transition-all" style={{ width: `${(checklistCheckedCount / checklist.length) * 100}%` }}></div>
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-3 w-full max-w-xl mx-auto mt-4">
-            <button 
-              disabled={!isChecklistCompleted}
-              onClick={handleConfirmChecklist}
-              className="btn-primary flex-1 py-4 text-xs font-bold tracking-widest bg-gradient-to-r from-[#f5a623] to-[#d4780a] text-[#07090d] rounded-xl text-center disabled:opacity-40 cursor-pointer shadow-md transition-all active:scale-[0.99]"
-            >
-              ✅ REVISÃO FEITA — LIBERAR TAREFAS DO EMPILHADOR
-            </button>
-          </div>
-        </div>
+        <EmpilhadorPreOperationChecklist
+          operatorName={user.nome || operatorName}
+          checklistStorageKey={checklistStorageKey}
+          onConfirm={() => setChecklistDone(true)}
+          triggerToast={triggerToast}
+        />
       ) : (
         <div className="flex flex-col gap-6">
 

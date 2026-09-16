@@ -24,7 +24,7 @@ interface OperationalCollaboratorPnpBannerProps {
   theme?: 'light' | 'dark';
 }
 
-export const OperationalCollaboratorPnpBanner: React.FC<OperationalCollaboratorPnpBannerProps> = ({
+export const OperationalCollaboratorPnpBanner = React.memo<OperationalCollaboratorPnpBannerProps>(({
   user,
   theme = 'dark'
 }) => {
@@ -248,4 +248,4 @@ export const OperationalCollaboratorPnpBanner: React.FC<OperationalCollaboratorP
       )}
     </>
   );
-};
+});

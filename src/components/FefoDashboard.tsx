@@ -513,16 +513,41 @@ export default function FefoDashboard({
 
   // 1. Sync & Seed Data
   useEffect(() => {
-    // Sync validades (dynamic) - merge Firestore and localStorage so all collected items are included
-    const saved = localStorage.getItem(`validades_${companyId}`);
+    // Sync validades (dynamic) - merge Firestore, company and demo localStorage so all collected items are included
+    const valKeys = [
+      `validades_${companyId}`,
+      `validades_demo`,
+      `armazem_validades_${companyId}`,
+      `armazem_validades_demo`
+    ];
     let localRows: ValidadeRow[] = [];
-    if (saved) {
-      try {
-        localRows = JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
+    valKeys.forEach(k => {
+      const saved = localStorage.getItem(k);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            localRows = [...localRows, ...parsed];
+          }
+        } catch (e) {
+          console.error(e);
+        }
       }
-    }
+    });
+
+    // Also scan all localStorage for any validades keys
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('validades_') || k.startsWith('armazem_validades_')) && !valKeys.includes(k)) {
+          const val = localStorage.getItem(k);
+          if (val) {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) localRows = [...localRows, ...parsed];
+          }
+        }
+      }
+    } catch (_) {}
 
     const firestoreRows = empresaData.validades || [];
     const map = new Map<string, ValidadeRow>();

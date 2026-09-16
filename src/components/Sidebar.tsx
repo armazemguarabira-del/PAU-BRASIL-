@@ -113,7 +113,8 @@ export default function Sidebar({
       subItems: [
         'visao-geral', 'wlp-dashboard', 'repack-dashboard', 'despejo-dashboard', 'quebras-dashboard', 
         'fefo-dashboard', 'picking-dashboard', 'gestao-capacidade', 
-        'qualidade', 'pacote-prejuizo', 'trocas-reposicoes', 'retorno-de-rota', 'blitz-de-puxada', 'kpi-arvore'
+        'qualidade', 'pacote-prejuizo', 'trocas-reposicoes', 'retorno-de-rota', 'blitz-de-puxada', 
+        'gestao-puxadas-nri', 'gestao-conciliacao-grade', 'kpi-arvore'
       ]
     },
     {

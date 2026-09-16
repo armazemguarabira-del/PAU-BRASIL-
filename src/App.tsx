@@ -40,6 +40,8 @@ const PacotePrejuizoDashboard = lazy(() => import('./components/PacotePrejuizoDa
 const TrocasEReposicoesDashboard = lazy(() => import('./components/TrocasEReposicoesDashboard'));
 const RetornoDeRotaDashboard = lazy(() => import('./components/RetornoDeRotaDashboard'));
 const BlitzDePuxadaDashboard = lazy(() => import('./components/BlitzDePuxadaDashboard'));
+const GestaoPuxadasNriDashboard = lazy(() => import('./components/GestaoPuxadasNriDashboard'));
+const GestaoConciliacaoGradeDashboard = lazy(() => import('./components/GestaoConciliacaoGradeDashboard'));
 const LossHierarchyTree = lazy(() => import('./components/LossHierarchyTree'));
 const CadastrosPanel = lazy(() => import('./components/CadastrosPanel'));
 const QualidadePanel = lazy(() => import('./components/QualidadePanel'));
@@ -143,7 +145,13 @@ export default function App() {
   const [user, setUser] = useState<Usuario | null>(() => {
     try {
       const saved = localStorage.getItem('af_logged_user');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed && (parsed.empresaId === 'emp_dono' || !parsed.empresaId)) {
+        parsed.empresaId = 'demo';
+        localStorage.setItem('af_logged_user', JSON.stringify(parsed));
+      }
+      return parsed;
     } catch (e) {
       return null;
     }
@@ -152,7 +160,13 @@ export default function App() {
   const [empresa, setEmpresa] = useState<Empresa | null>(() => {
     try {
       const saved = localStorage.getItem('af_logged_empresa');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed && (parsed.id === 'emp_dono' || !parsed.id)) {
+        parsed.id = 'demo';
+        localStorage.setItem('af_logged_empresa', JSON.stringify(parsed));
+      }
+      return parsed;
     } catch (e) {
       return null;
     }
@@ -908,6 +922,12 @@ export default function App() {
         return <RetornoDeRotaDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'blitz-de-puxada':
         return <BlitzDePuxadaDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
+      case 'gestao-puxadas-nri':
+      case 'puxadas-nri':
+        return <GestaoPuxadasNriDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
+      case 'gestao-conciliacao-grade':
+      case 'conciliacao-grade':
+        return <GestaoConciliacaoGradeDashboard user={user} empresa={empresa} theme={theme} onBack={handleGoBack} />;
       case 'agenda-executiva':
         return (
           <DashboardOverview 

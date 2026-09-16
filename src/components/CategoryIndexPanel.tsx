@@ -36,7 +36,9 @@ import {
   Target,
   ExternalLink,
   FileCode,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Container,
+  Scale
 } from 'lucide-react';
 
 interface CategoryIndexPanelProps {
@@ -214,6 +216,22 @@ export const CATEGORY_DEFINITIONS: Record<
         icon: <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
         badge: 'Blitz & Transferência',
         color: 'border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 shadow-sm'
+      },
+      {
+        id: 'gestao-puxadas-nri',
+        label: 'Gestão de Puxadas e NRI',
+        description: 'Controle de agendamento de carretas, transferências e gestão de Notas de Recebimento Inbound (NRI).',
+        icon: <Container className="w-5 h-5 text-amber-500 dark:text-amber-400" />,
+        badge: 'Puxadas & NRI',
+        color: 'border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 shadow-sm'
+      },
+      {
+        id: 'gestao-conciliacao-grade',
+        label: 'Gestão de Conciliação e Grade',
+        description: 'Auditoria de conciliação de estoque, grade de carregamento/recebimento e alinhamento fiscal e físico.',
+        icon: <Scale className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
+        badge: 'Conciliação & Grade',
+        color: 'border-emerald-500/40 bg-emerald-500/10 hover:border-emerald-500/70 shadow-sm'
       },
       {
         id: 'kpi-arvore',

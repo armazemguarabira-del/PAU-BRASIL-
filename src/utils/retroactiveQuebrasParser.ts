@@ -277,14 +277,32 @@ export function parseQuebrasJson(
     const colaboradorQuebrou = String(item.Colaborador || item.colaborador || item.COLABORADOR || item['Colaborador Quebrou'] || item.Responsavel || item.responsavel || '').trim();
     const funcao = String(item.Funcao || item.funcao || item.FUNCAO || item['Função'] || item['FUNÇÃO'] || item.Cargo || item.cargo || '').trim().toUpperCase();
 
-    // Valor da Avaria
-    let valorAvaria = 0;
-    const rawVal = item['VALOR DA AVARIA'] ?? item['VALOR AVARIA'] ?? item.valorDaAvaria ?? item.valorAvaria ?? item.valorUnitario ?? item['VALOR TT'] ?? item.valorTotal ?? item.Valor;
-    if (typeof rawVal === 'number') {
-      valorAvaria = rawVal;
-    } else if (typeof rawVal === 'string') {
-      const parsedVal = parseFloat(rawVal.replace(',', '.'));
-      if (!isNaN(parsedVal)) valorAvaria = parsedVal;
+    // Valor Total da Avaria
+    let valorTotal = 0;
+    const rawTotal = item.valorTotal ?? item['VALOR TT'] ?? item['VALOR DA AVARIA'] ?? item['VALOR AVARIA'] ?? item.valorDaAvaria ?? item.valorAvaria ?? item.Valor;
+    if (typeof rawTotal === 'number') {
+      valorTotal = rawTotal;
+    } else if (typeof rawTotal === 'string') {
+      const parsedVal = parseFloat(rawTotal.replace(',', '.'));
+      if (!isNaN(parsedVal)) valorTotal = parsedVal;
+    }
+
+    // Valor Unitário da Avaria
+    let valorUnitario = 0;
+    const rawUnit = item.valorUnitario ?? item['VALOR UNIT'] ?? item['VALOR UNITÁRIO'] ?? item['VALOR UNITARIO'];
+    if (typeof rawUnit === 'number') {
+      valorUnitario = rawUnit;
+    } else if (typeof rawUnit === 'string') {
+      const parsedUnit = parseFloat(rawUnit.replace(',', '.'));
+      if (!isNaN(parsedUnit)) valorUnitario = parsedUnit;
+    }
+
+    if (valorTotal === 0 && valorUnitario > 0 && quantidade > 0) {
+      valorTotal = valorUnitario * quantidade;
+    } else if (valorUnitario === 0 && valorTotal > 0 && quantidade > 0) {
+      valorUnitario = valorTotal / quantidade;
+    } else if (valorUnitario === 0 && valorTotal > 0) {
+      valorUnitario = valorTotal;
     }
 
     // HL Perdido
@@ -297,12 +315,20 @@ export function parseQuebrasJson(
       if (!isNaN(parsedHl)) hlPerdido = parsedHl;
     }
 
-    // Deduplication check
-    const dedupeKey = `${dataISO}_${codProduto}_${colaboradorQuebrou.toUpperCase()}_${area}_${turno}_${quantidade}_${codQuebra}_${motivo}`;
-    if (seenDedupeKeys.has(dedupeKey)) {
-      return;
+    // Deduplication check: se já tem id/_docId único, usa o ID para deduplicação
+    const existingId = String(item.id || item._docId || item.docId || '').trim();
+    if (existingId) {
+      if (seenDedupeKeys.has(existingId)) {
+        return;
+      }
+      seenDedupeKeys.add(existingId);
+    } else {
+      const dedupeKey = `${dataISO}_${codProduto}_${colaboradorQuebrou.toUpperCase()}_${area}_${turno}_${quantidade}_${codQuebra}_${motivo}`;
+      if (seenDedupeKeys.has(dedupeKey)) {
+        return;
+      }
+      seenDedupeKeys.add(dedupeKey);
     }
-    seenDedupeKeys.add(dedupeKey);
 
     const hash = Math.abs(
       (dataISO + codProduto + codQuebra + area + turno + idx).split('').reduce((a, b) => {
@@ -311,32 +337,37 @@ export function parseQuebrasJson(
       }, 0)
     ).toString(36);
 
-    const docId = `retro_quebra_${dataISO.replace(/-/g, '')}_${hash}_${idx}`;
+    const docId = existingId || `retro_quebra_${dataISO.replace(/-/g, '')}_${hash}_${idx}`;
 
     const quebraRow: QuebraRow = {
       _docId: docId,
       id: docId,
-      empresaId,
+      empresaId: item.empresaId || empresaId,
       data: dataFormatada,
       dataISO,
       mes,
       codProduto,
       descricao,
       quantidade,
-      caixas: Math.max(1, Math.round(quantidade / 12)),
-      fatorHl: hlPerdido > 0 && quantidade > 0 ? hlPerdido / quantidade : 0.0035,
-      hlPerdido,
+      caixas: item.caixas || Math.max(1, Math.round(quantidade / 12)),
+      fatorHl: Number(item.fatorHl ?? (hlPerdido > 0 && quantidade > 0 ? hlPerdido / quantidade : 0.0035)),
+      hlPerdido: Number(item.hlPerdido ?? hlPerdido),
+      tipoMarca: item.tipoMarca,
+      embalagem: item.embalagem,
+      wqi: item.wqi,
+      fiscal: item.fiscal,
       area,
       turno,
       codQuebra,
       motivo,
-      valor: valorAvaria,
-      valorUnitario: quantidade > 0 ? valorAvaria / quantidade : valorAvaria,
-      valorTotal: valorAvaria,
+      valor: valorTotal,
+      valorUnitario,
+      valorTotal,
+      colaborador: item.colaborador || colaboradorQuebrou || undefined,
       colaboradorQuebrou: colaboradorQuebrou || undefined,
       responsavel: colaboradorQuebrou || undefined,
       funcao: funcao || undefined,
-      _criadoEm: new Date().toISOString()
+      _criadoEm: item._criadoEm || item.criadoEm || new Date().toISOString()
     };
 
     const retroRecord: RetroactiveRecord = {
@@ -348,7 +379,7 @@ export function parseQuebrasJson(
       descricao: `${descricao} - Motivo: ${motivo} (${quantidade} un)`,
       quantidade,
       unidade: 'UN',
-      valorFinanceiro: Math.round(valorAvaria * 100) / 100,
+      valorFinanceiro: Math.round(valorTotal * 100) / 100,
       operador: colaboradorQuebrou || 'Operação Armazém',
       colaboradorAjudante: colaboradorQuebrou || 'Operação Armazém',
       setor: area,
@@ -363,7 +394,7 @@ export function parseQuebrasJson(
 
     totalQuantidade += quantidade;
     totalHlPerdido += hlPerdido;
-    totalValorAvaria += valorAvaria;
+    totalValorAvaria += valorTotal;
 
     // Resumo por Área
     if (!resumoPorArea[area]) {
@@ -371,7 +402,7 @@ export function parseQuebrasJson(
     }
     resumoPorArea[area].count += 1;
     resumoPorArea[area].quantidade += quantidade;
-    resumoPorArea[area].valor += valorAvaria;
+    resumoPorArea[area].valor += valorTotal;
     resumoPorArea[area].hl += hlPerdido;
 
     // Resumo por Motivo
@@ -380,7 +411,7 @@ export function parseQuebrasJson(
     }
     resumoPorMotivo[motivo].count += 1;
     resumoPorMotivo[motivo].quantidade += quantidade;
-    resumoPorMotivo[motivo].valor += valorAvaria;
+    resumoPorMotivo[motivo].valor += valorTotal;
     resumoPorMotivo[motivo].hl += hlPerdido;
 
     // Resumo por Mês
@@ -389,7 +420,7 @@ export function parseQuebrasJson(
     }
     resumoPorMes[mes].count += 1;
     resumoPorMes[mes].quantidade += quantidade;
-    resumoPorMes[mes].valor += valorAvaria;
+    resumoPorMes[mes].valor += valorTotal;
     resumoPorMes[mes].hl += hlPerdido;
 
     // Resumo por Colaborador
@@ -399,7 +430,7 @@ export function parseQuebrasJson(
     }
     resumoPorColaborador[colabKey].count += 1;
     resumoPorColaborador[colabKey].quantidade += quantidade;
-    resumoPorColaborador[colabKey].valor += valorAvaria;
+    resumoPorColaborador[colabKey].valor += valorTotal;
     resumoPorColaborador[colabKey].hl += hlPerdido;
   });
 

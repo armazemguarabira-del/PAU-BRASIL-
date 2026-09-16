@@ -27,7 +27,13 @@ function isCriticalUserDataKey(key: string): boolean {
     key.includes('colaboradores') ||
     key.includes('acoes_rows') ||
     key.includes('dpo_audits') ||
-    key.includes('repack_rows')
+    key.includes('repack_rows') ||
+    key.includes('repack_manual') ||
+    key.includes('quebras') ||
+    key.includes('custom_quebras') ||
+    key.includes('despejo') ||
+    key.includes('validades') ||
+    key.includes('pnc_despejo_tasks')
   );
 }
 
