@@ -1169,17 +1169,51 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
                     className="g-input"
                   />
                   {vShowDropdown && vProdutoBusca && vFilteredProducts.length > 0 && (
-                    <div className="absolute top-[103%] left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-xl z-50 max-h-48 overflow-y-auto">
+                    <div className="absolute top-[103%] left-0 right-0 bg-white dark:bg-[#182343] border border-slate-200 dark:border-slate-700 shadow-2xl rounded-xl z-50 max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                       {vFilteredProducts.map((p, pIdx) => (
                         <div 
                           key={`repack-prod-${p.codigo}-${pIdx}`}
                           onClick={() => handleVSelectProd(p)}
-                          className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer text-xs flex justify-between"
+                          className="p-3 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 cursor-pointer text-xs flex items-start gap-2.5 transition-colors"
                         >
-                          <span className="font-bold text-amber-600">{p.codigo}</span>
-                          <span className="truncate flex-1 ml-4 text-slate-800 font-medium text-left">{p.descricao}</span>
+                          <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 self-start">
+                            {p.codigo}
+                          </span>
+                          <span className="text-slate-800 dark:text-slate-100 font-semibold text-left break-words whitespace-normal leading-snug flex-1">
+                            {p.descricao}
+                          </span>
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Card de confirmação do produto selecionado com descrição completa visível no celular */}
+                  {vSelectedProd && (
+                    <div className="mt-1 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start justify-between gap-2 transition-all">
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[11px]">
+                            SKU: {vSelectedProd.codigo}
+                          </span>
+                          <span className="text-[10px] uppercase font-bold text-emerald-400">
+                            ✓ Produto Selecionado
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-1 break-words whitespace-normal leading-snug">
+                          {vSelectedProd.descricao}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVSelectedProd(null);
+                          setVProdutoBusca('');
+                        }}
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 text-xs shrink-0 cursor-pointer"
+                        title="Limpar seleção"
+                      >
+                        ✕
+                      </button>
                     </div>
                   )}
                 </div>

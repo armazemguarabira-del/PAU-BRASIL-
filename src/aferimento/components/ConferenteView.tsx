@@ -2741,10 +2741,10 @@ export default function ConferenteView({
                                   setSelectedProductCode(p.code);
                                   setProductSearch(`[${p.code}] ${p.description}`);
                                 }}
-                                className="w-full text-left px-3 py-2 text-xxs hover:bg-slate-50 border-b border-slate-100 flex justify-between items-center cursor-pointer"
+                                className="w-full text-left px-3 py-2 text-xxs hover:bg-slate-50 border-b border-slate-100 flex items-start gap-2 justify-between cursor-pointer"
                               >
-                                <span>{p.description}</span>
-                                <span className="font-mono text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{p.code}</span>
+                                <span className="break-words whitespace-normal leading-tight flex-1 text-slate-800 font-medium">{p.description}</span>
+                                <span className="font-mono text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded text-[10px] shrink-0 self-start">{p.code}</span>
                               </button>
                             ))
                           )}

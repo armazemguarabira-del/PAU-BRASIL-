@@ -1513,10 +1513,10 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
                   <div 
                     key={`conf-prod-${p.codigo}-${pIdx}`}
                     onClick={() => setSelectedProd(p)}
-                    className={`p-2.5 rounded-lg border cursor-pointer text-xs flex justify-between tracking-wide transition-all ${isSel ? 'bg-[#f5a623]/10 border-[#f5a623]/40' : 'bg-[#151b23]/50 border-[#1c2530] hover:bg-[#1a2030]'}`}
+                    className={`p-2.5 rounded-lg border cursor-pointer text-xs flex items-start gap-2.5 tracking-wide transition-all ${isSel ? 'bg-[#f5a623]/10 border-[#f5a623]/40' : 'bg-[#151b23]/50 border-[#1c2530] hover:bg-[#1a2030]'}`}
                   >
-                    <span className="font-bold text-[#f5a623]">{p.codigo}</span>
-                    <span className="flex-1 ml-4 truncate text-left text-[#e8eef5]">{p.descricao}</span>
+                    <span className="font-bold font-mono text-[#f5a623] bg-[#f5a623]/10 px-1.5 py-0.5 rounded text-[11px] shrink-0 self-start">{p.codigo}</span>
+                    <span className="flex-1 text-left text-[#e8eef5] break-words whitespace-normal leading-snug font-medium">{p.descricao}</span>
                   </div>
                 );
               })}
