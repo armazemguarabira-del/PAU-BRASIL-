@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { ValidadesRepository } from '../db';
 import { Usuario, Empresa, ValidadeRow } from '../types';
@@ -29,6 +30,14 @@ import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimen
 import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
 import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
 import Import030519Modal from './Import030519Modal';
+
+export const getTodayDDMMYYYY = (): string => {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 interface ValidadesPanelProps {
   user: Usuario;
@@ -100,7 +109,27 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
   const [bloco, setBloco] = useState<string>(() => getDraftValue('bloco', ''));
   const [dataColetaInput, setDataColetaInput] = useState<string>(() => {
     const val = getDraftValue('dataColetaInput', '');
-    return val || '28/08/2026';
+    // Se o valor salvo em rascunho for a data antiga fixa (28/08/2026, 27/08/2026, 21/08/2026) ou vazio, sempre usar a data de HOJE
+    if (!val || val === '28/08/2026' || val === '27/08/2026' || val === '21/08/2026') {
+      return getTodayDDMMYYYY();
+    }
+    return val;
+  });
+
+  const [minimizeDataRecolha, setMinimizeDataRecolha] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('validades_minimize_recolha') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [minimizeCalculoCaixas, setMinimizeCalculoCaixas] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('validades_minimize_calc') === 'true';
+    } catch {
+      return false;
+    }
   });
 
   const semanaColetaInfo = React.useMemo(() => {
@@ -170,7 +199,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     return rows.filter(r => {
       // 1. Filtro por Semana
       if (semana !== 'todas') {
-        const sem = r.semanaNumero || getSemanaDoMesFromDate(r.dataColeta || r.validade || '28/08/2026');
+        const sem = r.semanaNumero || getSemanaDoMesFromDate(r.dataColeta || r.validade || getTodayDDMMYYYY());
         if (sem !== semana) return false;
       }
 
@@ -516,7 +545,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     setCaixa(0);
     setValidade('');
     setValidadeInput('');
-    setDataColetaInput('27/08/2026');
+    setDataColetaInput(getTodayDDMMYYYY());
     // Preserva 'picking' se foi o local selecionado
     if (localizacao !== 'picking') {
       setLocalizacao('central');
@@ -823,7 +852,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       }
       setDataColetaInput(dc);
     } else {
-      setDataColetaInput('21/08/2026');
+      setDataColetaInput(getTodayDDMMYYYY());
     }
     setActiveTab('form');
   };
@@ -1290,66 +1319,110 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
           </div>
 
-          {/* Recolha Semanal de Validades (Conferência Automática) */}
-          <div className="p-4 bg-gradient-to-r from-purple-950/30 via-[#151b23] to-[#151b23] border border-purple-500/40 rounded-xl flex flex-col gap-3">
+          {/* Recolha Semanal de Validades (Conferência Automática) - Minimizar / Expandir */}
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-950/30 via-[#151b23] to-[#151b23] border border-purple-500/40 rounded-xl flex flex-col gap-3 transition-all duration-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#222d3a] pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🗓️</span>
-                <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-purple-300">
-                    Data da Recolha da Validade (Conferente)
-                  </span>
-                  <p className="text-[11px] text-gray-400">
-                    Atualiza automaticamente a semana do mês e sincroniza com o Stock Age Index e FEFO.
-                  </p>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-lg shrink-0">🗓️</span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-300">
+                      Data da Recolha da Validade (Conferente)
+                    </span>
+                    {minimizeDataRecolha && (
+                      <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                        {dataColetaInput || getTodayDDMMYYYY()} {dataColetaInput === getTodayDDMMYYYY() ? '• Hoje' : ''}
+                      </span>
+                    )}
+                  </div>
+                  {!minimizeDataRecolha && (
+                    <p className="text-[11px] text-gray-400">
+                      Atualiza automaticamente a semana do mês e sincroniza com o Stock Age Index e FEFO.
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-purple-600/30 border border-purple-400/50 rounded-lg text-xs font-mono font-black text-purple-200 shadow-sm">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="px-2.5 py-1 bg-purple-600/30 border border-purple-400/50 rounded-lg text-xs font-mono font-black text-purple-200 shadow-sm">
                   ⚡ {semanaColetaInfo.label}
                 </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div className="sm:col-span-4 flex flex-col gap-1">
-                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">
-                  Data de Recolha *
-                </label>
-                <input
-                  type="text"
-                  placeholder="DD/MM/AAAA"
-                  value={dataColetaInput}
-                  onChange={e => handleDataColetaChange(e.target.value)}
-                  className="g-input text-snow font-mono font-bold h-[40px]"
-                />
-              </div>
-
-              <div className="sm:col-span-8 flex flex-wrap items-center gap-2 pt-2 sm:pt-4">
                 <button
                   type="button"
-                  onClick={() => setDataColetaInput('28/08/2026')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    dataColetaInput === '28/08/2026' || semanaColetaInfo.semanaNumero === 4
-                      ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
-                      : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
-                  }`}
+                  onClick={() => setMinimizeDataRecolha(prev => {
+                    const next = !prev;
+                    try { localStorage.setItem('validades_minimize_recolha', String(next)); } catch(e){}
+                    return next;
+                  })}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#1e2736] hover:bg-[#283548] text-purple-300 hover:text-white border border-purple-500/30 transition-colors cursor-pointer"
+                  title={minimizeDataRecolha ? "Expandir detalhes da data de recolha" : "Minimizar esta seção"}
                 >
-                  ✨ 4ª Semana de Agosto (28/08 - Esta Sexta)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDataColetaInput('21/08/2026')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    dataColetaInput === '21/08/2026' || semanaColetaInfo.semanaNumero === 3
-                      ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
-                      : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
-                  }`}
-                >
-                  ⏪ 3ª Semana de Agosto (21/08 - Sexta Passada / Base Atual)
+                  <span>{minimizeDataRecolha ? 'Expandir' : 'Minimizar'}</span>
+                  {minimizeDataRecolha ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
+
+            {!minimizeDataRecolha && (
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div className="sm:col-span-4 flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">
+                      Data de Recolha *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setDataColetaInput(getTodayDDMMYYYY())}
+                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                    >
+                      = Hoje
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="DD/MM/AAAA"
+                    value={dataColetaInput}
+                    onChange={e => handleDataColetaChange(e.target.value)}
+                    className="g-input text-snow font-mono font-bold h-[40px]"
+                  />
+                </div>
+
+                <div className="sm:col-span-8 flex flex-wrap items-center gap-2 pt-2 sm:pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setDataColetaInput(getTodayDDMMYYYY())}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      dataColetaInput === getTodayDDMMYYYY()
+                        ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black ring-2 ring-purple-400/40'
+                        : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
+                    }`}
+                  >
+                    ⚡ Data de Hoje ({getTodayDDMMYYYY()})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDataColetaInput('28/08/2026')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      dataColetaInput === '28/08/2026'
+                        ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
+                        : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
+                    }`}
+                  >
+                    4ª Sem. Agosto (28/08)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDataColetaInput('21/08/2026')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      dataColetaInput === '21/08/2026'
+                        ? 'bg-purple-600 text-white shadow-md border border-purple-400 font-black'
+                        : 'bg-[#151b23] text-gray-300 hover:bg-[#1a222c] border border-[#222d3a]'
+                    }`}
+                  >
+                    3ª Sem. Agosto (21/08)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Packaging calculation & Quantities Section */}
@@ -1408,26 +1481,69 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                   </div>
                 </div>
 
-                {/* Live Box Calculation Banner */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-purple-950/40 via-[#151b23] to-[#151b23] border border-purple-500/30 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-xl shrink-0">
-                      🧮
+                {/* Live Box Calculation Banner - Minimizar / Expandir */}
+                {!minimizeCalculoCaixas ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-purple-950/40 via-[#151b23] to-[#151b23] border border-purple-500/30 rounded-xl transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-xl shrink-0">
+                        🧮
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider">
+                          Cálculo Automático de Caixas:
+                        </span>
+                        <span className="text-xs font-mono text-gray-300">
+                          ({palhete} pal × {pkgInfo.caixasPallet}) + ({lastro} las × {pkgInfo.lastro}) + {caixa} av = <span className="text-emerald-400 font-bold">{calculatedTotalCaixas} caixas</span>
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider">
-                        Cálculo Automático de Caixas:
-                      </span>
-                      <span className="text-xs font-mono text-gray-300">
-                        ({palhete} pal × {pkgInfo.caixasPallet}) + ({lastro} las × {pkgInfo.lastro}) + {caixa} av = <span className="text-emerald-400 font-bold">{calculatedTotalCaixas} caixas</span>
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/40 px-3.5 py-2 rounded-lg">
+                        <span className="text-[10px] uppercase font-black text-purple-300">Total Caixa / SKUs:</span>
+                        <span className="text-lg font-black font-mono text-emerald-300">{calculatedTotalCaixas}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setMinimizeCalculoCaixas(prev => {
+                          const next = !prev;
+                          try { localStorage.setItem('validades_minimize_calc', String(next)); } catch(e){}
+                          return next;
+                        })}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#1e2736] hover:bg-[#283548] text-purple-300 hover:text-white border border-purple-500/30 transition-colors cursor-pointer"
+                        title="Minimizar cálculo detalhado de caixas"
+                      >
+                        <span className="hidden sm:inline">Minimizar</span>
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/40 px-3.5 py-2 rounded-lg">
-                    <span className="text-[10px] uppercase font-black text-purple-300">Total Caixa / SKUs:</span>
-                    <span className="text-lg font-black font-mono text-emerald-300">{calculatedTotalCaixas}</span>
+                ) : (
+                  <div className="flex items-center justify-between p-2.5 px-3.5 bg-gradient-to-r from-purple-950/20 via-[#151b23] to-[#151b23] border border-purple-500/20 rounded-xl text-xs transition-all">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-base">🧮</span>
+                      <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wide">Cálculo de Caixas:</span>
+                      <span className="font-mono font-black text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded">
+                        {calculatedTotalCaixas} caixas
+                      </span>
+                      <span className="text-[11px] font-mono text-gray-400 hidden sm:inline">
+                        ({palhete} pal × {pkgInfo.caixasPallet} + {lastro} las × {pkgInfo.lastro} + {caixa} av)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMinimizeCalculoCaixas(prev => {
+                        const next = !prev;
+                        try { localStorage.setItem('validades_minimize_calc', String(next)); } catch(e){}
+                        return next;
+                      })}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#1e2736] hover:bg-[#283548] text-purple-300 hover:text-white border border-purple-500/30 transition-colors cursor-pointer"
+                      title="Expandir cálculo detalhado de caixas"
+                    >
+                      <span>Expandir</span>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
             );
           })()}
