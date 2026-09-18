@@ -1379,6 +1379,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                   </div>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="DD/MM/AAAA"
                     value={dataColetaInput}
                     onChange={e => handleDataColetaChange(e.target.value)}
@@ -1443,6 +1445,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     </div>
                     <input 
                       type="number"
+                      inputMode="numeric"
                       min={0}
                       value={palhete === 0 ? '' : palhete}
                       onChange={e => {
@@ -1461,6 +1464,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     </div>
                     <input 
                       type="number"
+                      inputMode="numeric"
                       min={0}
                       value={lastro === 0 ? '' : lastro}
                       onChange={e => {
@@ -1479,6 +1483,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     </div>
                     <input 
                       type="number"
+                      inputMode="numeric"
                       min={0}
                       value={caixa === 0 ? '' : caixa}
                       onChange={e => {
@@ -1562,6 +1567,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Data de Vencimento *</label>
               <input 
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
                 placeholder="DD/MM/AAAA"
                 value={validadeInput}
