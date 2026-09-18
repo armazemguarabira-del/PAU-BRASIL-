@@ -160,7 +160,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
   const toggleVRegDateGroup = (dateKey: string) => {
     setExpandedVRegDates(prev => ({
       ...prev,
-      [dateKey]: prev[dateKey] === false ? true : false
+      [dateKey]: !prev[dateKey]
     }));
   };
 
@@ -1400,7 +1400,7 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
 
                   return sortedRegDates.map(regDateKey => {
                     const items = groupedByRegDate[regDateKey];
-                    const isOpen = expandedVRegDates[regDateKey] !== false;
+                    const isOpen = !!expandedVRegDates[regDateKey];
 
                     let displayDate = 'Sem Data de Registro';
                     if (regDateKey !== '0000-00-00') {

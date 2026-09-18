@@ -1444,8 +1444,11 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     <input 
                       type="number"
                       min={0}
-                      value={palhete}
-                      onChange={e => setPalhete(Math.max(0, parseInt(e.target.value) || 0))}
+                      value={palhete === 0 ? '' : palhete}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setPalhete(val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0));
+                      }}
                       className="g-input text-center text-md font-bold text-snow"
                     />
                   </div>
@@ -1459,8 +1462,11 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     <input 
                       type="number"
                       min={0}
-                      value={lastro}
-                      onChange={e => setLastro(Math.max(0, parseInt(e.target.value) || 0))}
+                      value={lastro === 0 ? '' : lastro}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setLastro(val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0));
+                      }}
                       className="g-input text-center text-md font-bold text-snow"
                     />
                   </div>
@@ -1474,8 +1480,11 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     <input 
                       type="number"
                       min={0}
-                      value={caixa}
-                      onChange={e => setCaixa(Math.max(0, parseInt(e.target.value) || 0))}
+                      value={caixa === 0 ? '' : caixa}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCaixa(val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0));
+                      }}
                       className="g-input text-center text-md font-bold text-snow"
                     />
                   </div>
@@ -1770,37 +1779,71 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                 );
               }
 
-              return sortedRegDateKeys.map(regDateKey => {
-                const rows = grouped[regDateKey];
-                const isOpen = expandedDates[regDateKey] !== false;
-
-                let formattedRegDate = regDateKey;
-                try {
-                  const [y, m, d] = regDateKey.split('-');
-                  const dt = new Date(Number(y), Number(m) - 1, Number(d));
-                  const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                  formattedRegDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
-                } catch (e) {}
-
-                return (
-                  <div key={regDateKey} className="g-card overflow-hidden">
-                    <div 
-                      onClick={() => toggleDateGroup(regDateKey)}
-                      className="p-4 bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-4 flex-wrap hover:bg-[#1a222c] transition-colors border-b border-[#222d3a]/60"
-                    >
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="font-sans font-black text-sm text-[#8b5cf6] tracking-wide">
-                          📅 Registros de: {formattedRegDate}
-                        </span>
-                        <span className="text-[10px] bg-[#11151c] border border-[#222d3a] px-2.5 py-0.5 rounded-full font-bold text-snow">
-                          {rows.length} {rows.length === 1 ? 'lote registrado' : 'lotes registrados'}
-                        </span>
-                      </div>
-                      <span className="text-[#6a7d92] text-xs transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+              return (
+                <div className="flex flex-col gap-3">
+                  {/* Barra de controle rápido: Minimizar / Expandir Todos */}
+                  <div className="flex items-center justify-between gap-2 p-2.5 px-3.5 bg-slate-100/90 dark:bg-[#151b23]/90 border border-slate-200 dark:border-[#222d3a] rounded-xl text-xs flex-wrap">
+                    <span className="text-slate-600 dark:text-slate-400 font-medium text-[11px] flex items-center gap-1.5">
+                      <span>📅</span>
+                      <strong className="text-slate-800 dark:text-slate-200 font-bold">{sortedRegDateKeys.length}</strong>
+                      <span>{sortedRegDateKeys.length === 1 ? 'data de contagem' : 'datas de contagem agrupadas'}</span>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allOpen: Record<string, boolean> = {};
+                          sortedRegDateKeys.forEach(k => { allOpen[k] = true; });
+                          setExpandedDates(allOpen);
+                        }}
+                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-[#1a222c] border border-slate-200 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer transition-colors shadow-xs"
+                      >
+                        Expandir Todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedDates({})}
+                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-[#1a222c] border border-slate-200 dark:border-purple-500/30 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors shadow-xs"
+                      >
+                        Minimizar Todos
+                      </button>
                     </div>
+                  </div>
 
-                    {isOpen && (
-                      <div className="p-4 flex flex-col gap-3 bg-[#0c1015]/40 border-t border-[#222d3a]/40">
+                  {sortedRegDateKeys.map(regDateKey => {
+                    const rows = grouped[regDateKey];
+                    const isOpen = !!expandedDates[regDateKey];
+
+                    let formattedRegDate = regDateKey;
+                    try {
+                      const [y, m, d] = regDateKey.split('-');
+                      const dt = new Date(Number(y), Number(m) - 1, Number(d));
+                      const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                      formattedRegDate = `${d}/${m}/${y} — ${daysOfWeek[dt.getDay()]}`;
+                    } catch (e) {}
+
+                    return (
+                      <div key={regDateKey} className="g-card overflow-hidden">
+                        <div 
+                          onClick={() => toggleDateGroup(regDateKey)}
+                          className="p-3.5 sm:p-4 bg-white dark:bg-[#151b23] flex items-center justify-between cursor-pointer select-none gap-3 hover:bg-slate-50 dark:hover:bg-[#1a222c] transition-colors border-b border-slate-100 dark:border-[#222d3a]/60"
+                        >
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap flex-1 min-w-0">
+                            <span className="font-sans font-bold text-xs sm:text-sm text-[#8b5cf6] tracking-wide break-words">
+                              📅 Registros de: {formattedRegDate}
+                            </span>
+                            <span className="text-[10px] bg-slate-100 dark:bg-[#11151c] border border-slate-200 dark:border-[#222d3a] px-2.5 py-0.5 rounded-full font-bold text-slate-700 dark:text-snow shrink-0">
+                              {rows.length} {rows.length === 1 ? 'lote registrado' : 'lotes registrados'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 text-slate-400 dark:text-[#6a7d92]">
+                            <span className="text-[11px] font-semibold hidden xs:inline">{isOpen ? 'Recolher' : 'Expandir'}</span>
+                            <ChevronDown className="w-4 h-4 transition-transform duration-200" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          </div>
+                        </div>
+
+                        {isOpen && (
+                          <div className="p-4 flex flex-col gap-3 bg-[#0c1015]/40 border-t border-[#222d3a]/40">
                         {rows.map((r, i) => {
                           const days = getDaysRemaining(r.validade);
                           const spec = getStatusLabelAndStyles(days);
@@ -1910,8 +1953,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     )}
                   </div>
                 );
-              });
-            })()}
+              })}
+            </div>
+          );
+        })()}
           </div>
 
         </div>
