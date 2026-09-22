@@ -4511,7 +4511,77 @@ export const PRODUCT_MASTER_DATA: ProductMaster[] = [
     "embalagem": "LATA 350ML",
     "curva": "B",
     "idade": 270
+  },
+   {
+    "cod": 9088,
+    "descricao": "SODA LIMONADA ANTARCTICA DIET LATA 350ML SH C/12 NPAL",
+    "fator": 12,
+    "fatorPallet": 280,
+    "valor": 39.9,
+    "fatorHecto": 0.04,
+    "grupo": "CERVEJA",
+    "embalagem": "LATA 350ML",
+    "curva": "C",
+    "idade": 270
+  },
+    {
+    "cod": 36024,
+    "descricao": "SKOL ZERO LONG NECK 330ML SIX-PACK SHRINK C/4",
+    "fator": 12,
+    "fatorPallet": 220,
+    "valor": 39.9,
+    "fatorHecto": 0.04,
+    "grupo": "CERVEJA",
+    "embalagem": "LATA 350ML",
+    "curva": "C",
+    "idade": 270
+  },
+ {
+    "cod": 36028,
+    "descricao": "SKOL ZERO LT SLEEK 350ML SH C 12",
+    "fator": 12,
+    "fatorPallet": 220,
+    "valor": 39.9,
+    "fatorHecto": 0.04,
+    "grupo": "CERVEJA",
+    "embalagem": "LATA 350ML",
+    "curva": "C",
+    "idade": 270
+  },
+   {
+    "cod": 38418,
+    "descricao": "HALLS BLUEBERRY ENVELOPE 28G CX C/21",
+    "fator": 12,
+    "fatorPallet": 220,
+    "valor": 39.9,
+    "fatorHecto": 0.04,
+    "grupo": "CERVEJA",
+    "embalagem": "LATA 350ML",
+    "curva": "C",
+    "idade": 270
+  },
+   {
+    "cod": 2354,
+    "descricao": "SODA LIMONADA ANTARCTICA DIET PET 2L CAIXA C/6",
+    "fator": 12,
+    "fatorPallet": 220,
+    "valor": 39.9,
+    "fatorHecto": 0.04,
+    "grupo": "CERVEJA",
+    "embalagem": "LATA 350ML",
+    "curva": "C",
+    "idade": 270
   }
+
+
+
+
+
+
+
+
+
+
 ];
 
 export const PRODUCT_MASTER_MAP = new Map<number, ProductMaster>(

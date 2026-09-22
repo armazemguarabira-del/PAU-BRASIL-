@@ -391,7 +391,14 @@ export const PRODUTOS_COLETA_CONFIG: ColetaProdutoDef[] = [
   { codigo: "34685", descricao: "PIRAQUE RECH CHOCOLATE PCT 76G CX40", caixasPallet: 50, lastro: 1 },
   { codigo: "34687", descricao: "PIRAQUE RECH MORANGO PCT 76G CX40", caixasPallet: 50, lastro: 1 },
   { codigo: "35338", descricao: "BUDWEISER ZERO LT 473ML SH C/12 NPAL ", caixasPallet: 220, lastro: 22 },
-  { codigo: "37450", descricao: "BUDWEISER LT SLEEK 350ML SH C 12 MULTIPACK ", caixasPallet: 280, lastro: 28 }
+  { codigo: "37450", descricao: "BUDWEISER LT SLEEK 350ML SH C 12 MULTIPACK ", caixasPallet: 280, lastro: 28 },
+  { codigo: "9088", descricao: "SODA LIMONADA ANTARCTICA DIET LATA 350ML SH C/12 NPAL", caixasPallet: 286, lastro: 22 },
+  { codigo: "36024", descricao: "SKOL ZERO LONG NECK 330ML SIX-PACK SHRINK C/4", caixasPallet: 84, lastro: 12 },
+  { codigo: "36028", descricao: "SKOL ZERO LT SLEEK 350ML SH C 12", caixasPallet: 280, lastro: 28 },
+  { codigo: "38418", descricao: "HALLS BLUEBERRY ENVELOPE 28G CX C/21", caixasPallet: 1, lastro: 1 },
+  { codigo: "2354", descricao: "SODA LIMONADA ANTARCTICA DIET PET 2L CAIXA C/6", caixasPallet: 100, lastro: 20 }
+
+
 ];
 
 // Lookup map for fast O(1) access

@@ -27,7 +27,7 @@ import StockAgeIndexTab from './StockAgeIndexTab';
 import FuturoShelfTab from './FuturoShelfTab';
 import GestaoEscoamentoTab from './GestaoEscoamentoTab';
 import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimento';
-import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
+import { getInitialDefaultValidades, removeLegacySeedValidades, formatDateToBR } from '../utils/fefoDefaultData';
 import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
 import Import030519Modal from './Import030519Modal';
 
@@ -477,17 +477,15 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
   const getStatusClass = (days: number) => {
     if (days < 0) return 'expired';
     if (days <= 30) return 'crit';
-    if (days <= 45) return 'warn';
     if (days <= 60) return 'alert';
     return 'ok';
   };
 
   const getStatusLabelAndStyles = (days: number) => {
-    if (days < 0) return { label: '⛔ VENCIDO', text: 'text-[#ef4444]', border: 'border-l-[#ef4444]', bg: 'bg-[#ef4444]/5' };
-    if (days <= 30) return { label: '🔴 CRÍTICO', text: 'text-[#ef4444]', border: 'border-l-[#ef4444]', bg: 'bg-[#ef4444]/5' };
-    if (days <= 45) return { label: '🟠 ATENÇÃO', text: 'text-[#f5a623]', border: 'border-l-[#f5a623]', bg: 'bg-[#f5a623]/5' };
-    if (days <= 60) return { label: '🟡 ALERTA', text: 'text-[#eab308]', border: 'border-l-[#eab308]', bg: 'bg-[#eab308]/5' };
-    return { label: '🟢 OK', text: 'text-[#22c55e]', border: 'border-l-[#22c55e]', bg: 'bg-[#22c55e]/5' };
+    if (days < 0) return { label: '⛔ VENCIDO', text: 'text-[#ef4444]', border: 'border-l-[#ef4444]', bg: 'bg-[#ef4444]/10' };
+    if (days <= 30) return { label: '🔴 CRÍTICO (≤30d)', text: 'text-[#ef4444]', border: 'border-l-[#ef4444]', bg: 'bg-[#ef4444]/10' };
+    if (days <= 60) return { label: '🟡 ALERTA (45-60d)', text: 'text-[#ca8a04]', border: 'border-l-[#eab308]', bg: 'bg-[#eab308]/10' };
+    return { label: '🟢 OK (>60d)', text: 'text-[#16a34a]', border: 'border-l-[#22c55e]', bg: 'bg-[#22c55e]/10' };
   };
 
   // Stats Counters compiling helper
@@ -1378,9 +1376,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                     </button>
                   </div>
                   <input
-                    type="text"
+                    type="tel"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    autoComplete="off"
                     placeholder="DD/MM/AAAA"
                     value={dataColetaInput}
                     onChange={e => handleDataColetaChange(e.target.value)}
@@ -1566,9 +1565,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Data de Vencimento *</label>
               <input 
-                type="text"
+                type="tel"
                 inputMode="numeric"
                 pattern="[0-9]*"
+                autoComplete="off"
                 required
                 placeholder="DD/MM/AAAA"
                 value={validadeInput}
@@ -1860,11 +1860,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                             ? 'Vence hoje' 
                             : `${days} dias restantes`;
 
-                          let formattedValidadeDate = r.validade;
-                          try {
-                            const [y, m, d] = r.validade.split('-');
-                            formattedValidadeDate = `${d}/${m}/${y}`;
-                          } catch (e) {}
+                          let formattedValidadeDate = formatDateToBR(r.validade);
 
                           return (
                             <div key={r.id || r._docId || i} className="border border-[#222d3a] rounded-xl p-4 bg-[#0f1318] flex flex-col sm:flex-row items-center justify-between gap-4 hover:border-[#334155] transition-all shadow-sm text-center sm:text-left">
@@ -3072,7 +3068,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                                 {isPicking ? 'Área Picking' : `Rua ${r.bloco || 'Central'}`}
                               </span>
                             </td>
-                            <td className="p-2.5 font-mono font-bold text-slate-900 dark:text-snow">{r.validade}</td>
+                            <td className="p-2.5 font-mono font-bold text-slate-900 dark:text-snow">{formatDateToBR(r.validade)}</td>
                             <td className="p-2.5 text-slate-600 dark:text-gray-300">{r.palhete || 0} pal. | {r.caixa || 0} cx.</td>
                             <td className="p-2.5 font-mono font-bold text-amber-600 dark:text-amber-400">{days} dias</td>
                             <td className="p-2.5 text-right">

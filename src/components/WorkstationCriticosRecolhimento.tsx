@@ -32,7 +32,7 @@ import {
 import { PRODUCTS } from '../planosData';
 import { syncFefoDemandsFromValidades, getStoredFefoDemands, updateFefoDemandStatus } from '../utils/fefoDemandManager';
 import { calculateStockAgeIndex } from '../utils/calculateStockAgeIndex';
-import { getInitialDefaultValidades, removeLegacySeedValidades } from '../utils/fefoDefaultData';
+import { getInitialDefaultValidades, removeLegacySeedValidades, formatDateToBR } from '../utils/fefoDefaultData';
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { savePncItem, saveDespejoTask, PncItem } from '../utils/pncManager';
 import { PncRecord, getStoredPncRecords, savePncRecords } from '../utils/gestaoPncManager';
@@ -204,8 +204,10 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
       } else if (p > 0 || l > 0 || c > 0) {
         qty = calcularTotalCaixas(cod, p, l, c);
       } else {
-        qty = c > 0 ? c : 1;
+        qty = c > 0 ? c : 0;
       }
+
+      if (qty <= 0) return; // Se não houver quantidade não precisa estar na lista
 
       // Product price and hectolitro factor
       const pMaster = PRODUCTS.find(pm => String(pm.codigo) === cod);
@@ -311,7 +313,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         isFrom030519,
         diasEstoque
       };
-    });
+    }).filter(item => item.quantidade > 0);
 
     // Return unifies items without generating mock fallback items
     list.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
@@ -836,7 +838,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     #{pncModalItem.codigo} - {pncModalItem.descricao}
                   </div>
                   <div className="text-[11px] text-slate-600 dark:text-slate-300 font-mono mt-0.5">
-                    Lote: <strong>{pncModalItem.lote}</strong> | Validade: <strong>{pncModalItem.validade}</strong> ({pncModalItem.diasParaVencer} dias restantes)
+                    Lote: <strong>{pncModalItem.lote}</strong> | Validade: <strong>{formatDateToBR(pncModalItem.validade)}</strong> ({pncModalItem.diasParaVencer} dias restantes)
                   </div>
                 </div>
                 <div className="text-right">
@@ -1121,7 +1123,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
             </span>
           </div>
           <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-rose-500" /> Acompanhamento de Itens em Janela Crítica (≤ 45 Dias)
+            Acompanhamento de Itens em Janela Crítica (≤ 45 Dias)
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Monitoramento unificado de produtos com validade na janela crítica (≤ 45 dias) identificados na coleta de pátio. Conferente pode notificar saldo físico atualizado.
@@ -1165,7 +1167,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">janela crítica total</span>
           </div>
           <div className="p-3 bg-red-600 text-white rounded-xl shadow-xs">
-            <AlertTriangle className="w-5 h-5" />
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
@@ -1412,7 +1414,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                       <Calendar className="w-3 h-3 text-slate-500" /> Vencimento
                     </span>
                     <div className="font-mono font-black text-slate-900 dark:text-white text-xs">
-                      {item.validade}
+                      {formatDateToBR(item.validade)}
                     </div>
                     <div>
                       <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded inline-block ${
@@ -1712,7 +1714,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
                       {/* VENCIMENTO */}
                       <td className="py-3 px-3 text-center font-mono font-extrabold text-slate-800 dark:text-slate-200">
-                        {item.validade}
+                        {formatDateToBR(item.validade)}
                       </td>
 
                       {/* DIAS RESTANTES & DIAS DE ESTOQUE */}
