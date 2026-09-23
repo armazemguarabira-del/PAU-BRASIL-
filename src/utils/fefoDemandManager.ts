@@ -441,8 +441,6 @@ export function saveFefoDemands(companyId: string = 'demo', demands: FefoRelocat
   try {
     localStorage.setItem(`${FEFO_STORAGE_PREFIX}${companyId}`, JSON.stringify(demands));
     window.dispatchEvent(new Event('fefo_demands_updated'));
-    window.dispatchEvent(new Event('app_data_updated'));
-    window.dispatchEvent(new Event('local_data_changed'));
   } catch (e) {
     console.error('Error saving FEFO demands:', e);
   }
@@ -864,12 +862,10 @@ export function concluirTodosGirosFefoQuebras(
 
   saveAderenciaHistorico(companyId, updatedHistorico);
 
-  // 6. Notificar toda a aplicação
+  // 6. Notificar componentes relevantes
   window.dispatchEvent(new Event('fefo_demands_updated'));
   window.dispatchEvent(new Event('fefo_auditoria_updated'));
   window.dispatchEvent(new Event('fefo_aderencia_updated'));
-  window.dispatchEvent(new Event('local_data_changed'));
-  window.dispatchEvent(new Event('app_data_updated'));
 
   return {
     demands: updatedDemands,

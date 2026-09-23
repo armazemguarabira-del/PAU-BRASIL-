@@ -14,6 +14,13 @@ import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { savePncItem, saveDespejoTask } from '../utils/pncManager';
 import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
 import { 
+  getEscoamentoVendidosMap, 
+  marcarItemComoVendido, 
+  reverterItemParaPendente, 
+  exportarHistoricoEscoamentoParaExcel, 
+  EscoamentoVendidoItem 
+} from '../utils/escoamentoVendaManager';
+import { 
   TrendingDown, 
   CheckCircle2, 
   AlertTriangle, 
@@ -66,17 +73,35 @@ export interface EscoamentoItem {
   bloco?: string;
   logs: EscoamentoDailyLog[];
   isTotalmenteEscoado: boolean;
+  isVendido?: boolean;
+  vendidoInfo?: EscoamentoVendidoItem;
   dataTransferenciaPnc?: string;
   diasEmPnc?: number;
 }
 
 export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRefresh }: GestaoEscoamentoTabProps) {
+  const companyId = empresa?.id || 'demo';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'Crítico' | 'Atenção'>('todos');
   const [viewMode, setViewMode] = useState<'ativos' | 'concluidos' | 'todos'>('ativos');
+
+  // Mapa de itens marcados como Vendidos (Persistente e Reativo)
+  const [vendidosMap, setVendidosMap] = useState<Record<string, EscoamentoVendidoItem>>(() => getEscoamentoVendidosMap(companyId));
+
+  useEffect(() => {
+    const handleVendaUpdated = () => {
+      setVendidosMap(getEscoamentoVendidosMap(companyId));
+    };
+    window.addEventListener('escoamento_venda_updated', handleVendaUpdated);
+    window.addEventListener('storage', handleVendaUpdated);
+    return () => {
+      window.removeEventListener('escoamento_venda_updated', handleVendaUpdated);
+      window.removeEventListener('storage', handleVendaUpdated);
+    };
+  }, [companyId]);
   
   // Storage for daily logs
-  const storageKey = `armazem_escoamento_logs_${empresa?.id || 'demo'}`;
+  const storageKey = `armazem_escoamento_logs_${companyId}`;
   const [dailyLogs, setDailyLogs] = useState<EscoamentoDailyLog[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
@@ -251,7 +276,10 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
 
     const result: EscoamentoItem[] = Array.from(map.values()).map(item => {
       const latestLog = item.logs[0];
-      const qtdAtual = latestLog ? latestLog.qtdAtual : item.qtdInicial;
+      const rawQtdAtual = latestLog ? latestLog.qtdAtual : item.qtdInicial;
+      const vendidoInfo = vendidosMap[item.loteKey];
+      const isVendido = !!vendidoInfo;
+      const qtdAtual = isVendido ? 0 : rawQtdAtual;
       let diasEmPnc: number | undefined = undefined;
 
       if (item.localizacao === 'pnc' || item.dataTransferenciaPnc) {
@@ -266,13 +294,15 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
       return {
         ...item,
         qtdAtual,
-        isTotalmenteEscoado: qtdAtual <= 0,
+        isTotalmenteEscoado: isVendido || qtdAtual <= 0,
+        isVendido,
+        vendidoInfo,
         diasEmPnc
       };
     });
 
     return result;
-  }, [validadesList, dailyLogs, todayISO, produtosMap]);
+  }, [validadesList, dailyLogs, todayISO, produtosMap, vendidosMap]);
 
   // 2. Filter & Sort
   const filteredItems = useMemo(() => {
@@ -296,9 +326,9 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
         return false;
       }
 
-      // View Mode: ativos (com saldo), concluidos (baixados 0), todos
-      if (viewMode === 'ativos' && item.isTotalmenteEscoado) return false;
-      if (viewMode === 'concluidos' && !item.isTotalmenteEscoado) return false;
+      // View Mode: ativos (com saldo pendente), concluidos (baixados 0 ou vendidos), todos
+      if (viewMode === 'ativos' && (item.isTotalmenteEscoado || item.isVendido)) return false;
+      if (viewMode === 'concluidos' && (!item.isTotalmenteEscoado && !item.isVendido)) return false;
 
       return true;
     }).sort((a, b) => a.stockAgeIndex - b.stockAgeIndex);
@@ -749,11 +779,21 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
 
         <div className="flex items-center gap-2.5">
           <button
+            type="button"
+            onClick={() => exportarHistoricoEscoamentoParaExcel(companyId)}
+            className="py-2 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-md"
+            title="Exportar planilha Excel completa com o histórico de todos os itens vendidos e baixados"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-white" />
+            <span>Exportar Histórico Geral</span>
+          </button>
+
+          <button
             onClick={handleExportExcel}
             className="py-2 px-3.5 bg-[#1a2332] hover:bg-[#222d3a] text-slate-200 border border-[#2d3a4d] font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>Exportar Excel</span>
+            <span>Exportar Tabela Atual</span>
           </button>
         </div>
       </div>
@@ -1025,7 +1065,12 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
                       {isCritico ? '🔴 Stock Age Crítico' : '🟡 Stock Age Atenção'} ({item.stockAgeIndex}%)
                     </span>
 
-                    {item.isTotalmenteEscoado ? (
+                    {item.isVendido ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500 text-slate-950 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Vendido em {item.vendidoInfo?.dataVenda} ({item.vendidoInfo?.responsavel})
+                      </span>
+                    ) : item.isTotalmenteEscoado ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500 text-slate-950">
                         <CheckCircle2 className="w-3 h-3" />
                         100% Baixado
@@ -1148,14 +1193,46 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
                       </button>
                     )}
 
+                    {item.isVendido ? (
+                      <button
+                        type="button"
+                        onClick={() => reverterItemParaPendente(item.loteKey, companyId)}
+                        className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md"
+                        title="Item marcado como Vendido. Clique para reverter para Pendente"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Vendido (Reverter)</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          marcarItemComoVendido({
+                            codigo: item.codigo,
+                            descricao: item.descricao,
+                            validade: item.dataVencimento,
+                            quantidade: item.qtdAtual || item.qtdInicial,
+                            localizacao: item.localizacao,
+                            bloco: item.bloco,
+                            responsavel: user?.nome || 'Gestor'
+                          }, companyId);
+                        }}
+                        className="py-2 px-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md animate-pulse hover:animate-none"
+                        title="Marcar como Vendido (o item sairá imediatamente da gestão de pendentes)"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-slate-950" />
+                        <span>Pendente (Marcar Vendido)</span>
+                      </button>
+                    )}
+
                     {!item.isTotalmenteEscoado && (
                       <button
                         onClick={() => handleConcluirEscoamento(item)}
-                        className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md shadow-emerald-950/40"
-                        title="Concluir escoamento (zerar produto no armazém e remover da visão ativa)"
+                        className="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all"
+                        title="Concluir escoamento manual (zerar produto no armazém)"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Concluir</span>
+                        <span>Baixar 100%</span>
                       </button>
                     )}
 

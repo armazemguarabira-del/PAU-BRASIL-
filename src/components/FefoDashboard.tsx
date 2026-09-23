@@ -93,6 +93,14 @@ import FefoAderenciaHistoricoModal from './FefoAderenciaHistoricoModal';
 import { getStoredAderenciaHistorico } from '../utils/fefoAderenciaHistorico';
 import { get030519DataForSku, useVendaMedia030519 } from '../utils/vendaMedia030519';
 import { ValidadesRecolhidasModal, getValidadeUniqueId, getValidadeDateInfo } from './ValidadesRecolhidasModal';
+import {
+  DashboardValidadeAdjustment,
+  getDashboardAdjustments,
+  saveDashboardAdjustment,
+  removeDashboardAdjustment,
+  applyDashboardAdjustments,
+  getAdjustmentKey
+} from '../utils/fefoDashboardAdjustments';
 
 interface FefoDashboardProps {
   user: Usuario;
@@ -352,6 +360,8 @@ export default function FefoDashboard({
     validadeOriginal: string;
     novaValidade: string;
     quantidade: number;
+    originalQty?: number;
+    hasAdjustment?: boolean;
     localizacao: string;
     bloco: string;
     _rawDoc?: any;
@@ -376,7 +386,7 @@ export default function FefoDashboard({
     const targetVal = String(recontagemModal.validadeOriginal).trim();
     const qty = Number(recontagemModal.quantidade) >= 0 ? Number(recontagemModal.quantidade) : 0;
 
-    // Se a quantidade for 0 (ou menor), solicita confirmação para excluir o item do estoque
+    // Se a quantidade for 0 (ou menor), solicita confirmação para ocultar o item do dashboard
     if (qty <= 0) {
       const { codigo, validadeOriginal, descricao, _rawDoc } = recontagemModal;
       setRecontagemModal(null);
@@ -391,104 +401,50 @@ export default function FefoDashboard({
     }
 
     try {
-      // 1. Atualiza em todas as chaves de validades do localStorage
-      for (let i = 0; i < localStorage.length; i++) {
-        const storageKey = localStorage.key(i);
-        if (storageKey && (storageKey.startsWith('validades_') || storageKey.startsWith('armazem_validades_'))) {
-          try {
-            const val = localStorage.getItem(storageKey);
-            if (val) {
-              const parsed = JSON.parse(val);
-              if (Array.isArray(parsed)) {
-                let modified = false;
-                const updated = parsed.map((item: any) => {
-                  const itemCod = String(item.codigo || item.cod || '').replace(/^0+/, '').trim();
-                  const targetCleanCod = targetCod.replace(/^0+/, '').trim();
-                  const itemVal = String(item.validade || '').trim();
-                  if (itemCod === targetCleanCod && (!targetVal || itemVal === targetVal || normalizeDateString(itemVal) === normalizeDateString(targetVal))) {
-                    modified = true;
-                    return {
-                      ...item,
-                      quantidade: qty,
-                      caixa: qty,
-                      palhete: 0,
-                      lastro: 0,
-                      validade: recontagemModal.novaValidade,
-                      localizacao: recontagemModal.localizacao,
-                      bloco: recontagemModal.bloco,
-                      recontadoEm: new Date().toISOString()
-                    };
-                  }
-                  return item;
-                });
-                if (modified) {
-                  localStorage.setItem(storageKey, JSON.stringify(updated));
-                }
-              }
-            }
-          } catch (_) {}
-        }
-      }
-
-      // 2. Atualiza no estado local actualValidades
-      setActualValidades(prev => {
-        return prev.map(item => {
-          const itemCod = String(item.codigo || (item as any).cod || '').replace(/^0+/, '').trim();
-          const targetCleanCod = targetCod.replace(/^0+/, '').trim();
-          const itemVal = String(item.validade || '').trim();
-          if (itemCod === targetCleanCod && (!targetVal || itemVal === targetVal || normalizeDateString(itemVal) === normalizeDateString(targetVal))) {
-            return {
-              ...item,
-              quantidade: qty,
-              caixa: qty,
-              palhete: 0,
-              lastro: 0,
-              validade: recontagemModal.novaValidade,
-              localizacao: recontagemModal.localizacao,
-              bloco: recontagemModal.bloco,
-              recontadoEm: new Date().toISOString()
-            };
-          }
-          return item;
-        });
+      // 1. Salva o ajuste exclusivamente no Dashboard (NÃO sobrescreve a base original do conferente)
+      saveDashboardAdjustment(companyId, {
+        codigo: targetCod,
+        validadeOriginal: targetVal,
+        novaValidade: recontagemModal.novaValidade,
+        quantidade: qty,
+        localizacao: recontagemModal.localizacao,
+        bloco: recontagemModal.bloco,
+        isExcluded: false,
+        ajustadoEm: new Date().toISOString(),
+        originalQty: recontagemModal.originalQty
       });
 
-      // 3. Atualiza no Firestore se houver ID
-      const docId = recontagemModal._rawDoc?._docId || recontagemModal._rawDoc?.id;
-      if (docId) {
-        try {
-          await ValidadesRepository.update(String(docId), {
-            quantidade: qty,
-            caixa: qty,
-            palhete: 0,
-            lastro: 0,
-            validade: recontagemModal.novaValidade,
-            localizacao: recontagemModal.localizacao,
-            bloco: recontagemModal.bloco,
-            recontadoEm: new Date().toISOString()
-          }, companyId);
-        } catch (e) {
-          console.warn('[handleSaveRecontagem] Erro ao atualizar no Firestore:', e);
-        }
-      }
+      // 2. Atualiza o estado visual das validades aplicando os ajustes
+      setActualValidades(prev => {
+        return applyDashboardAdjustments(prev, companyId);
+      });
 
-      (empresaData as any)?.refetchValidades?.();
-      (empresaData as any)?.refreshAllData?.();
-
-      window.dispatchEvent(new Event('local_data_changed'));
-      window.dispatchEvent(new Event('storage'));
+      setValidadesUpdateTrigger(prev => prev + 1);
       setRecontagemModal(null);
       setFeedbackToast({
-        message: `✅ Recontagem salva! Produto [${targetCod}] atualizado para ${qty} cx no estoque.`,
+        message: `✅ Recontagem salva no Dashboard! Produto [${targetCod}] ajustado para ${qty.toLocaleString('pt-BR')} cx. A contagem original do conferente foi mantida intacta.`,
         type: 'success'
       });
       setTimeout(() => setFeedbackToast(null), 5000);
     } catch (err) {
+      console.error('Erro ao salvar recontagem no dashboard:', err);
       setFeedbackToast({
         message: `Erro ao salvar recontagem: ${err}`,
         type: 'error'
       });
     }
+  };
+
+  const handleRestoreOriginalCount = (codigo: string, validade: string) => {
+    const companyId = (empresaData as any)?.empresa?.id || empresaData?.empresaId || empresa?.id || 'demo';
+    removeDashboardAdjustment(companyId, codigo, validade);
+    setValidadesUpdateTrigger(prev => prev + 1);
+    if (recontagemModal) setRecontagemModal(null);
+    setFeedbackToast({
+      message: `🔄 Contagem original do conferente restaurada no Dashboard para o produto [${codigo}]!`,
+      type: 'info'
+    });
+    setTimeout(() => setFeedbackToast(null), 5000);
   };
 
   /**
@@ -594,9 +550,25 @@ export default function FefoDashboard({
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirmModal) return;
-    const { codigo, validade, descricao, rawDoc } = deleteConfirmModal;
+    const { codigo, validade, descricao } = deleteConfirmModal;
+    const companyId = (empresaData as any)?.empresa?.id || empresaData?.empresaId || empresa?.id || 'demo';
     setDeleteConfirmModal(null);
-    await handleDeleteProduct(codigo, validade, descricao, rawDoc);
+
+    // Oculta/exclui apenas no Dashboard, mantendo intacta a contagem original do conferente
+    saveDashboardAdjustment(companyId, {
+      codigo,
+      validadeOriginal: validade,
+      quantidade: 0,
+      isExcluded: true,
+      ajustadoEm: new Date().toISOString()
+    });
+
+    setValidadesUpdateTrigger(prev => prev + 1);
+    setFeedbackToast({
+      message: `🗑️ Item [${codigo}] ${descricao || ''} ocultado do Dashboard. A contagem original recolhida pelo conferente foi preservada no histórico.`,
+      type: 'success'
+    });
+    setTimeout(() => setFeedbackToast(null), 5000);
   };
 
   // Helper to convert individual units (can/bottle) to HE
@@ -699,40 +671,42 @@ export default function FefoDashboard({
   const { dataMap: vendaMediaDataMap, getItem: getItem030519, refresh: refresh030519 } = useVendaMedia030519();
   const [vendaMediaUpdateTrigger, setVendaMediaUpdateTrigger] = useState(0);
 
-  // Escuta eventos de atualização do relatório 03.05.19
+  // Escuta eventos de atualização do relatório 03.05.19 (sem loops circulares)
   useEffect(() => {
     const handleVendaMediaUpdate = () => {
       refresh030519();
       setVendaMediaUpdateTrigger(v => v + 1);
     };
     window.addEventListener('vendaMedia030519Updated', handleVendaMediaUpdate);
-    window.addEventListener('stock_age_monthly_updated', handleVendaMediaUpdate);
-    window.addEventListener('storage', handleVendaMediaUpdate);
-    window.addEventListener('local_data_changed', handleVendaMediaUpdate);
-    window.addEventListener('validades_updated', handleVendaMediaUpdate);
     return () => {
       window.removeEventListener('vendaMedia030519Updated', handleVendaMediaUpdate);
-      window.removeEventListener('stock_age_monthly_updated', handleVendaMediaUpdate);
-      window.removeEventListener('storage', handleVendaMediaUpdate);
-      window.removeEventListener('local_data_changed', handleVendaMediaUpdate);
-      window.removeEventListener('validades_updated', handleVendaMediaUpdate);
     };
   }, [refresh030519]);
 
-  // Listener dedicado para recarregar validades com fidelidade instantânea
+  // Listener dedicado para recarregar validades com fidelidade instantânea e debounce seguro
   useEffect(() => {
+    let debounceTimer: any = null;
     const handleValidadesUpdate = () => {
-      setValidadesUpdateTrigger(v => v + 1);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setValidadesUpdateTrigger(v => v + 1);
+      }, 60);
     };
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key && (e.key.startsWith('validades_') || e.key.startsWith('fefo_dashboard_adjustments_'))) {
+        handleValidadesUpdate();
+      }
+    };
+
     window.addEventListener('validades_updated', handleValidadesUpdate);
-    window.addEventListener('stock_age_monthly_updated', handleValidadesUpdate);
-    window.addEventListener('local_data_changed', handleValidadesUpdate);
-    window.addEventListener('storage', handleValidadesUpdate);
+    window.addEventListener('fefo_adjustments_updated', handleValidadesUpdate);
+    window.addEventListener('storage', handleStorageEvent);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('validades_updated', handleValidadesUpdate);
-      window.removeEventListener('stock_age_monthly_updated', handleValidadesUpdate);
-      window.removeEventListener('local_data_changed', handleValidadesUpdate);
-      window.removeEventListener('storage', handleValidadesUpdate);
+      window.removeEventListener('fefo_adjustments_updated', handleValidadesUpdate);
+      window.removeEventListener('storage', handleStorageEvent);
     };
   }, []);
 
@@ -940,13 +914,15 @@ export default function FefoDashboard({
           _uniqueKey: String(uniqueKey)
         };
       });
-    try {
-      localStorage.setItem(`validades_${companyId}`, JSON.stringify(normalizedValidades));
-      localStorage.setItem(`armazem_validades_${companyId}`, JSON.stringify(normalizedValidades));
-    } catch (e) {}
+    // Aplica ajustes exclusivos do Dashboard sobre os dados recolhidos pelo conferente
+    const validadesComAjustes = applyDashboardAdjustments(normalizedValidades, companyId);
+    setActualValidades(validadesComAjustes);
 
-    setActualValidades(normalizedValidades);
-    syncFefoDemandsFromValidades(companyId, normalizedValidades);
+    try {
+      syncFefoDemandsFromValidades(companyId, validadesComAjustes);
+    } catch (e) {
+      console.warn('Erro ao sincronizar demandas FEFO:', e);
+    }
   }, [empresaData.validades, companyId, validadesUpdateTrigger]);
 
   // Sync other sub-tables with localstorage and Firestore
@@ -1344,10 +1320,9 @@ export default function FefoDashboard({
     return { idade, preco, hlPerUnit, vendaMedia, isVendaZero, item030519 };
   };
 
-  // Deduplicated list for "Validades Recolhidas" (1ª guia) filtrada pelas selecionadas
-  const validadesRecolhidasDeduplicadas = useMemo(() => {
-    // Filtrar apenas os itens de actualValidades que estão selecionados pelo usuário, não foram excluídos e possuem quantidade > 0
-    const validadesFiltradas = actualValidades.filter((item, idx) => {
+  // Lista de actualValidades filtrada estritamente pela seleção de validades ativa e persistente
+  const validadesFiltradas = useMemo(() => {
+    return actualValidades.filter((item, idx) => {
       if (isValidadeDeleted(item, companyId)) return false;
       const qty = getValidadeQty(item);
       if (qty <= 0) return false;
@@ -1355,6 +1330,12 @@ export default function FefoDashboard({
       const key = getValidadeUniqueId(item, idx);
       return selectedValidadesKeys.has(key);
     });
+  }, [actualValidades, selectedValidadesKeys, hasInitializedSelection, companyId]);
+
+  // Deduplicated list for "Validades Recolhidas" (1ª guia) filtrada pelas selecionadas
+  const validadesRecolhidasDeduplicadas = useMemo(() => {
+
+    const adjustments = getDashboardAdjustments(companyId);
 
     const map = new Map<string, {
       codigo: string;
@@ -1364,31 +1345,57 @@ export default function FefoDashboard({
       localizacao: string;
       bloco: string;
       _rawDoc?: any;
+      hasDashboardAdjustment?: boolean;
+      originalQty?: number;
     }>();
 
     validadesFiltradas.forEach(item => {
       const cod = String(item.codigo || '000').trim();
       const valBR = formatDateToBR(item.validade);
       const key = `${cod}_${valBR}`;
+      const adjKey = getAdjustmentKey(cod, valBR);
+      const adj = adjustments[adjKey];
+
+      // Se foi excluído no Dashboard, ignora
+      if (adj && (adj.isExcluded || adj.quantidade <= 0)) {
+        return;
+      }
 
       const qty = getValidadeQty(item);
       if (qty <= 0) return;
 
       if (map.has(key)) {
         const existing = map.get(key)!;
-        existing.quantidade += qty;
-        existing.localizacao = item.localizacao || existing.localizacao;
-        existing.bloco = item.bloco || existing.bloco;
+        if (!existing.hasDashboardAdjustment) {
+          if (adj) {
+            existing.originalQty = (existing.originalQty || existing.quantidade) + qty;
+            existing.quantidade = adj.quantidade;
+            existing.hasDashboardAdjustment = true;
+            if (adj.novaValidade) existing.validade = adj.novaValidade;
+          } else {
+            existing.quantidade += qty;
+          }
+        } else {
+          // Se já tem ajuste, apenas acumula a contagem original real do conferente para referência
+          existing.originalQty = (existing.originalQty || 0) + qty;
+        }
+        existing.localizacao = (adj?.localizacao) || item.localizacao || existing.localizacao;
+        existing.bloco = (adj?.bloco) || item.bloco || existing.bloco;
         existing._rawDoc = item;
       } else {
+        const hasAdj = !!adj;
+        const finalQty = hasAdj ? adj.quantidade : qty;
+        const finalVal = hasAdj && adj.novaValidade ? adj.novaValidade : valBR;
         map.set(key, {
           codigo: cod,
           descricao: item.descricao || `Produto ${cod}`,
-          quantidade: qty,
-          validade: valBR,
-          localizacao: item.localizacao || 'central',
-          bloco: item.bloco || '',
-          _rawDoc: item
+          quantidade: finalQty,
+          validade: finalVal,
+          localizacao: (hasAdj && adj.localizacao) ? adj.localizacao : (item.localizacao || 'central'),
+          bloco: (hasAdj && adj.bloco) ? adj.bloco : (item.bloco || ''),
+          _rawDoc: item,
+          hasDashboardAdjustment: hasAdj,
+          originalQty: hasAdj ? (adj.originalQty !== undefined ? adj.originalQty : qty) : qty
         });
       }
     });
@@ -1453,6 +1460,8 @@ export default function FefoDashboard({
           valorTotal,
           hlTotal,
           precoUnitario: info.preco,
+          hasDashboardAdjustment: item.hasDashboardAdjustment,
+          originalQty: item.originalQty,
           _rawDoc: (item as any)._rawDoc
         };
       });
@@ -1468,7 +1477,7 @@ export default function FefoDashboard({
     });
 
     return rows.map((r, i) => ({ ...r, rank: i + 1 }));
-  }, [actualValidades, selectedValidadesKeys, hasInitializedSelection, empresaData.produtos, vendaMediaDataMap, vendaMediaUpdateTrigger]);
+  }, [actualValidades, selectedValidadesKeys, hasInitializedSelection, empresaData.produtos, vendaMediaDataMap, vendaMediaUpdateTrigger, companyId, validadesUpdateTrigger]);
 
   // Header KPI Summary (Requirement 1.3)
   const yearlySummary = useMemo(() => {
@@ -2537,10 +2546,14 @@ export default function FefoDashboard({
           
           {/* ACOMPANHAMENTO DE ITENS CRÍTICOS DO ÚLTIMO RECOLHIMENTO NO WORKSTATION */}
           <WorkstationCriticosRecolhimento
-            validadesList={actualValidades}
+            validadesList={validadesFiltradas}
+            allValidadesList={actualValidades}
             user={user}
             empresa={empresa}
             onRefresh={() => (empresaData as any)?.refetchValidades?.() || (empresaData as any)?.refreshAllData?.()}
+            onOpenSelectValidades={() => setShowSelectValidadesModal(true)}
+            selectedKeysCount={selectedValidadesKeys.size}
+            totalValidadesCount={actualValidades.length}
           />
 
           {/* Feedback Toast Notification */}
@@ -2688,7 +2701,19 @@ export default function FefoDashboard({
                           <td className="p-2.5 border-r border-black/10 font-sans">
                             <span>{row.descricao}</span>
                           </td>
-                          <td className="p-2.5 text-right font-black border-r border-black/10">{row.quantidade.toLocaleString('pt-BR')}</td>
+                          <td className="p-2.5 text-right font-black border-r border-black/10">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <span>{row.quantidade.toLocaleString('pt-BR')}</span>
+                              {row.hasDashboardAdjustment && (
+                                <span
+                                  title={`Ajustado no Dashboard (Contagem original do conferente: ${(row.originalQty || 0).toLocaleString('pt-BR')} cx)`}
+                                  className="px-1.5 py-0.5 bg-blue-700 text-white rounded text-[9px] font-sans font-extrabold cursor-help shrink-0 shadow-xs"
+                                >
+                                  ✏️ Ajuste
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="p-2.5 text-center border-r border-black/10">{formatDateToBR(row.validade)}</td>
                           <td className="p-2.5 text-center font-black border-r border-black/10">{row.stockAgeIndex}%</td>
                           <td className="p-2.5 text-center font-black border-r border-black/10">
@@ -2728,20 +2753,32 @@ export default function FefoDashboard({
                                   validadeOriginal: formatDateToBR(row.validade),
                                   novaValidade: formatDateToBR(row.validade),
                                   quantidade: row.quantidade,
+                                  originalQty: row.originalQty,
+                                  hasAdjustment: row.hasDashboardAdjustment,
                                   localizacao: row.localizacao || 'central',
                                   bloco: row.bloco || '',
                                   _rawDoc: row._rawDoc
                                 })}
                                 className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[10px] rounded-lg cursor-pointer transition-all uppercase tracking-wider shadow-xs flex items-center justify-center gap-1"
-                                title="Solicitar / Realizar Recontagem para alterar quantidade (inclusive 0) ou validade"
+                                title="Ajustar quantidade ou validade exibida no Dashboard FEFO"
                               >
                                 🔄 Recontar
                               </button>
+                              {row.hasDashboardAdjustment && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestoreOriginalCount(row.codigo, row.validade)}
+                                  className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[10px] rounded-lg cursor-pointer transition-all uppercase tracking-wider shadow-xs flex items-center justify-center gap-0.5"
+                                  title={`Restaurar contagem original do conferente (${(row.originalQty || 0).toLocaleString('pt-BR')} cx)`}
+                                >
+                                  ↩️ Restaurar
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => handleRequestDeleteRow(row.codigo, row.validade, row.descricao, row.quantidade, row._rawDoc)}
                                 className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] rounded-lg cursor-pointer transition-all uppercase tracking-wider shadow-xs flex items-center justify-center gap-0.5"
-                                title="Excluir produto do estoque (produto não disponível / esgotado)"
+                                title="Ocultar item do Dashboard (preserva contagem do conferente)"
                               >
                                 🗑️ Excluir
                               </button>
@@ -3046,13 +3083,60 @@ export default function FefoDashboard({
           TAB: GESTÃO DE ESCOAMENTO
           ───────────────────────────────────────────────────────────────── */}
       {activeTab === 'escoamento' && (
-        <div className="w-full">
-          <GestaoEscoamentoTab
-            validadesList={actualValidades}
+        <div className="w-full flex flex-col gap-6">
+          {/* BARRA DE CONTROLE E SELEÇÃO DE VALIDADES SINCRONIZADA */}
+          <div className="bg-white dark:bg-[#151b23] border border-slate-200 dark:border-[#222d3a] p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                  Gestão de Escoamento — Validade Ativa
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Exibindo os itens da validade selecionada ({validadesFiltradas.length} de {actualValidades.length} lotes). A seleção persiste automaticamente entre as guias de Validades e Escoamento.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSelectValidadesModal(true)}
+                className="px-4 py-2 bg-[#032b5e] hover:bg-[#021f44] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shadow-sm"
+                title="Alterar a validade ou lote selecionado para a gestão de escoamento"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Selecionar Validades ({selectedValidadesKeys.size})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* WORKSTATION CRÍTICOS: CARDS DE GESTÃO DE ESCOAMENTO (PENDENTE -> VENDIDO COM SUMIÇO IMEDIATO) */}
+          <WorkstationCriticosRecolhimento
+            validadesList={validadesFiltradas}
+            allValidadesList={actualValidades}
             user={user}
             empresa={empresa}
             onRefresh={() => (empresaData as any)?.refetchValidades?.() || (empresaData as any)?.refreshAllData?.()}
+            onOpenSelectValidades={() => setShowSelectValidadesModal(true)}
+            selectedKeysCount={selectedValidadesKeys.size}
+            totalValidadesCount={actualValidades.length}
           />
+
+          {/* TABELA DE ACOMPANHAMENTO DIÁRIO E EVOLUÇÃO DE ESCOAMENTO */}
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+              <span>📅</span> Acompanhamento Diário de Escoamento e Histórico por SKU
+            </h4>
+            <GestaoEscoamentoTab
+              validadesList={validadesFiltradas}
+              user={user}
+              empresa={empresa}
+              onRefresh={() => (empresaData as any)?.refetchValidades?.() || (empresaData as any)?.refreshAllData?.()}
+            />
+          </div>
         </div>
       )}
 
@@ -3639,8 +3723,8 @@ export default function FefoDashboard({
                   🔄
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-800 text-base">Realizar Recontagem / Correção</h3>
-                  <p className="text-xs text-slate-400">Altere a quantidade ou validade recolhida para sobrescrever no sistema</p>
+                  <h3 className="font-extrabold text-slate-800 text-base">Ajuste / Recontagem no Dashboard</h3>
+                  <p className="text-xs text-slate-400">Corrige a quantidade no Dashboard FEFO sem alterar os registros originais do conferente</p>
                 </div>
               </div>
               <button
@@ -3651,8 +3735,20 @@ export default function FefoDashboard({
               </button>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
-              ⚠️ <strong className="font-bold">Aviso de Sobrescrita:</strong> Ao salvar, esta recontagem irá substituir o registro anterior do produto <strong>{recontagemModal.codigo}</strong>. Se não há mais esse item no estoque, você pode <strong>atualizar a quantidade para 0</strong> ou clicar em <strong>"Excluir Item do Estoque"</strong>.
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 font-medium flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 font-bold text-blue-950">
+                <span>🛡️</span>
+                <span>Integridade e Rastreabilidade Garantidas:</span>
+              </div>
+              <p>
+                Esta alteração será aplicada na visualização do Dashboard FEFO. A <strong>contagem original do conferente é preservada</strong> no histórico e pode ser restaurada a qualquer momento.
+              </p>
+              {recontagemModal.originalQty !== undefined && (
+                <div className="mt-1 pt-1 border-t border-blue-200/60 font-bold flex items-center justify-between">
+                  <span>Coleta original do conferente:</span>
+                  <span className="bg-blue-100 px-2 py-0.5 rounded text-blue-900">{recontagemModal.originalQty.toLocaleString('pt-BR')} cx</span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-3 text-xs">
@@ -3672,7 +3768,7 @@ export default function FefoDashboard({
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Nova Quantidade (Caixas)
+                      Quantidade no Dashboard (cx)
                     </label>
                     <button
                       type="button"
@@ -3696,14 +3792,14 @@ export default function FefoDashboard({
                   />
                   {recontagemModal.quantidade === 0 && (
                     <span className="text-[10px] font-bold text-rose-600">
-                      ⚠️ Quantidade 0: item sem estoque / esgotado.
+                      ⚠️ Quantidade 0: o item será ocultado do Dashboard.
                     </span>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Nova Data de Validade (DD/MM/AAAA)
+                    Data de Validade (DD/MM/AAAA)
                   </label>
                   <input
                     type="text"
@@ -3749,14 +3845,26 @@ export default function FefoDashboard({
             </div>
 
             <div className="flex justify-between items-center gap-3 pt-3 border-t border-slate-100 flex-wrap">
-              <button
-                type="button"
-                onClick={handleDeleteFromRecontagem}
-                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
-                title="Excluir este item permanentemente do estoque e do dashboard"
-              >
-                🗑️ Excluir Item (Não Temos Mais)
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDeleteFromRecontagem}
+                  className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+                  title="Ocultar item do Dashboard (preserva histórico do conferente)"
+                >
+                  🗑️ Excluir Item
+                </button>
+                {recontagemModal.hasAdjustment && (
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreOriginalCount(recontagemModal.codigo, recontagemModal.validadeOriginal)}
+                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+                    title="Restaurar a contagem original recolhida pelo conferente"
+                  >
+                    ↩️ Restaurar Original
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-center gap-2">
                 <button
@@ -3771,7 +3879,7 @@ export default function FefoDashboard({
                   onClick={handleSaveRecontagem}
                   className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md flex items-center gap-1.5"
                 >
-                  💾 Salvar Recontagem (Sobrescrever)
+                  💾 Salvar no Dashboard
                 </button>
               </div>
             </div>

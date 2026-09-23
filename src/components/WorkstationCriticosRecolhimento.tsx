@@ -37,12 +37,25 @@ import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { savePncItem, saveDespejoTask, PncItem } from '../utils/pncManager';
 import { PncRecord, getStoredPncRecords, savePncRecords } from '../utils/gestaoPncManager';
 import { useVendaMedia030519, get030519DataForSku } from '../utils/vendaMedia030519';
+import { 
+  getStoredEscoamentoVendidos, 
+  marcarItemComoVendido, 
+  reverterItemParaPendente, 
+  exportarHistoricoCompletoEscoamento,
+  EscoamentoVendidoItem 
+} from '../utils/escoamentoVendaManager';
+import { getSelectedValidadesKeys, filterValidadesByActiveSelection } from '../utils/fefoSelectionManager';
 
 interface WorkstationCriticosProps {
   validadesList: ValidadeRow[];
+  allValidadesList?: ValidadeRow[];
   user?: Usuario | null;
   empresa?: Empresa | null;
   onRefresh?: () => void;
+  onOpenSelectValidades?: () => void;
+  selectedKeysCount?: number;
+  totalValidadesCount?: number;
+  activeColetaLabel?: string;
 }
 
 const FABRICAS_AMBEV = [
@@ -71,15 +84,19 @@ const FABRICAS_AMBEV = [
 
 export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps> = ({
   validadesList,
+  allValidadesList,
   user,
   empresa,
-  onRefresh
+  onRefresh,
+  onOpenSelectValidades,
+  selectedKeysCount,
+  totalValidadesCount,
+  activeColetaLabel
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearch = useDeferredValue(searchTerm);
   const [localFilter, setLocalFilter] = useState<string>('todos');
-  const [statusActionFilter, setStatusActionFilter] = useState<string>('todos');
-  const [tratadosSet, setTratadosSet] = useState<Set<string>>(new Set());
+  const [statusActionFilter, setStatusActionFilter] = useState<'pendente' | 'vendido' | 'todos'>('pendente');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   // Non-blocking Toast & Mutation locks
@@ -157,6 +174,32 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
   const [editingNfKey, setEditingNfKey] = useState<string | null>(null);
   const [editingNfSaidaVal, setEditingNfSaidaVal] = useState<string>('');
+
+  const [tratadosSet, setTratadosSet] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(`workstation_tratados_${companyId}`);
+      return saved ? new Set(JSON.parse(saved)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  const [vendidosMap, setVendidosMap] = useState<Record<string, EscoamentoVendidoItem>>(() => {
+    return getStoredEscoamentoVendidos(companyId);
+  });
+
+  // Reativo a vendas e eventos externos
+  React.useEffect(() => {
+    const handleVendasUpdate = () => {
+      setVendidosMap(getStoredEscoamentoVendidos(companyId));
+    };
+    window.addEventListener('escoamento_venda_updated', handleVendasUpdate);
+    window.addEventListener('storage', handleVendasUpdate);
+    return () => {
+      window.removeEventListener('escoamento_venda_updated', handleVendasUpdate);
+      window.removeEventListener('storage', handleVendasUpdate);
+    };
+  }, [companyId]);
 
   const { getItem: get030519Item } = useVendaMedia030519();
 
@@ -343,34 +386,88 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
       }
 
       const key = `${item.codigo}_${item.validade}`;
-      const isTratado = tratadosSet.has(key);
+      const isVendido = !!vendidosMap[key];
 
-      if (statusActionFilter === 'pendente' && isTratado) return false;
-      if (statusActionFilter === 'tratado' && !isTratado) return false;
+      // Filtro de Status: Pendentes (some ao vender), Vendidos, ou Todos
+      if (statusActionFilter === 'pendente' && isVendido) return false;
+      if (statusActionFilter === 'vendido' && !isVendido) return false;
 
       return true;
     });
-  }, [criticosUnificados, deferredSearch, localFilter, statusActionFilter, tratadosSet]);
+  }, [criticosUnificados, deferredSearch, localFilter, statusActionFilter, vendidosMap]);
 
-  // KPI stats
+  // KPI stats com separação clara de Vendidos e Pendentes em Risco
   const totalSkusCriticos = criticosUnificados.length;
-  const totalCaixasRisco = criticosUnificados.reduce((a, b) => a + b.quantidade, 0);
-  const totalHlRisco = criticosUnificados.reduce((a, b) => a + (b.volumeHl || 0), 0);
-  const valorTotalRisco = criticosUnificados.reduce((a, b) => a + b.valorTotal, 0);
-  const totalTratados = criticosUnificados.filter(i => tratadosSet.has(`${i.codigo}_${i.validade}`)).length;
+  const totalVendidos = useMemo(() => {
+    return criticosUnificados.filter(i => !!vendidosMap[`${i.codigo}_${i.validade}`]).length;
+  }, [criticosUnificados, vendidosMap]);
+  const totalPendentes = Math.max(0, totalSkusCriticos - totalVendidos);
+
+  // Risco calculado apenas sobre os itens pendentes
+  const totalCaixasRisco = useMemo(() => {
+    return criticosUnificados.filter(i => !vendidosMap[`${i.codigo}_${i.validade}`]).reduce((a, b) => a + b.quantidade, 0);
+  }, [criticosUnificados, vendidosMap]);
+
+  const totalHlRisco = useMemo(() => {
+    return criticosUnificados.filter(i => !vendidosMap[`${i.codigo}_${i.validade}`]).reduce((a, b) => a + (b.volumeHl || 0), 0);
+  }, [criticosUnificados, vendidosMap]);
+
+  const valorTotalRisco = useMemo(() => {
+    return criticosUnificados.filter(i => !vendidosMap[`${i.codigo}_${i.validade}`]).reduce((a, b) => a + b.valorTotal, 0);
+  }, [criticosUnificados, vendidosMap]);
+
+  const totalTratados = totalVendidos;
+
+  const handleMarcarComoVendido = (item: any) => {
+    const key = `${item.codigo}_${item.validade}`;
+    const nfs = customNfs[key] || {};
+    const nfSaida = nfs.nfSaida || (item as any).nfSaida || (item as any).nf;
+
+    marcarItemComoVendido({
+      codigo: item.codigo,
+      descricao: item.descricao,
+      validade: item.validade,
+      lote: item.lote,
+      quantidade: item.quantidade,
+      valorTotal: item.valorTotal,
+      volumeHl: item.volumeHl,
+      responsavel: user?.nome || 'Operador CCO',
+      nfSaida: nfSaida === '-' ? undefined : nfSaida,
+      localizacao: item.localizacao,
+      bloco: item.bloco,
+      vendaMedia: item.vendaMedia,
+      diasRestantes: item.diasParaVencer
+    }, companyId);
+
+    setVendidosMap(getStoredEscoamentoVendidos(companyId));
+    showToast(`✅ ${item.descricao} marcado como VENDIDO e registrado no histórico!`, 'success');
+  };
+
+  const handleReverterParaPendente = (itemKey: string, descricao?: string) => {
+    reverterItemParaPendente(itemKey, companyId);
+    setVendidosMap(getStoredEscoamentoVendidos(companyId));
+    showToast(`Item ${descricao || ''} revertido para PENDENTE.`, 'info');
+  };
+
+  const handleExportarHistorico = () => {
+    exportarHistoricoCompletoEscoamento({
+      itensAtivos: criticosUnificados,
+      vendidosMap,
+      companyId,
+      nomeEmpresa: empresa?.nome
+    });
+    showToast('Planilha de histórico de escoamento exportada com sucesso!', 'success');
+  };
 
   const handleToggleTratado = (key: string) => {
-    setTratadosSet(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-        showToast('Item marcado como pendente de ação.', 'info');
-      } else {
-        next.add(key);
-        showToast('Item marcado como concluído/tratado!', 'success');
+    if (vendidosMap[key]) {
+      handleReverterParaPendente(key);
+    } else {
+      const found = criticosUnificados.find(i => `${i.codigo}_${i.validade}` === key);
+      if (found) {
+        handleMarcarComoVendido(found);
       }
-      return next;
-    });
+    }
   };
 
   const handleSaveNf = (key: string) => {
@@ -1131,6 +1228,30 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Botão de Exportar Histórico de Escoamento */}
+          <button
+            type="button"
+            onClick={handleExportarHistorico}
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/25"
+            title="Exportar planilha Excel do histórico completo de escoamento (Itens Vendidos e Pendentes)"
+          >
+            <FileText className="w-4 h-4" />
+            Exportar Histórico
+          </button>
+
+          {/* Botão para abrir o seletor de validades recolhidas */}
+          {onOpenSelectValidades && (
+            <button
+              type="button"
+              onClick={onOpenSelectValidades}
+              className="px-3.5 py-2 bg-[#032b5e] hover:bg-[#021f44] text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-[#032b5e]/25"
+              title="Filtrar quais validades recolhidas aparecem na gestão de escoamento"
+            >
+              <Calendar className="w-4 h-4" />
+              Selecionar Validades {selectedKeysCount !== undefined ? `(${selectedKeysCount})` : ''}
+            </button>
+          )}
+
           <button
             type="button"
             disabled={isSubmittingBulk}
@@ -1158,6 +1279,25 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         </div>
       </div>
 
+      {/* BANNER DE SELEÇÃO ATIVA DE VALIDADES / COLETAS */}
+      {selectedKeysCount !== undefined && totalValidadesCount !== undefined && selectedKeysCount < totalValidadesCount && (
+        <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 p-3 rounded-xl flex items-center justify-between text-xs font-bold text-sky-900 dark:text-sky-200">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-sky-600 shrink-0" />
+            <span>Filtro de Validade Ativo: Exibindo <strong>{selectedKeysCount}</strong> de <strong>{totalValidadesCount}</strong> lotes recolhidos.</span>
+          </div>
+          {onOpenSelectValidades && (
+            <button
+              type="button"
+              onClick={onOpenSelectValidades}
+              className="text-[11px] font-black uppercase underline hover:text-sky-700 cursor-pointer ml-2"
+            >
+              Alterar Validades
+            </button>
+          )}
+        </div>
+      )}
+
       {/* KPI METRICS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
@@ -1173,12 +1313,12 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
         <div className="bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider block">Volume Em Risco</span>
+            <span className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider block">Volume Em Risco (Pendentes)</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <strong className="text-2xl text-amber-600 dark:text-amber-400 font-black">{totalCaixasRisco.toLocaleString('pt-BR')} cx</strong>
               <span className="text-xs text-sky-700 dark:text-sky-400 font-bold font-mono">({totalHlRisco.toFixed(1)} HL)</span>
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">caixas e hectolitros totais em risco</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">{totalPendentes} itens aguardando venda</span>
           </div>
           <div className="p-3 bg-amber-500 text-slate-950 rounded-xl shadow-xs">
             <Box className="w-5 h-5" />
@@ -1189,7 +1329,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
           <div>
             <span className="text-[10px] text-emerald-800 dark:text-emerald-400 font-black uppercase tracking-wider block">Valoração em Risco</span>
             <strong className="text-2xl text-emerald-600 dark:text-emerald-400 font-black">R$ {valorTotalRisco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">montante total R$</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">total pendente de escoamento</span>
           </div>
           <div className="p-3 bg-emerald-600 text-white rounded-xl shadow-xs">
             <DollarSign className="w-5 h-5" />
@@ -1198,9 +1338,11 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
 
         <div className="bg-white dark:bg-slate-900 border-2 border-sky-200 dark:border-sky-900/60 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-all">
           <div>
-            <span className="text-[10px] text-sky-800 dark:text-sky-400 font-black uppercase tracking-wider block">Status do Acompanhamento</span>
-            <strong className="text-2xl text-[#1e56f0] dark:text-sky-400 font-black">{totalTratados} / {totalSkusCriticos}</strong>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">itens tratados no workstation</span>
+            <span className="text-[10px] text-sky-800 dark:text-sky-400 font-black uppercase tracking-wider block">Status do Escoamento</span>
+            <strong className="text-2xl text-[#1e56f0] dark:text-sky-400 font-black">{totalVendidos} / {totalSkusCriticos}</strong>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5">
+              {totalVendidos} vendidos • {totalPendentes} pendentes
+            </span>
           </div>
           <div className="p-3 bg-[#1e56f0] text-white rounded-xl shadow-xs">
             <CheckCircle2 className="w-5 h-5" />
@@ -1224,27 +1366,58 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Status Filter Tabs (Pendentes, Vendidos, Todos) */}
+            <div className="flex items-center bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 rounded-lg p-0.5">
+              <button
+                type="button"
+                onClick={() => setStatusActionFilter('pendente')}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusActionFilter === 'pendente'
+                    ? 'bg-amber-500 text-slate-950 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Exibir apenas itens pendentes (ao clicar em Pendente o item vira Vendido e some desta visão)"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Pendentes ({totalPendentes})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusActionFilter('vendido')}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusActionFilter === 'vendido'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Exibir itens já vendidos / escoados"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Vendidos ({totalVendidos})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusActionFilter('todos')}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusActionFilter === 'todos'
+                    ? 'bg-[#1e56f0] text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Exibir todos os itens (histórico geral com status)"
+              >
+                <span>Todos ({totalSkusCriticos})</span>
+              </button>
+            </div>
+
             {/* Local Filter */}
             <select
               value={localFilter}
               onChange={e => setLocalFilter(e.target.value)}
-              className="flex-1 sm:flex-initial bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-200 font-bold rounded-lg px-3 py-2 outline-none shadow-2xs cursor-pointer"
+              className="bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-200 font-bold rounded-lg px-3 py-2 outline-none shadow-2xs cursor-pointer"
             >
               <option value="todos">📍 Todos os Locais</option>
               <option value="central">Central</option>
               <option value="picking">Picking</option>
               <option value="pnc">PNC / Bloqueado</option>
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={statusActionFilter}
-              onChange={e => setStatusActionFilter(e.target.value)}
-              className="flex-1 sm:flex-initial bg-white dark:bg-[#111a30] border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-200 font-bold rounded-lg px-3 py-2 outline-none shadow-2xs cursor-pointer"
-            >
-              <option value="todos">⚡ Todos os Status</option>
-              <option value="pendente">Pendente de Ação</option>
-              <option value="tratado">Tratados</option>
             </select>
           </div>
         </div>
@@ -1312,7 +1485,8 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredList.map((item, idx) => {
             const itemKey = `${item.codigo}_${item.validade}`;
-            const isTratado = tratadosSet.has(itemKey);
+            const isVendido = !!vendidosMap[itemKey];
+            const isTratado = isVendido;
             const isEditing = editingKey === itemKey;
             const isActionLoading = submittingActionKey === itemKey;
             const isJustUpdated = recentlyUpdatedKey === itemKey;
@@ -1326,8 +1500,8 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                 className={`rounded-2xl border-2 transition-all duration-200 p-4 flex flex-col justify-between gap-3.5 shadow-sm hover:shadow-md ${
                   isJustUpdated
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500 border-emerald-500'
-                    : isTratado
-                    ? 'bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-slate-800 opacity-75'
+                    : isVendido
+                    ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
                     : item.diasParaVencer <= 30
                     ? 'bg-white dark:bg-slate-900 border-red-300 dark:border-red-900/80 hover:border-red-500'
                     : 'bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-900/80 hover:border-amber-500'
@@ -1354,18 +1528,28 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleToggleTratado(itemKey)}
-                    className={`shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
-                      isTratado
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{isTratado ? 'Tratado' : 'Pendente'}</span>
-                  </button>
+                  {/* BOTÃO DE STATUS PENDENTE / VENDIDO */}
+                  {isVendido ? (
+                    <button
+                      type="button"
+                      onClick={() => handleReverterParaPendente(itemKey, item.descricao)}
+                      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
+                      title="Item marcado como VENDIDO. Clique se desejar reverter para PENDENTE"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>VENDIDO</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleMarcarComoVendido(item)}
+                      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm bg-amber-400 hover:bg-amber-500 text-slate-950 border-amber-500 font-extrabold"
+                      title="Clique para marcar como VENDIDO (o item sairá imediatamente da gestão de pendentes)"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-slate-950" />
+                      <span>PENDENTE</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* PRODUCT TITLE */}
@@ -1579,6 +1763,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                 {filteredList.map((item, idx) => {
                   const itemKey = `${item.codigo}_${item.validade}`;
                   const isTratado = tratadosSet.has(itemKey);
+                  const isVendido = !!vendidosMap[itemKey];
                   const isEditing = editingKey === itemKey;
                   const isActionLoading = submittingActionKey === itemKey;
                   const isJustUpdated = recentlyUpdatedKey === itemKey;
@@ -1782,17 +1967,25 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
                             PNC
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => handleToggleTratado(itemKey)}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border shadow-2xs ${
-                              isTratado
-                                ? 'bg-slate-800 text-slate-300 border-slate-700'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                            }`}
-                          >
-                            <CheckCircle2 className="w-3 h-3" /> {isTratado ? 'Tratado' : 'Concluir'}
-                          </button>
+                          {isVendido ? (
+                            <button
+                              type="button"
+                              onClick={() => handleReverterParaPendente(itemKey, item.descricao)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border shadow-2xs bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
+                              title="Item marcado como VENDIDO. Clique se desejar reverter para PENDENTE"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Vendido
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleMarcarComoVendido(item)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 border shadow-2xs bg-amber-400 hover:bg-amber-500 text-slate-950 border-amber-500"
+                              title="Clique para marcar este item como VENDIDO (ele sumirá da gestão de pendentes)"
+                            >
+                              <Clock className="w-3 h-3 text-slate-950" /> Pendente
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

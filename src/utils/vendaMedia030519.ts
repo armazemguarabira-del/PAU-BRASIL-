@@ -1,7 +1,7 @@
 import { PRODUCTS } from '../planosData';
 import { getVendaMediaItens, saveVendaMediaItens } from './estoqueStorage';
 import { VendaMediaItem } from '../types/estoque';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { PRODUCT_MASTER_DATA } from '../data/productMasterData';
 import { OFFICIAL_CURVA_ABC_DATASET, OFFICIAL_ABC_MAP } from '../data/curvaAbcOfficialDataset';
 import { RELATORIO_030519_RAW_ITEMS, getRelatorio030519Item } from '../data/relatorio030519Dataset';
@@ -676,7 +676,7 @@ export function useVendaMedia030519() {
     skusCount: 0
   });
 
-  const reload = () => {
+  const reload = useCallback(() => {
     const map = getConsolidated030519Map();
     setDataMap(map);
 
@@ -704,7 +704,7 @@ export function useVendaMedia030519() {
       skusCount: count,
       importadoEm: imp
     });
-  };
+  }, []);
 
   useEffect(() => {
     reload();
