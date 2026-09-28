@@ -6,6 +6,7 @@ import { ValidadesRepository } from '../db';
 import { Usuario, Empresa, ValidadeRow } from '../types';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
+import { getAvailableProductsForConferente, AvailableProductOption } from '../utils/productCatalogData';
 import { SopBannerViewer } from './SopBannerViewer';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { calcularQuebrasFefoEstoqueXEstoque, calcularQuebrasFefoEstoqueXPicking } from '../utils/matrizBlocos';
@@ -426,6 +427,33 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
   }, [draftKey]);
 
   const empresaData = useEmpresaData();
+  const [catalogTrigger, setCatalogTrigger] = useState(0);
+
+  // Escuta atualizações de produtos (novos cadastros, edições, importações) para atualizar o autocomplete imediatamente
+  useEffect(() => {
+    const handleCatalogUpdate = () => {
+      setCatalogTrigger(v => v + 1);
+    };
+
+    window.addEventListener('produtos_updated', handleCatalogUpdate);
+    window.addEventListener('produtos_cadastro_changed', handleCatalogUpdate);
+    window.addEventListener('local_data_changed', handleCatalogUpdate);
+    window.addEventListener('app_data_updated', handleCatalogUpdate);
+    window.addEventListener('storage', handleCatalogUpdate);
+
+    return () => {
+      window.removeEventListener('produtos_updated', handleCatalogUpdate);
+      window.removeEventListener('produtos_cadastro_changed', handleCatalogUpdate);
+      window.removeEventListener('local_data_changed', handleCatalogUpdate);
+      window.removeEventListener('app_data_updated', handleCatalogUpdate);
+      window.removeEventListener('storage', handleCatalogUpdate);
+    };
+  }, []);
+
+  // Catálogo completo de produtos disponíveis para o conferente, incluindo recém-cadastrados
+  const allAvailableProducts = React.useMemo(() => {
+    return getAvailableProductsForConferente(empresaId, empresaData.produtos);
+  }, [empresaId, empresaData.produtos, catalogTrigger]);
 
   // Sync with empresaData (scoped to company) - Filter out repack validades
   useEffect(() => {
@@ -598,7 +626,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
     const currentCode = selectedProd ? String(selectedProd.codigo) : editingRow?.codigo || '';
     const currentDesc = selectedProd ? selectedProd.descricao : editingRow?.descricao || '';
-    const totalCalculado = calcularTotalCaixas(currentCode, palhete, lastro, caixa);
+    const totalCalculado = calcularTotalCaixas(currentCode, palhete, lastro, caixa, empresaId);
 
     const semanaNumCalculada = getSemanaDoMesFromDate(dataColetaInput);
     const mesRefCalculado = getMesKeyFromDate(dataColetaInput);
@@ -757,7 +785,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           if (cod && desc && iso) {
             const key = `${cod.toLowerCase()}_${loc}_${rua.toLowerCase()}`;
             importedKeys.add(key);
-            const totalImp = (pal > 0 || las > 0) ? calcularTotalCaixas(cod, pal, las, cx) : cx;
+            const totalImp = (pal > 0 || las > 0) ? calcularTotalCaixas(cod, pal, las, cx, empresaId) : cx;
 
             newImportedRows.push({
               _docId: `imp_${Date.now()}_${idx}`,
@@ -943,11 +971,18 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     }
   };
 
-  // Pre-filter calculations
-  const filteredProducts = PRODUCTS.filter(p => {
-    const q = produtoBusca.toLowerCase();
-    return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
-  }).slice(0, 10);
+  // Pre-filter calculations - busca em todos os produtos cadastrados na plataforma (incluindo recém-cadastrados)
+  const filteredProducts = React.useMemo(() => {
+    const q = produtoBusca.toLowerCase().trim();
+    if (!q) {
+      return allAvailableProducts.slice(0, 15);
+    }
+    return allAvailableProducts.filter(p => {
+      const codStr = String(p.codigo).toLowerCase();
+      const descStr = (p.descricao || '').toLowerCase();
+      return codStr.includes(q) || descStr.includes(q);
+    }).slice(0, 25);
+  }, [allAvailableProducts, produtoBusca]);
 
   // Helper to extract registration date key for history filtering
   const getRegDateKey = (item: ValidadeRow) => {
@@ -1238,38 +1273,93 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
             
             {/* Real-time search autocomplete */}
             <div className="flex flex-col gap-1.5 md:col-span-8 relative">
-              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Produto (Código ou Descrição) *</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6a7d92]">Produto (Código SKU ou Descrição) *</label>
+                <span className="text-[9px] font-mono text-purple-400 font-bold">
+                  {allAvailableProducts.length} itens cadastrados
+                </span>
+              </div>
               <input 
                 type="text"
-                placeholder="Busque pelo produto..."
+                placeholder="Busque pelo código SKU ou descrição (ex: 31795, Brahma, Beats)..."
                 disabled={!!editingRow}
                 value={produtoBusca}
                 onChange={e => {
-                  setProdutoBusca(e.target.value);
+                  const val = e.target.value;
+                  setProdutoBusca(val);
                   setShowProdDropdown(true);
-                  if (selectedProd && e.target.value !== selectedProd.descricao) {
+
+                  // Se digitou o código exato de um produto, auto-seleciona
+                  const trimmed = val.trim();
+                  if (/^\d+$/.test(trimmed)) {
+                    const exact = allAvailableProducts.find(p => String(p.codigo) === trimmed);
+                    if (exact) {
+                      setSelectedProd({ codigo: exact.codigo, descricao: exact.descricao });
+                    } else if (selectedProd && String(selectedProd.codigo) !== trimmed) {
+                      setSelectedProd(null);
+                    }
+                  } else if (selectedProd && val !== selectedProd.descricao) {
                     setSelectedProd(null);
                   }
                 }}
                 onFocus={() => setShowProdDropdown(true)}
                 className="g-input disabled:opacity-50"
               />
-              {showDropdown && produtoBusca && filteredProducts.length > 0 && (
-                <div className="absolute top-[103%] left-0 right-0 bg-white dark:bg-[#182343] border border-slate-200 dark:border-slate-700 shadow-2xl rounded-xl z-50 max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredProducts.map((p, idx) => (
-                    <div 
-                      key={`${p.codigo}_${idx}`}
-                      onClick={() => handleSelectProd(p)}
-                      className="p-3 hover:bg-purple-500/10 dark:hover:bg-purple-500/20 cursor-pointer text-xs flex items-start gap-2.5 transition-colors"
+              {showDropdown && (
+                <div 
+                  className="absolute top-[103%] left-0 right-0 bg-white dark:bg-[#182343] border border-slate-200 dark:border-slate-700 shadow-2xl rounded-xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+                  onMouseDown={e => e.preventDefault()}
+                >
+                  <div className="p-2.5 bg-slate-50 dark:bg-[#131b31] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider sticky top-0 z-10">
+                    <span>Catálogo de Produtos ({allAvailableProducts.length} disponíveis)</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowProdDropdown(false)}
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs px-1 cursor-pointer"
                     >
-                      <span className="font-mono font-black text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 self-start">
-                        {p.codigo}
-                      </span>
-                      <span className="text-slate-800 dark:text-slate-100 font-semibold text-left break-words whitespace-normal leading-snug flex-1">
-                        {p.descricao}
-                      </span>
+                      ✕ Fechar
+                    </button>
+                  </div>
+
+                  {filteredProducts.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
+                      Nenhum produto cadastrado encontrado para "{produtoBusca}".
+                      <div className="text-[10px] text-purple-400 mt-1">
+                        Cadastre novos itens na guia <strong>Cadastros &gt; Produtos</strong>.
+                      </div>
                     </div>
-                  ))}
+                  ) : (
+                    filteredProducts.map((p, idx) => (
+                      <div 
+                        key={`${p.codigo}_${idx}`}
+                        onClick={() => handleSelectProd(p)}
+                        className="p-3 hover:bg-purple-500/10 dark:hover:bg-purple-500/20 cursor-pointer text-xs flex items-start gap-2.5 transition-colors"
+                      >
+                        <span className="font-mono font-black text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 self-start">
+                          {p.codigo}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-slate-800 dark:text-slate-100 font-bold leading-snug">
+                              {p.descricao}
+                            </span>
+                            {p.isCustom && (
+                              <span className="text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded">
+                                ✨ Cadastrado
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                            {p.grupo && <span className="font-bold text-sky-600 dark:text-sky-400 uppercase">{p.grupo}</span>}
+                            <span>•</span>
+                            <span className="font-mono">Pallet: {p.caixasPallet || 60} cx</span>
+                            <span>•</span>
+                            <span className="font-mono">Lastro: {p.lastro || 12} cx</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
 
@@ -1429,8 +1519,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           {/* Packaging calculation & Quantities Section */}
           {(() => {
             const currentCode = selectedProd ? selectedProd.codigo : editingRow?.codigo;
-            const pkgInfo = getPackagingInfo(currentCode);
-            const calculatedTotalCaixas = calcularTotalCaixas(currentCode, palhete, lastro, caixa);
+            const pkgInfo = getPackagingInfo(currentCode, empresaId);
+            const calculatedTotalCaixas = calcularTotalCaixas(currentCode, palhete, lastro, caixa, empresaId);
 
             return (
               <div className="flex flex-col gap-3">
@@ -1898,10 +1988,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                                 </div>
                                 <h4 className="text-sm font-bold text-snow truncate w-full text-center sm:text-left">{r.descricao}</h4>
                                 {(() => {
-                                  const pkg = getPackagingInfo(r.codigo);
+                                  const pkg = getPackagingInfo(r.codigo, empresaId);
                                   const totalCx = r.quantidade !== undefined && r.quantidade > 0 
                                     ? r.quantidade 
-                                    : calcularTotalCaixas(r.codigo, r.palhete, r.lastro, r.caixa);
+                                    : calcularTotalCaixas(r.codigo, r.palhete, r.lastro, r.caixa, empresaId);
                                   return (
                                     <div className="flex justify-center sm:justify-start gap-3 flex-wrap text-xs text-[#6a7d92] mt-2 font-mono font-semibold w-full items-center">
                                       {r.palhete > 0 && (

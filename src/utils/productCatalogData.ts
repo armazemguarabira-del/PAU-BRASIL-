@@ -260,6 +260,226 @@ export function isProdutoCadastrado(codigo: number | string, companyId?: string)
   return false;
 }
 
+export interface AvailableProductOption {
+  codigo: number;
+  descricao: string;
+  fatorPallet?: number;
+  caixasPallet?: number;
+  lastro?: number;
+  camadas?: number;
+  fator?: number;
+  fatorHecto?: number;
+  grupo?: string;
+  curva?: string;
+  embalagem?: string;
+  isCustom?: boolean;
+  idade?: number;
+}
+
+/**
+ * Retorna a lista unificada de todos os produtos cadastrados e disponíveis na plataforma para o conferente.
+ * Inclui os produtos recém-cadastrados na plataforma (Guia de Cadastro de Produtos),
+ * produtos do Firestore (empresaProdutos), LocalStorage e a base master oficial.
+ */
+export function getAvailableProductsForConferente(
+  empresaId?: string,
+  empresaProdutos?: any[]
+): AvailableProductOption[] {
+  const cid = empresaId || (typeof localStorage !== 'undefined' ? (localStorage.getItem('empresa_ativa_id') || localStorage.getItem('af_empresa_id') || 'demo') : 'demo');
+  const isCleared = typeof localStorage !== 'undefined' && localStorage.getItem(`produtos_cleared_${cid}`) === 'true';
+
+  const map = new Map<number, AvailableProductOption>();
+
+  // 1. Base Master Oficial pré-cadastrada (377 SKUs)
+  if (!isCleared) {
+    if (Array.isArray(PRODUCT_MASTER_DATA)) {
+      PRODUCT_MASTER_DATA.forEach(p => {
+        const cod = Number(p.cod);
+        if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod)) {
+          const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+            p.fatorPallet || 60,
+            (p as any).lastro,
+            (p as any).camadas,
+            p.embalagem || '',
+            p.descricao || '',
+            cod
+          );
+          map.set(cod, {
+            codigo: cod,
+            descricao: p.descricao,
+            fatorPallet,
+            caixasPallet: fatorPallet,
+            lastro,
+            camadas,
+            fator: p.fator,
+            fatorHecto: p.fatorHecto,
+            grupo: p.grupo || 'CERVEJA',
+            curva: p.curva || 'B',
+            embalagem: p.embalagem || '',
+            idade: typeof p.idade === 'number' ? p.idade : 180,
+            isCustom: false
+          });
+        }
+      });
+    }
+
+    if (Array.isArray(RAW_PRODUCTS)) {
+      RAW_PRODUCTS.forEach(p => {
+        const cod = Number(p.codigo);
+        if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod) && !map.has(cod)) {
+          const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+            (p as any).caixasPallet || 60,
+            (p as any).lastro,
+            (p as any).camadas,
+            (p as any).embalagem || '',
+            p.descricao || '',
+            cod
+          );
+          map.set(cod, {
+            codigo: cod,
+            descricao: p.descricao,
+            fatorPallet,
+            caixasPallet: fatorPallet,
+            lastro,
+            camadas,
+            fator: (p as any).fator,
+            fatorHecto: (p as any).fatorHecto,
+            grupo: (p as any).grupo || 'CERVEJA',
+            curva: (p as any).curva || 'B',
+            embalagem: (p as any).embalagem || '',
+            idade: typeof (p as any).idade === 'number' ? (p as any).idade : 180,
+            isCustom: false
+          });
+        }
+      });
+    }
+  }
+
+  // 2. Sobrepõe com os produtos gravados no LocalStorage da Empresa (cadastros recentes e edições)
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const keysToCheck = [`produtos_${cid}`, 'produtos_demo', 'produtos_global'];
+      for (const k of keysToCheck) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list)) {
+            list.forEach((p: any) => {
+              const cod = Number(p.codigo || p.cod || p.codSKU);
+              if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod)) {
+                const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+                  p.fatorPallet || p.caixasPallet,
+                  p.lastro,
+                  p.camadas,
+                  p.embalagem || '',
+                  p.descricao || '',
+                  cod
+                );
+                const isUserCustom = !PRODUCT_MASTER_MAP.has(cod) || !!p._criadoEm || !!p.cadastradoPor || !!p.createdAt;
+                map.set(cod, {
+                  codigo: cod,
+                  descricao: String(p.descricao || `SKU ${cod}`).trim(),
+                  fatorPallet,
+                  caixasPallet: fatorPallet,
+                  lastro,
+                  camadas,
+                  fator: p.fator !== undefined ? Number(p.fator) : 12,
+                  fatorHecto: p.fatorHecto !== undefined ? Number(p.fatorHecto) : 0,
+                  grupo: p.grupo || 'CERVEJA',
+                  curva: p.curva || 'C',
+                  embalagem: p.embalagem || '',
+                  idade: typeof p.idade === 'number' ? p.idade : 180,
+                  isCustom: isUserCustom
+                });
+              }
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 3. Sobrepõe com os produtos salvos no Firestore / Contexto (empresaProdutos)
+  if (Array.isArray(empresaProdutos) && empresaProdutos.length > 0) {
+    empresaProdutos.forEach((p: any) => {
+      const cod = Number(p.codigo || p.cod || p.codSKU);
+      if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod)) {
+        const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+          p.fatorPallet || p.caixasPallet,
+          p.lastro,
+          p.camadas,
+          p.embalagem || '',
+          p.descricao || '',
+          cod
+        );
+        const isUserCustom = !PRODUCT_MASTER_MAP.has(cod) || !!p._criadoEm || !!p.cadastradoPor || !!p.createdAt;
+        map.set(cod, {
+          codigo: cod,
+          descricao: String(p.descricao || `SKU ${cod}`).trim(),
+          fatorPallet,
+          caixasPallet: fatorPallet,
+          lastro,
+          camadas,
+          fator: p.fator !== undefined ? Number(p.fator) : 12,
+          fatorHecto: p.fatorHecto !== undefined ? Number(p.fatorHecto) : 0,
+          grupo: p.grupo || 'CERVEJA',
+          curva: p.curva || 'C',
+          embalagem: p.embalagem || '',
+          idade: typeof p.idade === 'number' ? p.idade : 180,
+          isCustom: isUserCustom
+        });
+      }
+    });
+  }
+
+  // 4. Aplica Custom SKU Overrides permanentes
+  try {
+    const overrides = getCustomSkuOverrides();
+    Object.keys(overrides).forEach(keyStr => {
+      const cod = Number(keyStr);
+      if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod)) {
+        const ov = overrides[cod];
+        const existing = map.get(cod);
+        const desc = ov.produto || existing?.descricao || `SKU ${cod}`;
+        const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+          ov.fatorPallet || ov.caixasPallet || existing?.caixasPallet,
+          ov.lastro || existing?.lastro,
+          ov.camadas || existing?.camadas,
+          ov.embalagem || existing?.embalagem || '',
+          desc,
+          cod
+        );
+        map.set(cod, {
+          codigo: cod,
+          descricao: desc,
+          fatorPallet,
+          caixasPallet: fatorPallet,
+          lastro,
+          camadas,
+          fator: ov.fatorCx || existing?.fator || 12,
+          fatorHecto: ov.fatorHecto !== undefined ? ov.fatorHecto : (existing?.fatorHecto || 0),
+          grupo: ov.grupo || existing?.grupo || 'CERVEJA',
+          curva: ov.curva || existing?.curva || 'C',
+          embalagem: ov.embalagem || existing?.embalagem || '',
+          idade: existing?.idade || 180,
+          isCustom: existing?.isCustom ?? true
+        });
+      }
+    });
+  } catch (e) {}
+
+  const result = Array.from(map.values());
+
+  // Ordena com itens customizados / recentes no topo, seguido de ordem alfabética por descrição
+  result.sort((a, b) => {
+    if (a.isCustom && !b.isCustom) return -1;
+    if (!a.isCustom && b.isCustom) return 1;
+    return a.descricao.localeCompare(b.descricao);
+  });
+
+  return result;
+}
+
 export function isBarrilChopp(codigo?: string | number, descricao?: string): boolean {
   if (codigo && (Number(codigo) === 838 || String(codigo).trim() === '838')) return true;
   if (!descricao) return false;

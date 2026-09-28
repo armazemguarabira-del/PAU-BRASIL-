@@ -1,6 +1,7 @@
 import { ValidadeRow } from '../types';
-import { isValidadeDeleted, getValidadeQty } from './fefoDefaultData';
+import { isValidadeDeleted, getValidadeQty, formatDateToBR } from './fefoDefaultData';
 import { getValidadeUniqueId, getValidadeDateInfo } from '../components/ValidadesRecolhidasModal';
+import { getDashboardAdjustments } from './fefoDashboardAdjustments';
 
 export function getSelectedValidadesKeys(companyId: string): Set<string> {
   try {
@@ -48,15 +49,38 @@ export function filterValidadesByActiveSelection(
 ): ValidadeRow[] {
   const selectedKeys = explicitKeys || getSelectedValidadesKeys(companyId);
   const initialized = hasSelectionInitialized(companyId);
+  const adjustments = getDashboardAdjustments(companyId);
 
-  // Se o usuário selecionou chaves, aplica filtro estrito
+  // Se o usuário selecionou chaves, aplica filtro com verificação robusta
   if (selectedKeys.size > 0) {
     return allValidades.filter((item, idx) => {
       if (isValidadeDeleted(item, companyId)) return false;
+      const cod = String(item.codigo || '').replace(/^0+/, '').trim();
+      const valBR = formatDateToBR(item.validade || '');
+      const adj = adjustments[`${cod}_${valBR}`];
+      if (adj && adj.isExcluded) return false;
+
       const qty = getValidadeQty(item);
-      if (qty <= 0) return false;
+      const hasAdj = (item as any)._hasDashboardAdjustment || (adj && !adj.isExcluded);
+      if (qty <= 0 && !hasAdj) return false;
+
+      // Itens explicitamente editados/ajustados pelo usuário nunca somem
+      if (hasAdj) return true;
+
       const key = getValidadeUniqueId(item, idx);
-      return selectedKeys.has(key);
+      if (selectedKeys.has(key)) return true;
+      if ((item as any)._uniqueKey && selectedKeys.has((item as any)._uniqueKey)) return true;
+      if (item._docId && selectedKeys.has(item._docId)) return true;
+      if (item.id && selectedKeys.has(String(item.id))) return true;
+
+      // Verificação por código e validade
+      for (const k of selectedKeys) {
+        if (k.includes(`_${cod}_`) && (k.includes(valBR) || (item.validade && k.includes(item.validade)))) {
+          return true;
+        }
+      }
+
+      return false;
     });
   }
 
@@ -68,7 +92,7 @@ export function filterValidadesByActiveSelection(
   // Caso inicial sem filtro configurado: retorna todos não deletados com quantidade positiva
   return allValidades.filter(item => {
     if (isValidadeDeleted(item, companyId)) return false;
-    return getValidadeQty(item) > 0;
+    return getValidadeQty(item) > 0 || (item as any)._hasDashboardAdjustment;
   });
 }
 

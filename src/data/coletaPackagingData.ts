@@ -1,3 +1,5 @@
+import { getProductMeta } from '../utils/productCatalogData';
+
 export interface ColetaProdutoDef {
   codigo: string;
   descricao: string;
@@ -408,13 +410,40 @@ PRODUTOS_COLETA_CONFIG.forEach(p => {
 });
 
 /**
- * Retorna as informações de palletização (caixas por pallet e caixas por lastro) de um produto
+ * Retorna as informações de palletização (caixas por pallet e caixas por lastro) de um produto.
+ * Consulta prioritariamente os produtos cadastrados na plataforma (via getProductMeta),
+ * em seguida o mapa PRODUTOS_COLETA_CONFIG, com fallback seguro para 84 cx/pal e 14 cx/las.
  */
-export function getPackagingInfo(codigo: string | number | undefined | null): { caixasPallet: number; lastro: number; descricao?: string } {
+export function getPackagingInfo(
+  codigo: string | number | undefined | null,
+  companyId?: string
+): { caixasPallet: number; lastro: number; descricao?: string } {
   if (!codigo) {
     return { caixasPallet: 84, lastro: 14 };
   }
   const codStr = String(codigo).trim();
+  const codeNum = Number(codStr);
+
+  // 1. Consulta metadados dinâmicos da plataforma (produtos recém-cadastrados, cadastros locais ou Firestore)
+  if (!isNaN(codeNum) && codeNum > 0) {
+    try {
+      const meta = getProductMeta(codeNum, companyId);
+      if (meta && typeof meta.caixasPallet === 'number' && meta.caixasPallet > 0) {
+        const lastroResolved = typeof meta.lastro === 'number' && meta.lastro > 0 
+          ? meta.lastro 
+          : Math.max(1, Math.round(meta.caixasPallet / 5));
+        return {
+          caixasPallet: meta.caixasPallet,
+          lastro: lastroResolved,
+          descricao: (meta as any).descricao
+        };
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // 2. Consulta tabela estática pré-configurada de coleta
   const match = MAP_PRODUTOS_COLETA.get(codStr);
   if (match) {
     return {
@@ -423,6 +452,7 @@ export function getPackagingInfo(codigo: string | number | undefined | null): { 
       descricao: match.descricao
     };
   }
+
   return { caixasPallet: 84, lastro: 14 };
 }
 
@@ -434,13 +464,14 @@ export function calcularTotalCaixas(
   codigo: string | number | undefined | null,
   paletes: number = 0,
   lastros: number = 0,
-  caixasAvulsas: number = 0
+  caixasAvulsas: number = 0,
+  companyId?: string
 ): number {
   const p = Math.max(0, Number(paletes) || 0);
   const l = Math.max(0, Number(lastros) || 0);
   const c = Math.max(0, Number(caixasAvulsas) || 0);
   
-  const pkg = getPackagingInfo(codigo);
+  const pkg = getPackagingInfo(codigo, companyId);
   const total = (p * pkg.caixasPallet) + (l * pkg.lastro) + c;
   return total;
 }

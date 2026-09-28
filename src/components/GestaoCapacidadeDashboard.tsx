@@ -58,6 +58,7 @@ import {
 } from '../utils/estoqueStorage';
 import { processPosicaoPallet021101Import, isCleaningProduct } from '../utils/estoqueParsers';
 import { PRODUCTS } from '../planosData';
+import * as XLSX from 'xlsx';
 import { 
   getProductMeta, 
   getProductUnit, 
@@ -585,21 +586,51 @@ export default function GestaoCapacidadeDashboard({
   const handlePosicaoPalletImport = (e: React.ChangeEvent<HTMLInputElement>, isMerge: boolean = false) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (!text) return;
-        const companyId = empresa?.id || 'demo';
-        const res = processPosicaoPallet021101Import(text, file.name, user.nome || 'Operador', companyId, isMerge);
-        if (res.success && res.parsedItems) {
-          setPosicaoPalletItems(res.parsedItems);
-          setLastUploadInfo(res.message);
-          setAreaMetas(getCapacityAreaMetas());
-        } else {
-          alert(res.message || 'Erro ao processar relatório 02.11.01.');
-        }
-      };
-      reader.readAsText(file, 'ISO-8859-1');
+      const fileNameLower = file.name.toLowerCase();
+      const isExcel = fileNameLower.endsWith('.xlsx') || fileNameLower.endsWith('.xls');
+
+      if (isExcel) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = new Uint8Array(event.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const csvText = XLSX.utils.sheet_to_csv(worksheet, { FS: ';' });
+            
+            const companyId = empresa?.id || 'demo';
+            const res = processPosicaoPallet021101Import(csvText, file.name, user.nome || 'Operador', companyId, isMerge);
+            if (res.success && res.parsedItems) {
+              setPosicaoPalletItems(res.parsedItems);
+              setLastUploadInfo(res.message);
+              setAreaMetas(getCapacityAreaMetas());
+            } else {
+              alert(res.message || 'Erro ao processar relatório 02.11.01.');
+            }
+          } catch (err: any) {
+            console.error('Erro ao ler arquivo Excel 02.11.01:', err);
+            alert('Falha ao processar arquivo Excel da 02.11.01: ' + (err?.message || 'Arquivo inválido'));
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const text = event.target?.result as string;
+          if (!text) return;
+          const companyId = empresa?.id || 'demo';
+          const res = processPosicaoPallet021101Import(text, file.name, user.nome || 'Operador', companyId, isMerge);
+          if (res.success && res.parsedItems) {
+            setPosicaoPalletItems(res.parsedItems);
+            setLastUploadInfo(res.message);
+            setAreaMetas(getCapacityAreaMetas());
+          } else {
+            alert(res.message || 'Erro ao processar relatório 02.11.01.');
+          }
+        };
+        reader.readAsText(file, 'ISO-8859-1');
+      }
       // Reset input value to allow re-uploading the same file
       e.target.value = '';
     }
@@ -882,7 +913,7 @@ export default function GestaoCapacidadeDashboard({
         totalQtd = item.qtdPallet * fatorPallet;
       }
       
-      const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo);
+      const isLimpeza = item.areaId === 7 || (isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo) && item.areaId !== 1 && item.areaId !== 2 && item.areaId !== 3 && item.areaId !== 4 && item.areaId !== 5 && item.areaId !== 6);
       const effectiveAreaId = isLimpeza ? 7 : item.areaId;
 
       // Area 3 (Marketplace) is handled via marketplaceConsolidation
@@ -973,7 +1004,7 @@ export default function GestaoCapacidadeDashboard({
           totalQtd = item.qtdPallet * fatorPallet;
         }
 
-        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo);
+        const isLimpeza = item.areaId === 7 || (isCleaningProduct(codeNum, item.produto, meta.grupo || catalogItem?.grupo) && item.areaId !== 1 && item.areaId !== 2 && item.areaId !== 3 && item.areaId !== 4 && item.areaId !== 5 && item.areaId !== 6);
         const effectiveAreaId = isLimpeza ? 7 : item.areaId;
 
         // Area 3 (Marketplace) is handled via marketplaceConsolidation
@@ -1098,7 +1129,7 @@ export default function GestaoCapacidadeDashboard({
     const processed = posicaoPalletItems
       .filter(item => {
         const codeNum = Number(item.codigo);
-        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, item.produto);
+        const isLimpeza = item.areaId === 7 || (isCleaningProduct(codeNum, item.produto) && item.areaId !== 1 && item.areaId !== 2 && item.areaId !== 3 && item.areaId !== 4 && item.areaId !== 5 && item.areaId !== 6);
         const effectiveAreaId = isLimpeza ? 7 : item.areaId;
 
         if (selectedTargetArea === 'CENTRAL' && effectiveAreaId !== 1) return false;
@@ -1131,7 +1162,7 @@ export default function GestaoCapacidadeDashboard({
           totalQtd = item.qtdPallet * fatorPallet;
         }
 
-        const isLimpeza = item.areaId === 7 || isCleaningProduct(codeNum, officialDesc, meta.grupo || catalogItem?.grupo);
+        const isLimpeza = item.areaId === 7 || (isCleaningProduct(codeNum, officialDesc, meta.grupo || catalogItem?.grupo) && item.areaId !== 1 && item.areaId !== 2 && item.areaId !== 3 && item.areaId !== 4 && item.areaId !== 5 && item.areaId !== 6);
         const effectiveAreaId = isLimpeza ? 7 : item.areaId;
         const isMarketplace = effectiveAreaId === 3 || isMarketplaceProduct(codeNum, officialDesc, meta.grupo || catalogItem?.grupo);
         const mpGroup = isMarketplace ? getMarketplaceGroup(codeNum, officialDesc, meta.grupo || catalogItem?.grupo) : undefined;
@@ -2199,7 +2230,7 @@ export default function GestaoCapacidadeDashboard({
                 >
                   <RefreshCw className="w-4 h-4 text-slate-950" /> 
                   <span>Mesclar Recontagem (02.11.01)</span>
-                  <input type="file" accept=".csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, true)} className="hidden" />
+                  <input type="file" accept=".xlsx, .xls, .csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, true)} className="hidden" />
                 </label>
 
                 {/* CARGA GERAL / SUBSTITUIR TUDO */}
@@ -2209,7 +2240,7 @@ export default function GestaoCapacidadeDashboard({
                 >
                   <Upload className="w-4 h-4" /> 
                   <span>Carga Geral / Substituir</span>
-                  <input type="file" accept=".csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, false)} className="hidden" />
+                  <input type="file" accept=".xlsx, .xls, .csv, .txt" onChange={(e) => handlePosicaoPalletImport(e, false)} className="hidden" />
                 </label>
               </div>
             </div>

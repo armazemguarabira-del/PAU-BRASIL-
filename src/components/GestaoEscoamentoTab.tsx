@@ -20,6 +20,14 @@ import {
   exportarHistoricoEscoamentoParaExcel, 
   EscoamentoVendidoItem 
 } from '../utils/escoamentoVendaManager';
+import { ValidadesRecolhidasModal, getValidadeUniqueId, getValidadeDateInfo } from './ValidadesRecolhidasModal';
+import { 
+  getSelectedValidadesKeys, 
+  saveSelectedValidadesKeys, 
+  hasSelectionInitialized, 
+  filterValidadesByActiveSelection 
+} from '../utils/fefoSelectionManager';
+import { applyDashboardAdjustments } from '../utils/fefoDashboardAdjustments';
 import { 
   TrendingDown, 
   CheckCircle2, 
@@ -88,6 +96,24 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
   // Mapa de itens marcados como Vendidos (Persistente e Reativo)
   const [vendidosMap, setVendidosMap] = useState<Record<string, EscoamentoVendidoItem>>(() => getEscoamentoVendidosMap(companyId));
 
+  // Estado de seleção das validades recolhidas (bidirecional e sincronizado com a aba Validades)
+  const [selectedValidadesKeys, setSelectedValidadesKeys] = useState<Set<string>>(() => 
+    getSelectedValidadesKeys(companyId)
+  );
+  const [showSelectValidadesModal, setShowSelectValidadesModal] = useState(false);
+
+  useEffect(() => {
+    const handleSyncSelection = () => {
+      setSelectedValidadesKeys(getSelectedValidadesKeys(companyId));
+    };
+    window.addEventListener('fefo_selection_updated', handleSyncSelection);
+    window.addEventListener('storage', handleSyncSelection);
+    return () => {
+      window.removeEventListener('fefo_selection_updated', handleSyncSelection);
+      window.removeEventListener('storage', handleSyncSelection);
+    };
+  }, [companyId]);
+
   useEffect(() => {
     const handleVendaUpdated = () => {
       setVendidosMap(getEscoamentoVendidosMap(companyId));
@@ -143,20 +169,31 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
 
   const empresaData = useEmpresaData();
 
-  // Listen to background updates (e.g. Despejo sent, PNC updated, Validades updated)
+  const [syncAdjustmentsTrigger, setSyncAdjustmentsTrigger] = useState(0);
+
+  // Listen to background updates (e.g. Despejo sent, PNC updated, Validades updated, Ajustes)
   useEffect(() => {
     const handleReload = () => {
       loadDailyLogs();
+      setSyncAdjustmentsTrigger(prev => prev + 1);
     };
     window.addEventListener('despejo_tasks_updated', handleReload);
     window.addEventListener('pnc_updated', handleReload);
     window.addEventListener('validades_updated', handleReload);
     window.addEventListener('local_data_changed', handleReload);
+    window.addEventListener('fefo_adjustments_updated', handleReload);
+    window.addEventListener('fefo_definitive_updated', handleReload);
+    window.addEventListener('fefo_validades_restored', handleReload);
+    window.addEventListener('app_data_updated', handleReload);
     return () => {
       window.removeEventListener('despejo_tasks_updated', handleReload);
       window.removeEventListener('pnc_updated', handleReload);
       window.removeEventListener('validades_updated', handleReload);
       window.removeEventListener('local_data_changed', handleReload);
+      window.removeEventListener('fefo_adjustments_updated', handleReload);
+      window.removeEventListener('fefo_definitive_updated', handleReload);
+      window.removeEventListener('fefo_validades_restored', handleReload);
+      window.removeEventListener('app_data_updated', handleReload);
     };
   }, []);
 
@@ -175,13 +212,118 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     return map;
   }, [empresaData?.produtos]);
 
+  // Lista de validades base despoluída e ajustada com os valores definitivos do Dashboard
+  const sourceAllValidades = useMemo(() => {
+    const raw = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
+    return applyDashboardAdjustments(raw, companyId);
+  }, [validadesList, companyId, syncAdjustmentsTrigger]);
+
+  // Lista de validades filtradas pela seleção ativa (persistida e sincronizada)
+  const activeValidades = useMemo(() => {
+    return filterValidadesByActiveSelection(sourceAllValidades, companyId, selectedValidadesKeys);
+  }, [sourceAllValidades, companyId, selectedValidadesKeys]);
+
+  const handleToggleValidadeKey = (key: string) => {
+    setSelectedValidadesKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      saveSelectedValidadesKeys(next, companyId);
+      return next;
+    });
+  };
+
+  const handleSelectAllValidades = () => {
+    const allKeys = new Set<string>();
+    sourceAllValidades.forEach((item, idx) => {
+      allKeys.add(getValidadeUniqueId(item, idx));
+    });
+    setSelectedValidadesKeys(allKeys);
+    saveSelectedValidadesKeys(allKeys, companyId);
+  };
+
+  const handleDeselectAllValidades = () => {
+    const empty = new Set<string>();
+    setSelectedValidadesKeys(empty);
+    saveSelectedValidadesKeys(empty, companyId);
+  };
+
+  const handleSelectDateValidades = (dateKey: string, select: boolean) => {
+    setSelectedValidadesKeys(prev => {
+      const next = new Set(prev);
+      sourceAllValidades.forEach((item, idx) => {
+        const { isoDate } = getValidadeDateInfo(item);
+        if (isoDate === dateKey) {
+          const k = getValidadeUniqueId(item, idx);
+          if (select) next.add(k);
+          else next.delete(k);
+        }
+      });
+      saveSelectedValidadesKeys(next, companyId);
+      return next;
+    });
+  };
+
+  const handleSelectMultipleDates = (dateKeys: string[], select: boolean) => {
+    const datesSet = new Set(dateKeys);
+    setSelectedValidadesKeys(prev => {
+      const next = new Set(prev);
+      sourceAllValidades.forEach((item, idx) => {
+        const { isoDate } = getValidadeDateInfo(item);
+        if (datesSet.has(isoDate)) {
+          const k = getValidadeUniqueId(item, idx);
+          if (select) next.add(k);
+          else next.delete(k);
+        }
+      });
+      saveSelectedValidadesKeys(next, companyId);
+      return next;
+    });
+  };
+
+  const handleSelectLatestValidadesOnly = () => {
+    const dateKeys = sourceAllValidades.map(item => getValidadeDateInfo(item).isoDate);
+    dateKeys.sort((a, b) => b.localeCompare(a));
+    const latestDate = dateKeys[0];
+
+    const next = new Set<string>();
+    if (latestDate) {
+      sourceAllValidades.forEach((item, idx) => {
+        const { isoDate } = getValidadeDateInfo(item);
+        if (isoDate === latestDate) {
+          next.add(getValidadeUniqueId(item, idx));
+        }
+      });
+    }
+    setSelectedValidadesKeys(next);
+    saveSelectedValidadesKeys(next, companyId);
+  };
+
+  const handleSelectOnlyThisDate = (dateKey: string) => {
+    const next = new Set<string>();
+    sourceAllValidades.forEach((item, idx) => {
+      const { isoDate } = getValidadeDateInfo(item);
+      if (isoDate === dateKey) {
+        next.add(getValidadeUniqueId(item, idx));
+      }
+    });
+    setSelectedValidadesKeys(next);
+    saveSelectedValidadesKeys(next, companyId);
+  };
+
+  const handleSelectOnlyThisKey = (key: string) => {
+    const next = new Set<string>([key]);
+    setSelectedValidadesKeys(next);
+    saveSelectedValidadesKeys(next, companyId);
+  };
+
   // 1. Process items from validadesList to extract ONLY Crítico and Atenção items
   // UNIFIED LOGIC: Group items by same code (SKU) and validadeStr to avoid duplicate alerts
   const escoamentoItems = useMemo(() => {
     const todayObj = new Date();
     todayObj.setHours(0, 0, 0, 0);
 
-    const sourceList = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
+    const sourceList = activeValidades;
 
     // Set of despejados to exclude from Escoamento active tracking
     const despejadosKey = `armazem_escoamento_despejados_${empresa?.id || 'demo'}`;
@@ -302,7 +444,7 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
     });
 
     return result;
-  }, [validadesList, dailyLogs, todayISO, produtosMap, vendidosMap]);
+  }, [activeValidades, dailyLogs, todayISO, produtosMap, vendidosMap]);
 
   // 2. Filter & Sort
   const filteredItems = useMemo(() => {
@@ -1029,6 +1171,16 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
             <option value="Atenção">🟡 Apenas Atenção (60-75%)</option>
           </select>
 
+          {/* SELETOR DE VALIDADES SINCRONIZADO */}
+          <button
+            onClick={() => setShowSelectValidadesModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+            title="Selecionar e filtrar quais validades recolhidas serão exibidas na Gestão de Escoamento (persistente e sincronizado com a aba Validades)"
+          >
+            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+            <span>Validades Selecionadas ({selectedValidadesKeys.size})</span>
+          </button>
+
         </div>
       </div>
 
@@ -1329,6 +1481,23 @@ export default function GestaoEscoamentoTab({ validadesList, user, empresa, onRe
           </div>
         </div>
       )}
+
+      {/* MODAL: SELETOR DE VALIDADES RECOLHIDAS SINCRONIZADO */}
+      <ValidadesRecolhidasModal
+        isOpen={showSelectValidadesModal}
+        onClose={() => setShowSelectValidadesModal(false)}
+        validades={sourceAllValidades}
+        selectedKeys={selectedValidadesKeys}
+        onToggleKey={handleToggleValidadeKey}
+        onSelectAll={handleSelectAllValidades}
+        onDeselectAll={handleDeselectAllValidades}
+        onSelectDate={handleSelectDateValidades}
+        onSelectMultipleDates={handleSelectMultipleDates}
+        onSelectLatestOnly={handleSelectLatestValidadesOnly}
+        onSelectOnlyThisDate={handleSelectOnlyThisDate}
+        onSelectOnlyThisKey={handleSelectOnlyThisKey}
+        empresaProdutos={empresaData?.produtos}
+      />
 
     </div>
   );

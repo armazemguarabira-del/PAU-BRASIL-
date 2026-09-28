@@ -8,8 +8,9 @@ export interface BaseSkuData {
   estoquePicking?: number; // Área 2: Picking
   estoqueCentral?: number; // Área 1: Central
   estoqueMarketplace?: number; // Área 3: Marketplace
-  estoquePulmao?: number; // Área 4: Pulmão
-  estoqueContingencia?: number; // Área 5: Área de Contingência
+  estoqueContingencia?: number; // Área 4: Área de Contingência
+  estoquePulmao?: number; // Área 5: Pulmão
+  estoquePNC?: number; // Área 6: PNC (Produto Não Conforme / Bloqueados / Avarias)
   vendaCaixas: number;
   curvaAbc?: 'A' | 'B' | 'C';
 }

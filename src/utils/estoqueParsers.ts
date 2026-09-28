@@ -687,31 +687,43 @@ export function processPosicaoPallet021101Import(
 
     // Coluna B (Index 1 or 0)
     let rawArea = cols.length > 1 ? cols[1] : cols[0];
-    let areaId = 1;
+    let areaId: 1 | 2 | 3 | 4 | 5 | 6 | 7 = 1;
     let areaNome: 'Armazém Central' | 'Picking' | 'Marketplace' | 'Contingência' | 'Pulmão' | 'PNC' | 'Produtos de Limpeza' | 'Limpeza' = 'Armazém Central';
 
     const rawAreaClean = rawArea.toLowerCase().trim();
-    if (rawAreaClean === '1' || rawAreaClean.includes('central') || rawAreaClean.includes('armazem')) {
+    // Extrai número da área mesmo com zeros à esquerda (ex: '01', '04', '4', 'área 05', 'area 6')
+    const areaDigitsMatch = rawAreaClean.match(/\b(0?[1-7])\b/) || rawAreaClean.match(/^(0?[1-7])$/);
+    const parsedAreaNum = areaDigitsMatch ? parseInt(areaDigitsMatch[1], 10) : NaN;
+
+    if (parsedAreaNum === 1 || rawAreaClean === '1' || rawAreaClean === '01' || rawAreaClean.includes('central') || rawAreaClean.includes('armazem') || rawAreaClean.includes('armazém')) {
       areaId = 1;
       areaNome = 'Armazém Central';
-    } else if (rawAreaClean === '2' || rawAreaClean.includes('picking')) {
+    } else if (parsedAreaNum === 2 || rawAreaClean === '2' || rawAreaClean === '02' || rawAreaClean.includes('picking') || rawAreaClean.includes('pick')) {
       areaId = 2;
       areaNome = 'Picking';
-    } else if (rawAreaClean === '3' || rawAreaClean.includes('marketplace') || rawAreaClean.includes('market') || rawAreaClean.includes('mkt')) {
+    } else if (parsedAreaNum === 3 || rawAreaClean === '3' || rawAreaClean === '03' || rawAreaClean.includes('marketplace') || rawAreaClean.includes('market') || rawAreaClean.includes('mkt')) {
       areaId = 3;
       areaNome = 'Marketplace';
-    } else if (rawAreaClean === '4' || rawAreaClean.includes('contingencia') || rawAreaClean.includes('contingência') || rawAreaClean.includes('reserva')) {
+    } else if (parsedAreaNum === 4 || rawAreaClean === '4' || rawAreaClean === '04' || rawAreaClean.includes('contingencia') || rawAreaClean.includes('contingência') || rawAreaClean.includes('reserva')) {
       areaId = 4;
       areaNome = 'Contingência';
-    } else if (rawAreaClean === '5' || rawAreaClean.includes('pulmão') || rawAreaClean.includes('pulmao')) {
+    } else if (parsedAreaNum === 5 || rawAreaClean === '5' || rawAreaClean === '05' || rawAreaClean.includes('pulmão') || rawAreaClean.includes('pulmao') || rawAreaClean.includes('pulm')) {
       areaId = 5;
       areaNome = 'Pulmão';
-    } else if (rawAreaClean === '6' || rawAreaClean.includes('pnc')) {
+    } else if (parsedAreaNum === 6 || rawAreaClean === '6' || rawAreaClean === '06' || rawAreaClean.includes('pnc') || rawAreaClean.includes('nao conforme') || rawAreaClean.includes('não conforme') || rawAreaClean.includes('avaria') || rawAreaClean.includes('bloqueado')) {
       areaId = 6;
       areaNome = 'PNC';
-    } else if (rawAreaClean === '7' || rawAreaClean.includes('limpeza') || rawAreaClean.includes('limp')) {
+    } else if (parsedAreaNum === 7 || rawAreaClean === '7' || rawAreaClean === '07' || rawAreaClean.includes('limpeza') || rawAreaClean.includes('limp')) {
       areaId = 7;
       areaNome = 'Produtos de Limpeza';
+    } else if (!isNaN(parsedAreaNum) && parsedAreaNum >= 1 && parsedAreaNum <= 7) {
+      areaId = parsedAreaNum as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+      areaNome = areaId === 1 ? 'Armazém Central' :
+                 areaId === 2 ? 'Picking' :
+                 areaId === 3 ? 'Marketplace' :
+                 areaId === 4 ? 'Contingência' :
+                 areaId === 5 ? 'Pulmão' :
+                 areaId === 6 ? 'PNC' : 'Produtos de Limpeza';
     } else {
       areaId = 1;
       areaNome = 'Armazém Central';
@@ -752,18 +764,9 @@ export function processPosicaoPallet021101Import(
       return;
     }
 
-    // Check custom overrides for explicit manual area override
-    const customOverride = customOverrides[codeNum];
-    if (customOverride?.areaId) {
-      areaId = customOverride.areaId;
-      areaNome = areaId === 1 ? 'Armazém Central' :
-                 areaId === 2 ? 'Picking' :
-                 areaId === 3 ? 'Marketplace' :
-                 areaId === 4 ? 'Contingência' :
-                 areaId === 5 ? 'Pulmão' :
-                 areaId === 6 ? 'PNC' : 'Produtos de Limpeza';
-    } else if (isCleaningProduct(codeNum, produtoDesc, grupoProd)) {
-      // Se for material de limpeza, direciona para Área 7 (Limpeza)
+    // A área da contagem física da 02.11.01 é prioritária!
+    // Apenas se a área for 7 ou se for explicitamente material de limpeza E não tiver vindo de área específica (como PNC 6 ou Contingência 4)
+    if (areaId === 7 || (isCleaningProduct(codeNum, produtoDesc, grupoProd) && areaId !== 4 && areaId !== 5 && areaId !== 6)) {
       areaId = 7;
       areaNome = 'Produtos de Limpeza';
     }

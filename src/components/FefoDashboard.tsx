@@ -56,8 +56,16 @@ import {
   AlertCircle,
   Search,
   CheckSquare,
-  ClipboardCheck
+  ClipboardCheck,
+  History,
+  PackagePlus,
+  DollarSign,
+  AlertOctagon,
+  ShoppingBag
 } from 'lucide-react';
+import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
+import { savePncItem } from '../utils/pncManager';
+import { marcarItemComoVendido } from '../utils/escoamentoVendaManager';
 import { Usuario, Empresa, ValidadeRow } from '../types';
 import { isCustomFirebaseConnected } from '../firebase';
 import { ValidadesRepository } from '../db';
@@ -78,7 +86,11 @@ import {
   matchValidade,
   normalizeDateString,
   formatDateToBR,
-  getValidadeQty
+  getValidadeQty,
+  getDeletedValidades,
+  restoreDeletedValidade,
+  restoreAllDeletedValidades,
+  saveUpdatedValidadeDefinitive
 } from '../utils/fefoDefaultData';
 import { triggerAutoAcaoCorretiva, triggerAutoAcaoMelhoriaPreventiva } from '../utils/simulacaoAcoesUtils';
 import html2canvas from 'html2canvas';
@@ -88,19 +100,39 @@ import ShelfLifePncTab from './ShelfLifePncTab';
 import FefoEstoqueXEstoqueTab from './FefoEstoqueXEstoqueTab';
 import FefoEstoqueXPickingTab from './FefoEstoqueXPickingTab';
 import Import030519Modal from './Import030519Modal';
+import ImportItemAvulsoModal, { getTodayDDMMYYYY } from './ImportItemAvulsoModal';
 import ImportJsonModal from './ImportJsonModal';
 import FefoAderenciaHistoricoModal from './FefoAderenciaHistoricoModal';
 import { getStoredAderenciaHistorico } from '../utils/fefoAderenciaHistorico';
 import { get030519DataForSku, useVendaMedia030519 } from '../utils/vendaMedia030519';
 import { ValidadesRecolhidasModal, getValidadeUniqueId, getValidadeDateInfo } from './ValidadesRecolhidasModal';
+import { 
+  getSelectedValidadesKeys, 
+  saveSelectedValidadesKeys, 
+  hasSelectionInitialized 
+} from '../utils/fefoSelectionManager';
 import {
   DashboardValidadeAdjustment,
   getDashboardAdjustments,
   saveDashboardAdjustment,
   removeDashboardAdjustment,
   applyDashboardAdjustments,
-  getAdjustmentKey
+  getAdjustmentKey,
+  unexcludeDashboardAdjustment,
+  restoreAllExcludedAdjustments,
+  getExcludedAdjustments
 } from '../utils/fefoDashboardAdjustments';
+import {
+  saveSharedValidadesSelection,
+  subscribeSharedValidadesSelection,
+  saveDefinitiveCloudValidade,
+  subscribeFefoCloudAdjustments,
+  sendValidadeToCloudHistory,
+  subscribeValidadesCloudHistory,
+  restoreValidadeFromCloudHistory,
+  restoreAllFromCloudHistory,
+  ValidadeHistoricoExclusao
+} from '../utils/fefoCloudSync';
 
 interface FefoDashboardProps {
   user: Usuario;
@@ -335,6 +367,8 @@ export default function FefoDashboard({
   initialTab = 'validades',
   initialSubTab
 }: FefoDashboardProps) {
+  const companyId = empresa?.id || 'demo';
+  const empresaData = useEmpresaData();
   const [activeTab, setActiveTab] = useState<FefoPage>(initialTab);
 
   useEffect(() => {
@@ -367,62 +401,190 @@ export default function FefoDashboard({
     _rawDoc?: any;
   } | null>(null);
 
-  // Estado da modal de Confirmação de Exclusão de Item
+  // Estado da modal de Confirmação de Exclusão e Direcionamento (PNC / Vendido / Descarte)
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     codigo: string;
     validade: string;
     descricao: string;
     quantidade?: number;
+    customQty?: number;
+    localizacao?: string;
+    bloco?: string;
+    lote?: string;
     rawDoc?: any;
+    motivo?: string;
   } | null>(null);
 
+  // Estado da modal de Lixeira / Itens Excluídos para Recuperação
+  const [showLixeiraModal, setShowLixeiraModal] = useState(false);
+  const [deletedItemsList, setDeletedItemsList] = useState<any[]>(() => getDeletedValidades(companyId));
+
   const [validadesUpdateTrigger, setValidadesUpdateTrigger] = useState(0);
+
+  // Mantém a lista de itens excluídos para visualização no modal de Histórico sem restaurar automaticamente!
+  useEffect(() => {
+    const deleted = getDeletedValidades(companyId);
+    const excludedAdj = getExcludedAdjustments(companyId);
+    setDeletedItemsList([...deleted, ...excludedAdj]);
+  }, [companyId, validadesUpdateTrigger]);
+
+  const handleRecoverAllDeleted = async () => {
+    const c1 = restoreAllDeletedValidades(companyId);
+    const c2 = restoreAllExcludedAdjustments(companyId);
+    let c3 = 0;
+    if (cloudHistoryList.length > 0) {
+      c3 = await restoreAllFromCloudHistory(companyId, cloudHistoryList);
+    }
+    const total = c1 + c2 + c3;
+    setDeletedItemsList([]);
+    setCloudHistoryList([]);
+    setShowLixeiraModal(false);
+    setValidadesUpdateTrigger(prev => prev + 1);
+
+    (empresaData as any)?.refetchValidades?.();
+    (empresaData as any)?.refreshAllData?.();
+
+    // Seleciona todas as validades para garantir visualização
+    handleSelectAllValidades();
+
+    setFeedbackToast({
+      message: `♻️ ${total > 0 ? total : 'Todos os'} item(ns) recuperado(s) com sucesso e restaurados em todas as visualizações!`,
+      type: 'success'
+    });
+    setTimeout(() => setFeedbackToast(null), 6000);
+  };
+
+  const handleRecoverItem = async (target: any) => {
+    if (target.id && String(target.id).startsWith('hist_')) {
+      await restoreValidadeFromCloudHistory(companyId, target);
+    } else {
+      restoreDeletedValidade(target, companyId);
+      if (target.codigo && target.validade) {
+        unexcludeDashboardAdjustment(companyId, target.codigo, target.validade);
+      }
+    }
+    const rem = getDeletedValidades(companyId);
+    setDeletedItemsList(rem);
+    setValidadesUpdateTrigger(prev => prev + 1);
+
+    (empresaData as any)?.refetchValidades?.();
+    (empresaData as any)?.refreshAllData?.();
+
+    // Adiciona a chave aos selecionados
+    const k = getValidadeUniqueId({ codigo: target.codigo, validade: target.validade });
+    setSelectedValidadesKeys(prev => {
+      const next = new Set(prev);
+      next.add(k);
+      saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
+      return next;
+    });
+
+    setFeedbackToast({
+      message: `♻️ Item [${target.codigo || ''}] recuperado com sucesso na lista de validades!`,
+      type: 'success'
+    });
+    setTimeout(() => setFeedbackToast(null), 5000);
+  };
 
   const handleSaveRecontagem = async () => {
     if (!recontagemModal) return;
 
-    const companyId = (empresaData as any)?.empresa?.id || empresaData?.empresaId || empresa?.id || 'demo';
     const targetCod = String(recontagemModal.codigo).trim();
     const targetVal = String(recontagemModal.validadeOriginal).trim();
+    const finalVal = recontagemModal.novaValidade ? formatDateToBR(recontagemModal.novaValidade) : targetVal;
     const qty = Number(recontagemModal.quantidade) >= 0 ? Number(recontagemModal.quantidade) : 0;
 
-    // Se a quantidade for 0 (ou menor), solicita confirmação para ocultar o item do dashboard
-    if (qty <= 0) {
-      const { codigo, validadeOriginal, descricao, _rawDoc } = recontagemModal;
-      setRecontagemModal(null);
-      setDeleteConfirmModal({
-        codigo,
-        validade: validadeOriginal,
-        descricao,
-        quantidade: 0,
-        rawDoc: _rawDoc
-      });
-      return;
-    }
-
     try {
-      // 1. Salva o ajuste exclusivamente no Dashboard (NÃO sobrescreve a base original do conferente)
-      saveDashboardAdjustment(companyId, {
+      // 1. Grava DEFINITIVAMENTE na Nuvem (Firestore) e no storage local propagando para todos os colaboradores
+      await saveDefinitiveCloudValidade(companyId, {
         codigo: targetCod,
         validadeOriginal: targetVal,
-        novaValidade: recontagemModal.novaValidade,
+        novaValidade: finalVal,
         quantidade: qty,
         localizacao: recontagemModal.localizacao,
         bloco: recontagemModal.bloco,
-        isExcluded: false,
-        ajustadoEm: new Date().toISOString(),
-        originalQty: recontagemModal.originalQty
+        descricao: recontagemModal.descricao,
+        originalQty: recontagemModal.originalQty,
+        userNome: user?.nome || 'Colaborador',
+        rawDoc: recontagemModal._rawDoc
       });
 
-      // 2. Atualiza o estado visual das validades aplicando os ajustes
-      setActualValidades(prev => {
-        return applyDashboardAdjustments(prev, companyId);
+      // 2. Grava DEFINITIVAMENTE em todas as bases locais e caches
+      saveUpdatedValidadeDefinitive(companyId, {
+        codigo: targetCod,
+        validadeOriginal: targetVal,
+        novaValidade: finalVal,
+        quantidade: qty,
+        localizacao: recontagemModal.localizacao,
+        bloco: recontagemModal.bloco,
+        descricao: recontagemModal.descricao
       });
+
+      // 3. Garante que as chaves do item estejam em selectedValidadesKeys e sincroniza globalmente
+      setSelectedValidadesKeys(prev => {
+        const next = new Set(prev);
+        const kOrig = getValidadeUniqueId({ codigo: targetCod, validade: targetVal, bloco: recontagemModal.bloco, localizacao: recontagemModal.localizacao });
+        const kNew = getValidadeUniqueId({ codigo: targetCod, validade: finalVal, bloco: recontagemModal.bloco, localizacao: recontagemModal.localizacao });
+        next.add(kOrig);
+        next.add(kNew);
+        if (recontagemModal._rawDoc?._docId) next.add(String(recontagemModal._rawDoc._docId));
+        if (recontagemModal._rawDoc?.id) next.add(String(recontagemModal._rawDoc.id));
+        saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
+        return next;
+      });
+
+      // 4. Atualiza o estado visual das validades aplicando os novos valores imediatamente no React
+      setActualValidades(prev => {
+        let matched = false;
+        const updated = prev.map(item => {
+          const cod = String(item.codigo || '').replace(/^0+/, '').trim();
+          const valBR = formatDateToBR(item.validade || '');
+          if (cod === targetCod && (valBR === targetVal || valBR === finalVal || item.validade === targetVal)) {
+            matched = true;
+            return {
+              ...item,
+              quantidade: qty,
+              caixa: qty,
+              validade: finalVal,
+              localizacao: recontagemModal.localizacao || item.localizacao || 'central',
+              bloco: recontagemModal.bloco || item.bloco || '',
+              _hasDashboardAdjustment: true,
+              _dashboardOriginalQty: recontagemModal.originalQty !== undefined ? recontagemModal.originalQty : (item.quantidade || 0)
+            };
+          }
+          return item;
+        });
+
+        if (!matched) {
+          updated.push({
+            id: `val_${targetCod}_${Date.now()}`,
+            codigo: targetCod,
+            descricao: recontagemModal.descricao || `Produto ${targetCod}`,
+            quantidade: qty,
+            caixa: qty,
+            validade: finalVal,
+            localizacao: recontagemModal.localizacao || 'central',
+            bloco: recontagemModal.bloco || 'C1',
+            _hasDashboardAdjustment: true,
+            _dashboardOriginalQty: recontagemModal.originalQty || 0
+          } as any);
+        }
+        return updated;
+      });
+
+      // 5. Atualiza demandas FEFO com as novas quantidades
+      try {
+        syncFefoDemandsFromValidades(companyId, actualValidades);
+      } catch (e) {}
+
+      // 6. Atualiza contextos de empresa
+      (empresaData as any)?.refetchValidades?.();
+      (empresaData as any)?.refreshAllData?.();
 
       setValidadesUpdateTrigger(prev => prev + 1);
       setRecontagemModal(null);
       setFeedbackToast({
-        message: `✅ Recontagem salva no Dashboard! Produto [${targetCod}] ajustado para ${qty.toLocaleString('pt-BR')} cx. A contagem original do conferente foi mantida intacta.`,
+        message: `✅ Produto [${targetCod}] alterado definitivamente para ${qty.toLocaleString('pt-BR')} cx (${finalVal})! Atualizado no Dashboard, Workstation e Previsão de Escoamento.`,
         type: 'success'
       });
       setTimeout(() => setFeedbackToast(null), 5000);
@@ -527,14 +689,19 @@ export default function FefoDashboard({
 
   const handleDeleteFromRecontagem = () => {
     if (!recontagemModal) return;
-    const { codigo, validadeOriginal, descricao, quantidade, _rawDoc } = recontagemModal;
+    const { codigo, validadeOriginal, descricao, quantidade, localizacao, bloco, _rawDoc } = recontagemModal;
     setRecontagemModal(null);
     setDeleteConfirmModal({
       codigo,
       validade: validadeOriginal,
       descricao,
       quantidade,
-      rawDoc: _rawDoc
+      localizacao,
+      bloco,
+      lote: _rawDoc?.lote,
+      rawDoc: _rawDoc,
+      customQty: quantidade,
+      motivo: ''
     });
   };
 
@@ -544,31 +711,210 @@ export default function FefoDashboard({
       validade,
       descricao,
       quantidade,
-      rawDoc
+      localizacao: rawDoc?.localizacao,
+      bloco: rawDoc?.bloco,
+      lote: rawDoc?.lote,
+      rawDoc,
+      customQty: quantidade,
+      motivo: ''
     });
   };
 
-  const handleConfirmDelete = async () => {
+  /**
+   * Confirma a exclusão do produto com direcionamento de saída:
+   * - 'PNC': Encaminha para o Histórico e Bloqueio de PNC (Guia de PNC) e remove da contagem ativa
+   * - 'VENDIDO': Registra no Histórico de Vendidos / Escoamento e remove da contagem ativa
+   * - 'DESCARTE': Remove da contagem ativa e arquiva no Histórico de Exclusões
+   */
+  const handleConfirmExclusaoDestino = async (destino: 'PNC' | 'VENDIDO' | 'DESCARTE') => {
     if (!deleteConfirmModal) return;
-    const { codigo, validade, descricao } = deleteConfirmModal;
+    const { codigo, validade, descricao, quantidade, customQty, localizacao, bloco, lote, rawDoc, motivo } = deleteConfirmModal;
     const companyId = (empresaData as any)?.empresa?.id || empresaData?.empresaId || empresa?.id || 'demo';
+    const finalQty = Number(customQty !== undefined && !isNaN(customQty) ? customQty : (quantidade || 1));
+    const targetCod = String(codigo).trim();
+    const targetVal = String(validade).trim();
+    const userNome = user?.nome || 'Operador CCO';
+
     setDeleteConfirmModal(null);
 
-    // Oculta/exclui apenas no Dashboard, mantendo intacta a contagem original do conferente
-    saveDashboardAdjustment(companyId, {
-      codigo,
-      validadeOriginal: validade,
-      quantidade: 0,
-      isExcluded: true,
-      ajustadoEm: new Date().toISOString()
-    });
+    const target = {
+      codigo: targetCod,
+      validade: targetVal,
+      id: rawDoc?.id ? String(rawDoc.id) : undefined,
+      _docId: rawDoc?._docId ? String(rawDoc._docId) : undefined,
+      lote: lote || rawDoc?.lote ? String(lote || rawDoc?.lote) : undefined
+    };
 
-    setValidadesUpdateTrigger(prev => prev + 1);
-    setFeedbackToast({
-      message: `🗑️ Item [${codigo}] ${descricao || ''} ocultado do Dashboard. A contagem original recolhida pelo conferente foi preservada no histórico.`,
-      type: 'success'
-    });
-    setTimeout(() => setFeedbackToast(null), 5000);
+    try {
+      if (destino === 'PNC') {
+        // 1. Encaminha e insere na Guia Oficial de PNC
+        try {
+          encaminharItemParaPnc({
+            codigo: targetCod,
+            descricao: descricao || `Produto ${targetCod}`,
+            validade: targetVal,
+            quantidade: finalQty,
+            qtde_bloq_cx: finalQty,
+            localizacaoAnterior: localizacao || rawDoc?.localizacao || 'central',
+            blocoAnterior: bloco || rawDoc?.bloco || '',
+            lote: lote || rawDoc?.lote || '',
+            motivo: motivo || 'NÃO CONFORMIDADE / VALIDADE CRÍTICA (ENCAMINHADO DO FEFO)',
+            observacao: `Item retirado da contagem ativa do FEFO e encaminhado para o Histórico de PNC. ${motivo ? `Motivo: ${motivo}` : ''}`,
+            responsavel: userNome
+          }, companyId);
+        } catch (e) {
+          console.warn('[handleConfirmExclusaoDestino] Erro ao encaminharItemParaPnc:', e);
+        }
+
+        // 2. Salva no repositório de itens do ShelfLife / PNC
+        try {
+          savePncItem({
+            codigo: targetCod,
+            descricao: descricao || `Produto ${targetCod}`,
+            validade: targetVal,
+            lote: lote || rawDoc?.lote || '',
+            quantidade: finalQty,
+            observacoes: `Encaminhado via exclusão do FEFO para Histórico PNC: ${motivo || ''}`,
+            registradoPor: userNome
+          }, companyId);
+        } catch (e) {
+          console.warn('[handleConfirmExclusaoDestino] Erro ao savePncItem:', e);
+        }
+
+        // 3. Salva no Histórico de Exclusões com tag PNC
+        await sendValidadeToCloudHistory(companyId, {
+          codigo: targetCod,
+          validade: targetVal,
+          descricao,
+          quantidade: finalQty,
+          localizacao,
+          bloco,
+          rawDoc,
+          userNome,
+          destino: 'PNC',
+          motivo: motivo || 'Encaminhado para Histórico de PNC'
+        });
+
+      } else if (destino === 'VENDIDO') {
+        // 1. Registra no mapa e logs de escoamento e vendas
+        try {
+          marcarItemComoVendido({
+            codigo: targetCod,
+            descricao: descricao || `Produto ${targetCod}`,
+            validade: targetVal,
+            lote: lote || rawDoc?.lote || '',
+            quantidade: finalQty,
+            localizacao: localizacao || rawDoc?.localizacao || 'central',
+            bloco: bloco || rawDoc?.bloco || '',
+            responsavel: userNome,
+            observacao: `Vendido/Escoado via exclusão do FEFO. ${motivo ? `Observação: ${motivo}` : ''}`
+          }, companyId);
+        } catch (e) {
+          console.warn('[handleConfirmExclusaoDestino] Erro ao marcarItemComoVendido:', e);
+        }
+
+        // 2. Salva no Histórico de Exclusões com tag VENDIDO
+        await sendValidadeToCloudHistory(companyId, {
+          codigo: targetCod,
+          validade: targetVal,
+          descricao,
+          quantidade: finalQty,
+          localizacao,
+          bloco,
+          rawDoc,
+          userNome,
+          destino: 'VENDIDO',
+          motivo: motivo || 'Registrado como Vendido / Escoamento'
+        });
+
+      } else {
+        // DESCARTE / EXCLUSÃO GERAL
+        await sendValidadeToCloudHistory(companyId, {
+          codigo: targetCod,
+          validade: targetVal,
+          descricao,
+          quantidade: finalQty,
+          localizacao,
+          bloco,
+          rawDoc,
+          userNome,
+          destino: 'DESCARTE',
+          motivo: motivo || 'Exclusão Geral / Descarte'
+        });
+      }
+
+      // 4. Marca em tombstone permanente para que NUNCA retorne à contagem ativa
+      markValidadeAsDeleted(target, companyId);
+
+      // 5. Remove do estado React actualValidades imediatamente
+      setActualValidades(prev => prev.filter(item => !matchValidade(item, target)));
+
+      // 6. Remove de selectedValidadesKeys e sincroniza
+      setSelectedValidadesKeys(prev => {
+        const next = new Set<string>();
+        prev.forEach(k => {
+          const codMatches = k.includes(`_${targetCod}_`) || k.includes(`val_${targetCod}_`) || k.includes(`:${targetCod}`);
+          const valMatches = targetVal ? k.includes(targetVal) : true;
+          if (!(codMatches && valMatches)) {
+            next.add(k);
+          }
+        });
+        saveSharedValidadesSelection(companyId, next, userNome);
+        return next;
+      });
+
+      // 7. Deleta do Firestore se tiver docId
+      const docId = rawDoc?._docId || rawDoc?.id;
+      if (docId) {
+        try {
+          await ValidadesRepository.delete(String(docId), companyId);
+        } catch (e) {
+          console.warn('[handleConfirmExclusaoDestino] Erro ao deletar no ValidadesRepository:', e);
+        }
+      }
+
+      // 8. Sincroniza demandas FEFO sem o item
+      try {
+        syncFefoDemandsFromValidades(companyId, actualValidades.filter(item => !matchValidade(item, target)));
+      } catch (e) {}
+
+      // 9. Atualiza contextos e emite eventos reativos
+      (empresaData as any)?.refetchValidades?.();
+      (empresaData as any)?.refreshAllData?.();
+      setValidadesUpdateTrigger(prev => prev + 1);
+
+      window.dispatchEvent(new Event('local_data_changed'));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('validades_updated'));
+      window.dispatchEvent(new Event('escoamento_venda_updated'));
+      window.dispatchEvent(new Event('pnc_updated'));
+
+      // 10. Feedback Toast claro e descritivo
+      if (destino === 'PNC') {
+        setFeedbackToast({
+          message: `🚨 Item [${targetCod}] encaminhado para o HISTÓRICO DE PNC (${finalQty} cx) e removido da contagem ativa com sucesso!`,
+          type: 'info'
+        });
+      } else if (destino === 'VENDIDO') {
+        setFeedbackToast({
+          message: `💰 Item [${targetCod}] registrado no HISTÓRICO DE VENDIDOS (${finalQty} cx) e removido da contagem ativa com sucesso!`,
+          type: 'success'
+        });
+      } else {
+        setFeedbackToast({
+          message: `🗑️ Item [${targetCod}] excluído do estoque ativo e arquivado no Histórico de Exclusões!`,
+          type: 'success'
+        });
+      }
+      setTimeout(() => setFeedbackToast(null), 6000);
+    } catch (err) {
+      console.error('Erro ao processar exclusão de item:', err);
+      setFeedbackToast({
+        message: `Erro ao processar exclusão: ${err}`,
+        type: 'error'
+      });
+      setTimeout(() => setFeedbackToast(null), 5000);
+    }
   };
 
   // Helper to convert individual units (can/bottle) to HE
@@ -663,10 +1009,6 @@ export default function FefoDashboard({
   const [showImportJsonModal, setShowImportJsonModal] = useState(false);
   const [showFefoAderenciaModal, setShowFefoAderenciaModal] = useState(false);
 
-  const companyId = empresa?.id || 'demo';
-
-  const empresaData = useEmpresaData();
-
   // Hook do relatório 03.05.19 para Venda Média Diária e Dias de Estoque
   const { dataMap: vendaMediaDataMap, getItem: getItem030519, refresh: refresh030519 } = useVendaMedia030519();
   const [vendaMediaUpdateTrigger, setVendaMediaUpdateTrigger] = useState(0);
@@ -711,26 +1053,69 @@ export default function FefoDashboard({
   }, []);
 
   // Estado de seleção das validades recolhidas pelo conferente (Visão Validade e Histórico)
-  const [selectedValidadesKeys, setSelectedValidadesKeys] = useState<Set<string>>(() => {
-    try {
-      const saved = localStorage.getItem(`fefo_selected_validades_${companyId}`);
-      if (saved) {
-        const arr = JSON.parse(saved);
-        if (Array.isArray(arr)) return new Set(arr);
-      }
-    } catch (e) {}
-    return new Set<string>();
-  });
+  const [selectedValidadesKeys, setSelectedValidadesKeys] = useState<Set<string>>(() => 
+    getSelectedValidadesKeys(companyId)
+  );
 
-  const [hasInitializedSelection, setHasInitializedSelection] = useState<boolean>(() => {
-    try {
-      return !!localStorage.getItem(`fefo_selected_validades_initialized_${companyId}`);
-    } catch (e) {
-      return false;
-    }
-  });
+  const [hasInitializedSelection, setHasInitializedSelection] = useState<boolean>(() => 
+    hasSelectionInitialized(companyId)
+  );
 
   const [showSelectValidadesModal, setShowSelectValidadesModal] = useState(false);
+  const [showImportAvulsoModal, setShowImportAvulsoModal] = useState(false);
+  const [cloudHistoryList, setCloudHistoryList] = useState<ValidadeHistoricoExclusao[]>([]);
+  const [showCloudHistoryModal, setShowCloudHistoryModal] = useState(false);
+
+  // Sincronização e Listeners em Tempo Real na Nuvem (Firestore) para múltiplos colaboradores (ex: GitHub / Web / Local)
+  useEffect(() => {
+    // 1. Escuta alterações de quantidades e validades na nuvem em tempo real
+    const unsubCloudAdj = subscribeFefoCloudAdjustments(companyId, (_remoteAdjustments) => {
+      setValidadesUpdateTrigger(v => v + 1);
+    });
+
+    // 2. Escuta alternância global da coleta de validades na nuvem (refletindo para todos os colaboradores em tempo real)
+    const unsubSharedSel = subscribeSharedValidadesSelection(companyId, (remoteKeys, _updatedBy) => {
+      if (remoteKeys && remoteKeys.size >= 0) {
+        setSelectedValidadesKeys(remoteKeys);
+        setHasInitializedSelection(true);
+      }
+    });
+
+    // 3. Escuta histórico compartilhado de exclusões na nuvem (ícone de histórico)
+    const unsubCloudHist = subscribeValidadesCloudHistory(companyId, (historyItems) => {
+      setCloudHistoryList(historyItems);
+    });
+
+    // 4. Garante subscrição ativa de validades no contexto da empresa
+    const unsubValidadesContext = (empresaData as any)?.subscribeCollection?.('validades', 'validades');
+
+    return () => {
+      if (unsubCloudAdj) unsubCloudAdj();
+      if (unsubSharedSel) unsubSharedSel();
+      if (unsubCloudHist) unsubCloudHist();
+      if (typeof unsubValidadesContext === 'function') unsubValidadesContext();
+    };
+  }, [companyId]);
+
+  // Escutar eventos de sincronização de seleção entre abas (Validades <-> Gestão de Escoamento)
+  useEffect(() => {
+    let isMounted = true;
+    const handleSyncSelection = () => {
+      setTimeout(() => {
+        if (isMounted) {
+          setSelectedValidadesKeys(getSelectedValidadesKeys(companyId));
+          setHasInitializedSelection(hasSelectionInitialized(companyId));
+        }
+      }, 0);
+    };
+    window.addEventListener('fefo_selection_updated', handleSyncSelection);
+    window.addEventListener('storage', handleSyncSelection);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('fefo_selection_updated', handleSyncSelection);
+      window.removeEventListener('storage', handleSyncSelection);
+    };
+  }, [companyId]);
 
   // Inicializar seleção com todos os lotes coletados caso ainda não tenha sido customizado
   useEffect(() => {
@@ -741,21 +1126,16 @@ export default function FefoDashboard({
       });
       setSelectedValidadesKeys(allKeys);
       setHasInitializedSelection(true);
-      try {
-        localStorage.setItem(`fefo_selected_validades_initialized_${companyId}`, 'true');
-        localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(allKeys)));
-      } catch (e) {}
+      saveSharedValidadesSelection(companyId, allKeys, user?.nome || 'Sistema');
     }
-  }, [actualValidades, companyId, hasInitializedSelection]);
+  }, [actualValidades, companyId, hasInitializedSelection, user?.nome]);
 
   const handleToggleValidadeKey = (key: string) => {
     setSelectedValidadesKeys(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-      try {
-        localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(next)));
-      } catch (e) {}
+      saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
       return next;
     });
   };
@@ -766,17 +1146,15 @@ export default function FefoDashboard({
       allKeys.add(getValidadeUniqueId(item, idx));
     });
     setSelectedValidadesKeys(allKeys);
-    try {
-      localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(allKeys)));
-    } catch (e) {}
+    setHasInitializedSelection(true);
+    saveSharedValidadesSelection(companyId, allKeys, user?.nome || 'Colaborador');
   };
 
   const handleDeselectAllValidades = () => {
     const empty = new Set<string>();
     setSelectedValidadesKeys(empty);
-    try {
-      localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify([]));
-    } catch (e) {}
+    setHasInitializedSelection(true);
+    saveSharedValidadesSelection(companyId, empty, user?.nome || 'Colaborador');
   };
 
   const handleSelectDateValidades = (dateKey: string, select: boolean) => {
@@ -790,9 +1168,26 @@ export default function FefoDashboard({
           else next.delete(k);
         }
       });
-      try {
-        localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(next)));
-      } catch (e) {}
+      setHasInitializedSelection(true);
+      saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
+      return next;
+    });
+  };
+
+  const handleSelectMultipleDates = (dateKeys: string[], select: boolean) => {
+    const datesSet = new Set(dateKeys);
+    setSelectedValidadesKeys(prev => {
+      const next = new Set(prev);
+      actualValidades.forEach((item, idx) => {
+        const { isoDate } = getValidadeDateInfo(item);
+        if (datesSet.has(isoDate)) {
+          const k = getValidadeUniqueId(item, idx);
+          if (select) next.add(k);
+          else next.delete(k);
+        }
+      });
+      setHasInitializedSelection(true);
+      saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
       return next;
     });
   };
@@ -813,10 +1208,7 @@ export default function FefoDashboard({
     }
     setSelectedValidadesKeys(next);
     setHasInitializedSelection(true);
-    try {
-      localStorage.setItem(`fefo_selected_validades_initialized_${companyId}`, 'true');
-      localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(next)));
-    } catch (e) {}
+    saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
   };
 
   const handleSelectOnlyThisDate = (dateKey: string) => {
@@ -829,20 +1221,14 @@ export default function FefoDashboard({
     });
     setSelectedValidadesKeys(next);
     setHasInitializedSelection(true);
-    try {
-      localStorage.setItem(`fefo_selected_validades_initialized_${companyId}`, 'true');
-      localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(next)));
-    } catch (e) {}
+    saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
   };
 
   const handleSelectOnlyThisKey = (key: string) => {
     const next = new Set<string>([key]);
     setSelectedValidadesKeys(next);
     setHasInitializedSelection(true);
-    try {
-      localStorage.setItem(`fefo_selected_validades_initialized_${companyId}`, 'true');
-      localStorage.setItem(`fefo_selected_validades_${companyId}`, JSON.stringify(Array.from(next)));
-    } catch (e) {}
+    saveSharedValidadesSelection(companyId, next, user?.nome || 'Colaborador');
   };
 
   // 1. Sync & Seed Data
@@ -890,7 +1276,8 @@ export default function FefoDashboard({
     localRows.forEach(v => {
       if (isValidadeDeleted(v, companyId) || getValidadeQty(v) <= 0) return;
       const valBR = formatDateToBR(v.validade);
-      const key = v._docId || `${v.codigo}_${valBR}_${v.bloco || ''}_${v.localizacao || ''}`;
+      const dtColeta = v.dataColeta || (v as any).cadastradoEm || '';
+      const key = v._docId || (v.id ? String(v.id) : `${v.codigo}_${valBR}_${v.bloco || ''}_${v.localizacao || ''}_${dtColeta}`);
       map.set(key, { ...v, validade: valBR });
     });
 
@@ -898,7 +1285,8 @@ export default function FefoDashboard({
     firestoreRows.forEach(v => {
       if (isValidadeDeleted(v, companyId) || getValidadeQty(v) <= 0) return;
       const valBR = formatDateToBR(v.validade);
-      const key = v._docId || `${v.codigo}_${valBR}_${v.bloco || ''}_${v.localizacao || ''}`;
+      const dtColeta = v.dataColeta || (v as any).cadastradoEm || '';
+      const key = v._docId || (v.id ? String(v.id) : `${v.codigo}_${valBR}_${v.bloco || ''}_${v.localizacao || ''}_${dtColeta}`);
       if (!map.has(key)) {
         map.set(key, { ...v, validade: valBR });
       }
@@ -1325,12 +1713,77 @@ export default function FefoDashboard({
     return actualValidades.filter((item, idx) => {
       if (isValidadeDeleted(item, companyId)) return false;
       const qty = getValidadeQty(item);
-      if (qty <= 0) return false;
+      const hasAdj = (item as any)._hasDashboardAdjustment;
+      if (qty <= 0 && !hasAdj) return false;
+      // Se possui ajuste feito pelo usuário, NUNCA some da lista
+      if (hasAdj) return true;
       if (selectedValidadesKeys.size === 0 && !hasInitializedSelection) return true;
       const key = getValidadeUniqueId(item, idx);
-      return selectedValidadesKeys.has(key);
+      if (selectedValidadesKeys.has(key)) return true;
+      if ((item as any)._uniqueKey && selectedValidadesKeys.has((item as any)._uniqueKey)) return true;
+      if (item._docId && selectedValidadesKeys.has(item._docId)) return true;
+      if (item.id && selectedValidadesKeys.has(String(item.id))) return true;
+
+      const cod = String(item.codigo || '').replace(/^0+/, '').trim();
+      const valBR = formatDateToBR(item.validade || '');
+      for (const k of selectedValidadesKeys) {
+        if (k.includes(`_${cod}_`) && (k.includes(valBR) || (item.validade && k.includes(item.validade)))) {
+          return true;
+        }
+      }
+      return false;
     });
   }, [actualValidades, selectedValidadesKeys, hasInitializedSelection, companyId]);
+
+  // Data da contagem ativa que está sendo visualizada na tabela do dashboard (suporte a múltiplas datas unificadas)
+  const activeCountDate = useMemo(() => {
+    if (validadesFiltradas && validadesFiltradas.length > 0) {
+      const distinctDates = Array.from(new Set(
+        validadesFiltradas.map(v => getValidadeDateInfo(v).displayDate).filter(Boolean)
+      )).sort((a, b) => {
+        const [da, ma, ya] = a.split('/').map(Number);
+        const [db, mb, yb] = b.split('/').map(Number);
+        return new Date(ya, (ma || 1) - 1, da).getTime() - new Date(yb, (mb || 1) - 1, db).getTime();
+      });
+
+      if (distinctDates.length === 1) {
+        return distinctDates[0];
+      } else if (distinctDates.length === 2) {
+        return `${distinctDates[0]} & ${distinctDates[1]}`;
+      } else if (distinctDates.length > 2) {
+        return `${distinctDates[0]} a ${distinctDates[distinctDates.length - 1]} (${distinctDates.length} datas)`;
+      }
+    }
+    if (actualValidades && actualValidades.length > 0) {
+      const dates = actualValidades
+        .map(v => getValidadeDateInfo(v).displayDate)
+        .filter(Boolean);
+      if (dates.length > 0) {
+        return dates[0];
+      }
+    }
+    return getTodayDDMMYYYY();
+  }, [validadesFiltradas, actualValidades]);
+
+  const handleAvulsoSuccess = (newItem: ValidadeRow, updatedKeys: Set<string>) => {
+    setSelectedValidadesKeys(updatedKeys);
+    setActualValidades(prev => [newItem, ...prev]);
+    setFeedbackToast({
+      type: 'success',
+      message: `✅ Item avulso [${newItem.codigo}] ${newItem.descricao} (${newItem.quantidade} cx) importado e registrado na contagem ativa (${newItem.dataColeta})!`
+    });
+    setTimeout(() => setFeedbackToast(null), 5000);
+  };
+
+  const handleAvulsoBatchSuccess = (newItems: ValidadeRow[], updatedKeys: Set<string>) => {
+    setSelectedValidadesKeys(updatedKeys);
+    setActualValidades(prev => [...newItems, ...prev]);
+    setFeedbackToast({
+      type: 'success',
+      message: `✅ ${newItems.length} itens avulsos importados com sucesso na contagem ativa (${newItems[0]?.dataColeta || activeCountDate})!`
+    });
+    setTimeout(() => setFeedbackToast(null), 5000);
+  };
 
   // Deduplicated list for "Validades Recolhidas" (1ª guia) filtrada pelas selecionadas
   const validadesRecolhidasDeduplicadas = useMemo(() => {
@@ -1356,13 +1809,14 @@ export default function FefoDashboard({
       const adjKey = getAdjustmentKey(cod, valBR);
       const adj = adjustments[adjKey];
 
-      // Se foi excluído no Dashboard, ignora
-      if (adj && (adj.isExcluded || adj.quantidade <= 0)) {
+      // Se foi explicitamente marcado como excluído no Dashboard, ignora
+      if (adj && adj.isExcluded) {
         return;
       }
 
       const qty = getValidadeQty(item);
-      if (qty <= 0) return;
+      const hasAdj = !!adj || (item as any)._hasDashboardAdjustment;
+      if (qty <= 0 && !hasAdj) return;
 
       if (map.has(key)) {
         const existing = map.get(key)!;
@@ -1383,19 +1837,18 @@ export default function FefoDashboard({
         existing.bloco = (adj?.bloco) || item.bloco || existing.bloco;
         existing._rawDoc = item;
       } else {
-        const hasAdj = !!adj;
-        const finalQty = hasAdj ? adj.quantidade : qty;
-        const finalVal = hasAdj && adj.novaValidade ? adj.novaValidade : valBR;
+        const finalQty = adj ? adj.quantidade : qty;
+        const finalVal = (adj && adj.novaValidade) ? adj.novaValidade : valBR;
         map.set(key, {
           codigo: cod,
           descricao: item.descricao || `Produto ${cod}`,
           quantidade: finalQty,
           validade: finalVal,
-          localizacao: (hasAdj && adj.localizacao) ? adj.localizacao : (item.localizacao || 'central'),
-          bloco: (hasAdj && adj.bloco) ? adj.bloco : (item.bloco || ''),
+          localizacao: (adj && adj.localizacao) ? adj.localizacao : (item.localizacao || 'central'),
+          bloco: (adj && adj.bloco) ? adj.bloco : (item.bloco || ''),
           _rawDoc: item,
           hasDashboardAdjustment: hasAdj,
-          originalQty: hasAdj ? (adj.originalQty !== undefined ? adj.originalQty : qty) : qty
+          originalQty: adj ? (adj.originalQty !== undefined ? adj.originalQty : qty) : qty
         });
       }
     });
@@ -1404,7 +1857,7 @@ export default function FefoDashboard({
     today.setHours(0, 0, 0, 0);
 
     const rows = Array.from(map.values())
-      .filter(item => item.quantidade > 0)
+      .filter(item => item.quantidade > 0 || item.hasDashboardAdjustment)
       .map(item => {
         const info = getProductInfo(item.codigo);
 
@@ -2554,6 +3007,7 @@ export default function FefoDashboard({
             onOpenSelectValidades={() => setShowSelectValidadesModal(true)}
             selectedKeysCount={selectedValidadesKeys.size}
             totalValidadesCount={actualValidades.length}
+            activeColetaLabel={activeCountDate}
           />
 
           {/* Feedback Toast Notification */}
@@ -2584,6 +3038,10 @@ export default function FefoDashboard({
             <div className="flex items-center gap-3 flex-wrap">
               <span className="font-extrabold text-sm uppercase text-[#032b5e] tracking-wider flex items-center gap-2">
                 📋 LISTA DE VALIDADES RECOLHIDAS
+              </span>
+              <span className="text-[10px] font-black bg-purple-50 text-purple-900 border border-purple-300 px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-2xs" title="Contagem ativa que está sendo visualizada e editada na tabela">
+                <span className="text-purple-600 font-extrabold">🎯 Contagem Ativa:</span>
+                <strong className="font-mono text-purple-950 font-black">{activeCountDate}</strong>
               </span>
               <span className="text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-md">
                 {validadesRecolhidasDeduplicadas.length} Registros com Estoque
@@ -2628,6 +3086,14 @@ export default function FefoDashboard({
                 📋 SELECIONAR VALIDADES ({selectedValidadesKeys.size})
               </button>
               <button
+                onClick={() => setShowImportAvulsoModal(true)}
+                className="bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border-none"
+                title={`Importar Item Avulso como o Conferente e registrar na contagem ativa (${activeCountDate})`}
+              >
+                <PackagePlus className="w-3.5 h-3.5 text-purple-200" />
+                <span>➕ ITEM AVULSO (CONFERENTE)</span>
+              </button>
+              <button
                 onClick={() => setShowImport030519Modal(true)}
                 className="bg-[#032b5e] hover:bg-[#021f44] text-white font-extrabold text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border-none"
                 title="Importar relatório 03.05.19 para cálculo de Venda Média Diária e Dias de Estoque"
@@ -2652,8 +3118,53 @@ export default function FefoDashboard({
               >
                 🗑 Excluir Base de Validades
               </button>
+              <button
+                onClick={() => {
+                  setDeletedItemsList(getDeletedValidades(companyId));
+                  setShowLixeiraModal(true);
+                }}
+                className={`font-extrabold text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border-none ${
+                  cloudHistoryList.length > 0 || deletedItemsList.length > 0 ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-300' : 'bg-slate-700 hover:bg-slate-800 text-slate-200'
+                }`}
+                title="Histórico de Itens Excluídos — Visualize e restaure lotes excluídos da operação"
+              >
+                <History className="w-3.5 h-3.5 text-amber-300" />
+                📜 Histórico de Exclusões ({cloudHistoryList.length + deletedItemsList.length})
+              </button>
             </div>
           </div>
+
+          {/* Banner de Recuperação Imediata se houver itens excluídos */}
+          {(cloudHistoryList.length > 0 || deletedItemsList.length > 0) && (
+            <div className="bg-amber-500/10 border-2 border-amber-500/30 p-3.5 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-950 font-bold flex-wrap shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">📜</span>
+                <div>
+                  <p className="font-black text-sm">Existe(m) {cloudHistoryList.length + deletedItemsList.length} item(ns) no Histórico de Exclusões do estoque.</p>
+                  <p className="text-[11px] text-amber-900 font-medium">Recupere para que voltem a aparecer na lista de validades, no Workstation e na previsão de escoamento.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRecoverAllDeleted}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider rounded-lg cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  ⚡ Restaurar Todos Agora
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletedItemsList(getDeletedValidades(companyId));
+                    setShowLixeiraModal(true);
+                  }}
+                  className="px-3.5 py-2 bg-white border border-amber-400 text-amber-950 font-black text-xs uppercase tracking-wider rounded-lg cursor-pointer hover:bg-amber-50 transition-colors"
+                >
+                  Ver Histórico
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Table Container matching Image 2 */}
           <div id="validades-recolhidas-table-container" className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -2678,8 +3189,18 @@ export default function FefoDashboard({
                 <tbody className="divide-y divide-gray-200 text-xs font-mono">
                   {validadesRecolhidasDeduplicadas.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="p-8 text-center text-gray-400 font-sans font-bold">
-                        Nenhuma validade selecionada para o dashboard. Selecione os lotes desejados na lista acima ou cadastre na guia Conferente.
+                      <td colSpan={12} className="p-8 text-center text-gray-500 font-sans font-bold">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          <p className="text-sm">Nenhuma validade selecionada para o dashboard. Selecione os lotes desejados na lista acima ou importe um item avulso na contagem ativa.</p>
+                          <button
+                            type="button"
+                            onClick={() => setShowImportAvulsoModal(true)}
+                            className="bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer border-none"
+                          >
+                            <PackagePlus className="w-4 h-4 text-purple-200" />
+                            <span>➕ Importar Item Avulso na Contagem ({activeCountDate})</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -2704,14 +3225,6 @@ export default function FefoDashboard({
                           <td className="p-2.5 text-right font-black border-r border-black/10">
                             <div className="flex items-center justify-end gap-1.5">
                               <span>{row.quantidade.toLocaleString('pt-BR')}</span>
-                              {row.hasDashboardAdjustment && (
-                                <span
-                                  title={`Ajustado no Dashboard (Contagem original do conferente: ${(row.originalQty || 0).toLocaleString('pt-BR')} cx)`}
-                                  className="px-1.5 py-0.5 bg-blue-700 text-white rounded text-[9px] font-sans font-extrabold cursor-help shrink-0 shadow-xs"
-                                >
-                                  ✏️ Ajuste
-                                </span>
-                              )}
                             </div>
                           </td>
                           <td className="p-2.5 text-center border-r border-black/10">{formatDateToBR(row.validade)}</td>
@@ -3723,8 +4236,8 @@ export default function FefoDashboard({
                   🔄
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-800 text-base">Ajuste / Recontagem no Dashboard</h3>
-                  <p className="text-xs text-slate-400">Corrige a quantidade no Dashboard FEFO sem alterar os registros originais do conferente</p>
+                  <h3 className="font-extrabold text-slate-800 text-base">Recontagem de Quantidade e Validade</h3>
+                  <p className="text-xs text-slate-400">Corrige definitivamente a quantidade e validade do lote no estoque FEFO</p>
                 </div>
               </div>
               <button
@@ -3887,63 +4400,182 @@ export default function FefoDashboard({
         </div>
       )}
 
-      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE ITEM */}
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO E DIRECIONAMENTO (PNC / VENDIDO / DESCARTE) */}
       {deleteConfirmModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-rose-200 shadow-2xl p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3 border-b border-rose-100 pb-3">
-              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl font-black shrink-0">
-                🗑️
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-black shrink-0 shadow-xs">
+                  ⚠️
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">
+                    Direcionamento de Saída / Exclusão
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Escolha para qual histórico deseja direcionar e arquivar este item:
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-base">
-                  Confirmar Exclusão de Item?
-                </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Esta ação removerá o registro do estoque e atualizará o dashboard.
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmModal(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-sm cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="bg-rose-50/70 border border-rose-200/80 rounded-xl p-3.5 flex flex-col gap-2 text-xs">
+            {/* Product Card */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex flex-col gap-2 text-xs">
               <div className="flex items-start justify-between">
                 <span className="font-bold text-slate-500">Código / SKU:</span>
-                <span className="font-black text-slate-900 font-mono text-sm">{deleteConfirmModal.codigo}</span>
+                <span className="font-black text-slate-900 font-mono text-sm bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                  {deleteConfirmModal.codigo}
+                </span>
               </div>
               <div className="flex items-start justify-between">
                 <span className="font-bold text-slate-500">Descrição:</span>
-                <span className="font-bold text-slate-900 text-right max-w-[240px] truncate">{deleteConfirmModal.descricao}</span>
+                <span className="font-bold text-slate-900 text-right max-w-[280px]">
+                  {deleteConfirmModal.descricao}
+                </span>
               </div>
               <div className="flex items-start justify-between">
                 <span className="font-bold text-slate-500">Validade:</span>
-                <span className="font-black text-rose-700 font-mono text-sm">{formatDateToBR(deleteConfirmModal.validade)}</span>
+                <span className="font-black text-rose-700 font-mono text-sm">
+                  {formatDateToBR(deleteConfirmModal.validade)}
+                </span>
               </div>
-              {deleteConfirmModal.quantidade !== undefined && (
+              {deleteConfirmModal.localizacao && (
                 <div className="flex items-start justify-between">
-                  <span className="font-bold text-slate-500">Quantidade Atual:</span>
-                  <span className="font-black text-slate-900 font-mono">{deleteConfirmModal.quantidade} cx</span>
+                  <span className="font-bold text-slate-500">Localização / Bloco:</span>
+                  <span className="font-bold text-slate-700">
+                    {deleteConfirmModal.localizacao.toUpperCase()} {deleteConfirmModal.bloco ? `• Rua ${deleteConfirmModal.bloco}` : ''}
+                  </span>
                 </div>
               )}
             </div>
 
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              Você tem certeza que deseja excluir permanentemente o item <strong>[{deleteConfirmModal.codigo}] {deleteConfirmModal.descricao}</strong> com validade <strong>{formatDateToBR(deleteConfirmModal.validade)}</strong>?
-            </p>
+            {/* Quantidade e Justificativa */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
+                  Quantidade a Baixar (cx):
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={deleteConfirmModal.customQty !== undefined ? deleteConfirmModal.customQty : (deleteConfirmModal.quantidade || 1)}
+                  onChange={e => setDeleteConfirmModal(prev => prev ? ({ ...prev, customQty: Math.max(1, Number(e.target.value)) }) : null)}
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
+                  Motivo / Observação:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Vencimento, Venda, Avaria..."
+                  value={deleteConfirmModal.motivo || ''}
+                  onChange={e => setDeleteConfirmModal(prev => prev ? ({ ...prev, motivo: e.target.value }) : null)}
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+            </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            {/* OPÇÕES DE DESTINO SOLICITADAS PELO USUÁRIO */}
+            <div className="flex flex-col gap-2.5 pt-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                Selecione o destino para remover da contagem ativa:
+              </span>
+
+              {/* OPÇÃO 1: PNC */}
+              <button
+                type="button"
+                onClick={() => handleConfirmExclusaoDestino('PNC')}
+                className="group p-3.5 rounded-2xl border-2 border-rose-200 hover:border-rose-500 bg-rose-50/50 hover:bg-rose-50 text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg font-black shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                    <ShieldAlert className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-rose-900 text-sm">ENVIAR PARA PNC</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-rose-200 text-rose-900">
+                        Histórico PNC
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-rose-700 font-medium leading-tight mt-0.5">
+                      Bloqueia por não conformidade/validade e registra no Histórico Oficial de PNC.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-rose-600 font-black text-lg">➔</span>
+              </button>
+
+              {/* OPÇÃO 2: VENDIDO */}
+              <button
+                type="button"
+                onClick={() => handleConfirmExclusaoDestino('VENDIDO')}
+                className="group p-3.5 rounded-2xl border-2 border-emerald-200 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-black shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-emerald-900 text-sm">MARCAR COMO VENDIDO</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200 text-emerald-900">
+                        Histórico Vendidos
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 font-medium leading-tight mt-0.5">
+                      Registra no histórico de escoamento e faturamento de vendas concluídas.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-emerald-600 font-black text-lg">➔</span>
+              </button>
+
+              {/* OPÇÃO 3: DESCARTE / EXCLUSÃO GERAL */}
+              <button
+                type="button"
+                onClick={() => handleConfirmExclusaoDestino('DESCARTE')}
+                className="group p-3 rounded-2xl border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50 text-left transition-all cursor-pointer flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-base font-bold shrink-0">
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-800 text-xs">Exclusão Geral / Descarte</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-200 text-slate-700">
+                        Histórico Exclusões
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight">
+                      Apenas retira da contagem ativa e arquiva no histórico de exclusões.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-slate-400 font-bold text-sm">➔</span>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmModal(null)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md flex items-center gap-1.5"
-              >
-                🗑️ Sim, Tenho Certeza
               </button>
             </div>
           </div>
@@ -4011,6 +4643,7 @@ export default function FefoDashboard({
         onSelectAll={handleSelectAllValidades}
         onDeselectAll={handleDeselectAllValidades}
         onSelectDate={handleSelectDateValidades}
+        onSelectMultipleDates={handleSelectMultipleDates}
         onSelectLatestOnly={handleSelectLatestValidadesOnly}
         onSelectOnlyThisDate={handleSelectOnlyThisDate}
         onSelectOnlyThisKey={handleSelectOnlyThisKey}
@@ -4020,6 +4653,144 @@ export default function FefoDashboard({
         }}
         empresaProdutos={empresaData.produtos}
       />
+
+      {/* MODAL: IMPORTAR ITEM AVULSO (CONFERENTE) NA CONTAGEM ATIVA */}
+      <ImportItemAvulsoModal
+        isOpen={showImportAvulsoModal}
+        onClose={() => setShowImportAvulsoModal(false)}
+        companyId={companyId}
+        activeCountDate={activeCountDate}
+        user={user}
+        selectedValidadesKeys={selectedValidadesKeys}
+        onSuccess={handleAvulsoSuccess}
+        onSuccessBatch={handleAvulsoBatchSuccess}
+      />
+
+      {/* MODAL DE HISTÓRICO DE ITENS EXCLUÍDOS / LIXEIRA COMPARTILHADA */}
+      {showLixeiraModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
+          <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-bold">
+                  📜
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-base">Histórico de Exclusões e Restauração</h3>
+                  <p className="text-xs text-slate-400">Restaura produtos e lotes removidos de volta ao Dashboard, Workstation e Escoamento em tempo real</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLixeiraModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-sm cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
+              {(() => {
+                const combinedMap = new Map<string, any>();
+                cloudHistoryList.forEach(item => {
+                  const k = `${item.codigo}_${formatDateToBR(item.validade)}`;
+                  combinedMap.set(k, {
+                    ...item,
+                    id: item.id || `hist_${k}`,
+                    codigo: item.codigo,
+                    descricao: item.descricao,
+                    validade: item.validade,
+                    quantidade: item.quantidade,
+                    excluidoPor: item.excluidoPor,
+                    excluidoEm: item.excluidoEm
+                  });
+                });
+                deletedItemsList.forEach(item => {
+                  const k = `${item.codigo}_${formatDateToBR(item.validade)}`;
+                  if (!combinedMap.has(k)) {
+                    combinedMap.set(k, item);
+                  }
+                });
+                const combinedList = Array.from(combinedMap.values());
+
+                if (combinedList.length === 0) {
+                  return (
+                    <div className="p-8 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
+                      <span className="text-2xl">🎉</span>
+                      <span>Nenhum item excluído encontrado. Todos os lotes estão ativos na operação!</span>
+                    </div>
+                  );
+                }
+
+                return combinedList.map((item, idx) => (
+                  <div key={`del_${idx}`} className="p-3 flex items-center justify-between gap-3 text-xs hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono font-black text-slate-900">
+                          [{item.codigo || '-'}] {item.descricao || `Produto ${item.codigo}`}
+                        </span>
+                        {item.destino === 'PNC' && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs">
+                            🛑 Histórico PNC
+                          </span>
+                        )}
+                        {item.destino === 'VENDIDO' && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+                            💰 Histórico Vendido
+                          </span>
+                        )}
+                        {(!item.destino || item.destino === 'DESCARTE') && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-200">
+                            🗑️ Descarte
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium flex-wrap">
+                        <span>Validade: <strong>{formatDateToBR(item.validade)}</strong></span>
+                        {item.quantidade !== undefined && <span>• Qtd: <strong>{item.quantidade} cx</strong></span>}
+                        {item.lote && <span>• Lote: <strong>{item.lote}</strong></span>}
+                        {item.excluidoPor && <span>• Por: <strong>{item.excluidoPor}</strong></span>}
+                        {item.excluidoEm && <span>• Em: <strong>{new Date(item.excluidoEm).toLocaleDateString('pt-BR')}</strong></span>}
+                        {item.motivo && <span className="text-slate-700 font-semibold">• Motivo: <em>{item.motivo}</em></span>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRecoverItem(item)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-black text-xs uppercase tracking-wider cursor-pointer shadow-xs shrink-0 flex items-center gap-1"
+                    >
+                      ↩️ Restaurar
+                    </button>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100 flex-wrap gap-2">
+              <span className="text-[11px] text-slate-500 font-medium">
+                Total de itens excluídos: <strong>{cloudHistoryList.length + deletedItemsList.length}</strong>
+              </span>
+              <div className="flex items-center gap-2">
+                {(cloudHistoryList.length > 0 || deletedItemsList.length > 0) && (
+                  <button
+                    type="button"
+                    onClick={handleRecoverAllDeleted}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5"
+                  >
+                    ⚡ Restaurar Todos
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowLixeiraModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

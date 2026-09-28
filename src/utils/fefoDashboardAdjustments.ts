@@ -69,6 +69,56 @@ export function removeDashboardAdjustment(companyId: string, codigo: string | nu
   }
 }
 
+export function unexcludeDashboardAdjustment(companyId: string, codigo: string | number, validade: string): void {
+  try {
+    const adjustments = getDashboardAdjustments(companyId);
+    const key = getAdjustmentKey(codigo, validade);
+    if (adjustments[key]) {
+      adjustments[key].isExcluded = false;
+      if (adjustments[key].quantidade <= 0) {
+        adjustments[key].quantidade = adjustments[key].originalQty || 10;
+      }
+      localStorage.setItem(`${STORAGE_PREFIX}${companyId}`, JSON.stringify(adjustments));
+      window.dispatchEvent(new Event('fefo_adjustments_updated'));
+    }
+  } catch (e) {
+    console.error('[unexcludeDashboardAdjustment] Erro ao desmarcar exclusão:', e);
+  }
+}
+
+export function restoreAllExcludedAdjustments(companyId: string): number {
+  try {
+    const adjustments = getDashboardAdjustments(companyId);
+    let count = 0;
+    Object.keys(adjustments).forEach(k => {
+      if (adjustments[k].isExcluded) {
+        adjustments[k].isExcluded = false;
+        if (adjustments[k].quantidade <= 0) {
+          adjustments[k].quantidade = adjustments[k].originalQty || 10;
+        }
+        count++;
+      }
+    });
+    if (count > 0) {
+      localStorage.setItem(`${STORAGE_PREFIX}${companyId}`, JSON.stringify(adjustments));
+      window.dispatchEvent(new Event('fefo_adjustments_updated'));
+    }
+    return count;
+  } catch (e) {
+    console.error('[restoreAllExcludedAdjustments] Erro ao restaurar ajustes:', e);
+    return 0;
+  }
+}
+
+export function getExcludedAdjustments(companyId: string): DashboardValidadeAdjustment[] {
+  try {
+    const adjustments = getDashboardAdjustments(companyId);
+    return Object.values(adjustments).filter(adj => adj.isExcluded === true);
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Aplica os ajustes exclusivos do Dashboard sobre uma lista de validades originais do conferente,
  * garantindo que a quantidade ajustada pelo usuário no Dashboard seja exatamente a configurada,
@@ -88,26 +138,39 @@ export function applyDashboardAdjustments(validades: ValidadeRow[], companyId: s
     const cod = String(item.codigo || (item as any).cod || '').replace(/^0+/, '').trim();
     const valBR = formatDateToBR(item.validade || '');
     const key = `${cod}_${valBR}`;
-    const adj = adjustments[key];
+    let adj = adjustments[key];
+
+    // Fallback: busca por código e ou novaValidade ou validadeOriginal
+    if (!adj) {
+      const foundKey = Object.keys(adjustments).find(k => {
+        const a = adjustments[k];
+        return a && a.codigo === cod && (a.novaValidade === valBR || a.validadeOriginal === valBR);
+      });
+      if (foundKey) {
+        adj = adjustments[foundKey];
+      }
+    }
 
     if (adj) {
-      if (adj.isExcluded || adj.quantidade <= 0) {
-        // Excluído do Dashboard
+      // Apenas pula se foi explicitamente marcado com isExcluded = true
+      if (adj.isExcluded) {
         continue;
       }
 
       if (!processedKeys.has(key)) {
         // Primeiro registro deste SKU/validade: recebe EXATAMENTE a quantidade ajustada
         processedKeys.add(key);
+        const stableUniqueKey = (item as any)._uniqueKey || item._docId || (item.id ? String(item.id) : `val_${cod}_${valBR}`);
         result.push({
           ...item,
-          quantidade: adj.quantidade,
-          caixa: adj.quantidade,
+          quantidade: Math.max(0, adj.quantidade),
+          caixa: Math.max(0, adj.quantidade),
           palhete: 0,
           lastro: 0,
           validade: adj.novaValidade || valBR,
           localizacao: adj.localizacao || item.localizacao || 'central',
           bloco: adj.bloco || item.bloco || '',
+          _uniqueKey: String(stableUniqueKey),
           // Flags para exibição no dashboard
           ...( {
             _hasDashboardAdjustment: true,
@@ -123,17 +186,17 @@ export function applyDashboardAdjustments(validades: ValidadeRow[], companyId: s
     }
   }
 
-  // Se houver algum ajuste de item novo que não estava na lista original mas foi adicionado/ajustado com quantidade > 0
+  // Se houver algum ajuste de item novo que não estava na lista original mas foi adicionado/ajustado
   for (const key of Object.keys(adjustments)) {
     if (!processedKeys.has(key)) {
       const adj = adjustments[key];
-      if (!adj.isExcluded && adj.quantidade > 0) {
+      if (!adj.isExcluded) {
         processedKeys.add(key);
         result.push({
           codigo: adj.codigo,
           descricao: `Produto ${adj.codigo}`,
-          quantidade: adj.quantidade,
-          caixa: adj.quantidade,
+          quantidade: Math.max(0, adj.quantidade),
+          caixa: Math.max(0, adj.quantidade),
           palhete: 0,
           lastro: 0,
           validade: adj.novaValidade || adj.validadeOriginal,

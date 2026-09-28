@@ -105,13 +105,14 @@ export function matchValidade(item: any, target: { codigo?: string; validade?: s
   const itemCod = String(item.codigo || item.cod || '').replace(/^0+/, '').trim();
   
   if (targetCod && itemCod && targetCod === itemCod) {
-    if (!target.validade || !item.validade) return true;
-    const targetVal = String(target.validade).trim();
-    const itemVal = String(item.validade).trim();
-    if (targetVal === itemVal) return true;
-    const normTargetVal = normalizeDateString(targetVal);
-    const normItemVal = normalizeDateString(itemVal);
-    if (normTargetVal && normItemVal && normTargetVal === normItemVal) return true;
+    if (target.validade && item.validade) {
+      const targetVal = formatDateToBR(target.validade).trim();
+      const itemVal = formatDateToBR(item.validade).trim();
+      if (targetVal === itemVal) return true;
+      const normTargetVal = normalizeDateString(targetVal);
+      const normItemVal = normalizeDateString(itemVal);
+      if (normTargetVal && normItemVal && normTargetVal === normItemVal) return true;
+    }
   }
   return false;
 }
@@ -170,6 +171,251 @@ export function markValidadeAsDeleted(
   }
 }
 
+export function getDeletedValidades(companyId: string = 'demo'): any[] {
+  try {
+    const key = `fefo_deleted_validades_${companyId}`;
+    const globalKey = 'fefo_deleted_validades_global';
+    const stored = localStorage.getItem(key) || localStorage.getItem(globalKey);
+    if (!stored) return [];
+    const list = JSON.parse(stored);
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+export function restoreDeletedValidade(
+  target: { codigo?: string; validade?: string; id?: string; _docId?: string; lote?: string },
+  companyId: string = 'demo'
+): boolean {
+  try {
+    const key = `fefo_deleted_validades_${companyId}`;
+    const globalKey = 'fefo_deleted_validades_global';
+
+    // 1. Remove da lista de excluídos local e global
+    [key, globalKey].forEach(k => {
+      try {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const list = JSON.parse(stored);
+          if (Array.isArray(list)) {
+            const filtered = list.filter(item => !matchValidade(item, target));
+            localStorage.setItem(k, JSON.stringify(filtered));
+          }
+        }
+      } catch (e) {}
+    });
+
+    // 2. Procura o item original para restaurar no armazenamento
+    let restoredRow: ValidadeRow | null = null;
+    const targetCod = String(target.codigo || '').replace(/^0+/, '').trim();
+    const allSeeds = [...DEFAULT_OFFICIAL_VALIDADES_WEEK4, ...DEFAULT_OFFICIAL_VALIDADES_WEEK3];
+    const foundSeed = allSeeds.find(item => matchValidade(item, target));
+
+    if (foundSeed) {
+      restoredRow = {
+        ...foundSeed,
+        empresaId: companyId
+      };
+    } else if (targetCod) {
+      restoredRow = {
+        id: target.id || `val_restored_${targetCod}_${Date.now()}`,
+        codigo: targetCod,
+        descricao: (target as any).descricao || `Produto ${targetCod}`,
+        validade: target.validade ? formatDateToBR(target.validade) : '31/12/2026',
+        quantidade: (target as any).quantidade || (target as any).caixa || 10,
+        caixa: (target as any).quantidade || (target as any).caixa || 10,
+        palhete: 0,
+        lastro: 0,
+        localizacao: 'central',
+        bloco: 'C1',
+        empresaId: companyId
+      };
+    }
+
+    // 3. Adiciona de volta ao localStorage de validades se recuperou
+    if (restoredRow) {
+      const storageKey = `validades_${companyId}`;
+      let currentRows: ValidadeRow[] = [];
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) currentRows = JSON.parse(raw);
+        if (!Array.isArray(currentRows)) currentRows = [];
+      } catch {
+        currentRows = [];
+      }
+
+      // Evita duplicar se já existia
+      const exists = currentRows.some(r => matchValidade(r, target));
+      if (!exists) {
+        currentRows.push(restoredRow);
+        localStorage.setItem(storageKey, JSON.stringify(currentRows));
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent('fefo_validades_restored', { detail: { target, companyId } }));
+    window.dispatchEvent(new Event('app_data_updated'));
+    window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('validades_updated'));
+    return true;
+  } catch (e) {
+    console.error('Erro ao restaurar validade excluída:', e);
+    return false;
+  }
+}
+
+export function restoreAllDeletedValidades(companyId: string = 'demo'): number {
+  try {
+    const list = getDeletedValidades(companyId);
+    const count = list.length;
+    localStorage.removeItem(`fefo_deleted_validades_${companyId}`);
+    localStorage.removeItem('fefo_deleted_validades_global');
+
+    // Restaura cada item
+    list.forEach(target => {
+      restoreDeletedValidade(target, companyId);
+    });
+
+    window.dispatchEvent(new Event('fefo_validades_restored'));
+    window.dispatchEvent(new Event('app_data_updated'));
+    window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('validades_updated'));
+    return count;
+  } catch (e) {
+    console.error('Erro ao restaurar todos os excluídos:', e);
+    return 0;
+  }
+}
+
+/**
+ * Salva a alteração de quantidade ou validade de um item DEFINITIVAMENTE em todos os armazenamentos
+ * locais e caches, garantindo que o item NUNCA suma da lista e reflita o novo valor imediatamente.
+ */
+export function saveUpdatedValidadeDefinitive(
+  companyId: string = 'demo',
+  updatedItem: {
+    codigo: string | number;
+    validadeOriginal: string;
+    novaValidade?: string;
+    quantidade: number;
+    localizacao?: string;
+    bloco?: string;
+    descricao?: string;
+  }
+): void {
+  try {
+    const cod = String(updatedItem.codigo).replace(/^0+/, '').trim();
+    const valOrig = formatDateToBR(updatedItem.validadeOriginal);
+    const finalVal = updatedItem.novaValidade ? formatDateToBR(updatedItem.novaValidade) : valOrig;
+    const finalQty = Number(updatedItem.quantidade) >= 0 ? Number(updatedItem.quantidade) : 0;
+
+    // Remove de deleted se por acaso estava na lista de excluídos
+    const deletedKey = `fefo_deleted_validades_${companyId}`;
+    const globalDelKey = 'fefo_deleted_validades_global';
+    [deletedKey, globalDelKey].forEach(k => {
+      try {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const list = JSON.parse(stored);
+          if (Array.isArray(list)) {
+            const filtered = list.filter(item => !matchValidade(item, { codigo: cod, validade: valOrig }));
+            localStorage.setItem(k, JSON.stringify(filtered));
+          }
+        }
+      } catch (_) {}
+    });
+
+    const targetKeys = [
+      `validades_${companyId}`,
+      `armazem_validades_${companyId}`,
+      `validades_demo`,
+      `armazem_validades_demo`
+    ];
+
+    let foundAndUpdated = false;
+
+    targetKeys.forEach(k => {
+      try {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            let modified = false;
+            const updatedList = parsed.map(item => {
+              if (matchValidade(item, { codigo: cod, validade: valOrig })) {
+                modified = true;
+                foundAndUpdated = true;
+                return {
+                  ...item,
+                  quantidade: finalQty,
+                  caixa: finalQty,
+                  totalUnities: finalQty,
+                  totalUnitiesRaw: finalQty,
+                  validade: finalVal,
+                  localizacao: updatedItem.localizacao || item.localizacao || 'central',
+                  bloco: updatedItem.bloco || item.bloco || '',
+                  atualizadoDefinitivoEm: new Date().toISOString()
+                };
+              }
+              return item;
+            });
+            if (modified) {
+              localStorage.setItem(k, JSON.stringify(updatedList));
+            }
+          }
+        }
+      } catch (_) {}
+    });
+
+    // Se o item não existia no localStorage (apenas no seed original de 314 itens), adiciona-o ao localStorage de validades
+    if (!foundAndUpdated) {
+      const storageKey = `validades_${companyId}`;
+      let currentRows: ValidadeRow[] = [];
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) currentRows = JSON.parse(raw);
+        if (!Array.isArray(currentRows)) currentRows = [];
+      } catch {
+        currentRows = [];
+      }
+
+      // Procura no seed padrão
+      const allSeeds = [...DEFAULT_OFFICIAL_VALIDADES_WEEK4, ...DEFAULT_OFFICIAL_VALIDADES_WEEK3];
+      const seedItem = allSeeds.find(item => matchValidade(item, { codigo: cod, validade: valOrig }));
+
+      const newRow: any = {
+        ...(seedItem || {}),
+        id: seedItem?.id || `val_def_${cod}_${Date.now()}`,
+        codigo: cod,
+        descricao: updatedItem.descricao || seedItem?.descricao || `Produto ${cod}`,
+        quantidade: finalQty,
+        caixa: finalQty,
+        totalUnities: finalQty,
+        totalUnitiesRaw: finalQty,
+        validade: finalVal,
+        localizacao: updatedItem.localizacao || seedItem?.localizacao || 'central',
+        bloco: updatedItem.bloco || seedItem?.bloco || '',
+        empresaId: companyId,
+        atualizadoDefinitivoEm: new Date().toISOString()
+      };
+
+      currentRows.push(newRow);
+      localStorage.setItem(storageKey, JSON.stringify(currentRows));
+    }
+
+    // Dispara eventos em tempo real para sincronizar abas e componentes
+    window.dispatchEvent(new CustomEvent('fefo_definitive_updated', {
+      detail: { codigo: cod, validade: finalVal, quantidade: finalQty }
+    }));
+    window.dispatchEvent(new Event('fefo_adjustments_updated'));
+    window.dispatchEvent(new Event('app_data_updated'));
+    window.dispatchEvent(new Event('local_data_changed'));
+    window.dispatchEvent(new Event('validades_updated'));
+  } catch (e) {
+    console.error('Erro em saveUpdatedValidadeDefinitive:', e);
+  }
+}
+
 export function getValidadeQty(item: any): number {
   if (!item) return 0;
 
@@ -206,7 +452,8 @@ export function getValidadeQty(item: any): number {
 }
 
 export function getInitialDefaultValidades(companyId: string = 'demo'): ValidadeRow[] {
-  return DEFAULT_OFFICIAL_VALIDADES_WEEK4
+  const combined = [...DEFAULT_OFFICIAL_VALIDADES_WEEK4, ...DEFAULT_OFFICIAL_VALIDADES_WEEK3];
+  return combined
     .filter(item => !isValidadeDeleted(item, companyId) && getValidadeQty(item) > 0)
     .map(item => ({
       ...item,

@@ -6,6 +6,7 @@ import { Usuario, Empresa, Tarefa, ArmazemTemperaturaLog, TmrDemand } from '../t
 import { isTaskExpired, filterExpiredOpenTasks, purgeExpiredOpenTasks, deduplicateTasks } from '../utils/taskExpirationUtils';
 import { useEmpresaData } from '../context/EmpresaDataContext';
 import { PRODUCTS } from '../planosData';
+import { getAvailableProductsForConferente } from '../utils/productCatalogData';
 import { filterHistoryForUser, HistoryRestrictionNotice } from '../utils/historyFilter';
 import { 
   parse03114902Report, 
@@ -51,12 +52,32 @@ interface ConferentePanelProps {
   initialTab?: 'rr' | 'tmr' | 'validade' | 'temperatura' | 'wlp' | '5s' | 'retorno_rota' | 'acoes' | 'refugo';
 }
 
-const CONFERENTE_REQUIRED_COLLECTIONS = ['tarefas', 'colaboradores', 'validades'] as any;
+const CONFERENTE_REQUIRED_COLLECTIONS = ['tarefas', 'colaboradores', 'validades', 'produtos'] as any;
 
 export default function ConferentePanel({ user, empresa, initialTab, theme = 'dark' }: ConferentePanelProps) {
   const empresaId = empresa?.id || 'demo';
   const draftKey = `conferente_draft_${empresaId}_${user.nome || 'guest'}`;
   const empresaData = useEmpresaData(CONFERENTE_REQUIRED_COLLECTIONS);
+  const [catalogTrigger, setCatalogTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleCatalogUpdate = () => {
+      setCatalogTrigger(v => v + 1);
+    };
+    window.addEventListener('produtos_updated', handleCatalogUpdate);
+    window.addEventListener('produtos_cadastro_changed', handleCatalogUpdate);
+    window.addEventListener('local_data_changed', handleCatalogUpdate);
+    window.addEventListener('app_data_updated', handleCatalogUpdate);
+    window.addEventListener('storage', handleCatalogUpdate);
+
+    return () => {
+      window.removeEventListener('produtos_updated', handleCatalogUpdate);
+      window.removeEventListener('produtos_cadastro_changed', handleCatalogUpdate);
+      window.removeEventListener('local_data_changed', handleCatalogUpdate);
+      window.removeEventListener('app_data_updated', handleCatalogUpdate);
+      window.removeEventListener('storage', handleCatalogUpdate);
+    };
+  }, []);
 
   // Load draft safely once
   const initialDraft = React.useMemo(() => {
@@ -1191,11 +1212,18 @@ export default function ConferentePanel({ user, empresa, initialTab, theme = 'da
     }
   };
 
-  // Filter products for autocomplete dropdown
-  const filteredProducts = PRODUCTS.filter(p => {
+  const allAvailableProducts = useMemo(() => {
+    return getAvailableProductsForConferente(empresaId, empresaData.produtos);
+  }, [empresaId, empresaData.produtos, catalogTrigger]);
+
+  // Filter products for autocomplete dropdown (including recently registered products)
+  const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return !q || String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
-  }).slice(0, 10);
+    if (!q) return allAvailableProducts.slice(0, 10);
+    return allAvailableProducts.filter(p => {
+      return String(p.codigo).includes(q) || p.descricao.toLowerCase().includes(q);
+    }).slice(0, 20);
+  }, [allAvailableProducts, searchQuery]);
 
   // Sync data lists (filtering out tasks that exceeded 5h execution/creation limit + deduplicate)
   const cleanTasks = useMemo(() => deduplicateTasks(tasks), [tasks]);

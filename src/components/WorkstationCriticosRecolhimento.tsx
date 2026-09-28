@@ -36,7 +36,7 @@ import { getInitialDefaultValidades, removeLegacySeedValidades, formatDateToBR }
 import { calcularTotalCaixas } from '../data/coletaPackagingData';
 import { savePncItem, saveDespejoTask, PncItem } from '../utils/pncManager';
 import { PncRecord, getStoredPncRecords, savePncRecords } from '../utils/gestaoPncManager';
-import { useVendaMedia030519, get030519DataForSku } from '../utils/vendaMedia030519';
+import { get030519DataForSku } from '../utils/vendaMedia030519';
 import { 
   getStoredEscoamentoVendidos, 
   marcarItemComoVendido, 
@@ -45,6 +45,7 @@ import {
   EscoamentoVendidoItem 
 } from '../utils/escoamentoVendaManager';
 import { getSelectedValidadesKeys, filterValidadesByActiveSelection } from '../utils/fefoSelectionManager';
+import { applyDashboardAdjustments } from '../utils/fefoDashboardAdjustments';
 
 interface WorkstationCriticosProps {
   validadesList: ValidadeRow[];
@@ -82,7 +83,7 @@ const FABRICAS_AMBEV = [
   'VIAMAO'
 ];
 
-export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps> = ({
+export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps> = React.memo(({
   validadesList,
   allValidadesList,
   user,
@@ -188,27 +189,56 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     return getStoredEscoamentoVendidos(companyId);
   });
 
-  // Reativo a vendas e eventos externos
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  // Reativo a vendas, seleção de validades e eventos de ajuste em tempo real
   React.useEffect(() => {
+    let isMounted = true;
     const handleVendasUpdate = () => {
-      setVendidosMap(getStoredEscoamentoVendidos(companyId));
+      setTimeout(() => {
+        if (isMounted) setVendidosMap(getStoredEscoamentoVendidos(companyId));
+      }, 0);
     };
+    const handleSync = () => {
+      setTimeout(() => {
+        if (isMounted) setSyncTrigger(prev => prev + 1);
+      }, 0);
+    };
+
     window.addEventListener('escoamento_venda_updated', handleVendasUpdate);
     window.addEventListener('storage', handleVendasUpdate);
+    window.addEventListener('fefo_adjustments_updated', handleSync);
+    window.addEventListener('fefo_selection_updated', handleSync);
+    window.addEventListener('fefo_definitive_updated', handleSync);
+    window.addEventListener('fefo_validades_restored', handleSync);
+    window.addEventListener('validades_updated', handleSync);
+    window.addEventListener('app_data_updated', handleSync);
+
     return () => {
+      isMounted = false;
       window.removeEventListener('escoamento_venda_updated', handleVendasUpdate);
       window.removeEventListener('storage', handleVendasUpdate);
+      window.removeEventListener('fefo_adjustments_updated', handleSync);
+      window.removeEventListener('fefo_selection_updated', handleSync);
+      window.removeEventListener('fefo_definitive_updated', handleSync);
+      window.removeEventListener('fefo_validades_restored', handleSync);
+      window.removeEventListener('validades_updated', handleSync);
+      window.removeEventListener('app_data_updated', handleSync);
     };
   }, [companyId]);
-
-  const { getItem: get030519Item } = useVendaMedia030519();
 
   const criticosUnificados = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Only real validades from collection, filtering out any legacy seed entries
-    const sourceList = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
+    const rawList = removeLegacySeedValidades(validadesList && validadesList.length > 0 ? validadesList : []);
+    
+    // 1. Aplica ajustes definitivos do Dashboard (quantidades corrigidas e validades)
+    const adjustedList = applyDashboardAdjustments(rawList, companyId);
+
+    // 2. Aplica filtro de validades selecionadas (a Workstation agora sincroniza exatamente com a validade selecionada)
+    const sourceList = filterValidadesByActiveSelection(adjustedList, companyId);
 
     // Group by codigo + validade
     const map = new Map<string, {
@@ -329,7 +359,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
       const volumeHl = qty * fatorHecto;
       
       // Venda média prioritariamente extraída do relatório oficial 03.05.19
-      const item030519 = get030519Item(item.codigo) || get030519DataForSku(item.codigo);
+      const item030519 = get030519DataForSku(item.codigo);
       const isFrom030519 = !!(item030519 && item030519.vendaMediaDiaria > 0);
       const vendaMedia = isFrom030519
         ? Math.round(item030519.vendaMediaDiaria * 10) / 10
@@ -361,7 +391,7 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
     // Return unifies items without generating mock fallback items
     list.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
     return list;
-  }, [validadesList, customQuantities, get030519Item]);
+  }, [validadesList, customQuantities, companyId, syncTrigger]);
 
   // Active FEFO demands from storage
   const activeDemands = useMemo(() => {
@@ -1215,6 +1245,11 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
             <span className="bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/40 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
               <ShieldAlert className="w-3 h-3 text-rose-500" /> Workstation CCO
             </span>
+            {activeColetaLabel && (
+              <span className="bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/40 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 font-mono" title="Data da contagem ativa que está alimentando a tabela e os itens críticos">
+                📅 Contagem: {activeColetaLabel}
+              </span>
+            )}
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
               Último Recolhimento & Janela de Validade
             </span>
@@ -2001,4 +2036,4 @@ export const WorkstationCriticosRecolhimento: React.FC<WorkstationCriticosProps>
       )}
     </div>
   );
-};
+});

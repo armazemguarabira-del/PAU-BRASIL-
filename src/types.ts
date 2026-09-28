@@ -181,8 +181,12 @@ export interface ValidadeRow {
   hlTotal?: number;
   vidaUtil?: number;
   cadastradoPor?: string;
+  origem?: string;
   cadastradoEm?: string;
   recontadoEm?: string;
+  atualizadoEm?: string;
+  restauradoEm?: string;
+  atualizadoPor?: string;
   _criadoEm?: string;
 }
 

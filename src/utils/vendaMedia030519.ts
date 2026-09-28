@@ -671,9 +671,23 @@ export function getSafe030519Item(code: string | number): Item030519Data {
 export function useVendaMedia030519() {
   const [dataMap, setDataMap] = useState<Map<string, Item030519Data>>(() => getConsolidated030519Map());
   const [allQuarters, setAllQuarters] = useState<Record<string, TrimestreStore>>(() => getStored030519Quarters());
-  const [activeQuarterInfo, setActiveQuarterInfo] = useState<{ quarter: string; skusCount: number; importadoEm?: string }>({
-    quarter: 'Q1',
-    skusCount: 0
+  const [activeQuarterInfo, setActiveQuarterInfo] = useState<{ quarter: string; skusCount: number; importadoEm?: string }>(() => {
+    try {
+      const quarters = getStored030519Quarters();
+      const month = new Date().getMonth() + 1;
+      const currentQ = month <= 3 ? 'Q1' : month <= 6 ? 'Q2' : month <= 9 ? 'Q3' : 'Q4';
+      const qPriority = [currentQ, 'Q1', 'Q2', 'Q3', 'Q4'].filter((v, i, a) => a.indexOf(v) === i);
+      for (const qKey of qPriority) {
+        if (quarters[qKey] && quarters[qKey].itemsMap && Object.keys(quarters[qKey].itemsMap).length > 0) {
+          return {
+            quarter: qKey,
+            skusCount: Object.keys(quarters[qKey].itemsMap).length,
+            importadoEm: quarters[qKey].importadoEm
+          };
+        }
+      }
+    } catch {}
+    return { quarter: 'Q1', skusCount: 0 };
   });
 
   const reload = useCallback(() => {
@@ -707,8 +721,6 @@ export function useVendaMedia030519() {
   }, []);
 
   useEffect(() => {
-    reload();
-
     const handleUpdate = () => reload();
     window.addEventListener(EVENT_VENDA_MEDIA_030519_UPDATED, handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -717,7 +729,7 @@ export function useVendaMedia030519() {
       window.removeEventListener(EVENT_VENDA_MEDIA_030519_UPDATED, handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
-  }, []);
+  }, [reload]);
 
   return {
     dataMap,

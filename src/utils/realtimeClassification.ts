@@ -82,6 +82,31 @@ export const REALTIME_CLASSIFICATION: Record<string, RealtimeClassificationInfo>
     justificativa: 'Alertas de temperatura e umidade em tempo real.',
     estrategia: 'onSnapshot'
   },
+  'validades': {
+    nivel: 'REALTIME_NECESSARIO',
+    justificativa: 'Controle colaborativo de validades, lotes e estoque FEFO em tempo real entre colaboradores e gestores.',
+    estrategia: 'onSnapshot'
+  },
+  'fefo_cloud_adjustments': {
+    nivel: 'REALTIME_NECESSARIO',
+    justificativa: 'Sincronização instantânea de recontagens e alterações definitivas de quantidade entre múltiplos colaboradores.',
+    estrategia: 'onSnapshot'
+  },
+  'validades_config': {
+    nivel: 'REALTIME_NECESSARIO',
+    justificativa: 'Seleção colaborativa global da coleta de validades ativa entre todos os terminais em tempo real.',
+    estrategia: 'onSnapshot'
+  },
+  'validades_historico_exclusoes': {
+    nivel: 'REALTIME_NECESSARIO',
+    justificativa: 'Histórico compartilhado em tempo real de exclusões para auditoria e restauração colaborativa imediata.',
+    estrategia: 'onSnapshot'
+  },
+  'fefo': {
+    nivel: 'REALTIME_NECESSARIO',
+    justificativa: 'Projeções e giros FEFO colaborativos em tempo real.',
+    estrategia: 'onSnapshot'
+  },
 
   // REALTIME OPCIONAL
   'colaboradores': {
@@ -134,16 +159,6 @@ export const REALTIME_CLASSIFICATION: Record<string, RealtimeClassificationInfo>
   'quebras': {
     nivel: 'NAO_PRECISA_REALTIME',
     justificativa: 'Indicadores agregados de quebra diária/mensal.',
-    estrategia: 'cache-json'
-  },
-  'validades': {
-    nivel: 'NAO_PRECISA_REALTIME',
-    justificativa: 'Relatório diário de shelf life e lotes FEFO calculados na virada do dia.',
-    estrategia: 'cache-json'
-  },
-  'fefo': {
-    nivel: 'NAO_PRECISA_REALTIME',
-    justificativa: 'Projeções e curvas de envelhecimento de estoque.',
     estrategia: 'cache-json'
   },
   'armazem': {

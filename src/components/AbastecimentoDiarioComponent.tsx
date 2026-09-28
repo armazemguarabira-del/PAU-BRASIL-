@@ -49,6 +49,7 @@ import * as XLSX from 'xlsx';
 import { getRepository } from '../db';
 import { getAbcMapForPeriod, resolveQuarterFromFilters } from '../utils/curvaAbcUtils';
 import { isCleaningProduct } from '../utils/generateRessuprimentoData';
+import { processPosicaoPallet021101Import } from '../utils/estoqueParsers';
 
 const abastecimentoAnaliseRepo = getRepository<any>('analises_abastecimento_diario');
 
@@ -1388,35 +1389,43 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
 
   // Helper to parse Area from imported files (021101)
   // In 02.11.01, Column B is the Area of Counting:
-  // 1: Central, 2: Picking, 3: Marketplace, 4: Pulmão, 5: Área de Contingência
-  const parseAreaFromRow = (cell0: any, cell1: any): 1 | 2 | 3 | 4 | 5 => {
+  // 1: Central, 2: Picking, 3: Marketplace, 4: Contingência, 5: Pulmão, 6: PNC
+  const parseAreaFromRow = (cell0: any, cell1: any): 1 | 2 | 3 | 4 | 5 | 6 => {
     // 1. Inspect Column B (cell1) first as the designated area column
     const str1 = String(cell1 ?? '').toLowerCase().trim();
     if (str1) {
-      if (str1 === '2' || str1.startsWith('2') || str1.includes('picking') || str1.includes('pick')) return 2;
-      if (str1 === '4' || str1.startsWith('4') || str1.includes('pulmao') || str1.includes('pulmão')) return 4;
-      if (str1 === '1' || str1.startsWith('1') || str1.includes('central') || str1.includes('deposito central') || str1.includes('armazem central')) return 1;
-      if (str1 === '3' || str1.startsWith('3') || str1.includes('marketplace') || str1.includes('mkp') || str1.includes('mkt')) return 3;
-      if (str1 === '5' || str1.startsWith('5') || str1.includes('contingencia') || str1.includes('contingência') || str1.includes('reserva')) return 5;
+      const areaDigitsMatch1 = str1.match(/\b(0?[1-6])\b/) || str1.match(/^(0?[1-6])$/);
+      const num1 = areaDigitsMatch1 ? parseInt(areaDigitsMatch1[1], 10) : NaN;
+
+      if (num1 === 1 || str1 === '1' || str1 === '01' || str1.includes('central') || str1.includes('deposito central') || str1.includes('armazem central')) return 1;
+      if (num1 === 2 || str1 === '2' || str1 === '02' || str1.includes('picking') || str1.includes('pick')) return 2;
+      if (num1 === 3 || str1 === '3' || str1 === '03' || str1.includes('marketplace') || str1.includes('mkp') || str1.includes('mkt')) return 3;
+      if (num1 === 4 || str1 === '4' || str1 === '04' || str1.includes('contingencia') || str1.includes('contingência') || str1.includes('reserva')) return 4;
+      if (num1 === 5 || str1 === '5' || str1 === '05' || str1.includes('pulmao') || str1.includes('pulmão')) return 5;
+      if (num1 === 6 || str1 === '6' || str1 === '06' || str1.includes('pnc') || str1.includes('nao conforme') || str1.includes('não conforme') || str1.includes('avaria')) return 6;
     }
 
     // 2. Fallback to Column A (cell0) if cell1 is empty or text-only without area numbers
     const str0 = String(cell0 ?? '').toLowerCase().trim();
     if (str0) {
-      if (str0 === '2' || str0.includes('picking') || str0.includes('pick')) return 2;
-      if (str0 === '4' || str0.includes('pulmao') || str0.includes('pulmão')) return 4;
-      if (str0 === '3' || str0.includes('marketplace') || str0.includes('mkp') || str0.includes('mkt')) return 3;
-      if (str0 === '5' || str0.includes('contingencia') || str0.includes('contingência')) return 5;
-      if (str0.includes('central') || str0.includes('armazem central')) return 1;
+      const areaDigitsMatch0 = str0.match(/\b(0?[1-6])\b/) || str0.match(/^(0?[1-6])$/);
+      const num0 = areaDigitsMatch0 ? parseInt(areaDigitsMatch0[1], 10) : NaN;
+
+      if (num0 === 1 || str0 === '1' || str0 === '01' || str0.includes('central') || str0.includes('armazem central')) return 1;
+      if (num0 === 2 || str0 === '2' || str0 === '02' || str0.includes('picking') || str0.includes('pick')) return 2;
+      if (num0 === 3 || str0 === '3' || str0 === '03' || str0.includes('marketplace') || str0.includes('mkp') || str0.includes('mkt')) return 3;
+      if (num0 === 4 || str0 === '4' || str0 === '04' || str0.includes('contingencia') || str0.includes('contingência')) return 4;
+      if (num0 === 5 || str0 === '5' || str0 === '05' || str0.includes('pulmao') || str0.includes('pulmão')) return 5;
+      if (num0 === 6 || str0 === '6' || str0 === '06' || str0.includes('pnc') || str0.includes('avaria')) return 6;
     }
 
     return 2; // Default fallback to Area 2 (Picking)
   };
 
-  // Form value updater for all 5 areas
+  // Form value updater for all warehouse areas
   const handleUpdateValue = (
     sku: number, 
-    field: 'estoqueInicialCaixas' | 'estoquePicking' | 'estoqueCentral' | 'estoqueMarketplace' | 'estoquePulmao' | 'estoqueContingencia' | 'vendaCaixas', 
+    field: 'estoqueInicialCaixas' | 'estoquePicking' | 'estoqueCentral' | 'estoqueMarketplace' | 'estoquePulmao' | 'estoqueContingencia' | 'estoquePNC' | 'vendaCaixas', 
     value: number
   ) => {
     const val = isNaN(value) ? 0 : Math.max(0, value);
@@ -1428,6 +1437,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         estoqueMarketplace: 0, 
         estoquePulmao: 0,
         estoqueContingencia: 0,
+        estoquePNC: 0,
         vendaCaixas: 0 
       };
       const updated = {
@@ -1756,6 +1766,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
             estoqueMarketplace: number;
             estoquePulmao: number;
             estoqueContingencia: number;
+            estoquePNC?: number;
           }>();
 
           let totalPicking = 0;
@@ -1763,6 +1774,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           let totalMkp = 0;
           let totalPulmao = 0;
           let totalContingencia = 0;
+          let totalPNC = 0;
 
           // Helper to parse numbers safely with Portuguese formatting (e.g. 1.250 or 50,0)
           const parseNumSafely = (val: any): number => {
@@ -1830,25 +1842,29 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                   estoqueMarketplace: 0,
                   estoquePulmao: 0,
                   estoqueContingencia: 0,
+                  estoquePNC: 0,
                 };
                 skuMap.set(skuVal, item);
               }
 
-              if (area === 2) {
-                item.estoquePicking += qtyVal;
-                totalPicking += qtyVal;
-              } else if (area === 1) {
+              if (area === 1) {
                 item.estoqueCentral += qtyVal;
                 totalCentral += qtyVal;
+              } else if (area === 2) {
+                item.estoquePicking += qtyVal;
+                totalPicking += qtyVal;
               } else if (area === 3) {
                 item.estoqueMarketplace += qtyVal;
                 totalMkp += qtyVal;
               } else if (area === 4) {
-                item.estoquePulmao += qtyVal;
-                totalPulmao += qtyVal;
-              } else if (area === 5) {
                 item.estoqueContingencia += qtyVal;
                 totalContingencia += qtyVal;
+              } else if (area === 5) {
+                item.estoquePulmao += qtyVal;
+                totalPulmao += qtyVal;
+              } else if (area === 6) {
+                item.estoquePNC = (item.estoquePNC || 0) + qtyVal;
+                totalPNC += qtyVal;
               }
             }
           }
@@ -1861,7 +1877,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
             return;
           }
 
-          const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia;
+          const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia + totalPNC;
           const newFileEntry: Imported021101File = {
             id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
             name: file.name,
@@ -1876,7 +1892,15 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           setImported021101Files(nextFiles);
           apply021101Files(nextFiles);
 
-          showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs).`, "success");
+          // Sincroniza também com o painel de Capacidade do Armazém
+          try {
+            const csvText = XLSX.utils.sheet_to_csv(worksheet, { FS: ';' });
+            processPosicaoPallet021101Import(csvText, file.name, 'Operador', 'demo', false);
+          } catch (syncErr) {
+            console.error('Erro ao sincronizar com capacidade de armazém:', syncErr);
+          }
+
+          showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs nas áreas 1 a 6).`, "success");
         } catch (err) {
           console.error("Erro ao ler planilha Excel 021101:", err);
           showToast("Erro ao processar planilha Excel da rotina 021101.", "error");
@@ -1912,6 +1936,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           estoqueMarketplace: number;
           estoquePulmao: number;
           estoqueContingencia: number;
+          estoquePNC?: number;
         }>();
 
         let totalPicking = 0;
@@ -1919,6 +1944,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         let totalMkp = 0;
         let totalPulmao = 0;
         let totalContingencia = 0;
+        let totalPNC = 0;
 
         const parseNumSafely = (val: any): number => {
           if (val === undefined || val === null || val === '') return 0;
@@ -1987,25 +2013,29 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
                 estoqueMarketplace: 0,
                 estoquePulmao: 0,
                 estoqueContingencia: 0,
+                estoquePNC: 0,
               };
               skuMap.set(sku, item);
             }
 
-            if (area === 2) {
-              item.estoquePicking += qty;
-              totalPicking += qty;
-            } else if (area === 1) {
+            if (area === 1) {
               item.estoqueCentral += qty;
               totalCentral += qty;
+            } else if (area === 2) {
+              item.estoquePicking += qty;
+              totalPicking += qty;
             } else if (area === 3) {
               item.estoqueMarketplace += qty;
               totalMkp += qty;
             } else if (area === 4) {
-              item.estoquePulmao += qty;
-              totalPulmao += qty;
-            } else if (area === 5) {
               item.estoqueContingencia += qty;
               totalContingencia += qty;
+            } else if (area === 5) {
+              item.estoquePulmao += qty;
+              totalPulmao += qty;
+            } else if (area === 6) {
+              item.estoquePNC = (item.estoquePNC || 0) + qty;
+              totalPNC += qty;
             }
           }
         }
@@ -2018,7 +2048,7 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
           return;
         }
 
-        const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia;
+        const totalBoxes = totalPicking + totalCentral + totalMkp + totalPulmao + totalContingencia + totalPNC;
         const newFileEntry: Imported021101File = {
           id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           name: file.name,
@@ -2033,7 +2063,14 @@ export default function AbastecimentoDiarioComponent({ user, empresa, tasks }: A
         setImported021101Files(nextFiles);
         apply021101Files(nextFiles);
 
-        showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs).`, "success");
+        // Sincroniza também com o painel de Capacidade do Armazém
+        try {
+          processPosicaoPallet021101Import(text, file.name, 'Operador', 'demo', false);
+        } catch (syncErr) {
+          console.error('Erro ao sincronizar com capacidade de armazém:', syncErr);
+        }
+
+        showToast(`021101 "${file.name}" importada com sucesso! (${importedItems.length} SKUs nas áreas 1 a 6).`, "success");
       } catch (err) {
         console.error("Erro ao ler arquivo 021101:", err);
         showToast("Erro ao processar o arquivo de importação 021101.", "error");

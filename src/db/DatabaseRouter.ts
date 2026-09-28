@@ -598,6 +598,7 @@ export class DatabaseRouter {
     const sanitizedData = sanitizeData(partialData);
     const payload = {
       ...sanitizedData,
+      empresaId: (sanitizedData as any).empresaId || empresaId || 'demo',
       atualizadoEm: serverTimestamp()
     };
 
@@ -749,7 +750,13 @@ export class DatabaseRouter {
     }
 
     const colRef = collection(db, collectionName);
-    const q = query(colRef, where('empresaId', '==', empresaId));
+    const targetEmpresaId = (!empresaId || empresaId === 'emp_dono') ? 'demo' : empresaId;
+    const targetIds = (targetEmpresaId && targetEmpresaId !== 'all')
+      ? (targetEmpresaId === 'demo' ? ['demo', 'emp_dono'] : [targetEmpresaId, 'demo'])
+      : null;
+    const q = targetIds
+      ? query(colRef, where('empresaId', 'in', targetIds))
+      : query(colRef);
 
     const callbacksSet = new Set<(data: any) => void>([callback]);
     const errorCallbacksSet = new Set<(err: any) => void>(onError ? [onError] : []);
