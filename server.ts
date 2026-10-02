@@ -763,6 +763,114 @@ app.post('/api/sync/banco-dados/hoje/:entity', async (req, res) => {
   }
 });
 
+// 15.1. ROTA COMPARTILHADA DE VALIDADES (SINCRONIZAÇÃO INSTANTÂNEA ENTRE DISPOSITIVOS)
+const VALIDADES_STORAGE_PATH = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validades_live.json');
+
+app.get('/api/validades', async (req, res) => {
+  try {
+    if (existsSync(VALIDADES_STORAGE_PATH)) {
+      const content = await fs.readFile(VALIDADES_STORAGE_PATH, 'utf-8');
+      const parsed = JSON.parse(content);
+      const rows = Array.isArray(parsed) ? parsed : (parsed.validades || []);
+      return res.json({ success: true, validades: rows });
+    }
+
+    const validadeFile = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validade.json');
+    if (existsSync(validadeFile)) {
+      const content = await fs.readFile(validadeFile, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (parsed && Array.isArray(parsed.itens)) {
+        const converted = parsed.itens.map((it: any) => ({
+          id: it.id,
+          _docId: it.id,
+          codigo: it.codigo,
+          descricao: it.descricao,
+          validade: it.validade,
+          quantidade: it.quantidade,
+          localizacao: it.localizacao || 'central',
+          bloco: it.localizacao === 'picking' ? '' : (it.bloco || ''),
+          dataColeta: it.dataColeta || new Date().toLocaleDateString('pt-BR'),
+          empresaId: 'demo'
+        }));
+        return res.json({ success: true, validades: converted });
+      }
+    }
+
+    return res.json({ success: true, validades: [] });
+  } catch (err: any) {
+    console.error('[Validades API GET Error]:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/validades', async (req, res) => {
+  try {
+    const { validades, row } = req.body || {};
+    let finalRows: any[] = [];
+
+    if (Array.isArray(validades)) {
+      finalRows = validades;
+    } else if (row && typeof row === 'object') {
+      let existing: any[] = [];
+      if (existsSync(VALIDADES_STORAGE_PATH)) {
+        try {
+          const content = await fs.readFile(VALIDADES_STORAGE_PATH, 'utf-8');
+          existing = JSON.parse(content);
+          if (!Array.isArray(existing)) existing = [];
+        } catch (_) {}
+      }
+      const filtered = existing.filter((item: any) => 
+        !(String(item.codigo).trim() === String(row.codigo).trim() && 
+          String(item.localizacao || '').toLowerCase() === String(row.localizacao || '').toLowerCase() &&
+          String(item.bloco || '').trim().toLowerCase() === String(row.bloco || '').trim().toLowerCase())
+      );
+      finalRows = [...filtered, row];
+    } else {
+      return res.status(400).json({ success: false, error: 'Esperado array validades ou objeto row' });
+    }
+
+    await fs.mkdir(path.dirname(VALIDADES_STORAGE_PATH), { recursive: true });
+    await fs.writeFile(VALIDADES_STORAGE_PATH, JSON.stringify(finalRows, null, 2), 'utf-8');
+
+    // Atualiza também /public/banco-dados/hoje/validade.json
+    const validadeFile = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validade.json');
+    const dataRef = new Date().toISOString().split('T')[0];
+    const itemsVal = finalRows.map((v: any, idx: number) => {
+      const dias = Number(v.diasRestantes || 120);
+      let status = 'normal';
+      if (dias <= 30) status = 'critico';
+      else if (dias <= 60) status = 'alerta';
+      return {
+        id: String(v.id || v._docId || `VAL-${idx + 1}`),
+        codigo: Number(v.codigo || 0),
+        descricao: String(v.descricao || 'Produto'),
+        lote: String(v.lote || 'L-PADRAO'),
+        validade: String(v.validade || dataRef),
+        diasRestantes: dias,
+        quantidade: Number(v.quantidade || 0),
+        unidade: 'CX',
+        localizacao: String(v.localizacao || 'central'),
+        status,
+        acaoRecomendada: 'Manter fluxo FEFO padrão'
+      };
+    });
+
+    await fs.writeFile(validadeFile, JSON.stringify({
+      dataReferencia: dataRef,
+      totalItensMonitorados: itemsVal.length,
+      itensCriticos: itemsVal.filter(i => i.status === 'critico').length,
+      itensAlerta: itemsVal.filter(i => i.status === 'alerta').length,
+      itensNormais: itemsVal.filter(i => i.status === 'normal').length,
+      itens: itemsVal
+    }, null, 2), 'utf-8');
+
+    res.json({ success: true, count: finalRows.length, timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    console.error('[Validades API POST Error]:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 16. EXECUTAR FECHAMENTO DIÁRIO (hoje/ -> historico/YYYY/MM/DD/ -> novo hoje/)
 app.post('/api/sync/fechamento-diario', async (req, res) => {
   try {

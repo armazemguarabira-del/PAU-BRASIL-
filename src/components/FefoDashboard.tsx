@@ -1233,6 +1233,23 @@ export default function FefoDashboard({
 
   // 1. Sync & Seed Data
   useEffect(() => {
+    // Busca registros compartilhados na API central do servidor para sincronizar entre todos os computadores
+    fetch('/api/validades')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success && Array.isArray(data.validades) && data.validades.length > 0) {
+          const remoteRows: ValidadeRow[] = data.validades;
+          try {
+            const current = localStorage.getItem(`validades_${companyId}`);
+            if (!current || JSON.parse(current).length < remoteRows.length) {
+              localStorage.setItem(`validades_${companyId}`, JSON.stringify(remoteRows));
+              window.dispatchEvent(new Event('validades_updated'));
+            }
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
+
     // Sync validades (dynamic) - merge Firestore, company and demo localStorage so all collected items are included
     const valKeys = [
       `validades_${companyId}`,

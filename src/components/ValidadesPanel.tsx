@@ -458,6 +458,27 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
   // Sync with empresaData (scoped to company) - Filter out repack validades
   useEffect(() => {
+    // 1. Busca na API compartilhada da nuvem/servidor para sincronizar com registros de outros colaboradores
+    fetch('/api/validades')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success && Array.isArray(data.validades) && data.validades.length > 0) {
+          const conferenteRows = removeLegacySeedValidades(data.validades.filter((r: any) => {
+            const loc = String(r.localizacao || '').toLowerCase();
+            return !loc.includes('repack');
+          }));
+          if (conferenteRows.length > 0) {
+            setValidadesList(conferenteRows);
+            try {
+              localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
+              localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(conferenteRows));
+            } catch (e) {}
+            syncValidadesListToMonthlyColetas(conferenteRows, empresaId);
+          }
+        }
+      })
+      .catch(() => {});
+
     let rows: ValidadeRow[] = empresaData.validades || [];
     if (rows.length === 0) {
       const saved = localStorage.getItem(`validades_${empresaId}`);
@@ -751,6 +772,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           itensNormais: itemsVal.filter(i => i.status === 'normal').length,
           itens: itemsVal
         }).catch(() => {});
+
+        // Envia imediatamente para a API central do servidor para todos os outros computadores e o site verem
+        fetch('/api/validades', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ validades: updatedListAfterSave, empresaId })
+        }).catch(err => console.warn('[Validades API Sync]', err));
       } catch (e) {}
 
       if (dataObj.localizacao === 'pnc') {
@@ -948,6 +976,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     if (idToDel) {
       ValidadesRepository.delete(String(idToDel), empresaId).catch(console.error);
     }
+
+    // Sincroniza exclusão com o servidor central
+    fetch('/api/validades', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ validades: remaining, empresaId })
+    }).catch(err => console.warn('[Validades API Delete Sync]', err));
   };
 
   const handleSendRowToPnc = async (r: ValidadeRow) => {
@@ -1004,6 +1039,13 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       localStorage.removeItem(`workstation_custom_quantities_${empresaId}`);
       window.dispatchEvent(new Event('local_data_changed'));
       toast('Lista de estoque zerada com sucesso!');
+
+      // Sincroniza zeramento com a API central
+      fetch('/api/validades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ validades: [], empresaId })
+      }).catch(err => console.warn('[Validades API Clear Sync]', err));
     } catch (e) {
       alert('Erro ao excluir registros: ' + e);
     }
