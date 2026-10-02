@@ -31,6 +31,7 @@ import { WorkstationCriticosRecolhimento } from './WorkstationCriticosRecolhimen
 import { getInitialDefaultValidades, removeLegacySeedValidades, formatDateToBR } from '../utils/fefoDefaultData';
 import { encaminharItemParaPnc } from '../utils/gestaoPncManager';
 import Import030519Modal from './Import030519Modal';
+import { syncEntityToPublic } from '../services/bancoDadosSyncClient';
 
 export const getTodayDDMMYYYY = (): string => {
   const now = new Date();
@@ -652,22 +653,26 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       let updatedListAfterSave = [...validadesList];
 
       if (editingRow) {
-        // Edit Row Action update
+        // Edit Row Action update - resposta instantânea
         const idToUpdate = editingRow._docId || (editingRow as any).id;
-        if (idToUpdate) {
-          await ValidadesRepository.update(String(idToUpdate), dataObj, empresaId);
-        }
         updatedListAfterSave = validadesList.map(item => item.id === editingRow.id ? { ...item, ...dataObj } : item);
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
         toast(`Produto atualizado na Semana ${semanaNumCalculada} de Agosto!`);
+
+        if (idToUpdate) {
+          ValidadesRepository.update(String(idToUpdate), dataObj, empresaId).catch(err => {
+            console.warn('[ValidadesRepository.update] background sync:', err);
+          });
+        }
       } else {
         // Sobrescrever registro anterior com a mesma combinação: código + localizacao + bloco (rua)
         const targetCod = String(dataObj.codigo).trim();
         const targetLoc = String(dataObj.localizacao).toLowerCase();
         const targetRua = String(dataObj.bloco || '').trim().toLowerCase();
 
+        const idsToDel: string[] = [];
         const filteredList = [];
         for (const item of validadesList) {
           const itemCod = String(item.codigo).trim();
@@ -677,27 +682,76 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           if (itemCod === targetCod && itemLoc === targetLoc && itemRua === targetRua) {
             const idToDel = item._docId || (item as any).id;
             if (idToDel) {
-              try { await ValidadesRepository.delete(String(idToDel), empresaId); } catch (e) {}
+              idsToDel.push(String(idToDel));
             }
           } else {
             filteredList.push(item);
           }
         }
 
-        const newRow: Omit<ValidadeRow, '_docId'> & { empresaId: string } = {
+        const localId = Date.now();
+        const localDocId = 'val_' + localId + '_' + Math.random().toString(36).substring(2, 8);
+        const newRow: ValidadeRow = {
+          _docId: localDocId,
+          id: localId,
           empresaId,
-          id: Date.now(),
           ...dataObj,
           cadastradoEm: new Date().toISOString()
         };
 
-        const created = await ValidadesRepository.create(newRow, empresaId);
-        updatedListAfterSave = [...filteredList, { _docId: created._docId || (created as any).id, ...newRow }];
+        updatedListAfterSave = [...filteredList, newRow];
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
         toast(`Produto salvo com sucesso na Semana ${semanaNumCalculada} de Agosto!`);
+
+        // Sincronização assíncrona em segundo plano no Firestore sem travar o botão para o operador
+        (async () => {
+          try {
+            if (idsToDel.length > 0) {
+              await Promise.allSettled(idsToDel.map(id => ValidadesRepository.delete(id, empresaId)));
+            }
+            const created = await ValidadesRepository.create(newRow, empresaId, localDocId);
+            if (created && created._docId && created._docId !== localDocId) {
+              setValidadesList(curr => curr.map(item => item.id === localId ? { ...item, _docId: created._docId } : item));
+            }
+          } catch (err) {
+            console.warn('[ValidadesPanel] Background persistence:', err);
+          }
+        })();
       }
+
+      // Sincroniza com /public/banco-dados/hoje/validade.json no backend
+      try {
+        const dataRef = new Date().toISOString().split('T')[0];
+        const itemsVal = updatedListAfterSave.map((v: any, idx: number) => {
+          const dias = Number(v.diasRestantes || v.dias || 120);
+          let status = 'normal';
+          if (dias <= 30) status = 'critico';
+          else if (dias <= 60) status = 'alerta';
+          return {
+            id: String(v.id || v._docId || `VAL-${idx + 1}`),
+            codigo: Number(v.codigo || 0),
+            descricao: String(v.descricao || 'Produto'),
+            lote: String(v.lote || 'L-PADRAO'),
+            validade: String(v.validade || dataRef),
+            diasRestantes: dias,
+            quantidade: Number(v.quantidade || 0),
+            unidade: 'CX',
+            localizacao: String(v.localizacao || 'central'),
+            status,
+            acaoRecomendada: status === 'critico' ? 'Acelerar giro promocional' : (status === 'alerta' ? 'Priorizar saída em rotas' : 'Manter fluxo FEFO padrão')
+          };
+        });
+        syncEntityToPublic('validade', {
+          dataReferencia: dataRef,
+          totalItensMonitorados: itemsVal.length,
+          itensCriticos: itemsVal.filter(i => i.status === 'critico').length,
+          itensAlerta: itemsVal.filter(i => i.status === 'alerta').length,
+          itensNormais: itemsVal.filter(i => i.status === 'normal').length,
+          itens: itemsVal
+        }).catch(() => {});
+      } catch (e) {}
 
       if (dataObj.localizacao === 'pnc') {
         encaminharItemParaPnc({
@@ -883,19 +937,16 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     setActiveTab('form');
   };
 
-  const handleDelete = async (r: ValidadeRow) => {
-    try {
-      const idToDel = r._docId || (r as any).id;
-      if (idToDel) {
-        await ValidadesRepository.delete(String(idToDel), empresaId);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      const remaining = validadesList.filter(item => item.id !== r.id && item._docId !== r._docId);
-      setValidadesList(remaining);
-      localStorage.setItem(`validades_${empresaId}`, JSON.stringify(remaining));
-      toast('Registro de validade excluído com sucesso');
+  const handleDelete = (r: ValidadeRow) => {
+    const remaining = validadesList.filter(item => item.id !== r.id && item._docId !== r._docId);
+    setValidadesList(remaining);
+    localStorage.setItem(`validades_${empresaId}`, JSON.stringify(remaining));
+    syncValidadesListToMonthlyColetas(remaining, empresaId);
+    toast('Registro de validade excluído com sucesso');
+
+    const idToDel = r._docId || (r as any).id;
+    if (idToDel) {
+      ValidadesRepository.delete(String(idToDel), empresaId).catch(console.error);
     }
   };
 

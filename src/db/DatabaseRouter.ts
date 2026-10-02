@@ -560,13 +560,12 @@ export class DatabaseRouter {
     };
 
     let docId = customDocId;
-    if (docId) {
-      const docRef = doc(db, collectionName, docId);
-      await setDoc(docRef, payload, { merge: true });
-    } else {
-      const colRef = collection(db, collectionName);
-      const addedDoc = await addDoc(colRef, payload);
-      docId = addedDoc.id;
+    if (!docId) {
+      try {
+        docId = doc(collection(db, collectionName)).id;
+      } catch (e) {
+        docId = 'doc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+      }
     }
 
     const createdRecord = {
@@ -576,9 +575,21 @@ export class DatabaseRouter {
       atualizadoEm: new Date().toISOString()
     } as unknown as T;
 
-    // Atualiza imediatamente a camada de JSON local e invalida/atualiza o cache
+    // Atualiza imediatamente a camada de JSON local e invalida/atualiza o cache (resposta instantânea)
     await upsertJsonRecord(empresaId, collectionName, createdRecord);
     await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
+
+    // Persiste no Firestore com proteção de timeout (1.5s) para nunca travar a UI do usuário
+    try {
+      const docRef = doc(db, collectionName, docId);
+      const firestorePromise = setDoc(docRef, payload, { merge: true });
+      await Promise.race([
+        firestorePromise,
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
+    } catch (e) {
+      console.warn(`[DatabaseRouter] Persistência em background em ${collectionName}:`, e);
+    }
 
     return createdRecord;
   }
@@ -602,16 +613,7 @@ export class DatabaseRouter {
       atualizadoEm: serverTimestamp()
     };
 
-    try {
-      const docRef = doc(db, collectionName, strDocId);
-      await updateDoc(docRef, payload);
-    } catch (e) {
-      // Se o doc não existir no Firestore, tenta setDoc com merge
-      const docRef = doc(db, collectionName, strDocId);
-      await setDoc(docRef, payload, { merge: true });
-    }
-
-    // Atualiza imediatamente o JSON Database
+    // Atualiza imediatamente o JSON Database e invalida cache (resposta instantânea)
     await upsertJsonRecord(empresaId, collectionName, {
       ...sanitizedData,
       id: docId,
@@ -620,6 +622,20 @@ export class DatabaseRouter {
     } as any);
 
     await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
+
+    // Persiste no Firestore com proteção de timeout (1.5s)
+    try {
+      const docRef = doc(db, collectionName, strDocId);
+      const firestorePromise = updateDoc(docRef, payload).catch(async () => {
+        await setDoc(docRef, payload, { merge: true });
+      });
+      await Promise.race([
+        firestorePromise,
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
+    } catch (e) {
+      console.warn(`[DatabaseRouter] Atualização remota do doc ${strDocId} no Firestore:`, e);
+    }
   }
 
   /**
@@ -633,16 +649,20 @@ export class DatabaseRouter {
     if (!docId) return;
     const strDocId = String(docId);
 
+    // Remove imediatamente do JSON local e invalida cache
+    await deleteJsonRecord(empresaId, collectionName, strDocId);
+    await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
+
+    // Remove do Firestore com proteção de timeout (1.5s)
     try {
       const docRef = doc(db, collectionName, strDocId);
-      await deleteDoc(docRef);
+      await Promise.race([
+        deleteDoc(docRef),
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
     } catch (e) {
       console.warn(`[DatabaseRouter] Erro ao deletar doc ${strDocId} no Firestore:`, e);
     }
-
-    // Remove do JSON local e invalida cache
-    await deleteJsonRecord(empresaId, collectionName, strDocId);
-    await invalidateHybridCache(`col:${empresaId}:${collectionName}`);
   }
 
   /**

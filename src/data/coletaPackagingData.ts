@@ -27,7 +27,7 @@ export const PRODUTOS_COLETA_CONFIG: ColetaProdutoDef[] = [
   { codigo: "988", descricao: "BRAHMA CHOPP 600ML", caixasPallet: 84, lastro: 14 },
   { codigo: "1114", descricao: "GUARANA CHP ANTARCTICA PET 3,3 L SH C/04", caixasPallet: 80, lastro: 20 },
   { codigo: "1116", descricao: "PEPSI COLA PET 3,3 L SH C/04", caixasPallet: 80, lastro: 20 },
-  { codigo: "1164", descricao: "SUKITA UVA LATA 350ML SH C/12 NPAL", caixasPallet: 286, lastro: 22 },
+  { codigo: "1164", descricao: "SUKITA UVA LATA 350ML SH C/12 NPAL", caixasPallet: 286, lastro: 26 },
   { codigo: "1166", descricao: "SUKITA UVA PET 2L CAIXA C/6", caixasPallet: 100, lastro: 20 },
   { codigo: "1172", descricao: "H2OH LIMAO/MACA C/GAS PET 500ML CAIXA C/12", caixasPallet: 168, lastro: 24 },
   { codigo: "1388", descricao: "SKOL GFA VD 1L 2,99", caixasPallet: 50, lastro: 10 },

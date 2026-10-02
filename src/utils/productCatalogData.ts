@@ -1,4 +1,11 @@
 import { PRODUCT_MASTER_MAP, PRODUCT_MASTER_DATA } from '../data/productMasterData';
+
+// Fast In-Memory caches to prevent locking browser event loop (var used to prevent TDZ on circular imports)
+var cachedOverrides: Record<number, CustomSkuOverride> | null = null;
+var cachedEmpresaProdutos: Map<string, any[]> | null = null;
+var metaCache: Map<string, ProductMeta> | null = null;
+var rawProductsMap: Map<number, any> | null = null;
+
 import { RAW_PRODUCTS } from '../planosData';
 
 export interface ProductMeta {
@@ -40,28 +47,26 @@ export interface CustomSkuOverride {
 
 const CUSTOM_SKU_OVERRIDES_KEY = 'af_product_custom_overrides_v1';
 
-// Fast In-Memory caches to prevent locking browser event loop
-let cachedOverrides: Record<number, CustomSkuOverride> | null = null;
-const cachedEmpresaProdutos = new Map<string, any[]>();
-const metaCache = new Map<string, ProductMeta>();
-const rawProductsMap = new Map<number, any>();
-
 function getRawProduct(codeNum: number): any {
-  if (rawProductsMap.size === 0 && typeof RAW_PRODUCTS !== 'undefined' && Array.isArray(RAW_PRODUCTS)) {
-    for (let i = 0; i < RAW_PRODUCTS.length; i++) {
-      const p = RAW_PRODUCTS[i];
-      if (p && p.codigo) {
-        rawProductsMap.set(Number(p.codigo), p);
+  if (!rawProductsMap) rawProductsMap = new Map();
+  try {
+    const list = typeof RAW_PRODUCTS !== 'undefined' ? RAW_PRODUCTS : null;
+    if (rawProductsMap.size === 0 && Array.isArray(list)) {
+      for (let i = 0; i < list.length; i++) {
+        const p = list[i];
+        if (p && p.codigo) {
+          rawProductsMap.set(Number(p.codigo), p);
+        }
       }
     }
-  }
+  } catch (_) {}
   return rawProductsMap.get(codeNum);
 }
 
 export function invalidateProductCatalogCaches() {
   cachedOverrides = null;
-  cachedEmpresaProdutos.clear();
-  metaCache.clear();
+  if (cachedEmpresaProdutos) cachedEmpresaProdutos.clear();
+  if (metaCache) metaCache.clear();
 }
 
 if (typeof window !== 'undefined') {
@@ -237,7 +242,9 @@ export function isProdutoCadastrado(codigo: number | string, companyId?: string)
   if (PRODUCT_CATALOG_DETAILS[codeNum]) return true;
 
   // 5. Check in RAW_PRODUCTS list from planosData
-  if (RAW_PRODUCTS.some(p => Number(p.codigo) === codeNum)) return true;
+  try {
+    if (typeof RAW_PRODUCTS !== 'undefined' && Array.isArray(RAW_PRODUCTS) && RAW_PRODUCTS.some(p => Number(p.codigo) === codeNum)) return true;
+  } catch (_) {}
 
   // 6. Check across all saved produtos in localStorage
   try {
@@ -323,36 +330,38 @@ export function getAvailableProductsForConferente(
       });
     }
 
-    if (Array.isArray(RAW_PRODUCTS)) {
-      RAW_PRODUCTS.forEach(p => {
-        const cod = Number(p.codigo);
-        if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod) && !map.has(cod)) {
-          const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
-            (p as any).caixasPallet || 60,
-            (p as any).lastro,
-            (p as any).camadas,
-            (p as any).embalagem || '',
-            p.descricao || '',
-            cod
-          );
-          map.set(cod, {
-            codigo: cod,
-            descricao: p.descricao,
-            fatorPallet,
-            caixasPallet: fatorPallet,
-            lastro,
-            camadas,
-            fator: (p as any).fator,
-            fatorHecto: (p as any).fatorHecto,
-            grupo: (p as any).grupo || 'CERVEJA',
-            curva: (p as any).curva || 'B',
-            embalagem: (p as any).embalagem || '',
-            idade: typeof (p as any).idade === 'number' ? (p as any).idade : 180,
-            isCustom: false
-          });
-        }
-      });
-    }
+    try {
+      if (typeof RAW_PRODUCTS !== 'undefined' && Array.isArray(RAW_PRODUCTS)) {
+        RAW_PRODUCTS.forEach(p => {
+          const cod = Number(p.codigo);
+          if (cod && !isNaN(cod) && !VASILHAMES_E_RETORNAVEIS.has(cod) && !map.has(cod)) {
+            const { fatorPallet, lastro, camadas } = resolvePalletAndLastro(
+              (p as any).caixasPallet || 60,
+              (p as any).lastro,
+              (p as any).camadas,
+              (p as any).embalagem || '',
+              p.descricao || '',
+              cod
+            );
+            map.set(cod, {
+              codigo: cod,
+              descricao: p.descricao,
+              fatorPallet,
+              caixasPallet: fatorPallet,
+              lastro,
+              camadas,
+              fator: (p as any).fator,
+              fatorHecto: (p as any).fatorHecto,
+              grupo: (p as any).grupo || 'CERVEJA',
+              curva: (p as any).curva || 'B',
+              embalagem: (p as any).embalagem || '',
+              idade: typeof (p as any).idade === 'number' ? (p as any).idade : 180,
+              isCustom: false
+            });
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   // 2. Sobrepõe com os produtos gravados no LocalStorage da Empresa (cadastros recentes e edições)
@@ -1032,6 +1041,7 @@ export function getProductMeta(codigo: number | string, companyId?: string): Pro
   const cid = companyId || (typeof localStorage !== 'undefined' ? (localStorage.getItem('empresa_ativa_id') || localStorage.getItem('af_empresa_id') || 'demo') : 'demo');
   const cacheKey = `${codeNum}_${cid}`;
 
+  if (!metaCache) metaCache = new Map();
   const cached = metaCache.get(cacheKey);
   if (cached) return cached;
 
@@ -1044,6 +1054,7 @@ export function getProductMeta(codigo: number | string, companyId?: string): Pro
   try {
     const keysToCheck = [`produtos_${cid}`, 'produtos_demo', 'produtos_global'];
     if (typeof localStorage !== 'undefined') {
+      if (!cachedEmpresaProdutos) cachedEmpresaProdutos = new Map();
       for (const k of keysToCheck) {
         let list = cachedEmpresaProdutos.get(k);
         if (!list) {
