@@ -191,13 +191,27 @@ export class DatabaseRouter {
         let snap;
 
         try {
-          snap = await getDocsFromServer(q);
+          const fetchPromise = Promise.race([
+            getDocsFromServer(q),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout_server')), 1500))
+          ]);
+          snap = await fetchPromise;
           recordActualFirestoreReads(snap.docs.length);
           monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getDocs');
         } catch (_) {
-          snap = await getDocs(q);
-          recordActualFirestoreReads(snap.docs.length);
-          monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getDocs');
+          try {
+            const cachePromise = Promise.race([
+              getDocs(q),
+              new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout_cache')), 1000))
+            ]);
+            snap = await cachePromise;
+            recordActualFirestoreReads(snap.docs.length);
+            monitoringService.recordFirestoreRead(snap.docs.length, collectionName, 'getDocs');
+          } catch {
+            const fb = await getJsonTable<T>(empresaId, collectionName);
+            monitoringService.recordJsonHit(fb.length, collectionName);
+            return fb;
+          }
         }
 
         const serverDocs: T[] = snap.docs.map(d => ({

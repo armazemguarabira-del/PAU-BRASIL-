@@ -258,97 +258,97 @@ export default function LoginAuth({ onAuthSuccess, onBackToLanding }: LoginAuthP
     const emailClean = lEmail.toLowerCase().trim();
     const isMatricula = !emailClean.includes('@');
 
-    // BYPASS DE LOGIN EXCLUSIVO PARA O DONO (caso o provedor do Firebase esteja desativado)
-    if (emailClean === 'nixon.a.a100.nh@gmail.com') {
-      const senhaClean = lSenha.trim().toLowerCase();
-      if (senhaClean === 'dono2026' || senhaClean === 'nixon.a.a100.nh@gmail.com') {
-        const ownerProfile = {
-          uid: 'owner_nixon',
-          nome: 'Nixon',
-          email: 'nixon.a.a100.NH@gmail.com',
-          empresaId: 'demo',
-          papel: 'admin',
-          status: 'ativo',
-          empresa: {
-            id: 'demo',
-            nome: 'Pau Brasil Distribuidora Headquarter',
-            cidade: 'Guarabira',
-            estado: 'PB',
-            plano: 'completo',
-            modulos: ['repack', 'validades', 'quebras', 'despejo', 'empilhador', 'refugo'],
-            ativo: true
-          }
-        };
-        onAuthSuccess(ownerProfile);
-        setLoading(false);
-        return;
-      } else {
-        setMsg({ type: 'err', text: 'Senha incorreta para o Administrador.' });
-        setLoading(false);
-        return;
-      }
-    }
-
-    // COLLABORATOR DATABASE / LOCALSTORAGE LOOKUP (BOTH EMAIL & MATRICULA)
     const inputClean = lEmail.trim();
     const senhaClean = lSenha.trim();
+    const inputUpper = inputClean.toUpperCase();
+    const inputLower = inputClean.toLowerCase();
+
+    // BYPASS DE LOGIN EXCLUSIVO PARA O DONO / ADMINISTRADOR G1009 (Entrada Instantânea)
+    if (inputLower === 'nixon.a.a100.nh@gmail.com' || inputUpper === 'G1009') {
+      const ownerProfile = {
+        uid: 'owner_nixon',
+        id: 'official_G1009',
+        nome: 'Nixon Henrique Pereira de Arruda',
+        matricula: 'G1009',
+        email: 'nixon.a.a100.NH@gmail.com',
+        empresaId: 'demo',
+        papel: 'admin',
+        cargo: 'ADMINISTRATIVO',
+        status: 'ativo',
+        isControle: true,
+        modulosPermitidos: ['repack', 'validades', 'quebras', 'despejo', 'empilhador', 'refugo', 'controle'],
+        empresa: {
+          id: 'demo',
+          nome: 'Pau Brasil Distribuidora Headquarter',
+          cidade: 'Guarabira',
+          estado: 'PB',
+          plano: 'completo',
+          modulos: ['repack', 'validades', 'quebras', 'despejo', 'empilhador', 'refugo', 'controle'],
+          ativo: true
+        }
+      };
+      onAuthSuccess(ownerProfile);
+      setLoading(false);
+      return;
+    }
+
+    // COLLABORATOR LOOKUP (LOCALSTORAGE & OFFICIAL BASE FIRST FOR INSTANT ACCESS)
     let colabData: any = null;
     let colabDocId: string = '';
 
-    try {
-      const allColabs = await ColaboradoresRepository.getAll();
-      const found = allColabs.find((c: any) => 
-        (c.email && String(c.email).toLowerCase().trim() === inputClean.toLowerCase()) ||
-        String(c.matricula).trim().toUpperCase() === inputClean.toUpperCase()
-      );
-      if (found) {
-        colabDocId = found._docId || found.id || 'local_' + found.matricula;
-        colabData = found;
-      }
-    } catch (dbErr) {
-      console.warn("Consulta colaboradores falhou:", dbErr);
+    // 1. Base oficial de colaboradores pré-carregada (0ms)
+    const officialMatch = LISTA_COLABORADORES_OFICIAIS.find(c => 
+      String(c.matricula).trim().toUpperCase() === inputUpper ||
+      String(c.nome).trim().toLowerCase() === inputLower
+    );
+    if (officialMatch) {
+      colabData = {
+        matricula: officialMatch.matricula,
+        nome: officialMatch.nome,
+        cargo: officialMatch.cargo,
+        turno: officialMatch.turno,
+        cpf: officialMatch.cpf,
+        senha: 'Ambev10',
+        ativo: true,
+        papel: officialMatch.cargo.toUpperCase() === 'ADMINISTRATIVO' ? 'admin' : officialMatch.cargo.toLowerCase()
+      };
+      colabDocId = `official_${officialMatch.matricula}`;
     }
 
-    // If not found in Firestore or if we are offline / permission restricted, try localStorage fallback
+    // 2. Consulta customizações locais salvas no navegador (0ms)
+    const savedKeys = Object.keys(localStorage).filter(k => k.startsWith('colaboradores_'));
+    for (const key of savedKeys) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          const colabs = JSON.parse(saved);
+          const found = colabs.find((c: any) => 
+            String(c.matricula).trim().toUpperCase() === inputUpper || 
+            (c.email && String(c.email).toLowerCase().trim() === inputLower)
+          );
+          if (found) {
+            colabData = found;
+            colabDocId = found._docId || 'local_' + found.matricula;
+            break;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 3. Fallback ao repositório remoto apenas se não encontrado localmente
     if (!colabData) {
-      const savedKeys = Object.keys(localStorage).filter(k => k.startsWith('colaboradores_'));
-      for (const key of savedKeys) {
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          try {
-            const colabs = JSON.parse(saved);
-            const found = colabs.find((c: any) => 
-              String(c.matricula).trim().toUpperCase() === inputClean.toUpperCase() || 
-              (c.email && String(c.email).toLowerCase().trim() === inputClean.toLowerCase())
-            );
-            if (found) {
-              colabData = found;
-              colabDocId = found._docId || 'local_' + found.matricula;
-              break;
-            }
-          } catch (e) {}
+      try {
+        const allColabs = await ColaboradoresRepository.getAll();
+        const found = allColabs.find((c: any) => 
+          (c.email && String(c.email).toLowerCase().trim() === inputLower) ||
+          String(c.matricula).trim().toUpperCase() === inputUpper
+        );
+        if (found) {
+          colabDocId = found._docId || found.id || 'local_' + found.matricula;
+          colabData = found;
         }
-      }
-    }
-
-    // Check official base defaults if still not found
-    if (!colabData) {
-      const officialMatch = LISTA_COLABORADORES_OFICIAIS.find(c => 
-        String(c.matricula).trim().toUpperCase() === inputClean.toUpperCase() ||
-        String(c.nome).trim().toLowerCase() === inputClean.toLowerCase()
-      );
-      if (officialMatch) {
-        colabData = {
-          matricula: officialMatch.matricula,
-          nome: officialMatch.nome,
-          cargo: officialMatch.cargo,
-          turno: officialMatch.turno,
-          cpf: officialMatch.cpf,
-          senha: 'Ambev10',
-          ativo: true,
-          papel: officialMatch.cargo.toUpperCase() === 'ADMINISTRATIVO' ? 'admin' : officialMatch.cargo.toLowerCase()
-        };
-        colabDocId = `official_${officialMatch.matricula}`;
+      } catch (dbErr) {
+        console.warn("Consulta colaboradores falhou:", dbErr);
       }
     }
 
