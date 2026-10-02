@@ -45,13 +45,13 @@ interface FirebaseConfigExtended {
 const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
 
 const DEFAULT_CONFIG: FirebaseConfigExtended = {
-  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyCZ2yYeYPVA_TVIEwsvQNJ9tzq4f3kYyis",
-  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "armazemrelatorios.firebaseapp.com",
-  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "armazemrelatorios",
-  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "armazemrelatorios.firebasestorage.app",
-  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1060201893094",
-  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:1060201893094:web:5702ee694b6e234f0dbf27",
-  measurementId: metaEnv?.VITE_FIREBASE_MEASUREMENT_ID || undefined,
+  apiKey: metaEnv?.VITE_FIREBASE_API_KEY || "AIzaSyC8Xkvh4Nj-VjzzDwqSNjefu3a79Y6ti2A",
+  authDomain: metaEnv?.VITE_FIREBASE_AUTH_DOMAIN || "retorno-de-rota-pau-brasil.firebaseapp.com",
+  projectId: metaEnv?.VITE_FIREBASE_PROJECT_ID || "retorno-de-rota-pau-brasil",
+  storageBucket: metaEnv?.VITE_FIREBASE_STORAGE_BUCKET || "retorno-de-rota-pau-brasil.firebasestorage.app",
+  messagingSenderId: metaEnv?.VITE_FIREBASE_MESSAGING_SENDER_ID || "792483558739",
+  appId: metaEnv?.VITE_FIREBASE_APP_ID || "1:792483558739:web:1bcaba10d2038d7a6ddda6",
+  measurementId: metaEnv?.VITE_FIREBASE_MEASUREMENT_ID || "G-FTGZF84NKM",
   firestoreDatabaseId: metaEnv?.VITE_FIREBASE_DATABASE_ID || undefined
 };
 
@@ -64,7 +64,7 @@ if (typeof window !== 'undefined') {
   if (savedConfigStr) {
     try {
       const parsed = JSON.parse(savedConfigStr);
-      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'mesmerizing-rampart-wdzmz' || parsed.projectId?.startsWith('gen-lang-client-') || parsed.projectId !== 'armazemrelatorios')) {
+      if (parsed && (parsed.projectId === 'armazemfacil-b2292' || parsed.projectId === 'mesmerizing-rampart-wdzmz' || parsed.projectId?.startsWith('gen-lang-client-') || parsed.projectId === 'armazemrelatorios' || parsed.projectId !== 'retorno-de-rota-pau-brasil')) {
         // Automatically clear stale cache pointing to previous or uninitialized projects
         localStorage.removeItem('custom_firebase_config');
       } else if (parsed && parsed.apiKey && parsed.projectId) {

@@ -603,13 +603,13 @@ app.get('/api/firebase/status', async (req, res) => {
   try {
     const customExists = existsSync(FIREBASE_CONFIG_PATH);
     let config = {
-      apiKey: "AIzaSyCZ2yYeYPVA_TVIEwsvQNJ9tzq4f3kYyis",
-      authDomain: "armazemrelatorios.firebaseapp.com",
-      projectId: "armazemrelatorios",
-      storageBucket: "armazemrelatorios.firebasestorage.app",
-      messagingSenderId: "1060201893094",
-      appId: "1:1060201893094:web:5702ee694b6e234f0dbf27",
-      measurementId: "",
+      apiKey: "AIzaSyC8Xkvh4Nj-VjzzDwqSNjefu3a79Y6ti2A",
+      authDomain: "retorno-de-rota-pau-brasil.firebaseapp.com",
+      projectId: "retorno-de-rota-pau-brasil",
+      storageBucket: "retorno-de-rota-pau-brasil.firebasestorage.app",
+      messagingSenderId: "792483558739",
+      appId: "1:792483558739:web:1bcaba10d2038d7a6ddda6",
+      measurementId: "G-FTGZF84NKM",
       firestoreDatabaseId: "default"
     };
 
@@ -652,13 +652,13 @@ app.get('/api/firebase/config', async (req, res) => {
   try {
     const customExists = existsSync(FIREBASE_CONFIG_PATH);
     let config = {
-      apiKey: "AIzaSyCZ2yYeYPVA_TVIEwsvQNJ9tzq4f3kYyis",
-      authDomain: "armazemrelatorios.firebaseapp.com",
-      projectId: "armazemrelatorios",
-      storageBucket: "armazemrelatorios.firebasestorage.app",
-      messagingSenderId: "1060201893094",
-      appId: "1:1060201893094:web:5702ee694b6e234f0dbf27",
-      measurementId: "",
+      apiKey: "AIzaSyC8Xkvh4Nj-VjzzDwqSNjefu3a79Y6ti2A",
+      authDomain: "retorno-de-rota-pau-brasil.firebaseapp.com",
+      projectId: "retorno-de-rota-pau-brasil",
+      storageBucket: "retorno-de-rota-pau-brasil.firebasestorage.app",
+      messagingSenderId: "792483558739",
+      appId: "1:792483558739:web:1bcaba10d2038d7a6ddda6",
+      measurementId: "G-FTGZF84NKM",
       firestoreDatabaseId: "default"
     };
 

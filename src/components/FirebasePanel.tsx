@@ -1392,7 +1392,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={authDomain} 
               onChange={(e) => setAuthDomain(e.target.value)}
-              placeholder="Ex: armazemrelatorios.firebaseapp.com"
+              placeholder="Ex: retorno-de-rota-pau-brasil.firebaseapp.com"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>
@@ -1405,7 +1405,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={projectId} 
               onChange={(e) => setProjectId(e.target.value)}
-              placeholder="Ex: armazemrelatorios"
+              placeholder="Ex: retorno-de-rota-pau-brasil"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>
@@ -1418,7 +1418,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={storageBucket} 
               onChange={(e) => setStorageBucket(e.target.value)}
-              placeholder="Ex: armazemrelatorios.firebasestorage.app"
+              placeholder="Ex: retorno-de-rota-pau-brasil.firebasestorage.app"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>
@@ -1431,7 +1431,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={messagingSenderId} 
               onChange={(e) => setMessagingSenderId(e.target.value)}
-              placeholder="Ex: 1060201893094"
+              placeholder="Ex: 792483558739"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>
@@ -1444,7 +1444,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={appId} 
               onChange={(e) => setAppId(e.target.value)}
-              placeholder="Ex: 1:1060201893094:web:5702ee694b6e234f0dbf27"
+              placeholder="Ex: 1:792483558739:web:1bcaba10d2038d7a6ddda6"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>
@@ -1457,7 +1457,7 @@ export default function FirebasePanel({ theme }: FirebasePanelProps = {}) {
               type="text" 
               value={measurementId} 
               onChange={(e) => setMeasurementId(e.target.value)}
-              placeholder="Ex: G-XXXXXXXXXX"
+              placeholder="Ex: G-FTGZF84NKM"
               className="w-full bg-[#07090d] border border-[#222d3a] rounded-lg px-3 py-2 text-xs text-snow font-mono focus:border-[#f5a623] focus:outline-none"
             />
           </div>

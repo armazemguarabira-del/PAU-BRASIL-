@@ -38,11 +38,13 @@ import {
   HardHat,
   UserCheck,
   FileText,
+  FileSpreadsheet,
   Download,
   RefreshCw,
   Search,
   Filter
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Usuario, Empresa, QuebraRow } from '../types';
 import { db } from '../firebase';
 import { useEmpresaData } from '../context/EmpresaDataContext';
@@ -600,6 +602,31 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
       list = list.filter(item => (item.area || '').toUpperCase() === recordsFilterArea.toUpperCase());
     }
 
+    // Header Date Filter (startDate and endDate)
+    if (startDate || endDate) {
+      list = list.filter(q => {
+        let rowISO = '';
+        if (q.dataISO) {
+          rowISO = q.dataISO.split('T')[0];
+        } else if (q.data) {
+          if (q.data.includes('/')) {
+            const parts = q.data.split('/');
+            if (parts.length === 3) {
+              const yyyy = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+              rowISO = `${yyyy}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+          } else if (q.data.includes('-')) {
+            rowISO = q.data.split('T')[0];
+          }
+        }
+        if (rowISO) {
+          if (startDate && rowISO < startDate) return false;
+          if (endDate && rowISO > endDate) return false;
+        }
+        return true;
+      });
+    }
+
     // Date quick filter
     if (recordsDateFilter === 'HOJE') {
       const todayISO = new Date().toISOString().split('T')[0];
@@ -616,7 +643,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     }
 
     return list;
-  }, [quebras, recordsSearch, recordsFilterOrigem, recordsFilterTurno, recordsFilterArea, recordsDateFilter]);
+  }, [quebras, recordsSearch, recordsFilterOrigem, recordsFilterTurno, recordsFilterArea, recordsDateFilter, startDate, endDate]);
 
   // Dimension-specific datasets for charts (excluding own dimension so chart elements stay visible)
   const motivosData = useMemo(() => {
@@ -942,23 +969,207 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
     }));
   }, [sortedSkus]);
 
-  // Export records from the operational list to CSV
+  // Helper to format date into DD/MM/YYYY
+  const formatDateBR = (data?: string, dataISO?: string): string => {
+    if (data && data.includes('/')) return data;
+    if (dataISO) {
+      const raw = dataISO.split('T')[0];
+      const parts = raw.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    if (data && data.includes('-')) {
+      const parts = data.split('T')[0].split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return data || dataISO || '-';
+  };
+
+  // Export records from the filtered list directly to Excel (.xlsx)
+  const handleExportDetailedExcel = () => {
+    // Export prioritizes filtered records according to current view and active date filter
+    const recordsToExport = activeSubTab === 'registros'
+      ? filteredRecordsList
+      : (hasActiveHeaderFilters || startDate || endDate ? crossFilteredData : (crossFilteredData.length > 0 ? crossFilteredData : quebras));
+
+    if (!recordsToExport || recordsToExport.length === 0) {
+      alert('Nenhum registro de quebra encontrado para a data ou filtros selecionados.');
+      return;
+    }
+
+    try {
+      const rowsData = recordsToExport.map(r => {
+        // 1. Data (DD/MM/AAAA)
+        let dataFmt = '-';
+        if (r.data && r.data.includes('/')) {
+          dataFmt = r.data;
+        } else if (r.dataISO) {
+          const isoPart = r.dataISO.split('T')[0];
+          const p = isoPart.split('-');
+          if (p.length === 3) dataFmt = `${p[2]}/${p[1]}/${p[0]}`;
+        } else if (r.data && r.data.includes('-')) {
+          const p = r.data.split('T')[0].split('-');
+          if (p.length === 3) dataFmt = `${p[2]}/${p[1]}/${p[0]}`;
+        } else if (r.data) {
+          dataFmt = r.data;
+        }
+
+        // 2. Cód. SKU
+        const codSku = r.codProduto ? String(r.codProduto) : '-';
+
+        // 3. Descrição
+        const desc = r.descricao || '-';
+
+        // 4. Quantidade (unidades/caixas reais)
+        const qtd = Number(r.quantidade || 0);
+
+        // 5. HL Perdido (fator de hectolitro real do cadastro de produto)
+        let hl = 0;
+        if (r.hlPerdido !== undefined && r.hlPerdido !== null && Number(r.hlPerdido) > 0) {
+          hl = Number(r.hlPerdido);
+        } else {
+          hl = convertCxToHE(qtd, desc, codSku);
+        }
+        const hlFmt = Number(hl.toFixed(2));
+
+        // 6. Valor Estimado (R$) (cálculo financeiro real baseado no preço do produto)
+        let val = 0;
+        if (r.valorTotal !== undefined && r.valorTotal !== null && Number(r.valorTotal) > 0) {
+          val = Number(r.valorTotal);
+        } else if (r.valor !== undefined && r.valor !== null && Number(r.valor) > 0) {
+          val = Number(r.valor);
+        } else {
+          val = getItemValorReal(r);
+        }
+        const valorFmt = `R$ ${Number(val).toFixed(2)}`;
+
+        // 7. Área
+        const area = r.area || '-';
+
+        // 8. Turno
+        const turno = r.turno || '-';
+
+        // 9. Cód. Quebra
+        const codQuebra = r.codQuebra ? String(r.codQuebra) : '-';
+
+        // 10. Motivo
+        const motivo = r.motivo || '-';
+
+        // 11. Colaborador Responsável
+        const colab = (r.colaboradorQuebrou || r.responsavel || r.colaborador || r.operador || 'NÃO IDENTIFICADO').trim();
+
+        // APENAS AS 11 COLUNAS DA IMAGEM OFICIAL, SEM COLUNAS ADICIONAIS:
+        return {
+          'Data': dataFmt,
+          'Cód. SKU': codSku,
+          'Descrição': desc,
+          'Quantidade': qtd,
+          'HL Perdido': hlFmt,
+          'Valor Estimado (R$)': valorFmt,
+          'Área': area,
+          'Turno': turno,
+          'Cód. Quebra': codQuebra,
+          'Motivo': motivo,
+          'Colaborador Responsável': colab
+        };
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(rowsData);
+
+      // Formatting exact column widths for the 11 columns
+      ws['!cols'] = [
+        { wch: 14 },  // Data
+        { wch: 12 },  // Cód. SKU
+        { wch: 42 },  // Descrição
+        { wch: 14 },  // Quantidade
+        { wch: 14 },  // HL Perdido
+        { wch: 22 },  // Valor Estimado (R$)
+        { wch: 18 },  // Área
+        { wch: 12 },  // Turno
+        { wch: 14 },  // Cód. Quebra
+        { wch: 32 },  // Motivo
+        { wch: 28 },  // Colaborador Responsável
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Quebras');
+
+      let dateSuffix = '';
+      if (startDate && endDate) {
+        dateSuffix = startDate === endDate ? startDate : `${startDate}_ate_${endDate}`;
+      } else if (startDate || endDate) {
+        dateSuffix = startDate || endDate;
+      } else {
+        dateSuffix = new Date().toISOString().split('T')[0];
+      }
+
+      const filename = `relatorio_detalhado_quebras_${dateSuffix}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error('Erro ao exportar arquivo Excel:', err);
+      alert('Erro ao exportar para Excel: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  // Export records from the operational list to CSV (kept for fallback)
   const handleExportRecordsCsv = () => {
-    const headers = ['Data', 'Cód. SKU', 'Descrição', 'Qtd (cx/un)', 'Volume (HL)', 'Valor (R$)', 'Motivo', 'Cód. Motivo', 'Área', 'Turno', 'Responsável / Ajudante', 'Origem'];
-    const rows = filteredRecordsList.map(r => [
-      `"${r.data || r.dataISO || ''}"`,
-      `"${r.codProduto || ''}"`,
-      `"${(r.descricao || '').replace(/"/g, '""')}"`,
-      r.quantidade || 0,
-      convertCxToHE(r.quantidade, r.descricao, r.codProduto).toFixed(2),
-      getItemValorReal(r).toFixed(2),
-      `"${(r.motivo || '').replace(/"/g, '""')}"`,
-      `"${r.codQuebra || ''}"`,
-      `"${r.area || ''}"`,
-      `"${r.turno || ''}"`,
-      `"${(r.colaborador || r.colaboradorQuebrou || r.responsavel || '').replace(/"/g, '""')}"`,
-      `"${r.origem === 'AJUDANTE_OPERACAO' || (r as any).recolhidoAjudante ? 'Ajudante (Produtividade)' : 'Base Oficial'}"`
-    ]);
+    const headers = ['Data', 'Cód. SKU', 'Descrição', 'Quantidade', 'HL Perdido', 'Valor Estimado (R$)', 'Área', 'Turno', 'Cód. Quebra', 'Motivo', 'Colaborador Responsável'];
+    const rows = filteredRecordsList.map(r => {
+      let dataFmt = '-';
+      if (r.data && r.data.includes('/')) {
+        dataFmt = r.data;
+      } else if (r.dataISO) {
+        const isoPart = r.dataISO.split('T')[0];
+        const p = isoPart.split('-');
+        if (p.length === 3) dataFmt = `${p[2]}/${p[1]}/${p[0]}`;
+      } else if (r.data && r.data.includes('-')) {
+        const p = r.data.split('T')[0].split('-');
+        if (p.length === 3) dataFmt = `${p[2]}/${p[1]}/${p[0]}`;
+      } else if (r.data) {
+        dataFmt = r.data;
+      }
+
+      const codSku = r.codProduto ? String(r.codProduto) : '-';
+      const desc = (r.descricao || '-').replace(/"/g, '""');
+      const qtd = Number(r.quantidade || 0);
+
+      let hl = 0;
+      if (r.hlPerdido !== undefined && r.hlPerdido !== null && Number(r.hlPerdido) > 0) {
+        hl = Number(r.hlPerdido);
+      } else {
+        hl = convertCxToHE(qtd, r.descricao || '', codSku);
+      }
+      const hlFmt = hl.toFixed(2);
+
+      let val = 0;
+      if (r.valorTotal !== undefined && r.valorTotal !== null && Number(r.valorTotal) > 0) {
+        val = Number(r.valorTotal);
+      } else if (r.valor !== undefined && r.valor !== null && Number(r.valor) > 0) {
+        val = Number(r.valor);
+      } else {
+        val = getItemValorReal(r);
+      }
+      const valorFmt = `R$ ${val.toFixed(2)}`;
+
+      const area = (r.area || '-').replace(/"/g, '""');
+      const turno = (r.turno || '-').replace(/"/g, '""');
+      const codQuebra = r.codQuebra ? String(r.codQuebra) : '-';
+      const motivo = (r.motivo || '-').replace(/"/g, '""');
+      const colab = (r.colaboradorQuebrou || r.responsavel || r.colaborador || r.operador || 'NÃO IDENTIFICADO').replace(/"/g, '""');
+
+      return [
+        `"${dataFmt}"`,
+        `"${codSku}"`,
+        `"${desc}"`,
+        qtd,
+        hlFmt,
+        `"${valorFmt}"`,
+        `"${area}"`,
+        `"${turno}"`,
+        `"${codQuebra}"`,
+        `"${motivo}"`,
+        `"${colab}"`
+      ];
+    });
 
     const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -1088,7 +1299,7 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
             <span>DTO Quebras</span>
           </button>
 
-          {/* POP & 5S BUTTONS */}
+          {/* POP & EXPORTAR DETALHADO EXCEL BUTTONS */}
           <button 
             onClick={() => setIsPopModalOpen(true)}
             className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider"
@@ -1097,10 +1308,12 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
           </button>
 
           <button 
-            onClick={() => setIs5SModalOpen(true)}
-            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider"
+            onClick={handleExportDetailedExcel}
+            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs uppercase tracking-wider border border-emerald-400/40 hover:scale-[1.02] active:scale-95"
+            title={`Exportar arquivo detalhado de quebras em Excel (.xlsx) da data filtrada (${activeSubTab === 'registros' ? filteredRecordsList.length : (crossFilteredData.length > 0 ? crossFilteredData.length : baseFilteredData.length)} registros)`}
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-slate-950" /> Checklist 5S
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-100" />
+            <span>Exportar Quebras Detalhado (Excel)</span>
           </button>
 
           <button 
@@ -2929,12 +3142,12 @@ function QuebrasDashboardInner({ user, empresa, onBack, initialSubTab }: Quebras
                 </button>
 
                 <button
-                  onClick={handleExportRecordsCsv}
+                  onClick={handleExportDetailedExcel}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm border-none cursor-pointer transition-all"
-                  title="Exportar registros filtrados em formato CSV"
+                  title="Exportar registros filtrados em planilha Excel (.xlsx)"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Exportar CSV</span>
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Exportar Excel</span>
                 </button>
               </div>
             </div>
