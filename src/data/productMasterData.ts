@@ -8,6 +8,9 @@ export interface ProductMaster {
   curva?: string;
   idade?: number;
   fatorPallet?: number;
+  lastro?: number;
+  camadas?: number;
+  caixasPallet?: number;
   embalagem?: string;
 }
 
@@ -3413,6 +3416,8 @@ export const PRODUCT_MASTER_DATA: ProductMaster[] = [
     "descricao": "SUKITA UVA LATA 350ML SH C/12 NPAL",
     "fator": 12,
     "fatorPallet": 286,
+    "lastro": 22,
+    "camadas": 13,
     "valor": 25.0,
     "fatorHecto": 0.04,
     "grupo": "NAB",

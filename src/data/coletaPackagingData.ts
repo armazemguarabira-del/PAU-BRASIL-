@@ -1,4 +1,4 @@
-import { getProductMeta } from '../utils/productCatalogData';
+import { getProductMeta, getCustomSkuOverrides } from '../utils/productCatalogData';
 
 export interface ColetaProdutoDef {
   codigo: string;
@@ -424,7 +424,30 @@ export function getPackagingInfo(
   const codStr = String(codigo).trim();
   const codeNum = Number(codStr);
 
-  // 1. Consulta metadados dinâmicos da plataforma (produtos recém-cadastrados, cadastros locais ou Firestore)
+  // 1. Consulta se o usuário fez override manual no painel de Cadastros / Gestão de Capacidade
+  try {
+    const overrides = getCustomSkuOverrides();
+    const custom = overrides[codeNum];
+    if (custom && typeof custom.caixasPallet === 'number' && custom.caixasPallet > 0) {
+      return {
+        caixasPallet: custom.caixasPallet,
+        lastro: custom.lastro || Math.max(1, Math.round(custom.caixasPallet / (custom.camadas || 5))),
+        descricao: custom.produto
+      };
+    }
+  } catch (e) {}
+
+  // 2. Consulta tabela estática oficial pré-configurada de coleta (PRODUTOS_COLETA_CONFIG)
+  const match = MAP_PRODUTOS_COLETA.get(codStr);
+  if (match) {
+    return {
+      caixasPallet: match.caixasPallet,
+      lastro: match.lastro,
+      descricao: match.descricao
+    };
+  }
+
+  // 3. Consulta metadados dinâmicos da plataforma (produtos recém-cadastrados, cadastros locais ou Firestore)
   if (!isNaN(codeNum) && codeNum > 0) {
     try {
       const meta = getProductMeta(codeNum, companyId);
@@ -441,16 +464,6 @@ export function getPackagingInfo(
     } catch (e) {
       // ignore
     }
-  }
-
-  // 2. Consulta tabela estática pré-configurada de coleta
-  const match = MAP_PRODUTOS_COLETA.get(codStr);
-  if (match) {
-    return {
-      caixasPallet: match.caixasPallet,
-      lastro: match.lastro,
-      descricao: match.descricao
-    };
   }
 
   return { caixasPallet: 84, lastro: 14 };

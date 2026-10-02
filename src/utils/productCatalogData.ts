@@ -952,7 +952,7 @@ export function resolvePalletAndLastro(
       case 280: // Latas Sleek 350ml c/12
         return { fatorPallet: 280, lastro: 28, camadas: 10 };
       case 286: // Latas 350ml c/12
-        return { fatorPallet: 286, lastro: 26, camadas: 11 };
+        return { fatorPallet: 286, lastro: 22, camadas: 13 };
       case 294: // Gatorade 500ml c/6
         return { fatorPallet: 294, lastro: 42, camadas: 7 };
       case 400: // Stella Sleek c/8
@@ -1000,7 +1000,7 @@ export function resolvePalletAndLastro(
     return { fatorPallet: 50, lastro: 10, camadas: 5 };
   }
   if (upperEmb.includes('350') || upperDesc.includes('350ML')) {
-    return { fatorPallet: 286, lastro: 26, camadas: 11 };
+    return { fatorPallet: 286, lastro: 22, camadas: 13 };
   }
   if (upperEmb.includes('473') || upperDesc.includes('473ML')) {
     return { fatorPallet: 220, lastro: 22, camadas: 10 };
