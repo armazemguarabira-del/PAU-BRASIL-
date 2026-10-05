@@ -780,6 +780,14 @@ app.get('/api/validades', async (req, res) => {
       const content = await fs.readFile(validadeFile, 'utf-8');
       const parsed = JSON.parse(content);
       if (parsed && Array.isArray(parsed.itens)) {
+        // Obter data original de referência do arquivo histórico, ex: "2026-09-22" -> "22/09/2026"
+        let dataRefOriginal = '22/09/2026';
+        if (parsed.dataReferencia) {
+          const parts = String(parsed.dataReferencia).split('-');
+          if (parts.length === 3) {
+            dataRefOriginal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+        }
         const converted = parsed.itens.map((it: any) => ({
           id: it.id,
           _docId: it.id,
@@ -789,7 +797,8 @@ app.get('/api/validades', async (req, res) => {
           quantidade: it.quantidade,
           localizacao: it.localizacao || 'central',
           bloco: it.localizacao === 'picking' ? '' : (it.bloco || ''),
-          dataColeta: it.dataColeta || new Date().toLocaleDateString('pt-BR'),
+          dataColeta: it.dataColeta || dataRefOriginal,
+          cadastradoEm: it.cadastradoEm || (parsed.dataReferencia ? `${parsed.dataReferencia}T08:00:00.000Z` : '2026-09-22T08:00:00.000Z'),
           empresaId: 'demo'
         }));
         return res.json({ success: true, validades: converted });

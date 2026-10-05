@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { isCustomFirebaseConnected } from '../firebase';
 import { ValidadesRepository } from '../db';
 import { Usuario, Empresa, ValidadeRow } from '../types';
@@ -680,7 +680,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
-        toast(`Produto atualizado na Semana ${semanaNumCalculada} de Agosto!`);
+        toast(`Produto atualizado com sucesso! (${semanaColetaInfo.label || `Semana ${semanaNumCalculada}`})`);
 
         if (idToUpdate) {
           ValidadesRepository.update(String(idToUpdate), dataObj, empresaId).catch(err => {
@@ -724,7 +724,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
-        toast(`Produto salvo com sucesso na Semana ${semanaNumCalculada} de Agosto!`);
+        toast(`Produto salvo com sucesso! (${semanaColetaInfo.label || `Semana ${semanaNumCalculada}`})`);
 
         // Sincronização assíncrona em segundo plano no Firestore sem travar o botão para o operador
         (async () => {
@@ -985,6 +985,45 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     }).catch(err => console.warn('[Validades API Delete Sync]', err));
   };
 
+  const handleDeleteDateGroup = (regDateKey: string, rowsToDelete: ValidadeRow[]) => {
+    let formattedDate = regDateKey;
+    try {
+      const [y, m, d] = regDateKey.split('-');
+      formattedDate = `${d}/${m}/${y}`;
+    } catch (e) {}
+
+    const count = rowsToDelete.length;
+    if (!window.confirm(`Deseja realmente limpar todos os ${count} lote(s) registrados sob a data ${formattedDate}?\n\nEsta ação removerá estes itens da contagem para que o conferente possa registrar uma nova coleta limpa do zero.`)) {
+      return;
+    }
+
+    const idsToDeleteSet = new Set(rowsToDelete.map(r => String(r._docId || (r as any).id)));
+    const remaining = validadesList.filter(item => {
+      const idKey = String(item._docId || (item as any).id);
+      return !idsToDeleteSet.has(idKey);
+    });
+
+    setValidadesList(remaining);
+    localStorage.setItem(`validades_${empresaId}`, JSON.stringify(remaining));
+    syncValidadesListToMonthlyColetas(remaining, empresaId);
+    toast(`Lotes da data ${formattedDate} removidos com sucesso!`);
+
+    // Sincroniza em segundo plano no Firestore
+    rowsToDelete.forEach(r => {
+      const idToDel = r._docId || (r as any).id;
+      if (idToDel) {
+        ValidadesRepository.delete(String(idToDel), empresaId).catch(console.error);
+      }
+    });
+
+    // Sincroniza exclusão com o servidor central
+    fetch('/api/validades', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ validades: remaining, empresaId })
+    }).catch(err => console.warn('[Validades API Group Delete Sync]', err));
+  };
+
   const handleSendRowToPnc = async (r: ValidadeRow) => {
     const qtdCx = r.quantidade || r.totalUnities || 0;
     if (!confirm(`Deseja encaminhar o item "${r.descricao}" (${qtdCx} cx) para a Guia de PNC para Tratativa?\n\nO item sairá da lista de estoque normal e será gerenciado pelo PNC.`)) {
@@ -1079,7 +1118,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
   // Helper to extract registration date key for history filtering
   const getRegDateKey = (item: ValidadeRow) => {
-    const raw = item.cadastradoEm || (item as any).dataISO || (item as any).dataRegistro || (item as any).criadoEm || (item as any).createdAt || (item as any).data;
+    const raw = item.cadastradoEm || (item as any).dataISO || (item as any).dataRegistro || (item as any).criadoEm || (item as any).createdAt || (item as any).data || item.dataColeta;
     if (raw) {
       const s = String(raw).trim();
       if (s.includes('T')) return s.split('T')[0];
@@ -1094,8 +1133,17 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         }
       }
     }
-    // Fallback: if no registration date is present, group as registered today so current session lots stay together
-    return new Date().toISOString().split('T')[0];
+    if (item.dataColeta) {
+      const parts = String(item.dataColeta).split('/');
+      if (parts.length === 3) {
+        const d = parts[0].padStart(2, '0');
+        const m = parts[1].padStart(2, '0');
+        const y = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+        return `${y}-${m}-${d}`;
+      }
+    }
+    // Fallback: se não tiver data nem dataColeta, manter como histórico base e nunca sobrescrever arbitrariamente como hoje
+    return '2026-08-28';
   };
 
   // Expiration entries mapping list
@@ -1104,11 +1152,18 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      rows = rows.filter(r => 
-        String(r.codigo).toLowerCase().includes(q) || 
-        r.descricao.toLowerCase().includes(q) ||
-        (r.bloco || '').toLowerCase().includes(q)
-      );
+      const qDigits = q.replace(/\D/g, '');
+      rows = rows.filter(r => {
+        const codMatch = String(r.codigo).toLowerCase().includes(q);
+        const descMatch = (r.descricao || '').toLowerCase().includes(q);
+        const blocoMatch = (r.bloco || '').toLowerCase().includes(q);
+        const valStr = String(r.validade || '').toLowerCase();
+        const valBr = formatDateToBR(r.validade).toLowerCase();
+        const valDigits = valStr.replace(/\D/g, '') + valBr.replace(/\D/g, '');
+        const valMatch = valStr.includes(q) || valBr.includes(q) || (qDigits.length >= 4 && valDigits.includes(qDigits));
+        const colMatch = String(r.dataColeta || '').toLowerCase().includes(q);
+        return codMatch || descMatch || blocoMatch || valMatch || colMatch;
+      });
     }
 
     if (filterLoc !== 'todos') {
@@ -2026,9 +2081,24 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
                               {rows.length} {rows.length === 1 ? 'lote registrado' : 'lotes registrados'}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0 text-slate-400 dark:text-[#6a7d92]">
-                            <span className="text-[11px] font-semibold hidden xs:inline">{isOpen ? 'Recolher' : 'Expandir'}</span>
-                            <ChevronDown className="w-4 h-4 transition-transform duration-200" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteDateGroup(regDateKey, rows);
+                              }}
+                              title={`Limpar todos os ${rows.length} lotes registrados em ${formattedRegDate}`}
+                              className="px-2.5 py-1 text-[10px] sm:text-[11px] font-bold rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-600 dark:text-red-400 cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span className="hidden sm:inline">Limpar Coleta</span>
+                              <span>({rows.length})</span>
+                            </button>
+                            <div className="flex items-center gap-1.5 text-slate-400 dark:text-[#6a7d92]">
+                              <span className="text-[11px] font-semibold hidden xs:inline">{isOpen ? 'Recolher' : 'Expandir'}</span>
+                              <ChevronDown className="w-4 h-4 transition-transform duration-200" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                            </div>
                           </div>
                         </div>
 
