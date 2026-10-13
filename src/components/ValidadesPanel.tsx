@@ -158,7 +158,18 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
   };
 
   const [activeTab, setActiveTab] = useState<'form' | 'lista' | 'stock_age' | 'futuro_shelf' | 'escoamento' | 'fefo_quadro' | 'fefo_picking' | 'fefo_estoque'>('form');
-  const [validadesList, setValidadesList] = useState<ValidadeRow[]>([]);
+  const [validadesList, setValidadesList] = useState<ValidadeRow[]>(() => {
+    try {
+      const saved = localStorage.getItem(`validades_${empresaId}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return removeLegacySeedValidades(parsed, empresaId);
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Filtros personalizados para Estoque x Estoque
