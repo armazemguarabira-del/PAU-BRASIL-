@@ -508,7 +508,7 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
     return d.toISOString().split('T')[0];
   };
 
-  const empresaData = useEmpresaData();
+  const empresaData = useEmpresaData(['repack', 'repack_validades', 'repack_action_plans', 'repack_a3_boards', 'produtos', 'colaboradores', 'acoes']);
   const repackCollection = useRepackData();
 
   // Fetch Firestore entries
@@ -536,6 +536,19 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
       if (empresaData.repack && empresaData.repack.length > 0) {
         empresaData.repack.forEach(addCustomIfNew);
       }
+      if (repackCollection && repackCollection.length > 0) {
+        repackCollection.forEach(addCustomIfNew);
+      }
+
+      // Consulta direta do banco de dados Firestore
+      RepackRepository.getAll(companyId).then(dbRows => {
+        if (Array.isArray(dbRows) && dbRows.length > 0) {
+          dbRows.forEach(addCustomIfNew);
+          const fresh = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+          fresh.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+          setActualRepackRows(fresh);
+        }
+      }).catch(() => {});
 
       // Carrega registros manuais gravados no cache/localStorage para descarregamento imediato
       const repackKeys = [
@@ -1496,10 +1509,10 @@ export default function RepackDashboard({ user, empresa, onBack, theme = 'light'
     };
 
     try {
-      await RepackRepository.create(newEntryWithId, companyId);
+      await RepackRepository.create(newEntryWithId, companyId, newDocId);
 
       // 1. Atualiza estado local imediatamente
-      const updatedRows = [newEntryWithId, ...actualRepackRows];
+      const updatedRows = [newEntryWithId, ...actualRepackRows.filter(r => (r.id || r._docId) !== newDocId)];
       setActualRepackRows(updatedRows);
       localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(updatedRows));
 

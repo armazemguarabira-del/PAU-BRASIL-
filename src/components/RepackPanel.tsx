@@ -215,7 +215,18 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
           empresaData.repack.forEach(addCustomIfNew);
         }
 
-        // 2. Carrega de repack_manual_entries_ (registros recém cadastrados pelo usuário)
+        // 2. Consulta direta do banco de dados Firestore
+        RepackRepository.getAll(companyId).then(dbRows => {
+          if (cancelLoad) return;
+          if (Array.isArray(dbRows) && dbRows.length > 0) {
+            dbRows.forEach(addCustomIfNew);
+            const freshRows = customRows.length > 0 ? [...customRows, ...officialRows] : [...officialRows];
+            freshRows.sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || '') || (b.inicio || '').localeCompare(a.inicio || ''));
+            setRepackRows(freshRows);
+          }
+        }).catch(() => {});
+
+        // 3. Carrega de repack_manual_entries_ (registros recém cadastrados pelo usuário)
         const savedManual = localStorage.getItem(`repack_manual_entries_${companyId}`);
         if (savedManual) {
           try {
@@ -357,10 +368,10 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     };
 
     try {
-      await RepackRepository.create(fullCreatedRow, companyId);
+      await RepackRepository.create(fullCreatedRow, companyId, newDocId);
 
       // 1. Atualiza estado local imediatamente
-      const nextRows = [fullCreatedRow, ...repackRows];
+      const nextRows = [fullCreatedRow, ...repackRows.filter(r => (r.id || r._docId) !== newDocId)];
       setRepackRows(nextRows);
       localStorage.setItem(`repack_rows_${companyId}`, JSON.stringify(nextRows));
 
@@ -493,9 +504,11 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     const localizacaoValor = vLocalizacao === 'outro' ? vNomeManual.trim() : 'Repack';
     const qtyVal = vQuantidade === '' ? 1 : vQuantidade;
 
+    const localDocId = `repval_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const newRow = {
       empresaId: empresa?.id || 'demo',
-      id: Date.now(),
+      id: localDocId,
+      _docId: localDocId,
       codigo: String(vSelectedProd.codigo),
       descricao: vSelectedProd.descricao,
       quantidade: qtyVal,
@@ -506,7 +519,8 @@ export default function RepackPanel({ user, empresa, shiftStarted, onRequireShif
     };
 
     try {
-      await repackValidadesRepo.create(newRow, empresa?.id || 'demo');
+      await repackValidadesRepo.create(newRow as any, empresa?.id || 'demo', localDocId);
+      setRepackValidades(prev => [newRow as any, ...prev]);
 
       // Reset
       setVProdutoBusca('');

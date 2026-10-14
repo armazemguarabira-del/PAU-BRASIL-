@@ -467,29 +467,8 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     return getAvailableProductsForConferente(empresaId, empresaData.produtos);
   }, [empresaId, empresaData.produtos, catalogTrigger]);
 
-  // Sync with empresaData (scoped to company) - Filter out repack validades
+  // Sincronização direta com o banco de dados Firestore (sem cache e sem sobrescrita indevida)
   useEffect(() => {
-    // 1. Busca na API compartilhada da nuvem/servidor para sincronizar com registros de outros colaboradores
-    fetch('/api/validades')
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.validades) && data.validades.length > 0) {
-          const conferenteRows = removeLegacySeedValidades(data.validades.filter((r: any) => {
-            const loc = String(r.localizacao || '').toLowerCase();
-            return !loc.includes('repack');
-          }));
-          if (conferenteRows.length > 0) {
-            setValidadesList(conferenteRows);
-            try {
-              localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
-              localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(conferenteRows));
-            } catch (e) {}
-            syncValidadesListToMonthlyColetas(conferenteRows, empresaId);
-          }
-        }
-      })
-      .catch(() => {});
-
     let rows: ValidadeRow[] = empresaData.validades || [];
     if (rows.length === 0) {
       const saved = localStorage.getItem(`validades_${empresaId}`);
@@ -502,7 +481,7 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       }
     }
 
-    // Exclude any repack validades and legacy seed items so this panel ONLY shows conferente validades
+    // Exclui validades de repack para exibir apenas validades do armazém/conferente
     let conferenteRows = removeLegacySeedValidades(rows.filter((r: any) => {
       const loc = String(r.localizacao || '').toLowerCase();
       const origem = String(r.origem || '').toLowerCase();
@@ -518,13 +497,20 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
       conferenteRows = getInitialDefaultValidades(empresaId);
     }
 
-    try {
-      localStorage.setItem(`validades_${empresaId}`, JSON.stringify(conferenteRows));
-      localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(conferenteRows));
-    } catch (e) {}
-
-    setValidadesList(conferenteRows);
-    syncValidadesListToMonthlyColetas(conferenteRows, empresaId);
+    setValidadesList(prevList => {
+      // Preserva lotes locais recém cadastrados que ainda estão em trânsito de sincronização com o Firestore
+      const pendingLocal = prevList.filter(prevItem => {
+        const pId = String(prevItem.id || prevItem._docId || '');
+        return pId.startsWith('val_') && !conferenteRows.some(cr => String(cr.id || cr._docId) === pId);
+      });
+      const merged = [...pendingLocal, ...conferenteRows];
+      try {
+        localStorage.setItem(`validades_${empresaId}`, JSON.stringify(merged));
+        localStorage.setItem(`armazem_validades_${empresaId}`, JSON.stringify(merged));
+      } catch (e) {}
+      syncValidadesListToMonthlyColetas(merged, empresaId);
+      return merged;
+    });
   }, [empresaData.validades, empresaId]);
 
   const getDaysRemaining = (expDate: string) => {
@@ -699,28 +685,6 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           });
         }
       } else {
-        // Sobrescrever registro anterior com a mesma combinação: código + localizacao + bloco (rua)
-        const targetCod = String(dataObj.codigo).trim();
-        const targetLoc = String(dataObj.localizacao).toLowerCase();
-        const targetRua = String(dataObj.bloco || '').trim().toLowerCase();
-
-        const idsToDel: string[] = [];
-        const filteredList = [];
-        for (const item of validadesList) {
-          const itemCod = String(item.codigo).trim();
-          const itemLoc = String(item.localizacao || 'central').toLowerCase();
-          const itemRua = String(item.bloco || '').trim().toLowerCase();
-
-          if (itemCod === targetCod && itemLoc === targetLoc && itemRua === targetRua) {
-            const idToDel = item._docId || (item as any).id;
-            if (idToDel) {
-              idsToDel.push(String(idToDel));
-            }
-          } else {
-            filteredList.push(item);
-          }
-        }
-
         const localId = Date.now();
         const localDocId = 'val_' + localId + '_' + Math.random().toString(36).substring(2, 8);
         const newRow: ValidadeRow = {
@@ -731,24 +695,22 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
           cadastradoEm: new Date().toISOString()
         };
 
-        updatedListAfterSave = [...filteredList, newRow];
+        // Adiciona o novo lote à lista sem apagar lotes existentes
+        updatedListAfterSave = [newRow, ...validadesList];
         setValidadesList(updatedListAfterSave);
         localStorage.setItem(`validades_${empresaId}`, JSON.stringify(updatedListAfterSave));
         syncValidadesListToMonthlyColetas(updatedListAfterSave, empresaId);
         toast(`Produto salvo com sucesso! (${semanaColetaInfo.label || `Semana ${semanaNumCalculada}`})`);
 
-        // Sincronização assíncrona em segundo plano no Firestore sem travar o botão para o operador
+        // Sincronização direta no Firestore
         (async () => {
           try {
-            if (idsToDel.length > 0) {
-              await Promise.allSettled(idsToDel.map(id => ValidadesRepository.delete(id, empresaId)));
-            }
             const created = await ValidadesRepository.create(newRow, empresaId, localDocId);
             if (created && created._docId && created._docId !== localDocId) {
               setValidadesList(curr => curr.map(item => item.id === localId ? { ...item, _docId: created._docId } : item));
             }
           } catch (err) {
-            console.warn('[ValidadesPanel] Background persistence:', err);
+            console.warn('[ValidadesPanel] Erro ao persistir validade no Firestore:', err);
           }
         })();
       }

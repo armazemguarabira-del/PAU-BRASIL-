@@ -81,6 +81,16 @@ export function filterHistoryForUser<T = any>(
   if (allowedDates.size === 0) return items;
 
   return items.filter(item => {
+    // Registros cadastrados pelo próprio colaborador logado SEMPRE devem estar visíveis para ele no histórico!
+    if (user?.nome && (
+      (item as any).operador === user.nome ||
+      (item as any).usuario === user.nome ||
+      (item as any).colaborador === user.nome ||
+      (item as any).colaboradorAjudante === user.nome ||
+      (item as any).userId === user.uid
+    )) {
+      return true;
+    }
     const key = getItemDateKey(item);
     return allowedDates.has(key);
   });

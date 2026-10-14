@@ -100,20 +100,6 @@ export function matchValidade(item: any, target: { codigo?: string; validade?: s
   if (!item || !target) return false;
   if (target._docId && item._docId && String(target._docId) === String(item._docId)) return true;
   if (target.id && item.id && String(target.id) === String(item.id)) return true;
-  
-  const targetCod = String(target.codigo || '').replace(/^0+/, '').trim();
-  const itemCod = String(item.codigo || item.cod || '').replace(/^0+/, '').trim();
-  
-  if (targetCod && itemCod && targetCod === itemCod) {
-    if (target.validade && item.validade) {
-      const targetVal = formatDateToBR(target.validade).trim();
-      const itemVal = formatDateToBR(item.validade).trim();
-      if (targetVal === itemVal) return true;
-      const normTargetVal = normalizeDateString(targetVal);
-      const normItemVal = normalizeDateString(itemVal);
-      if (normTargetVal && normItemVal && normTargetVal === normItemVal) return true;
-    }
-  }
   return false;
 }
 
