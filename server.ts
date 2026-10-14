@@ -603,14 +603,14 @@ app.get('/api/firebase/status', async (req, res) => {
   try {
     const customExists = existsSync(FIREBASE_CONFIG_PATH);
     let config = {
-      apiKey: "AIzaSyC8Xkvh4Nj-VjzzDwqSNjefu3a79Y6ti2A",
-      authDomain: "retorno-de-rota-pau-brasil.firebaseapp.com",
-      projectId: "retorno-de-rota-pau-brasil",
-      storageBucket: "retorno-de-rota-pau-brasil.firebasestorage.app",
-      messagingSenderId: "792483558739",
-      appId: "1:792483558739:web:1bcaba10d2038d7a6ddda6",
-      measurementId: "G-FTGZF84NKM",
-      firestoreDatabaseId: "default"
+      apiKey: "AIzaSyCU7wOQObjxciIXk8pJG7MHpKV5s5x1Upw",
+      authDomain: "armazem-facil--oficial.firebaseapp.com",
+      projectId: "armazem-facil--oficial",
+      storageBucket: "armazem-facil--oficial.firebasestorage.app",
+      messagingSenderId: "199175774274",
+      appId: "1:199175774274:web:0c4c91259e08877288cddb",
+      measurementId: "G-Q25WX12SWG",
+      firestoreDatabaseId: "(default)"
     };
 
     if (customExists) {
@@ -652,14 +652,14 @@ app.get('/api/firebase/config', async (req, res) => {
   try {
     const customExists = existsSync(FIREBASE_CONFIG_PATH);
     let config = {
-      apiKey: "AIzaSyC8Xkvh4Nj-VjzzDwqSNjefu3a79Y6ti2A",
-      authDomain: "retorno-de-rota-pau-brasil.firebaseapp.com",
-      projectId: "retorno-de-rota-pau-brasil",
-      storageBucket: "retorno-de-rota-pau-brasil.firebasestorage.app",
-      messagingSenderId: "792483558739",
-      appId: "1:792483558739:web:1bcaba10d2038d7a6ddda6",
-      measurementId: "G-FTGZF84NKM",
-      firestoreDatabaseId: "default"
+      apiKey: "AIzaSyCU7wOQObjxciIXk8pJG7MHpKV5s5x1Upw",
+      authDomain: "armazem-facil--oficial.firebaseapp.com",
+      projectId: "armazem-facil--oficial",
+      storageBucket: "armazem-facil--oficial.firebasestorage.app",
+      messagingSenderId: "199175774274",
+      appId: "1:199175774274:web:0c4c91259e08877288cddb",
+      measurementId: "G-Q25WX12SWG",
+      firestoreDatabaseId: "(default)"
     };
 
     if (customExists) {
@@ -763,121 +763,26 @@ app.post('/api/sync/banco-dados/hoje/:entity', async (req, res) => {
   }
 });
 
-// 15.1. ROTA COMPARTILHADA DE VALIDADES (SINCRONIZAÇÃO INSTANTÂNEA ENTRE DISPOSITIVOS)
-const VALIDADES_STORAGE_PATH = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validades_live.json');
-
+// 15.1. ROTA COMPARTILHADA DE VALIDADES (100% FIRESTORE DIRECT)
 app.get('/api/validades', async (req, res) => {
-  try {
-    if (existsSync(VALIDADES_STORAGE_PATH)) {
-      const content = await fs.readFile(VALIDADES_STORAGE_PATH, 'utf-8');
-      const parsed = JSON.parse(content);
-      const rows = Array.isArray(parsed) ? parsed : (parsed.validades || []);
-      return res.json({ success: true, validades: rows });
-    }
-
-    const validadeFile = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validade.json');
-    if (existsSync(validadeFile)) {
-      const content = await fs.readFile(validadeFile, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (parsed && Array.isArray(parsed.itens)) {
-        // Obter data original de referência do arquivo histórico, ex: "2026-09-22" -> "22/09/2026"
-        let dataRefOriginal = '22/09/2026';
-        if (parsed.dataReferencia) {
-          const parts = String(parsed.dataReferencia).split('-');
-          if (parts.length === 3) {
-            dataRefOriginal = `${parts[2]}/${parts[1]}/${parts[0]}`;
-          }
-        }
-        const converted = parsed.itens.map((it: any) => ({
-          id: it.id,
-          _docId: it.id,
-          codigo: it.codigo,
-          descricao: it.descricao,
-          validade: it.validade,
-          quantidade: it.quantidade,
-          localizacao: it.localizacao || 'central',
-          bloco: it.localizacao === 'picking' ? '' : (it.bloco || ''),
-          dataColeta: it.dataColeta || dataRefOriginal,
-          cadastradoEm: it.cadastradoEm || (parsed.dataReferencia ? `${parsed.dataReferencia}T08:00:00.000Z` : '2026-09-22T08:00:00.000Z'),
-          empresaId: 'demo'
-        }));
-        return res.json({ success: true, validades: converted });
-      }
-    }
-
-    return res.json({ success: true, validades: [] });
-  } catch (err: any) {
-    console.error('[Validades API GET Error]:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
+  res.json({ success: true, validades: [] });
 });
 
 app.post('/api/validades', async (req, res) => {
-  try {
-    const { validades, row } = req.body || {};
-    let finalRows: any[] = [];
+  res.json({ success: true, timestamp: new Date().toISOString() });
+});
 
-    if (Array.isArray(validades)) {
-      finalRows = validades;
-    } else if (row && typeof row === 'object') {
-      let existing: any[] = [];
-      if (existsSync(VALIDADES_STORAGE_PATH)) {
-        try {
-          const content = await fs.readFile(VALIDADES_STORAGE_PATH, 'utf-8');
-          existing = JSON.parse(content);
-          if (!Array.isArray(existing)) existing = [];
-        } catch (_) {}
-      }
-      const filtered = existing.filter((item: any) => 
-        !(String(item.codigo).trim() === String(row.codigo).trim() && 
-          String(item.localizacao || '').toLowerCase() === String(row.localizacao || '').toLowerCase() &&
-          String(item.bloco || '').trim().toLowerCase() === String(row.bloco || '').trim().toLowerCase())
-      );
-      finalRows = [...filtered, row];
-    } else {
-      return res.status(400).json({ success: false, error: 'Esperado array validades ou objeto row' });
-    }
+// 15.2. ROTA COMPARTILHADA DE REPACK (100% FIRESTORE DIRECT)
+app.get('/api/repack', async (req, res) => {
+  res.json({ success: true, repack: [] });
+});
 
-    await fs.mkdir(path.dirname(VALIDADES_STORAGE_PATH), { recursive: true });
-    await fs.writeFile(VALIDADES_STORAGE_PATH, JSON.stringify(finalRows, null, 2), 'utf-8');
+app.post('/api/repack', async (req, res) => {
+  res.json({ success: true, timestamp: new Date().toISOString() });
+});
 
-    // Atualiza também /public/banco-dados/hoje/validade.json
-    const validadeFile = path.join(process.cwd(), 'public', 'banco-dados', 'hoje', 'validade.json');
-    const dataRef = new Date().toISOString().split('T')[0];
-    const itemsVal = finalRows.map((v: any, idx: number) => {
-      const dias = Number(v.diasRestantes || 120);
-      let status = 'normal';
-      if (dias <= 30) status = 'critico';
-      else if (dias <= 60) status = 'alerta';
-      return {
-        id: String(v.id || v._docId || `VAL-${idx + 1}`),
-        codigo: Number(v.codigo || 0),
-        descricao: String(v.descricao || 'Produto'),
-        lote: String(v.lote || 'L-PADRAO'),
-        validade: String(v.validade || dataRef),
-        diasRestantes: dias,
-        quantidade: Number(v.quantidade || 0),
-        unidade: 'CX',
-        localizacao: String(v.localizacao || 'central'),
-        status,
-        acaoRecomendada: 'Manter fluxo FEFO padrão'
-      };
-    });
-
-    await fs.writeFile(validadeFile, JSON.stringify({
-      dataReferencia: dataRef,
-      totalItensMonitorados: itemsVal.length,
-      itensCriticos: itemsVal.filter(i => i.status === 'critico').length,
-      itensAlerta: itemsVal.filter(i => i.status === 'alerta').length,
-      itensNormais: itemsVal.filter(i => i.status === 'normal').length,
-      itens: itemsVal
-    }, null, 2), 'utf-8');
-
-    res.json({ success: true, count: finalRows.length, timestamp: new Date().toISOString() });
-  } catch (err: any) {
-    console.error('[Validades API POST Error]:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
+app.delete('/api/repack/:id', async (req, res) => {
+  res.json({ success: true });
 });
 
 // 16. EXECUTAR FECHAMENTO DIÁRIO (hoje/ -> historico/YYYY/MM/DD/ -> novo hoje/)

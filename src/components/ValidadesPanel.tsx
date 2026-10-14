@@ -500,8 +500,22 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
     setValidadesList(prevList => {
       // Preserva lotes locais recém cadastrados que ainda estão em trânsito de sincronização com o Firestore
       const pendingLocal = prevList.filter(prevItem => {
-        const pId = String(prevItem.id || prevItem._docId || '');
-        return pId.startsWith('val_') && !conferenteRows.some(cr => String(cr.id || cr._docId) === pId);
+        const pDocId = String(prevItem._docId || '');
+        const pId = String(prevItem.id || '');
+        const isLocal = pDocId.startsWith('val_') || pId.startsWith('val_') || (prevItem as any).isPendingLocal;
+        if (!isLocal) return false;
+        const existsInRemote = conferenteRows.some(cr => {
+          const crDocId = String(cr._docId || '');
+          const crId = String(cr.id || '');
+          return (pDocId && crDocId && pDocId === crDocId) ||
+                 (pId && crId && pId === crId) ||
+                 (String(cr.codigo).trim() === String(prevItem.codigo).trim() &&
+                  String(cr.lote || '').trim() === String(prevItem.lote || '').trim() &&
+                  String(cr.validade || '').trim() === String(prevItem.validade || '').trim() &&
+                  String(cr.localizacao || '').trim().toLowerCase() === String(prevItem.localizacao || '').trim().toLowerCase() &&
+                  String(cr.bloco || '').trim().toLowerCase() === String(prevItem.bloco || '').trim().toLowerCase());
+        });
+        return !existsInRemote;
       });
       const merged = [...pendingLocal, ...conferenteRows];
       try {
@@ -689,9 +703,10 @@ export default function ValidadesPanel({ user, empresa, hideSugerirMelhoria, the
         const localDocId = 'val_' + localId + '_' + Math.random().toString(36).substring(2, 8);
         const newRow: ValidadeRow = {
           _docId: localDocId,
-          id: localId,
+          id: localDocId,
           empresaId,
           ...dataObj,
+          isPendingLocal: true,
           cadastradoEm: new Date().toISOString()
         };
 

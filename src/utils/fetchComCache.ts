@@ -1,4 +1,4 @@
-import { Query, DocumentData, getDocsFromCache, getDocsFromServer, getDocs, QuerySnapshot } from 'firebase/firestore';
+import { Query, DocumentData, getDocsFromServer, getDocs, QuerySnapshot } from 'firebase/firestore';
 import { recordActualFirestoreReads } from './hybridCacheService';
 
 /**

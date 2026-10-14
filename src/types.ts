@@ -187,6 +187,7 @@ export interface ValidadeRow {
   atualizadoEm?: string;
   restauradoEm?: string;
   atualizadoPor?: string;
+  isPendingLocal?: boolean;
   _criadoEm?: string;
 }
 

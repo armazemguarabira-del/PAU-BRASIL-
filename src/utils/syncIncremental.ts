@@ -2,7 +2,6 @@ import {
   collection,
   query,
   where,
-  getDocsFromCache,
   getDocsFromServer,
   getDocs,
   onSnapshot,

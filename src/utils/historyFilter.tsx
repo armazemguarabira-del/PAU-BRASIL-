@@ -82,14 +82,17 @@ export function filterHistoryForUser<T = any>(
 
   return items.filter(item => {
     // Registros cadastrados pelo próprio colaborador logado SEMPRE devem estar visíveis para ele no histórico!
-    if (user?.nome && (
-      (item as any).operador === user.nome ||
-      (item as any).usuario === user.nome ||
-      (item as any).colaborador === user.nome ||
-      (item as any).colaboradorAjudante === user.nome ||
-      (item as any).userId === user.uid
-    )) {
-      return true;
+    if (user?.nome) {
+      const userClean = user.nome.trim().toLowerCase();
+      const userBase = userClean.split('(')[0].trim();
+      const op = String((item as any).operador || (item as any).usuario || (item as any).colaborador || (item as any).colaboradorAjudante || '').trim().toLowerCase();
+      const opBase = op.split('(')[0].trim();
+      if (
+        (opBase && (opBase === userBase || opBase.includes(userBase) || userBase.includes(opBase))) ||
+        (user.uid && (item as any).userId === user.uid)
+      ) {
+        return true;
+      }
     }
     const key = getItemDateKey(item);
     return allowedDates.has(key);
